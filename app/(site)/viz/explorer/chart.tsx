@@ -2,10 +2,11 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { MenuSelect, type MenuOption } from '@/components/viz/MenuSelect'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { FAMILY, familyOfMode, isDark } from '@/lib/viz-physics'
 import type { FissionFile } from '../fission-yields/data'
-import { fissionOf, loadFor, loadGround, valuesOf, variables, type Ground, type Var } from './data'
+import { fissionOf, loadFor, loadGround, valuesOf, variables, type Ground } from './data'
 
 // The 3D explorer (Brendan, 2026-11-06): Live Chart 3D's choice of axes (nds.iaea.org/relnsd/vcharthtml/lc3d.html) on
 // the site's 3D camera. Any ground-state property — or any of the 46 fission-yield series — goes on X, Y and Z, each
@@ -180,11 +181,8 @@ export function ExplorerChart() {
     { view: rev, replace: true, onPick: () => {} },
   )
 
-  const groups = React.useMemo(() => {
-    const m = new Map<string, Var[]>()
-    for (const v of vars) m.set(v.group, [...(m.get(v.group) ?? []), v])
-    return [...m.entries()]
-  }, [vars])
+  // The axis menus' options, under their group headings.
+  const menu = React.useMemo<MenuOption<string>[]>(() => vars.map((v) => ({ value: v.id, label: `${v.label}${v.unit ? `, ${v.unit}` : ''}`, group: v.group })), [vars])
 
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
@@ -210,23 +208,13 @@ export function ExplorerChart() {
               <span className="w-3 font-medium uppercase" style={MONO}>
                 {k}
               </span>
-              <select
-                aria-label={`${k.toUpperCase()} axis`}
+              <MenuSelect
+                label={`${k.toUpperCase()} axis`}
                 value={s[k].v}
-                onChange={(e) => setAxis(k, { v: e.target.value, log: !!byId.get(e.target.value)?.log, lo: '', hi: '' })}
-                className="min-w-0 flex-1 rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)] px-1.5 py-1 text-[11px] text-[var(--paper-text)]"
-              >
-                {groups.map(([group, list]) => (
-                  <optgroup key={group} label={group}>
-                    {list.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.label}
-                        {v.unit ? `, ${v.unit}` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                options={menu}
+                onChange={(v) => setAxis(k, { v, log: !!byId.get(v)?.log, lo: '', hi: '' })}
+                className="flex-1"
+              />
               <label className="flex items-center gap-1 text-[var(--paper-muted)]">
                 <input type="checkbox" checked={s[k].log} onChange={(e) => setAxis(k, { log: e.target.checked })} className="accent-[var(--paper-text)]" />
                 log

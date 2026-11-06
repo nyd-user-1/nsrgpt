@@ -24,6 +24,7 @@ import {
   SquareDashedMousePointer,
   UnfoldVertical,
 } from "lucide-react"
+import { MenuSelect } from "@/components/viz/MenuSelect"
 import { INSPECTOR_SET, announceInspector, inspectorOn } from "./inspector-state"
 
 /**
@@ -1501,49 +1502,27 @@ function PrefsPop({
     <Pop top={top} right={right} title="Settings" onClose={onClose} embedded={embedded}>
       <label style={row}>
         <span>Hold to read the element under the pointer</span>
-        <select
+        <MenuSelect
+          label="Hold to read the element under the pointer"
           value={prefs.hold}
-          onChange={(e) => setPrefs({ ...prefs, hold: e.target.value as Hold })}
-          style={{
-            font: "inherit",
-            fontSize: 12,
-            borderRadius: 6,
-            border: "1px solid var(--border)",
-            background: "var(--background)",
-            color: "inherit",
-            padding: "3px 6px",
-            cursor: "pointer",
-          }}
-        >
-          {HOLDS.map((h) => (
-            <option key={h.value} value={h.value}>
-              {h.label}
-            </option>
-          ))}
-        </select>
+          options={HOLDS}
+          onChange={(v) => setPrefs({ ...prefs, hold: v })}
+          className="min-w-[150px] text-[12px]"
+          contentClassName="z-[2147483647]"
+          contentAttrs={{ "data-devinspector": "" }}
+        />
       </label>
       <label style={row}>
         <span>Corner</span>
-        <select
+        <MenuSelect
+          label="Corner"
           value={prefs.corner}
-          onChange={(e) => setPrefs({ ...prefs, corner: e.target.value as Corner })}
-          style={{
-            font: "inherit",
-            fontSize: 12,
-            borderRadius: 6,
-            border: "1px solid var(--border)",
-            background: "var(--background)",
-            color: "inherit",
-            padding: "3px 6px",
-            cursor: "pointer",
-          }}
-        >
-          {CORNERS.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+          options={CORNERS}
+          onChange={(v) => setPrefs({ ...prefs, corner: v })}
+          className="min-w-[150px] text-[12px]"
+          contentClassName="z-[2147483647]"
+          contentAttrs={{ "data-devinspector": "" }}
+        />
       </label>
     </Pop>
   )

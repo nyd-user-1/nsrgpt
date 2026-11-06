@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart, valueRow } from '@/components/viz/use-echart'
+import { MenuSelect } from '@/components/viz/MenuSelect'
 import { loadLevelStats, nuclideName } from '@/lib/viz-data'
 
 // One isotope chain at a time, one bar per nuclide (chart batch B, 2026-11-04; ECharts' custom-ohlc pattern): the
@@ -127,20 +128,16 @@ export function LevelSpansChart() {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <label className="flex items-center gap-2 self-start text-[12px] text-[var(--paper-muted)]" style={SANS}>
+      <div className="flex items-center gap-2 self-start text-[12px] text-[var(--paper-muted)]" style={SANS}>
         Isotope chain
-        <select
+        <MenuSelect
+          label="Isotope chain"
           value={z}
-          onChange={(e) => setZ(Number(e.target.value))}
-          className="rounded-md border border-[var(--paper-rule-soft)] bg-[var(--paper)] px-2 py-1 text-[12px] text-[var(--paper-text)] outline-none focus:border-[var(--paper-faint)]"
-        >
-          {(chains.length ? chains : [{ z, el: '', count: 0 }]).map((c) => (
-            <option key={c.z} value={c.z}>
-              {c.el ? `${c.el} (Z ${c.z}) · ${c.count}` : `Z ${c.z}`}
-            </option>
-          ))}
-        </select>
-      </label>
+          options={(chains.length ? chains : [{ z, el: '', count: 0 }]).map((c) => ({ value: c.z, label: c.el ? `${c.el} (Z ${c.z}) · ${c.count}` : `Z ${c.z}` }))}
+          onChange={setZ}
+          className="min-w-[180px] text-[12px]"
+        />
+      </div>
       <div ref={ref} className="min-h-0 w-full flex-1" />
       <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[var(--paper-muted)]" style={SANS}>
         Each bar is one isotope. It runs from the ground state at 0 MeV up to the highest level known; the tick on the left
