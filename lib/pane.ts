@@ -12,7 +12,7 @@ export const PANE_MAIN = "nysgpt:main"
  *  a chart pressed inside panel 2 opens its data table in panel 3, and the page collapses to the slim bar. */
 export const PANE_SECOND = "nysgpt:pane-second"
 
-/** Runs in <head> before paint: a framed load marks <html> data-embed, so the shell's chrome never shows. */
+/** Runs at the top of <body> before paint: a framed load marks <html> data-embed, so the shell's chrome never shows. */
 export const EMBED_SCRIPT = `(function(){var r=document.documentElement;try{if(window.self!==window.top)r.setAttribute("data-embed","")}catch(e){r.setAttribute("data-embed","")}})()`
 
 export const isEmbedded = () => typeof document !== "undefined" && document.documentElement.hasAttribute("data-embed")

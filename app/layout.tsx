@@ -87,14 +87,16 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} ${dmSans.variable} ${fraunces.variable} ${mono.variable} antialiased`}
       suppressHydrationWarning
     >
-      <head>
+      {/* No <head> here (2026-11-05): React has to find these two scripts in order when it hydrates, and in
+          <head> it stops looking at the first text node. Netlify adds a newline and a comment after
+          <meta charset>, so every page threw React error #418 and re-rendered from scratch. At the top of
+          <body> they still run before anything paints, ahead of next-themes' own script, in the same order. */}
+      <body>
         {/* Marks a framed load (the second panel, lib/pane.ts) before paint, so its chrome never shows. */}
         <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
         {/* Trinity's theme script (lib/theme.ts), before paint — only once a theme has been picked in the
             Theme view, so NYSgpt's own light/dark stands for everyone who hasn't. */}
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem(${JSON.stringify(THEME_KEY)}))${THEME_SCRIPT}}catch(e){}` }} />
-      </head>
-      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

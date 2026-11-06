@@ -17,8 +17,8 @@
 // patches.
 //
 // The theme is data-theme on <html> (and `dark` for the four darks); its sixteen values are set on <html>
-// as --t-* variables, so the theme panel's edits are the same variables changed. THEME_SCRIPT does it in
-// <head> before the first paint, from this browser's saved choice and edits. The panel is
+// as --t-* variables, so the theme panel's edits are the same variables changed. THEME_SCRIPT does it at
+// the top of <body> before the first paint, from this browser's saved choice and edits. The panel is
 // components/theme/theme-palette.tsx; its numbers (shadow strength, the animated grid's opacities) ride
 // along as --t-* too.
 
@@ -183,7 +183,7 @@ export function themeVars(theme: Theme, custom: Custom = {}): Record<string, str
 }
 
 /**
- * Runs in <head> before the page paints: the saved theme (an old "pax" reads as PAX Light) and its edits,
+ * Runs at the top of <body> before the page paints: the saved theme (an old "pax" reads as PAX Light) and its edits,
  * as data-theme, the `dark` class and the --t-* variables on <html>.
  */
 export const THEME_SCRIPT = `(function(){try{var T=${JSON.stringify(THEMES)};var n=localStorage.getItem("${THEME_KEY}");if(n==="pax")n="pax-light";var t=T.filter(function(x){return x.name===n})[0]||T.filter(function(x){return x.name==="${DEFAULT_THEME}"})[0];var c={};try{c=JSON.parse(localStorage.getItem("${CUSTOM_KEY}:"+t.name)||"{}")||{}}catch(e){}var v=function(k){return "--t-"+k.replace(/[A-Z0-9]/g,function(m){return "-"+m.toLowerCase()})};var r=document.documentElement,s=r.style;r.setAttribute("data-theme",t.name);if(t.dark)r.classList.add("dark");else r.classList.remove("dark");s.colorScheme=t.dark?"dark":"light";for(var k in t.colors)s.setProperty(v(k),c[k]||t.colors[k]);for(var k2 in t.numbers)s.setProperty(v(k2),String(c[k2]!=null?c[k2]:t.numbers[k2]));s.setProperty("--t-shadow-rgb",t.shadowRgb);s.setProperty("--t-grid",c.grid||c.accent||t.colors.accent);s.setProperty("--t-pulse",c.pulse||c.negative||t.colors.negative)}catch(e){}})()`
