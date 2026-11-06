@@ -68,6 +68,7 @@ export function LevelSpansChart() {
       const rows = d.rows.map((r, k) => ({ r, k })).filter(({ r }) => r[0] === zSel).sort((a, b) => a.r[1] - b.r[1])
       shown.current = rows.map(({ k }) => k)
       const names = rows.map(({ r }) => nuclideName(r[0], r[1], r[2]))
+      const el = rows[0]?.r[2] ?? ''
       return {
         backgroundColor: 'transparent',
         animationDuration: 500,
@@ -77,9 +78,30 @@ export function LevelSpansChart() {
             return `${names[v[0]]} — first excited ${full.format(v[3] * 1000)} keV · median ${full.format(v[4] * 1000)} keV · highest ${full.format(v[2] * 1000)} keV · ${v[6]} levels`
           },
         },
-        grid: { left: 64, right: 24, top: 24, bottom: 56 },
-        xAxis: { type: 'category', data: names, axisLabel: { color: '#64748b' }, axisLine: { lineStyle: { color: '#94a3b8' } } },
-        yAxis: { type: 'value', name: 'Level energy, MeV', min: 0, nameTextStyle: { color: '#64748b' }, axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: 'rgba(100,116,139,0.12)' } } },
+        // Axis labels (brief 06, 2026-11-05): both axes named in full along their length, the isotope names a size
+        // up and dropped where they would overlap, the energies in MeV with one decimal.
+        grid: { left: 72, right: 24, top: 16, bottom: 64 },
+        xAxis: {
+          type: 'category',
+          data: names,
+          name: el ? `${el} isotopes, by mass number` : 'Isotopes, by mass number',
+          nameLocation: 'middle',
+          nameGap: 36,
+          nameTextStyle: { color: '#64748b', fontSize: 12 },
+          axisLabel: { color: '#475569', fontSize: 12, hideOverlap: true },
+          axisTick: { alignWithLabel: true },
+          axisLine: { lineStyle: { color: '#94a3b8' } },
+        },
+        yAxis: {
+          type: 'value',
+          name: 'Level energy (MeV)',
+          nameLocation: 'middle',
+          nameGap: 48,
+          min: 0,
+          nameTextStyle: { color: '#64748b', fontSize: 12 },
+          axisLabel: { color: '#475569', fontSize: 12, formatter: (v: number) => v.toFixed(1) },
+          splitLine: { lineStyle: { color: 'rgba(100,116,139,0.12)' } },
+        },
         series: [
           {
             type: 'custom',
@@ -95,6 +117,7 @@ export function LevelSpansChart() {
     valueRow(5),
     {
       view: z,
+      marks: true,
       point: (row) => {
         const i = shown.current.indexOf(row)
         return i >= 0 ? { seriesIndex: 0, dataIndex: i } : null
@@ -119,6 +142,10 @@ export function LevelSpansChart() {
         </select>
       </label>
       <div ref={ref} className="min-h-0 w-full flex-1" />
+      <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[var(--paper-muted)]" style={SANS}>
+        Each bar is one isotope. It runs from the ground state at 0 MeV up to the highest level known; the tick on the left
+        marks the first excited level and the tick on the right the median level.
+      </p>
     </div>
   )
 }
