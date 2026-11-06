@@ -8,7 +8,7 @@ import { AXIS, formatSeconds, ink, isDark, keyOf, loadDecay, nucName, type Decay
 // The γ-line finder (Brendan, 2026-11-06): a detector shows a peak; which nuclides emit there? Every γ line of every
 // ground-state decay in ENSDF (the IAEA Live Chart API, public/viz-data/gamma/), by energy. Type an energy and a
 // window: the lines inside it list strongest first, with the emitter's half-life, and the chart shows the
-// neighbourhood, the window shaded. Filters drop short-lived emitters (under an hour, to start) and weak lines. The lines load 250 keV at a
+// neighbourhood, the window shaded. Filters drop short-lived emitters (under an hour, to start) and weak lines. The lines load 100 keV at a
 // time, only the slices the window touches. A nuclide's name opens its decay radiation card.
 
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const

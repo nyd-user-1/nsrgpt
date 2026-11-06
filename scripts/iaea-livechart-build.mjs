@@ -98,7 +98,7 @@ write("livechart-ground.json", {
 //                                       recoil, β mean energies, electrons) and what leaves it (γ, X-rays,
 //                                       annihilation photons, neutrinos) — the particle view's heat
 //   public/viz-data/radiation/<Z>.json  per element, each isotope's lines by type — the decay radiation card
-//   public/viz-data/gamma/<bin>.json    every decay γ line, 250 keV to a file, sorted by energy — the γ-line finder
+//   public/viz-data/gamma/<bin>.json    every decay γ line, 100 keV to a file, sorted by energy — the γ-line finder
 //   public/viz-data/gamma/index.json    which slices exist, and the element symbols
 const RAD = ["a", "bm", "bp", "g", "e", "x"];
 const radiation = new Map(); // key z*1000+n → { z, n, el, t, lines: { a, bm, bp, ec, g, e, x } }
@@ -110,6 +110,9 @@ const nucOf = (r) => {
   if (!radiation.has(k)) radiation.set(k, { z, n, el: r.p_symbol, t: num(r.half_life_sec, 5), lines: {} });
   return radiation.get(k);
 };
+/** Lines below this intensity (per 100 decays) are left out of the files: the charts' axes stop there, and their
+ *  energy is a negligible share of a decay's. The per-nuclide energies are summed before this cut. */
+const FLOOR = 1e-4;
 const push = (rec, type, line) => (rec.lines[type] ??= []).push(line);
 for (const type of RAD) {
   let files = [];
@@ -141,6 +144,19 @@ for (const type of RAD) {
     }
   }
 }
+// ENSDF lists some X-ray lines among the γ rays too (²⁴¹Am's 17.14 keV Np L X-rays, 36.6 per 100 decays, are in
+// both): a γ line matching one of the nuclide's X-ray lines in energy and intensity is the same line, kept once.
+let twins = 0;
+for (const r of radiation.values()) {
+  const xs = r.lines.x ?? [];
+  if (!xs.length || !r.lines.g) continue;
+  const before = r.lines.g.length;
+  r.lines.g = r.lines.g.filter(([e, i]) => !xs.some(([xe, xi]) => Math.abs(xe - e) < 0.01 && Math.abs(xi - i) <= 1e-6 * Math.max(1, i)));
+  twins += before - r.lines.g.length;
+  if (!r.lines.g.length) delete r.lines.g;
+}
+console.log(`γ lines that repeat an X-ray line, dropped: ${twins}`);
+
 if (radiation.size) {
   // keV per decay, by where it goes.
   const sum = (list, f) => (list ?? []).reduce((s, l) => s + f(l), 0);
@@ -165,7 +181,13 @@ if (radiation.size) {
     rows,
   });
 
-  // Per element, every isotope's lines.
+  // Per element, every isotope's lines of at least FLOOR.
+  for (const r of radiation.values())
+    for (const t of Object.keys(r.lines)) {
+      const at = t === "bm" || t === "bp" ? 2 : 1;
+      r.lines[t] = r.lines[t].filter((l) => l[at] >= FLOOR);
+      if (!r.lines[t].length) delete r.lines[t];
+    }
   mkdirSync(join(OUT, "radiation"), { recursive: true });
   const byZ = new Map();
   for (const r of radiation.values()) byZ.set(r.z, [...(byZ.get(r.z) ?? []), r]);
@@ -182,7 +204,7 @@ if (radiation.size) {
   const lines = [];
   for (const r of radiation.values()) for (const [e, i] of r.lines.g ?? []) lines.push([e, i, r.z, r.n]);
   lines.sort((a, b) => a[0] - b[0]);
-  const BIN = 250;
+  const BIN = 100;
   const bins = new Map();
   for (const l of lines) {
     const b = Math.floor(l[0] / BIN);
