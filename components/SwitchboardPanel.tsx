@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { X, ChevronRight, ArrowLeft, ArrowRight, Columns2, Columns3, LayoutGrid, Sparkles, ArrowUpRight, SquareDashedMousePointer, Wrench, Palette } from 'lucide-react'
+import { X, ChevronRight, ArrowLeft, ArrowRight, Columns2, Columns3, LayoutGrid, Sparkles, ArrowUpRight, SquareDashedMousePointer, Wrench, Palette, Cloud } from 'lucide-react'
 import { CountUp } from '@/components/CountUp'
 import { compact } from '@/lib/compact'
 import { useProductStatus } from '@/components/ProductStatus'
@@ -18,6 +18,7 @@ import type { Digest } from '@/lib/digest'
 // Trinity's theme palette (components/theme/theme-palette.tsx), loaded as trinity's discussion panel loads it.
 // The Dev tools view and the AWS views load when the panel opens them, not with every page (2026-11-04).
 const DevToolsPanel = dynamic(() => import('@/components/housekeeping/devtools-panel').then((m) => m.DevToolsPanel), { ssr: false })
+const CloudflarePanel = dynamic(() => import('@/components/CloudflarePanel').then((m) => m.CloudflarePanel), { ssr: false })
 const AwsConsole = dynamic(() => import('./MarketplaceViews').then((m) => m.AwsConsole), { ssr: false })
 const AwsRegister = dynamic(() => import('./MarketplaceViews').then((m) => m.AwsRegister), { ssr: false })
 
@@ -94,6 +95,7 @@ type View =
   | { kind: 'channel'; id: ChannelId }
   | { kind: 'blocks' }
   | { kind: 'devtools' }
+  | { kind: 'cloudflare' }
   | { kind: 'theme' }
   | AwsView
 
@@ -123,6 +125,8 @@ type Ctx = {
   openBlocks: () => void
   /** Opens the Dev tools view (the housekeeping kit, ported from pax-trinity 2026-11-04). */
   openDevtools: () => void
+  /** Opens the Cloudflare view: the account's Workers usage against its plan's limits (2026-11-05). */
+  openCloudflare: () => void
   /** Opens the Theme view: trinity's theme palette (2026-11-04). */
   openTheme: () => void
 }
@@ -158,6 +162,7 @@ export function SwitchboardProvider({ children }: { children: React.ReactNode })
   const openAws = useCallback((v: AwsView) => { setView(v); setOpen(true) }, [])
   const openBlocks = useCallback(() => { setView({ kind: 'blocks' }); setOpen(true) }, [])
   const openDevtools = useCallback(() => { setView({ kind: 'devtools' }); setOpen(true) }, [])
+  const openCloudflare = useCallback(() => { setView({ kind: 'cloudflare' }); setOpen(true) }, [])
   const openTheme = useCallback(() => { setView({ kind: 'theme' }); setOpen(true) }, [])
   // Toggle always returns to the menu, so the trigger is a switch rather than a
   // way to resume wherever you happened to leave off.
@@ -167,7 +172,7 @@ export function SwitchboardProvider({ children }: { children: React.ReactNode })
   }, [])
 
   return (
-    <PanelCtx.Provider value={{ open, expanded, setExpanded, full, setFull, view, cards, digest, toggle, close, openMenu, openProduct, openChannel, openAws, openBlocks, openDevtools, openTheme }}>
+    <PanelCtx.Provider value={{ open, expanded, setExpanded, full, setFull, view, cards, digest, toggle, close, openMenu, openProduct, openChannel, openAws, openBlocks, openDevtools, openCloudflare, openTheme }}>
       {children}
       <SwitchboardPanel />
     </PanelCtx.Provider>
@@ -283,7 +288,7 @@ function ChannelRow({
 }
 
 function SwitchboardPanel() {
-  const { open, expanded, setExpanded, full, setFull, view, cards, digest, close, openMenu, openProduct, openChannel, openBlocks, openDevtools, openTheme } = useSwitchboard()
+  const { open, expanded, setExpanded, full, setFull, view, cards, digest, close, openMenu, openProduct, openChannel, openBlocks, openDevtools, openCloudflare, openTheme } = useSwitchboard()
   const [mounted, setMounted] = useState(false)
   const { linkProps } = useProductStatus()
 
@@ -293,7 +298,7 @@ function SwitchboardPanel() {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (view.kind === 'product' || view.kind === 'channel' || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'theme') openMenu()
+      if (view.kind === 'product' || view.kind === 'channel' || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'cloudflare' || view.kind === 'theme') openMenu()
       else close()
     }
     window.addEventListener('keydown', onKey)
@@ -306,7 +311,7 @@ function SwitchboardPanel() {
   const channel = view.kind === 'channel' ? CHANNELS[view.id] : null
   // One level down the live dot becomes a back arrow and the title becomes the
   // destination — that pair IS the navigation model, so no view stack is needed.
-  const deep = Boolean(product || channel || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'theme')
+  const deep = Boolean(product || channel || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'cloudflare' || view.kind === 'theme')
   // A product's header is its DOMAIN, not its name — the hero figure + the
   // "Visit <name>" footer already carry the name, and the domain is the one
   // fact the old layout buried in a footnote line (design 2026-08-24).
@@ -315,7 +320,7 @@ function SwitchboardPanel() {
   // back to the menu: a Marketplace buyer did not come from the switchboard.
   const awsTitle = view.kind === 'aws-register' ? view.plan.product : view.kind === 'aws-console' ? view.sub.product : null
   const width = full ? 'sm:w-[calc(100vw-124px)]' : expanded ? 'sm:w-[50vw]' : 'sm:w-[423px]'
-  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'theme' ? 'Theme' : channel?.name ?? 'Switchboard')
+  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'cloudflare' ? 'Cloudflare' : view.kind === 'theme' ? 'Theme' : channel?.name ?? 'Switchboard')
 
   return createPortal(
     <>
@@ -402,6 +407,8 @@ function SwitchboardPanel() {
               /* ── DEV TOOLS — trinity's kit: comments + Claude loop, pointer,
                      live edit, Inspector, settings (2026-11-04). ── */
               <DevToolsPanel />
+            ) : view.kind === 'cloudflare' ? (
+              <CloudflarePanel />
             ) : view.kind === 'theme' ? (
               /* ── THEME — trinity's palette, as it is there: the six themes,
                      every colour a live control, Copy as CSS at the foot. ── */
@@ -529,6 +536,14 @@ function SwitchboardPanel() {
                   <button onClick={openDevtools} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                     <span className="shrink-0 text-[var(--paper-faint)]"><Wrench className="h-4 w-4" /></span>
                     <span className={LABEL} style={SERIF}>Dev tools</span>
+                    <ChevronRight className={GLYPH} />
+                  </button>
+                </div>
+
+                <div className={ROW.replace('border-b', 'border-b')}>
+                  <button onClick={openCloudflare} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                    <span className="shrink-0 text-[var(--paper-faint)]"><Cloud className="h-4 w-4" /></span>
+                    <span className={LABEL} style={SERIF}>Cloudflare</span>
                     <ChevronRight className={GLYPH} />
                   </button>
                 </div>

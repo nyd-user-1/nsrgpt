@@ -12,6 +12,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # actions: read lets the build-numbers step below count this month's runs (2026-11-05).
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,6 +26,22 @@ jobs:
       - run: npx opennextjs-cloudflare build
         env:
           NODE_OPTIONS: --max-old-space-size=6144
+      # The right panel's Cloudflare view reads this deploy's numbers from /build-usage.json (2026-11-05):
+      # GitHub Actions minutes this repo used this month, static files, and the bundled worker size.
+      - name: Record this deploy's build numbers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MONTH=$(date -u +%Y-%m-01)
+          gh api --paginate "repos/${{ github.repository }}/actions/runs?created=%3E%3D${MONTH}&status=completed&per_page=100" \
+            -q '.workflow_runs[] | (((.updated_at | fromdate) - (.run_started_at | fromdate)) / 60 | ceil)' > minutes.txt || true
+          MIN=$(awk '{s+=$1} END {print s+0}' minutes.txt)
+          RUNS=$(wc -l < minutes.txt | tr -d ' ')
+          KIB=$(npx wrangler deploy --dry-run --outdir .wrangler-dry 2>&1 | sed -n 's/.*Total Upload: \([0-9.]*\) KiB.*/\1/p' | head -1)
+          FILES=$(( $(find .open-next/assets -type f | wc -l) + 1 ))
+          printf '{"month":"%s","buildMinutes":%s,"runs":%s,"assetFiles":%s,"workerKiB":%s,"builtAt":"%s","commit":"%s"}\n' \
+            "$MONTH" "$MIN" "$RUNS" "$FILES" "${KIB:-0}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${GITHUB_SHA::7}" > .open-next/assets/build-usage.json
+          cat .open-next/assets/build-usage.json
       - run: npx opennextjs-cloudflare deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

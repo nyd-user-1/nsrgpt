@@ -1,4 +1,8 @@
-# Workers static assets headers (2026-11-05). The chart data files keep their names across
-# snapshots, so an hour of browser cache, then a day of serving the cached copy while it revalidates.
+# Workers static assets headers (2026-11-05). The chart data changes rarely, so a browser keeps each file
+# for a day and, for 30 days after that, shows its cached copy at once while it checks for a newer one.
 /viz-data/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+# The Cloudflare view's per-deploy numbers: always the current deploy's.
+/build-usage.json
+  Cache-Control: no-store
