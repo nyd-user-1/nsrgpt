@@ -1,0 +1,73 @@
+rank,source,nuclide,MT,reaction,exfor_entries,nsr_papers,exfor_entries_natural_target
+18,LANL Hutchinson: MF33 absent,Cu-63,2,"N,EL",13,38,72
+31,LANL Hutchinson: MF33 absent and no processed covariance,Co-59,2,"N,EL",57,84,0
+39,LANL Hutchinson: MF33 absent,Hf-177,102,"N,G",32,100,26
+40,LANL Hutchinson: MF33 absent,Cu-65,2,"N,EL",16,40,72
+43,LANL Hutchinson: MF33 absent,Cd-113,102,"N,G",23,120,23
+47,LANL Hutchinson: MF33 absent and no processed covariance,Th-232,4,"N,INL",27,109,0
+49,LANL Hutchinson: MF33 absent,N-14,103,"N,P",34,46,0
+54,LANL Hutchinson: MF33 absent,Cl-35,102,"N,G",29,123,13
+55,LANL Hutchinson: MF33 absent,Cu-63,102,"N,G",69,107,42
+66,LANL Hutchinson: MF33 absent and no processed covariance,Cu-63,4,"N,INL",28,46,39
+89,LANL Hutchinson: MF33 absent,Hf-178,102,"N,G",32,84,26
+90,LANL Hutchinson: MF33 absent and no processed covariance,W-184,4,"N,INL",9,28,23
+94,LANL Hutchinson: MF33 absent and no processed covariance,W-186,4,"N,INL",9,28,23
+95,LANL Hutchinson: MF33 absent and no processed covariance,W-182,4,"N,INL",10,37,23
+100,LANL Hutchinson: MF33 absent and no processed covariance,Co-59,4,"N,INL",36,64,0
+105,LANL Hutchinson: MF33 absent and no processed covariance,Cu-65,4,"N,INL",24,45,39
+107,LANL Hutchinson: MF33 absent,Hf-179,102,"N,G",32,71,26
+109,LANL Hutchinson: MF33 absent and no processed covariance,W-183,4,"N,INL",5,18,23
+113,LANL Hutchinson: MF33 absent,Ni-62,2,"N,EL",12,20,61
+114,LANL Hutchinson: MF33 absent,Cu-65,102,"N,G",56,76,42
+118,LANL Hutchinson: MF33 absent,N-14,2,"N,EL",20,25,15
+123,LANL Hutchinson: MF33 absent,Hf-180,4,"N,INL",7,22,4
+138,LANL Hutchinson: MF33 absent,Hf-178,4,"N,INL",3,14,4
+140,LANL Hutchinson: MF33 absent,Hf-180,2,"N,EL",12,4,12
+152,LANL Hutchinson: MF33 absent,Fe-57,2,"N,EL",17,13,112
+156,LANL Hutchinson: MF33 absent,Hf-178,2,"N,EL",13,6,12
+159,LANL Hutchinson: MF33 absent,Hf-177,4,"N,INL",0,2,4
+163,LANL Hutchinson: MF33 absent,Fe-57,4,"N,INL",8,13,83
+164,LANL Hutchinson: MF33 absent,Hf-180,102,"N,G",48,76,26
+184,LANL Hutchinson: no processed covariance,Cl-35,103,"N,P",29,37,2
+189,LANL Hutchinson: no processed covariance,Cu-63,103,"N,P",12,35,3
+209,LANL Hutchinson: no processed covariance,Ca-40,103,"N,P",14,36,1
+228,LANL Hutchinson: no processed covariance,Co-59,102,"N,G",89,156,0
+247,LANL Hutchinson: no processed covariance,Th-232,16,"N,2N",36,57,0
+255,LANL Hutchinson: no processed covariance,Cl-35,4,"N,INL",3,10,6
+264,LANL Hutchinson: no processed covariance,Ca-40,107,"N,A",22,46,1
+266,LANL Hutchinson: no processed covariance,Mn-55,4,"N,INL",33,49,0
+267,LANL Hutchinson: no processed covariance,Al-27,103,"N,P",160,138,0
+279,LANL Hutchinson: no processed covariance,Au-197,2,"N,EL",56,66,0
+285,LANL Hutchinson: no processed covariance,Au-197,4,"N,INL",33,52,0
+292,LANL Hutchinson: no processed covariance,Cl-35,107,"N,A",22,15,0
+297,LANL Hutchinson: no processed covariance,W-183,16,"N,2N",2,11,5
+302,LANL Hutchinson: no processed covariance,W-186,16,"N,2N",17,21,5
+304,LANL Hutchinson: no processed covariance,Cl-37,4,"N,INL",4,6,6
+307,LANL Hutchinson: no processed covariance,W-184,16,"N,2N",4,8,5
+311,LANL Hutchinson: no processed covariance,C-13,102,"N,G",17,49,8
+338,LANL Hutchinson: no processed covariance,B-10,105,"N,T",5,14,2
+350,LANL Hutchinson: no processed covariance,Mo-92,103,"N,P",65,54,2
+351,LANL Hutchinson: no processed covariance,Al-27,107,"N,A",157,153,0
+352,LANL Hutchinson: no processed covariance,W-182,16,"N,2N",10,17,5
+1,"MIT Ebiwonjumi: W gamma heating, no single reaction",W,,,,,
+2,MIT Ebiwonjumi,Pb-208,16,"N,2N",15,31,13
+3,MIT Ebiwonjumi,Pb-207,16,"N,2N",5,14,13
+4,MIT Ebiwonjumi,Pb-206,16,"N,2N",7,16,13
+5,MIT Ebiwonjumi (NEA HPRL),Cl-35,103,"N,P",29,37,2
+6,MIT Ebiwonjumi,Cl-35,107,"N,A",22,15,0
+7,MIT Ebiwonjumi (NEA HPRL),O-16,107,"N,A",31,54,1
+8,MIT Ebiwonjumi,Si-28,103,"N,P",77,93,2
+9,MIT Ebiwonjumi,Si-28,107,"N,A",30,39,0
+1,"PPPL (from photos, no reaction given)",Pb-207,,"any N,x",68,219,376
+2,"PPPL (from photos, no reaction given)",Pb-206,,"any N,x",96,204,376
+3,"PPPL (from photos, no reaction given)",Er-166,,"any N,x",44,100,53
+4,"PPPL (from photos, no reaction given)",Mg-26,,"any N,x",60,98,164
+5,"PPPL (from photos, no reaction given)",Er-170,,"any N,x",57,102,53
+6,"PPPL (from photos, no reaction given)",Zr-92,,"any N,x",76,139,166
+7,"PPPL (from photos, no reaction given)",Mo-92,,"any N,x",163,250,182
+8,"PPPL (from photos, no reaction given)",Zr-96,,"any N,x",81,137,166
+9,"PPPL (from photos, no reaction given)",Pt-196,,"any N,x",38,68,61
+10,"PPPL (from photos, no reaction given)",Pb-208,,"any N,x",137,647,376
+11,"PPPL (from photos, no reaction given)",W-180,,"any N,x",19,33,189
+12,"PPPL (from photos, no reaction given)",Si-28,,"any N,x",175,381,178
+13,"PPPL (from photos, no reaction given)",O-16,,"any N,x",173,418,104
