@@ -517,7 +517,9 @@ export default function KnowledgeScene() {
           <Switch label="3D" on={three} onToggle={() => setThree((v) => !v)} />
         </div>
         <span className="text-[10px] text-[var(--paper-faint)]">
-          {grid ? 'Click a block to list its nuclides; Shift-click adds more.' : 'Click a nuclide; Shift-click adds more.'}
+          {grid ? 'Click a block to list its nuclides.' : 'Click a nuclide.'}
+          <br />
+          Shift-click adds more.
         </span>
       </div>
 
