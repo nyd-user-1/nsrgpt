@@ -22,6 +22,7 @@ export const VIZ_CHARTS: VizChart[] = [
   { href: "/viz/decay2", title: "Decay simulation 2", body: "The decay simulation as a surface: x N · y Z · height √ population. It opens flat on every ground state and deforms as decays run." },
   { href: "/viz/decay-chain", title: "Decay chain", body: "x time · y activity or atoms, both log, from one gram of one nuclide: every member of its decay chain, from the exact Bateman solution. Dots mark each daughter's peak." },
   { href: "/viz/knowledge", title: "Knowledge map", body: "x N · depth Z, 7,986 nuclides. Size adopted levels, colour years since the ENSDF evaluation; grey rings are studied but never evaluated." },
+  { href: "/viz/knowledge-3d", title: "Knowledge map 2", body: "x N · depth Z · height adopted levels, log: each evaluated nuclide a column, coloured by years since its ENSDF evaluation; grey tiles are studied but never evaluated. A switch lays 10 × 10 blocks over the floor to list a block's nuclides." },
   { href: "/viz/spectra", title: "Spectra", body: "The line strips in 2D with a zoom slider to stretch a run of nuclei; a click opens that nucleus's full capture-γ spectrum beside them." },
   { href: "/viz/gamma-atlas", title: "Heatmap", body: "x γ energy in 25 keV bins · y product nucleus by A; heat the bin's summed capture-γ intensity per 100 captures." },
   { href: "/viz/gamma-punchcard", title: "Punch card", body: "x γ energy in 0.5 MeV bins · y element; heat the summed capture-γ intensity, averaged over the element's product nuclei." },
