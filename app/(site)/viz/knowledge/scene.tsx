@@ -1,12 +1,14 @@
 'use client'
 
-// The knowledge map (/viz/knowledge, prototype C, 2026-11-04): every nuclide the literature indexes, at (N, Z).
-// Evaluated nuclides are square tiles (2026-11-06: squares sit edge to edge on the N × Z grid, one nuclide per cell;
-// spheres overlapped) sized by the levels in their ENSDF Adopted Levels deck, up to just under a cell, and coloured
-// by the years since the evaluation's literature cutoff; nuclides studied in papers but never evaluated are grey
-// hollow squares. The tile under the pointer grows and wears an ink outline. Click one for its counts: papers,
-// EXFOR entries, levels, ENSDF cards, XUNDL sets, cutoff. A switch lays 10 × 10 blocks of N and Z over the floor
-// (as on Knowledge map 2); a click on a block lists its nuclides, and the picked block wears a blue outline.
+// The knowledge map (/viz/knowledge): every nuclide the literature indexes, at (N, Z). Evaluated nuclides are coloured
+// by the years since their ENSDF evaluation's literature cutoff; nuclides studied in papers but never evaluated are grey
+// hollow squares. Two switches (Brendan, 2026-11-06, Knowledge map 2 folded in so the two can't drift):
+//   3D — off: square tiles sized by adopted levels, up to just under a cell, so they sit one per cell without
+//        overlapping. On: columns as tall as their adopted levels on a log scale.
+//   Select grid — off: a click picks a nuclide. On: a click picks a 10 × 10 block of N and Z, and the floor's own grid
+//        lines (every 10, between nuclides) are its edges; there is one grid, not two.
+// Shift-, Cmd- or Ctrl-click adds to the selection (or takes out) in either mode. The nuclide under the pointer wears
+// an ink outline; picked nuclides a heavier one; picked blocks a blue outline over a light blue fill.
 
 import * as React from 'react'
 import * as THREE from 'three'
@@ -24,19 +26,36 @@ const N0 = 95
 const Z0 = 60
 const N_MAX = 200
 const Z_MAX = 120
-
-/** A tile's side: 0.3 of a cell for one level, 0.95 for 754, the most any nuclide has, so tiles never touch. */
-const sideOf = (levels: number) => 0.3 + 0.65 * Math.sqrt(Math.min(754, Math.max(0, levels)) / 754)
 /** Nucleons a block spans, in N and in Z. */
 const BLOCK = 10
 const BLOCKS_N = Math.floor(N_MAX / BLOCK) + 1
 const BLOCKS_Z = Math.floor(Z_MAX / BLOCK) + 1
+
+/** A 2D tile's side: 0.3 of a cell for one level, 0.95 for 754, the most any nuclide has. */
+const sideOf = (levels: number) => 0.3 + 0.65 * Math.sqrt(Math.min(754, Math.max(0, levels)) / 754)
+/** A 3D column's height: 754 levels stands about 40 units over the 200 × 120 floor. */
+const heightOf = (levels: number) => Math.max(0.3, 14 * Math.log10(1 + levels))
+const COLUMN = 0.86
+const TILE_H = 0.25
+const NEVER_SIDE = 0.62
+const age = (r: KnowledgeRow) => Math.max(0, SNAPSHOT_YEAR - r.cutoff)
+const wx = (n: number) => n - N0
+const wz = (z: number) => -(z - Z0)
+/** The grid's corner: the outer corner of cell (N 0, Z 0), so every line falls between nuclides. */
+const GX0 = wx(-0.5)
+const GZ0 = wz(-0.5)
+const GW = BLOCKS_N * BLOCK
+const GD = BLOCKS_Z * BLOCK
+
 type Block = { bn: number; bz: number }
+const blockKey = (b: Block) => `${b.bn},${b.bz}`
 const blockName = (b: Block) => `N ${b.bn * BLOCK}–${b.bn * BLOCK + BLOCK - 1} · Z ${b.bz * BLOCK}–${b.bz * BLOCK + BLOCK - 1}`
 const noRaycast = () => null
-/** A unit square's outline on the floor, for drei's Line. */
 const SQUARE: [number, number, number][] = [[-0.5, 0, -0.5], [0.5, 0, -0.5], [0.5, 0, 0.5], [-0.5, 0, 0.5], [-0.5, 0, -0.5]]
-const age = (r: KnowledgeRow) => Math.max(0, SNAPSHOT_YEAR - r.cutoff)
+
+/** A nuclide's footprint and height in the current view. */
+const shapeOf = (r: KnowledgeRow, three: boolean) =>
+  r.evaluated ? (three ? { side: COLUMN, h: heightOf(r.levels) } : { side: sideOf(r.levels), h: TILE_H }) : { side: NEVER_SIDE, h: 0.02 }
 
 function useTheme(el: React.RefObject<HTMLDivElement | null>) {
   const [theme, setTheme] = React.useState({ dark: false, paper: '#ffffff', ink: '#16181d' })
@@ -64,7 +83,14 @@ function palette(dark: boolean, paper: string, ink: string): Palette {
   const inkC = new THREE.Color(dark ? '#f0e9d8' : '#16181d')
   try { inkC.set(ink) } catch { /* keep the theme default */ }
   const stops = (dark ? AGE_STOPS.dark : AGE_STOPS.light).map((c) => new THREE.Color(c))
-  return { bg, ink: inkC, grid: inkC.clone().lerp(bg, 0.88), stops, never: new THREE.Color(dark ? NEVER.dark : NEVER.light), blue: new THREE.Color(dark ? '#5b9cff' : '#2563eb') }
+  return {
+    bg,
+    ink: inkC,
+    grid: inkC.clone().lerp(bg, 0.82),
+    stops,
+    never: new THREE.Color(dark ? NEVER.dark : NEVER.light),
+    blue: new THREE.Color(dark ? '#5b9cff' : '#2563eb'),
+  }
 }
 
 /** The age scale at t ∈ [0, 1]: teal → amber → rust. */
@@ -74,260 +100,210 @@ function ageColor(stops: THREE.Color[], t: number, out: THREE.Color) {
   return out.copy(stops[i]).lerp(stops[i + 1], u - i)
 }
 
-const Chart = React.memo(function Chart({
-  rows, evaluated, never, pal, selected, onSelect, onHover, grid, picked, onBlockHover, onBlock,
+const additive = (e: { nativeEvent: Event }) => {
+  const ne = e.nativeEvent as MouseEvent
+  return ne.shiftKey || ne.metaKey || ne.ctrlKey
+}
+
+/** The tiles or columns, and the never-evaluated squares. Memoised on what they draw, so hover and selection above
+ *  them never re-render 7,986 instances. */
+const Nuclides = React.memo(function Nuclides({
+  rows, evaluated, never, pal, three, grid, onHover, onPick,
 }: {
   rows: KnowledgeRow[]
   evaluated: number[]
   never: number[]
   pal: Palette
-  selected: number | null
-  onSelect: (i: number | null) => void
-  onHover: (i: number | null) => void
-  /** The 10 × 10 blocks are on: a click picks a block, not a tile. */
+  three: boolean
   grid: boolean
-  picked: Block | null
-  onBlockHover: (b: Block | null) => void
-  onBlock: (b: Block) => void
+  onHover: (i: number | null) => void
+  onPick: (i: number, add: boolean) => void
 }) {
-  const spheres = React.useRef<THREE.InstancedMesh>(null)
-  const rings = React.useRef<THREE.InstancedMesh>(null)
-  // A flat square tile; x and z scale with the levels, y stays.
-  const tileGeom = React.useMemo(() => new THREE.BoxGeometry(1, 0.25, 1), [])
-  // A hollow square for the never-evaluated: 0.62 across, its hole 0.4.
-  const ringGeom = React.useMemo(() => {
-    const o = 0.31, i = 0.2
+  const solids = React.useRef<THREE.InstancedMesh>(null)
+  const hollows = React.useRef<THREE.InstancedMesh>(null)
+  // Base at the floor, so an instance's y scale is its height.
+  const box = React.useMemo(() => new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0), [])
+  const hollow = React.useMemo(() => {
+    const o = NEVER_SIDE / 2, i = 0.2
     const shape = new THREE.Shape([new THREE.Vector2(-o, -o), new THREE.Vector2(o, -o), new THREE.Vector2(o, o), new THREE.Vector2(-o, o)])
     shape.holes.push(new THREE.Path([new THREE.Vector2(-i, -i), new THREE.Vector2(-i, i), new THREE.Vector2(i, i), new THREE.Vector2(i, -i)]))
-    return new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2)
+    return new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2).translate(0, 0.02, 0)
   }, [])
-  // Created once: inline in the JSX they were new arrays on every render, so selecting a nuclide rebuilt them as
-  // zeros and every marker went black.
-  const sphereCol = React.useMemo(() => new Float32Array(evaluated.length * 3), [evaluated])
-  const ringCol = React.useMemo(() => new Float32Array(never.length * 3), [never])
-  // The hover marker (2026-11-05; square since 2026-11-06): the tile under the pointer grows 1.35× and an ink square
-  // outlines it. Both change outside React: one instance's matrix rewritten and uploaded alone, and the outline moved,
-  // so the 7,986 markers never re-render for a hover.
-  const marker = React.useRef<THREE.Group>(null)
-  const lit = React.useRef<{ mesh: THREE.InstancedMesh; k: number; size: number } | null>(null)
-  const tmp = React.useMemo(() => ({ m: new THREE.Matrix4(), p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() }), [])
-  const resize = (mesh: THREE.InstancedMesh, k: number, size: number) => {
-    mesh.getMatrixAt(k, tmp.m)
-    tmp.m.decompose(tmp.p, tmp.q, tmp.s)
-    mesh.setMatrixAt(k, tmp.m.compose(tmp.p, tmp.q, tmp.s.set(size, 1, size)))
-    // Just this instance's 16 floats; the renderer clears the ranges once it has uploaded them.
-    mesh.instanceMatrix.addUpdateRange(k * 16, 16)
-    mesh.instanceMatrix.needsUpdate = true
-    return tmp.p
-  }
-  const light = (mesh: THREE.InstancedMesh | null, k: number | null) => {
-    const was = lit.current
-    if (was && was.mesh === mesh && was.k === k) return
-    if (was) resize(was.mesh, was.k, was.size)
-    lit.current = null
-    const ring = marker.current
-    if (!mesh || k === null) {
-      if (ring) ring.visible = false
-      return
-    }
-    const r = rows[(mesh === spheres.current ? evaluated : never)[k]]
-    const size = mesh === spheres.current ? sideOf(r.levels) : 1
-    const at = resize(mesh, k, size * 1.35)
-    lit.current = { mesh, k, size }
-    if (ring) {
-      ring.position.set(at.x, 0.2, at.z)
-      ring.scale.setScalar((mesh === spheres.current ? size : 0.62) * 1.35 + 0.18)
-      ring.visible = true
-    }
-  }
+  // Created once: inline in the JSX they were new arrays on every render, and a re-render turned every marker black.
+  const solidCol = React.useMemo(() => new Float32Array(evaluated.length * 3), [evaluated])
+  const hollowCol = React.useMemo(() => new Float32Array(never.length * 3), [never])
 
   React.useLayoutEffect(() => {
-    // Every matrix is written fresh below, so a grown marker is back to its size.
-    lit.current = null
-    if (marker.current) marker.current.visible = false
     const m = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(), c = new THREE.Color()
-    const sp = spheres.current
-    if (sp) {
+    const sm = solids.current
+    if (sm) {
       evaluated.forEach((ri, k) => {
         const r = rows[ri]
-        p.set(r.n - N0, 0, -(r.z - Z0))
-        s.set(sideOf(r.levels), 1, sideOf(r.levels))
-        sp.setMatrixAt(k, m.compose(p, q, s))
-        sp.setColorAt(k, ageColor(pal.stops, age(r) / AGE_MAX, c))
+        const { side, h } = shapeOf(r, three)
+        sm.setMatrixAt(k, m.compose(p.set(wx(r.n), 0, wz(r.z)), q, s.set(side, h, side)))
+        sm.setColorAt(k, ageColor(pal.stops, age(r) / AGE_MAX, c))
       })
-      // A hover's pending range would make this a one-instance upload; the whole buffer goes.
-      sp.instanceMatrix.clearUpdateRanges()
-      sp.instanceMatrix.needsUpdate = true
-      if (sp.instanceColor) sp.instanceColor.needsUpdate = true
-      sp.computeBoundingSphere()
+      sm.instanceMatrix.needsUpdate = true
+      if (sm.instanceColor) sm.instanceColor.needsUpdate = true
+      sm.computeBoundingSphere()
     }
-    const rg = rings.current
-    if (rg) {
+    const hm = hollows.current
+    if (hm) {
       never.forEach((ri, k) => {
         const r = rows[ri]
-        p.set(r.n - N0, 0, -(r.z - Z0))
-        s.setScalar(1)
-        rg.setMatrixAt(k, m.compose(p, q, s))
-        rg.setColorAt(k, pal.never)
+        hm.setMatrixAt(k, m.compose(p.set(wx(r.n), 0, wz(r.z)), q, s.set(1, 1, 1)))
+        hm.setColorAt(k, pal.never)
       })
-      rg.instanceMatrix.clearUpdateRanges()
-      rg.instanceMatrix.needsUpdate = true
-      if (rg.instanceColor) rg.instanceColor.needsUpdate = true
-      rg.computeBoundingSphere()
+      hm.instanceMatrix.needsUpdate = true
+      if (hm.instanceColor) hm.instanceColor.needsUpdate = true
+      hm.computeBoundingSphere()
     }
-  }, [rows, evaluated, never, pal])
+  }, [rows, evaluated, never, pal, three])
 
-  const floorLines = React.useMemo(() => {
-    const pts: number[] = []
-    for (let n = 0; n <= N_MAX; n += 10) pts.push(n - N0, -0.6, Z0, n - N0, -0.6, -(Z_MAX - Z0))
-    for (let z = 0; z <= Z_MAX; z += 10) pts.push(-N0, -0.6, -(z - Z0), N_MAX - N0, -0.6, -(z - Z0))
-    return new Float32Array(pts)
-  }, [])
-
-  const handlers = (list: number[], mesh: React.RefObject<THREE.InstancedMesh | null>) => ({
-    // With the blocks on, a click picks a block (the floor plane below), so the tiles stand aside from the pointer.
+  // With Select grid on, a click picks a block (the floor below), so the nuclides stand aside from the pointer.
+  const handlers = (list: number[]) => ({
     raycast: grid ? noRaycast : THREE.InstancedMesh.prototype.raycast,
-    onClick: (e: { delta: number; instanceId?: number; stopPropagation: () => void }) => {
+    onClick: (e: { delta: number; instanceId?: number; stopPropagation: () => void; nativeEvent: Event }) => {
       if (e.delta > 4 || e.instanceId === undefined) return
       e.stopPropagation()
-      onSelect(list[e.instanceId])
+      onPick(list[e.instanceId], additive(e))
     },
     onPointerMove: (e: { instanceId?: number; stopPropagation: () => void }) => {
       e.stopPropagation()
-      light(e.instanceId === undefined ? null : mesh.current, e.instanceId ?? null)
       onHover(e.instanceId === undefined ? null : list[e.instanceId])
     },
-    onPointerOut: () => {
-      // Only this mesh's own marker: the pointer may already be on the other mesh's.
-      if (lit.current?.mesh === mesh.current) light(null, null)
-      onHover(null)
-    },
+    onPointerOut: () => onHover(null),
   })
 
-  const sel = selected === null ? null : rows[selected]
+  return (
+    <>
+      <instancedMesh ref={hollows} args={[hollow, undefined, never.length]} frustumCulled={false} {...handlers(never)}>
+        <meshBasicMaterial toneMapped={false} side={THREE.DoubleSide} />
+        <instancedBufferAttribute attach="instanceColor" args={[hollowCol, 3]} />
+      </instancedMesh>
+      <instancedMesh ref={solids} args={[box, undefined, evaluated.length]} frustumCulled={false} {...handlers(evaluated)}>
+        <meshLambertMaterial />
+        <instancedBufferAttribute attach="instanceColor" args={[solidCol, 3]} />
+      </instancedMesh>
+    </>
+  )
+})
 
-  // The blocks: their lines, the plane a click lands on, the hovered block's tint and the picked block's blue.
-  const bx0 = -0.5 - N0
-  const bz0 = 0.5 + Z0
-  const BW = BLOCKS_N * BLOCK
-  const BD = BLOCKS_Z * BLOCK
-  const blockLines = React.useMemo(() => {
+/** An outline around one nuclide: a square on the floor in 2D, a frame round its column in 3D. */
+function Outline({ r, three, pal, heavy }: { r: KnowledgeRow; three: boolean; pal: Palette; heavy: boolean }) {
+  const { side, h } = shapeOf(r, three)
+  const pad = heavy ? 0.45 : 0.3
+  const frame = React.useMemo(
+    () => (three ? new THREE.EdgesGeometry(new THREE.BoxGeometry(side + pad, h + 0.5, side + pad).translate(0, (h + 0.5) / 2 - 0.1, 0)) : null),
+    [three, side, h, pad],
+  )
+  React.useEffect(() => () => frame?.dispose(), [frame])
+  return (
+    <group position={[wx(r.n), 0, wz(r.z)]}>
+      {frame && (
+        <lineSegments geometry={frame} raycast={noRaycast}>
+          <lineBasicMaterial color={pal.ink} toneMapped={false} />
+        </lineSegments>
+      )}
+      <group position={[0, h + 0.06, 0]} scale={side + pad}>
+        <Line points={SQUARE} color={pal.ink} lineWidth={heavy ? 3 : 2} raycast={noRaycast} />
+      </group>
+    </group>
+  )
+}
+
+/** The floor: the one grid (every 10, between nuclides), the N and Z labels, and with Select grid on, the plane a
+ *  click lands on, the hovered block's tint and the picked blocks' blue. */
+function Floor({
+  pal, grid, blocks, onBlockHover, onBlock,
+}: {
+  pal: Palette
+  grid: boolean
+  blocks: Block[]
+  onBlockHover: (b: Block | null) => void
+  onBlock: (b: Block, add: boolean) => void
+}) {
+  const lines = React.useMemo(() => {
     const p: number[] = []
-    for (let i = 0; i <= BLOCKS_N; i++) p.push(bx0 + i * BLOCK, -0.5, bz0, bx0 + i * BLOCK, -0.5, bz0 - BD)
-    for (let j = 0; j <= BLOCKS_Z; j++) p.push(bx0, -0.5, bz0 - j * BLOCK, bx0 + BW, -0.5, bz0 - j * BLOCK)
+    const y = -0.02
+    for (let i = 0; i <= BLOCKS_N; i++) p.push(GX0 + i * BLOCK, y, GZ0, GX0 + i * BLOCK, y, GZ0 - GD)
+    for (let j = 0; j <= BLOCKS_Z; j++) p.push(GX0, y, GZ0 - j * BLOCK, GX0 + GW, y, GZ0 - j * BLOCK)
     return new Float32Array(p)
-  }, [bx0, bz0, BW, BD])
+  }, [])
   const hoverTile = React.useRef<THREE.Mesh>(null)
-  const lastBlock = React.useRef('')
+  const last = React.useRef('')
   const blockAt = (pt: THREE.Vector3): Block | null => {
-    const bn = Math.floor((pt.x - bx0) / BLOCK)
-    const bz = Math.floor((bz0 - pt.z) / BLOCK)
+    const bn = Math.floor((pt.x - GX0) / BLOCK)
+    const bz = Math.floor((GZ0 - pt.z) / BLOCK)
     return bn >= 0 && bn < BLOCKS_N && bz >= 0 && bz < BLOCKS_Z ? { bn, bz } : null
   }
-  const centre = (b: Block): [number, number, number] => [bx0 + (b.bn + 0.5) * BLOCK, -0.45, bz0 - (b.bz + 0.5) * BLOCK]
-  const hoverBlock = (b: Block | null) => {
-    const k = b ? `${b.bn},${b.bz}` : ''
-    if (k === lastBlock.current) return
-    lastBlock.current = k
+  const centre = (b: Block, y: number): [number, number, number] => [GX0 + (b.bn + 0.5) * BLOCK, y, GZ0 - (b.bz + 0.5) * BLOCK]
+  const hover = (b: Block | null) => {
+    const k = b ? blockKey(b) : ''
+    if (k === last.current) return
+    last.current = k
     const t = hoverTile.current
     if (t) {
       t.visible = !!b
-      if (b) t.position.set(...centre(b))
+      if (b) t.position.set(...centre(b, 0.01))
     }
     onBlockHover(b)
   }
 
   return (
     <>
-      <color attach="background" args={[pal.bg]} />
-      <lineSegments frustumCulled={false} raycast={() => null}>
+      <lineSegments frustumCulled={false} raycast={noRaycast}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[floorLines, 3]} />
+          <bufferAttribute attach="attributes-position" args={[lines, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color={pal.grid} toneMapped={false} />
+        {/* Darker while Select grid is on: the lines are the blocks' edges then. */}
+        <lineBasicMaterial color={grid ? pal.ink : pal.grid} transparent opacity={grid ? 0.5 : 1} toneMapped={false} />
       </lineSegments>
-      <Html position={[N_MAX - N0 + 6, -0.6, Z0]} center style={{ ...MONO, fontSize: 11, color: 'var(--paper-faint)', pointerEvents: 'none' }}>
+      <Html position={[GX0 + GW + 6, 0, GZ0]} center style={{ ...MONO, fontSize: 11, color: 'var(--paper-faint)', pointerEvents: 'none' }}>
         N
       </Html>
-      <Html position={[-N0, -0.6, -(Z_MAX - Z0) - 6]} center style={{ ...MONO, fontSize: 11, color: 'var(--paper-faint)', pointerEvents: 'none' }}>
+      <Html position={[GX0, 0, GZ0 - GD - 6]} center style={{ ...MONO, fontSize: 11, color: 'var(--paper-faint)', pointerEvents: 'none' }}>
         Z
       </Html>
-
-      <instancedMesh ref={rings} args={[ringGeom, undefined, never.length]} frustumCulled={false} {...handlers(never, rings)}>
-        <meshBasicMaterial toneMapped={false} side={THREE.DoubleSide} />
-        <instancedBufferAttribute attach="instanceColor" args={[ringCol, 3]} />
-      </instancedMesh>
-
-      <instancedMesh ref={spheres} args={[tileGeom, undefined, evaluated.length]} frustumCulled={false} {...handlers(evaluated, spheres)}>
-        <meshBasicMaterial toneMapped={false} />
-        <instancedBufferAttribute attach="instanceColor" args={[sphereCol, 3]} />
-      </instancedMesh>
-
-      <group ref={marker} visible={false}>
-        <Line points={SQUARE} color={pal.ink} lineWidth={2} raycast={noRaycast} />
-      </group>
-
-      {sel && (
-        <group position={[sel.n - N0, 0.22, -(sel.z - Z0)]} scale={(sel.evaluated ? sideOf(sel.levels) : 0.62) + 0.45}>
-          <Line points={SQUARE} color={pal.ink} lineWidth={3} raycast={noRaycast} />
-        </group>
-      )}
-
       {grid && (
         <>
-          <lineSegments frustumCulled={false} raycast={noRaycast}>
-            <bufferGeometry>
-              <bufferAttribute attach="attributes-position" args={[blockLines, 3]} />
-            </bufferGeometry>
-            <lineBasicMaterial color={pal.ink} transparent opacity={0.45} toneMapped={false} />
-          </lineSegments>
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
-            position={[bx0 + BW / 2, -0.5, bz0 - BD / 2]}
+            position={[GX0 + GW / 2, 0, GZ0 - GD / 2]}
             onPointerMove={(e) => {
               e.stopPropagation()
-              hoverBlock(blockAt(e.point))
+              hover(blockAt(e.point))
             }}
-            onPointerOut={() => hoverBlock(null)}
+            onPointerOut={() => hover(null)}
             onClick={(e) => {
               if (e.delta > 4) return
               const b = blockAt(e.point)
-              if (b) onBlock(b)
+              if (b) onBlock(b, additive(e))
             }}
           >
-            <planeGeometry args={[BW, BD]} />
+            <planeGeometry args={[GW, GD]} />
             <meshBasicMaterial transparent opacity={0} depthWrite={false} />
           </mesh>
           <mesh ref={hoverTile} visible={false} rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast}>
             <planeGeometry args={[BLOCK, BLOCK]} />
             <meshBasicMaterial color={pal.ink} transparent opacity={0.08} depthWrite={false} toneMapped={false} />
           </mesh>
-          {/* The picked block: a blue outline over a light blue fill (Brendan, 2026-11-06). */}
-          {picked && (
-            <>
-              <mesh rotation={[-Math.PI / 2, 0, 0]} position={centre(picked)} raycast={noRaycast}>
+          {blocks.map((b) => (
+            <group key={blockKey(b)}>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={centre(b, 0.015)} raycast={noRaycast}>
                 <planeGeometry args={[BLOCK, BLOCK]} />
                 <meshBasicMaterial color={pal.blue} transparent opacity={0.14} depthWrite={false} toneMapped={false} />
               </mesh>
-              <Line
-                points={[
-                  [bx0 + picked.bn * BLOCK, -0.4, bz0 - picked.bz * BLOCK],
-                  [bx0 + (picked.bn + 1) * BLOCK, -0.4, bz0 - picked.bz * BLOCK],
-                  [bx0 + (picked.bn + 1) * BLOCK, -0.4, bz0 - (picked.bz + 1) * BLOCK],
-                  [bx0 + picked.bn * BLOCK, -0.4, bz0 - (picked.bz + 1) * BLOCK],
-                  [bx0 + picked.bn * BLOCK, -0.4, bz0 - picked.bz * BLOCK],
-                ]}
-                color={pal.blue}
-                lineWidth={3}
-                raycast={noRaycast}
-              />
-            </>
-          )}
+              <group position={centre(b, 0.05)} scale={BLOCK}>
+                <Line points={SQUARE} color={pal.blue} lineWidth={3} raycast={noRaycast} />
+              </group>
+            </group>
+          ))}
         </>
       )}
     </>
   )
-})
+}
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -337,6 +313,49 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
         {value}
       </span>
     </div>
+  )
+}
+
+function Switch({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onToggle}
+      className="flex items-center justify-between gap-2 rounded-md border border-[var(--paper-rule)]/25 px-2 py-1 text-left transition-colors hover:bg-[var(--paper-quiet)]"
+    >
+      <span>{label}</span>
+      <span className={`relative h-3.5 w-6 rounded-full transition-colors ${on ? 'bg-[var(--paper-text)]' : 'bg-[var(--paper-rule)]/40'}`}>
+        <span className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-[var(--paper)] transition-[left] ${on ? 'left-3' : 'left-0.5'}`} />
+      </span>
+    </button>
+  )
+}
+
+/** The listed nuclides: a picked block's (or several), or several picked nuclides. */
+function NuclideTable({ list, fmt }: { list: KnowledgeRow[]; fmt: (v: number) => string }) {
+  if (!list.length) return <p className="text-[12px] text-[var(--paper-muted)]">No nuclides here.</p>
+  return (
+    <table className="w-full border-collapse text-[12px]">
+      <thead className="sticky top-0 bg-[var(--paper)]">
+        <tr className="text-[10px] uppercase tracking-[0.12em] text-[var(--paper-faint)]" style={MONO}>
+          <th className="py-1.5 text-left font-normal">Nuclide</th>
+          <th className="py-1.5 text-right font-normal">Levels</th>
+          <th className="py-1.5 text-right font-normal">Years</th>
+          <th className="py-1.5 text-right font-normal">Papers</th>
+        </tr>
+      </thead>
+      <tbody>
+        {list.map((r) => (
+          <tr key={`${r.z},${r.n}`} className="border-t border-[var(--paper-rule)]/10">
+            <td className="py-1">{knowledgeName(r)}</td>
+            <td className="py-1 text-right tabular-nums" style={MONO}>{r.evaluated ? fmt(r.levels) : '—'}</td>
+            <td className="py-1 text-right tabular-nums" style={MONO}>{r.evaluated && r.cutoff ? age(r) : '—'}</td>
+            <td className="py-1 text-right tabular-nums" style={MONO}>{fmt(r.papers)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
 
@@ -356,18 +375,29 @@ export default function KnowledgeScene() {
     return { evaluated, never }
   }, [rows])
   const pal = React.useMemo(() => palette(theme.dark, theme.paper, theme.ink), [theme])
-  const [selected, setSelected] = React.useState<number | null>(null)
-  const [hover, setHover] = React.useState<number | null>(null)
-  const onHover = React.useCallback((i: number | null) => setHover((h) => (h === i ? h : i)), [])
   const cross = useCrossRules()
-  // The 10 × 10 blocks (2026-11-06), as on Knowledge map 2.
+
+  const [three, setThree] = React.useState(false)
   const [grid, setGrid] = React.useState(false)
+  const [picks, setPicks] = React.useState<number[]>([])
+  const [blocks, setBlocks] = React.useState<Block[]>([])
+  const [hover, setHover] = React.useState<number | null>(null)
   const [hoverBlock, setHoverBlock] = React.useState<Block | null>(null)
-  const [block, setBlock] = React.useState<Block | null>(null)
-  const onBlock = React.useCallback((b: Block) => {
-    setBlock(b)
-    setSelected(null)
-  }, [])
+  const onHover = React.useCallback((i: number | null) => setHover((h) => (h === i ? h : i)), [])
+  const onPick = React.useCallback(
+    (i: number, add: boolean) => setPicks((cur) => (add ? (cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i]) : [i])),
+    [],
+  )
+  const onBlock = React.useCallback(
+    (b: Block, add: boolean) =>
+      setBlocks((cur) => {
+        const k = blockKey(b)
+        if (!add) return [b]
+        return cur.some((x) => blockKey(x) === k) ? cur.filter((x) => blockKey(x) !== k) : [...cur, b]
+      }),
+    [],
+  )
+
   const byBlock = React.useMemo(() => {
     const m = new Map<string, number[]>()
     rows?.forEach((r, i) => {
@@ -378,34 +408,31 @@ export default function KnowledgeScene() {
     })
     return m
   }, [rows])
-  const listed = React.useMemo(
-    () => (rows && block ? (byBlock.get(`${block.bn},${block.bz}`) ?? []).map((i) => rows[i]).sort((a, b) => a.z - b.z || a.n - b.n) : []),
-    [rows, block, byBlock],
+  const blockList = React.useMemo(
+    () => (rows ? blocks.flatMap((b) => byBlock.get(blockKey(b)) ?? []).map((i) => rows[i]).sort((a, b) => a.z - b.z || a.n - b.n) : []),
+    [rows, blocks, byBlock],
   )
+  const pickList = React.useMemo(() => (rows ? picks.map((i) => rows[i]).sort((a, b) => a.z - b.z || a.n - b.n) : []), [rows, picks])
 
   const stops = theme.dark ? AGE_STOPS.dark : AGE_STOPS.light
-  const hovered = rows && hover !== null ? rows[hover] : null
-  const sel = rows && selected !== null ? rows[selected] : null
+  const hovered = rows && hover !== null && !grid ? rows[hover] : null
+  const one = !grid && pickList.length === 1 ? pickList[0] : null
+  const panel = grid ? blocks.length > 0 : picks.length > 0
   const fmt = (v: number) => v.toLocaleString('en')
 
   return (
     <div ref={box} className="relative min-h-0 flex-1 overflow-hidden rounded-xl" style={SANS}>
       {rows && split ? (
         <Canvas flat dpr={[1, 2]} camera={{ position: [0, 170, 120], fov: 42, near: 1, far: 3000 }} {...cross}>
-          <Chart
-            rows={rows}
-            evaluated={split.evaluated}
-            never={split.never}
-            pal={pal}
-            selected={selected}
-            onSelect={setSelected}
-            onHover={onHover}
-            grid={grid}
-            picked={block}
-            onBlockHover={setHoverBlock}
-            onBlock={onBlock}
-          />
-          <SpinControls makeDefault target={[0, 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} />
+          <color attach="background" args={[pal.bg]} />
+          {/* Physical light units (three r155+): about π lights a face at its own colour. */}
+          <ambientLight intensity={2.2} />
+          <directionalLight position={[80, 160, 60]} intensity={1.2} />
+          <Nuclides rows={rows} evaluated={split.evaluated} never={split.never} pal={pal} three={three} grid={grid} onHover={onHover} onPick={onPick} />
+          <Floor pal={pal} grid={grid} blocks={blocks} onBlockHover={setHoverBlock} onBlock={onBlock} />
+          {!grid && picks.map((i) => <Outline key={i} r={rows[i]} three={three} pal={pal} heavy />)}
+          {hovered && hover !== null && !picks.includes(hover) && <Outline r={hovered} three={three} pal={pal} heavy={false} />}
+          <SpinControls makeDefault target={[0, three ? 8 : 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} maxPolarAngle={Math.PI / 2 - 0.03} />
           {theme.dark && (
             <EffectComposer multisampling={0}>
               <Bloom mipmapBlur intensity={0.35} luminanceThreshold={0.6} luminanceSmoothing={0.25} />
@@ -418,8 +445,8 @@ export default function KnowledgeScene() {
         </div>
       )}
 
-      {/* Legend */}
-      <div className="absolute left-4 top-4 flex w-[210px] flex-col gap-2 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2.5 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+      {/* What the axes and colours are, and the two switches. */}
+      <div className="absolute left-4 top-4 flex w-[220px] flex-col gap-2 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2.5 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
         <span>Years since evaluation</span>
         <span className="h-2 w-full rounded-full" style={{ background: `linear-gradient(to right, ${stops.join(', ')})` }} />
         <span className="-mt-1 flex justify-between text-[10px] text-[var(--paper-faint)]" style={MONO}>
@@ -432,110 +459,60 @@ export default function KnowledgeScene() {
           Studied, never evaluated
         </span>
         <span className="text-[10px] text-[var(--paper-faint)]" style={MONO}>
-          size: adopted levels
+          {three ? 'height: adopted levels, log scale' : 'size: adopted levels'}
         </span>
-        <button
-          type="button"
-          aria-pressed={grid}
-          onClick={() => {
-            setGrid((g) => !g)
-            setHoverBlock(null)
-            setBlock(null)
-          }}
-          className="mt-1 flex items-center justify-between gap-2 rounded-md border border-[var(--paper-rule)]/25 px-2 py-1 text-left transition-colors hover:bg-[var(--paper-quiet)]"
-        >
-          <span>10 × 10 blocks</span>
-          <span className={`relative h-3.5 w-6 rounded-full transition-colors ${grid ? 'bg-[var(--paper-text)]' : 'bg-[var(--paper-rule)]/40'}`}>
-            <span className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-[var(--paper)] transition-[left] ${grid ? 'left-3' : 'left-0.5'}`} />
-          </span>
-        </button>
-        {grid && <span className="text-[10px] text-[var(--paper-faint)]">Click a block to list its nuclides.</span>}
+        <div className="mt-1 flex flex-col gap-1">
+          <Switch
+            label="Select grid"
+            on={grid}
+            onToggle={() => {
+              setGrid((g) => !g)
+              setHover(null)
+              setHoverBlock(null)
+            }}
+          />
+          <Switch label="3D" on={three} onToggle={() => setThree((v) => !v)} />
+        </div>
+        <span className="text-[10px] text-[var(--paper-faint)]">
+          {grid ? 'Click a block to list its nuclides; Shift-click adds more.' : 'Click a nuclide; Shift-click adds more.'}
+        </span>
       </div>
 
-      {/* Hovered nuclide */}
-      {grid && hoverBlock && !block && (
-        <div className="pointer-events-none absolute bottom-4 right-4 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-3 py-2 text-[12px] text-[var(--paper-text)] backdrop-blur-sm" style={MONO}>
-          {blockName(hoverBlock)} · {fmt(byBlock.get(`${hoverBlock.bn},${hoverBlock.bz}`)?.length ?? 0)} nuclides
-        </div>
-      )}
-
-      {/* The picked block's nuclides */}
-      {block && (
-        <aside className="absolute bottom-4 right-4 top-16 flex w-[320px] max-w-[48%] flex-col overflow-hidden rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/95 text-[var(--paper-text)] backdrop-blur-sm">
-          <div className="flex items-start justify-between gap-3 px-4 pb-2 pt-3">
-            <div>
-              <div className="text-[18px] leading-tight" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
-                {blockName(block)}
-              </div>
-              <div className="mt-1 text-[11px] text-[var(--paper-muted)]" style={MONO}>
-                {fmt(listed.length)} nuclides
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setBlock(null)}
-              aria-label="Close"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)]/25 transition-colors hover:bg-[var(--paper-quiet)]"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3">
-            {listed.length === 0 ? (
-              <p className="text-[12px] text-[var(--paper-muted)]">No nuclides in this block.</p>
-            ) : (
-              <table className="w-full border-collapse text-[12px]">
-                <thead className="sticky top-0 bg-[var(--paper)]">
-                  <tr className="text-[10px] uppercase tracking-[0.12em] text-[var(--paper-faint)]" style={MONO}>
-                    <th className="py-1.5 text-left font-normal">Nuclide</th>
-                    <th className="py-1.5 text-right font-normal">Levels</th>
-                    <th className="py-1.5 text-right font-normal">Years</th>
-                    <th className="py-1.5 text-right font-normal">Papers</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {listed.map((r) => (
-                    <tr key={`${r.z},${r.n}`} className="border-t border-[var(--paper-rule)]/10">
-                      <td className="py-1">{knowledgeName(r)}</td>
-                      <td className="py-1 text-right tabular-nums" style={MONO}>{r.evaluated ? fmt(r.levels) : '—'}</td>
-                      <td className="py-1 text-right tabular-nums" style={MONO}>{r.evaluated && r.cutoff ? age(r) : '—'}</td>
-                      <td className="py-1 text-right tabular-nums" style={MONO}>{fmt(r.papers)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          <p className="border-t border-[var(--paper-rule)]/10 px-4 py-2 text-[10px] text-[var(--paper-faint)]">
-            Years since the evaluation’s literature cutoff; — where never evaluated.
-          </p>
-        </aside>
-      )}
-
-      {hovered && !sel && !grid && (
+      {/* Under the pointer */}
+      {!panel && (hovered || (grid && hoverBlock)) && (
         <div className="pointer-events-none absolute bottom-4 right-4 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-3 py-2 text-[12px] text-[var(--paper-text)] backdrop-blur-sm">
-          <span className="font-medium">{knowledgeName(hovered)}</span>
-          <span className="ml-2 text-[var(--paper-muted)]" style={MONO}>
-            {fmt(hovered.papers)} papers · {hovered.evaluated ? `cutoff ${hovered.cutoff || '—'}` : 'never evaluated'}
-          </span>
+          {hovered ? (
+            <>
+              <span className="font-medium">{knowledgeName(hovered)}</span>
+              <span className="ml-2 text-[var(--paper-muted)]" style={MONO}>
+                {hovered.evaluated ? `${fmt(hovered.levels)} levels · cutoff ${hovered.cutoff || '—'}` : 'never evaluated'} · {fmt(hovered.papers)} papers
+              </span>
+            </>
+          ) : (
+            hoverBlock && (
+              <span style={MONO}>
+                {blockName(hoverBlock)} · {fmt(byBlock.get(blockKey(hoverBlock))?.length ?? 0)} nuclides
+              </span>
+            )
+          )}
         </div>
       )}
 
-      {/* Counts */}
-      {sel && !block && (
+      {/* One picked nuclide: its counts */}
+      {one && (
         <div className="absolute right-4 top-16 w-[280px] rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/95 px-4 pb-3 pt-4 text-[var(--paper-text)] backdrop-blur-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[22px] leading-none" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
-                {knowledgeName(sel)}
+                {knowledgeName(one)}
               </div>
               <div className="mt-1.5 text-[11px] text-[var(--paper-muted)]" style={MONO}>
-                Z {sel.z} · N {sel.n}
+                Z {one.z} · N {one.n}
               </div>
             </div>
             <button
               type="button"
-              onClick={() => setSelected(null)}
+              onClick={() => setPicks([])}
               aria-label="Close"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)]/25 transition-colors hover:bg-[var(--paper-quiet)]"
             >
@@ -543,20 +520,50 @@ export default function KnowledgeScene() {
             </button>
           </div>
           <div className="mt-3">
-            <Row label="Papers" value={fmt(sel.papers)} />
-            <Row label="EXFOR entries" value={fmt(sel.exfor)} />
-            <Row label="XUNDL datasets" value={fmt(sel.xundl)} />
-            {sel.evaluated ? (
+            <Row label="Papers" value={fmt(one.papers)} />
+            <Row label="EXFOR entries" value={fmt(one.exfor)} />
+            <Row label="XUNDL datasets" value={fmt(one.xundl)} />
+            {one.evaluated ? (
               <>
-                <Row label="Adopted levels" value={fmt(sel.levels)} />
-                <Row label="ENSDF cards" value={fmt(sel.cards)} />
-                <Row label="Evaluation cutoff" value={sel.cutoff ? `${sel.cutoff} (${age(sel)} y ago)` : '—'} />
+                <Row label="Adopted levels" value={fmt(one.levels)} />
+                <Row label="ENSDF cards" value={fmt(one.cards)} />
+                <Row label="Evaluation cutoff" value={one.cutoff ? `${one.cutoff} (${age(one)} y ago)` : '—'} />
               </>
             ) : (
               <Row label="ENSDF evaluation" value="None" />
             )}
           </div>
         </div>
+      )}
+
+      {/* Picked blocks, or several picked nuclides: one list */}
+      {panel && !one && (
+        <aside className="absolute bottom-4 right-4 top-16 flex w-[320px] max-w-[48%] flex-col overflow-hidden rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/95 text-[var(--paper-text)] backdrop-blur-sm">
+          <div className="flex items-start justify-between gap-3 px-4 pb-2 pt-3">
+            <div>
+              <div className="text-[18px] leading-tight" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
+                {grid ? (blocks.length === 1 ? blockName(blocks[0]) : `${blocks.length} blocks`) : `${picks.length} nuclides`}
+              </div>
+              <div className="mt-1 text-[11px] text-[var(--paper-muted)]" style={MONO}>
+                {grid ? `${fmt(blockList.length)} nuclides` : 'picked'}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => (grid ? setBlocks([]) : setPicks([]))}
+              aria-label="Close"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)]/25 transition-colors hover:bg-[var(--paper-quiet)]"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3">
+            <NuclideTable list={grid ? blockList : pickList} fmt={fmt} />
+          </div>
+          <p className="border-t border-[var(--paper-rule)]/10 px-4 py-2 text-[10px] text-[var(--paper-faint)]">
+            Years since the evaluation’s literature cutoff; — where never evaluated.
+          </p>
+        </aside>
       )}
     </div>
   )
