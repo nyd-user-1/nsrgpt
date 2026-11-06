@@ -1,5 +1,4 @@
 import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { cookies } from "next/headers";
 
 /**
@@ -11,7 +10,44 @@ import { cookies } from "next/headers";
 
 const POOL = process.env.NYSGPT_COGNITO_POOL_ID;
 const CLIENT = process.env.NYSGPT_COGNITO_CLIENT_ID;
-const verifier = POOL && CLIENT ? CognitoJwtVerifier.create({ userPoolId: POOL, tokenUse: "id", clientId: CLIENT }) : null;
+
+// The token check runs on Web Crypto (2026-11-05), so it works on the Cloudflare worker as well as Node.
+// aws-jwt-verify's Node build (crypto.createVerify, setTimeout().unref()) failed on workerd, and the
+// failure was swallowed: every signed-in reader came back signed out.
+const ISSUER = POOL ? `https://cognito-idp.${POOL.split("_")[0]}.amazonaws.com/${POOL}` : "";
+const RS256 = { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" } as const;
+
+/** The pool's signing keys by kid. The resolved keys are kept, not the pending fetch: workerd won't let one
+ *  request await a promise another request started. */
+let signingKeys: Map<string, CryptoKey> | null = null;
+
+async function loadSigningKeys(): Promise<Map<string, CryptoKey>> {
+  const r = await fetch(`${ISSUER}/.well-known/jwks.json`);
+  if (!r.ok) throw new Error(`jwks: ${r.status}`);
+  const { keys } = (await r.json()) as { keys: (JsonWebKey & { kid: string })[] };
+  return new Map(await Promise.all(keys.map(async (k) => [k.kid, await crypto.subtle.importKey("jwk", k, RS256, false, ["verify"])] as const)));
+}
+
+const b64url = (s: string) => {
+  const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4)), (c) => c.charCodeAt(0));
+};
+const json = (s: string) => JSON.parse(new TextDecoder().decode(b64url(s))) as Record<string, unknown>;
+
+/** The ID token's claims when its signature, issuer, audience, use and expiry all check out; otherwise null. */
+async function verifyIdToken(token: string): Promise<Record<string, unknown> | null> {
+  const [h, p, s] = token.split(".");
+  if (!h || !p || !s) return null;
+  const header = json(h);
+  if (header.alg !== "RS256" || typeof header.kid !== "string") return null;
+  // A kid not yet seen means the pool rotated its keys: fetch them again, once.
+  if (!signingKeys?.has(header.kid)) signingKeys = await loadSigningKeys();
+  const key = signingKeys.get(header.kid);
+  if (!key || !(await crypto.subtle.verify(RS256, key, b64url(s), new TextEncoder().encode(`${h}.${p}`)))) return null;
+  const claims = json(p);
+  const live = typeof claims.exp === "number" && claims.exp > Date.now() / 1000;
+  return live && claims.iss === ISSUER && claims.aud === CLIENT && claims.token_use === "id" ? claims : null;
+}
 
 export const SESSION_COOKIE = "nysgpt_session";
 
@@ -24,11 +60,12 @@ export function forbidDemo(_user: unknown) {}
 
 export async function currentUser(): Promise<SessionUser | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!token || !verifier) return null;
+  if (!token || !POOL || !CLIENT) return null;
   try {
-    const claims = await verifier.verify(token);
-    return { email: String(claims.email ?? "").toLowerCase(), admin: false, superAdmin: false, demo: false };
-  } catch {
+    const claims = await verifyIdToken(token);
+    return claims ? { email: String(claims.email ?? "").toLowerCase(), admin: false, superAdmin: false, demo: false } : null;
+  } catch (e) {
+    console.error("auth: token check failed", (e as Error).message);
     return null;
   }
 }
