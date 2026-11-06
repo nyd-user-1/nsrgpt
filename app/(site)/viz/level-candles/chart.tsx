@@ -47,6 +47,7 @@ export function LevelCandlesChart() {
     },
     false,
     firstSeriesRow,
+    { marks: true },
   )
   return <div ref={ref} className="min-h-0 w-full flex-1" />
 }

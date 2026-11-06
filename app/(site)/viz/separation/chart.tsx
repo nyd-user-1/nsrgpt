@@ -95,6 +95,6 @@ export function SeparationChart() {
         },
       ],
     }
-  }, false, (p) => (typeof p.dataIndex === 'number' ? p.dataIndex : null))
+  }, false, (p) => (typeof p.dataIndex === 'number' ? p.dataIndex : null), { marks: true })
   return <div ref={ref} className="min-h-0 w-full flex-1" />
 }

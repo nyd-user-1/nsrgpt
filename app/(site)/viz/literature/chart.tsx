@@ -24,6 +24,6 @@ export function LiteratureChart({ fill }: { fill?: boolean }) {
       visualMap: { show: false, dimension: 3, min: 0, max, inRange: { color: ['#172554', '#1d4ed8', '#00bfff', '#e0f2fe'], symbolSize: [2, 9] } },
       series: [{ type: 'scatter', data, blendMode: 'lighter', itemStyle: { opacity: 0.85 } }],
     }
-  }, false, firstSeriesRow)
+  }, false, firstSeriesRow, { marks: true })
   return <div ref={ref} className={fill ? 'h-full min-h-0 w-full flex-1' : 'h-[78vh] w-full'} />
 }

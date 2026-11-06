@@ -43,10 +43,9 @@ export function GammaPunchcardChart() {
           type: 'heatmap',
           data: cells.map((c) => [c.bin, c.row, Math.log10(Math.max(I_FLOOR, c.mean))]),
           itemStyle: { borderColor: 'transparent', borderWidth: 1 },
-          emphasis: { itemStyle: { borderColor: '#fff', borderWidth: 1 } },
         },
       ],
     }
-  }, false, firstSeriesRow)
+  }, false, firstSeriesRow, { marks: true })
   return <div ref={ref} className="min-h-0 w-full flex-1" />
 }
