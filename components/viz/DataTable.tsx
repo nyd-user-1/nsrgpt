@@ -203,7 +203,7 @@ export function DataTable({ slug }: { slug: string }) {
                   if (e.shiftKey || e.metaKey || e.ctrlKey) e.preventDefault()
                 }}
                 onClick={(e) => press(e, at)}
-                className={`cursor-pointer select-none border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
+                className={`cursor-pointer border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
               >
                 {r.map((v, i) => (
                   <td key={i} className={`py-1.5 pr-4 ${i ? 'text-right tabular-nums' : 'text-left'}`} style={typeof v === 'number' ? MONO : undefined}>
