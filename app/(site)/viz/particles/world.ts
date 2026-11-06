@@ -61,6 +61,8 @@ export class World {
     this.canvas.setAttribute('aria-label', 'Decay heat driving smoke through a column of air, in 3D. Drag to orbit, scroll to zoom.')
     this.canvas.tabIndex = 0
     this.canvas.style.display = 'block'
+    this.canvas.style.position = 'absolute'
+    this.canvas.style.inset = '0'
     this.canvas.style.width = '100%'
     this.canvas.style.height = '100%'
     this.canvas.style.outline = 'none'
@@ -69,6 +71,11 @@ export class World {
   async init(host: HTMLElement): Promise<void> {
     if (!hasWebGPU()) throw new Error('WebGPU is unavailable in this browser.')
     this.renderer = await createParticleRenderer({ canvas: this.canvas, antialias: true, alpha: false })
+    // Closed while the GPU was starting (React mounts twice in development): leave nothing behind.
+    if (this.stopped) {
+      this.renderer.dispose()
+      throw new Error('closed')
+    }
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     // Unchanged colours, so the decay-mode theme matches the legend.
     this.renderer.toneMapping = NoToneMapping
