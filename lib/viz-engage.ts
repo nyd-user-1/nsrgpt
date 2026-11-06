@@ -3,12 +3,13 @@
 // Who owns the arrow keys on a chart page (Brendan, 2026-11-06). Until the reader clicks into the chart, ← → step to the
 // previous or next chart (components/viz/FramedBox.tsx). Once they click into it, the keys belong to the chart: the 3D
 // camera (lib/viz-3d-controls.tsx, components/viz/use-echart.ts), the radar's isotope stepping. Esc hands them back.
-// `camera` is set while a 3D chart is on the page, so the frame can list its keys.
+// `camera` is set while a 3D chart is on the page, so the frame can list its keys; `keys` replaces the list where a
+// chart's keys differ (the particle scene's Space pauses, 2026-11-06).
 
 import { useSyncExternalStore } from 'react'
 
-type State = { engaged: boolean; camera: boolean }
-let state: State = { engaged: false, camera: false }
+type State = { engaged: boolean; camera: boolean; keys: string | null }
+let state: State = { engaged: false, camera: false, keys: null }
 const subs = new Set<() => void>()
 const emit = () => subs.forEach((f) => f())
 
@@ -18,9 +19,9 @@ export function setEngaged(engaged: boolean) {
   state = { ...state, engaged }
   emit()
 }
-export function setCamera(camera: boolean) {
-  if (state.camera === camera) return
-  state = { ...state, camera }
+export function setCamera(camera: boolean, keys: string | null = null) {
+  if (state.camera === camera && state.keys === keys) return
+  state = { ...state, camera, keys }
   emit()
 }
 

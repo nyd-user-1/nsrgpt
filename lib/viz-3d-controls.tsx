@@ -5,15 +5,9 @@ import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import { SPIN_DEG_PER_S } from '@/lib/viz-3d'
+import { CAMERA_KEYS, CAMERA_PAN as PAN, CAMERA_ROT as ROT, CAMERA_ZOOM as ZOOM, SPIN_DEG_PER_S } from '@/lib/viz-3d'
 import { inspectorOn } from '@/components/dev/inspector-state'
 import { isEngaged, isTyping, setCamera } from '@/lib/viz-engage'
-
-/** Radians a second the arrows orbit and tilt at, the fraction of the distance a second + − zoom and Shift pans by. */
-const ROT = 1.2
-const ZOOM = 1.6
-const PAN = 0.6
-const CAMERA_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '_'])
 
 /** OrbitControls that turn slowly on open (lib/viz-3d.ts). The turn stops at the first press, drag or scroll, and
  *  Space starts or stops it at any time (Brendan, 2026-11-06). Once the reader has clicked into the chart

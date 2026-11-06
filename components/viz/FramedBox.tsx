@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { vizNeighbours } from '@/lib/viz-charts'
 import { isEngaged, isTyping, setEngaged, useEngage } from '@/lib/viz-engage'
+import { CAMERA_KEY_LIST } from '@/lib/viz-3d'
 
 // A framed chart page's frame (Brendan, 2026-11-04): edge to edge across the app's content area below the header,
 // always — the full width is the standard, so there is no column state and no expand. The previous and next chart
@@ -18,7 +19,7 @@ export function FramedBox({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const near = vizNeighbours(path)
   const router = useRouter()
-  const { engaged, camera } = useEngage()
+  const { engaged, camera, keys } = useEngage()
 
   // Each chart page starts with the arrows on chart stepping.
   useEffect(() => {
@@ -57,7 +58,7 @@ export function FramedBox({ children }: { children: React.ReactNode }) {
           className="pointer-events-none absolute bottom-4 left-1/2 z-10 m-0 -translate-x-1/2 rounded-full border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 px-3 py-1 text-[11px] text-[var(--paper-muted)] backdrop-blur-sm"
           style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
         >
-          ← → orbit · ↑ ↓ tilt · Cmd + ↑ ↓ or + − zoom · Shift + arrows pan · Space rotation · 0 reset · Esc leave
+          {keys ?? CAMERA_KEY_LIST}
         </p>
       )}
       {children}

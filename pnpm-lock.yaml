@@ -176,6 +176,9 @@ importers:
       three:
         specifier: ^0.187.0
         version: 0.187.0
+      threejs-particle-fluids:
+        specifier: 0.2.0
+        version: 0.2.0(@types/three@0.187.0)(three@0.187.0)
       tiptap-markdown:
         specifier: ^0.9.0
         version: 0.9.0(@tiptap/core@3.32.2(@tiptap/pm@3.32.2))
@@ -5915,6 +5918,16 @@ packages:
 
   three@0.187.0:
     resolution: {integrity: sha512-Qiu7R+Cmh8CstZsY1uJOSWnVlfo7ZtNLV7mF8Jltk3LB3AtDu9cRZlcnRKkAk8Y4z6KKw35z7Y7Urd7jWY8etA==}
+
+  threejs-particle-fluids@0.2.0:
+    resolution: {integrity: sha512-wZCiPtIOcbSk7zc1C01/6GFJaGPYjMvKbz3h4edVGh3h9WOgwktXe0z1K1oR0MKHQ8wbNGcf3idDJXPc2Z1hVQ==}
+    engines: {node: '>=22.12.0'}
+    peerDependencies:
+      '@types/three': '>=0.184.0 <0.185.0'
+      three: '>=0.184.0 <0.185.0'
+    peerDependenciesMeta:
+      '@types/three':
+        optional: true
 
   tinyexec@1.0.1:
     resolution: {integrity: sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw==}
@@ -13244,6 +13257,12 @@ snapshots:
       three: 0.187.0
 
   three@0.187.0: {}
+
+  threejs-particle-fluids@0.2.0(@types/three@0.187.0)(three@0.187.0):
+    dependencies:
+      three: 0.187.0
+    optionalDependencies:
+      '@types/three': 0.187.0
 
   tinyexec@1.0.1: {}
 

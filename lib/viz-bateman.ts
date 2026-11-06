@@ -119,6 +119,19 @@ export function atoms(c: Chain, k: number, t: number): number {
   return n > 0 ? n : 0
 }
 
+/** A chain's time window (moved from /viz/decay-chain, 2026-11-06): from a hundredth of the shortest half-life to ten of the start's (or a hundred of the longest
+ *  daughter's, for a stable or very long-lived start), within 1 µs and 10¹⁸ s. */
+export function timeSpan(d: Decay, c: Chain): [number, number] {
+  const ts = c.members.map((i) => d.nuclides[i].t).filter((t): t is number => t !== null && t > 0)
+  if (!ts.length) return [1, 1e6]
+  const head = d.nuclides[c.members[0]].t
+  const daughters = c.members.slice(1).map((i) => d.nuclides[i].t).filter((t): t is number => t !== null && t > 0)
+  const t0 = Math.max(1e-6, Math.min(...ts) / 100)
+  const longest = Math.max(head && head > 0 ? head * 10 : 0, daughters.length ? Math.max(...daughters) * 100 : 0)
+  const t1 = Math.min(1e18, Math.max(t0 * 1e4, longest))
+  return [t0, t1]
+}
+
 /** Log-spaced times, seconds. */
 export function logTimes(t0: number, t1: number, count: number): number[] {
   const a = Math.log10(t0)

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { AXIS, FAMILY, decayIndex, familyOf, formatSeconds, halfLifeText, ink, isDark, keyOf, loadDecay, nucName, type Decay } from '@/lib/viz-physics'
-import { atoms, logTimes, solveChain, type Chain } from '@/lib/viz-bateman'
+import { atoms, logTimes, solveChain, timeSpan } from '@/lib/viz-bateman'
 
 // Decay simulation, per chain (Brendan, 2026-11-05: "a second version with meaning and purpose behind it"). The
 // first decay simulation runs every nuclide at once; this one asks what happens to one gram of one nuclide over
@@ -29,18 +29,6 @@ const AVOGADRO = 6.02214076e23
 let drawnMembers: number[] = []
 const POINTS = 260
 
-/** The time window: from a hundredth of the shortest half-life to ten of the start's (or a hundred of the longest
- *  daughter's, for a stable or very long-lived start), within 1 µs and 10¹⁸ s. */
-function timeSpan(d: Decay, c: Chain): [number, number] {
-  const ts = c.members.map((i) => d.nuclides[i].t).filter((t): t is number => t !== null && t > 0)
-  if (!ts.length) return [1, 1e6]
-  const head = d.nuclides[c.members[0]].t
-  const daughters = c.members.slice(1).map((i) => d.nuclides[i].t).filter((t): t is number => t !== null && t > 0)
-  const t0 = Math.max(1e-6, Math.min(...ts) / 100)
-  const longest = Math.max(head && head > 0 ? head * 10 : 0, daughters.length ? Math.max(...daughters) * 100 : 0)
-  const t1 = Math.min(1e18, Math.max(t0 * 1e4, longest))
-  return [t0, t1]
-}
 
 export function DecayChainChart() {
   const [decay, setDecay] = React.useState<Decay | null>(null)
