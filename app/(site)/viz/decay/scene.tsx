@@ -11,7 +11,8 @@
 import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Html, Line, OrbitControls } from '@react-three/drei'
+import { Html, Line } from '@react-three/drei'
+import { SpinControls } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Pause, Play, RotateCcw, X } from 'lucide-react'
 import {
@@ -621,7 +622,7 @@ export default function DecayScene() {
             onHover={onHover}
             onStats={setStats}
           />
-          <OrbitControls makeDefault target={[0, 26, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} />
+          <SpinControls makeDefault target={[0, 26, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} />
           {theme.dark && (
             <EffectComposer multisampling={0}>
               <Bloom mipmapBlur intensity={0.45} luminanceThreshold={0.55} luminanceSmoothing={0.25} />

@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { GL_VIEW } from '@/lib/viz-3d'
 import { keyOf, loadMasses, nucName } from '@/lib/viz-physics'
 
 // The measured mass surface (chart batch A, 2026-11-04): binding energy per nucleon over (N, Z) from AME2020, as
@@ -43,7 +44,7 @@ export function SurfaceChart() {
       zAxis3D: { type: 'value', name: 'B/A, MeV', min: FLOOR, max: 9, nameTextStyle: { color: '#64748b' }, axisLabel: { color: '#475569' }, axisLine: { lineStyle: { color: '#1e293b' } } },
       grid3D: {
         boxWidth: 178, boxDepth: 118, boxHeight: 50,
-        viewControl: { distance: 230, alpha: 40, beta: -20, autoRotate: true, autoRotateSpeed: 3 },
+        viewControl: { ...GL_VIEW, distance: 230, alpha: 40, beta: -20 },
         light: { main: { intensity: 1.1, shadow: true }, ambient: { intensity: 0.35 } },
         environment: '#05070d',
       },

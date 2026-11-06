@@ -3,7 +3,8 @@
 import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Html, OrbitControls } from '@react-three/drei'
+import { Html } from '@react-three/drei'
+import { SpinControls } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Y_PER_KEV, label, type Model } from './model'
 
@@ -52,8 +53,10 @@ export function Scene({ model, palette, focus, hover, row, onSelect, onHover }: 
       {focus >= 0 && <Tag model={model} i={focus} strong />}
       <Picker model={model} onSelect={onSelect} onHover={onHover} />
       <Rig model={model} focus={focus} />
-      <OrbitControls
+      <SpinControls
         makeDefault
+        // A selection flies the camera to it (Rig); the turn stops so the two don't pull against each other.
+        stopped={focus >= 0}
         target={target}
         enableDamping
         dampingFactor={0.08}

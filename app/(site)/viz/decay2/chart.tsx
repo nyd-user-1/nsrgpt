@@ -11,6 +11,7 @@
 import * as React from 'react'
 import { Pause, Play, RotateCcw } from 'lucide-react'
 import { useEChart } from '@/components/viz/use-echart'
+import { GL_VIEW } from '@/lib/viz-3d'
 import { formatSeconds, keyOf, loadDecay, type DecayData } from '@/lib/viz-decay'
 
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -129,6 +130,11 @@ export function Decay2Chart() {
   const [logRate, setLogRate] = React.useState(0)
   const [smooth, setSmooth] = React.useState(true)
   const [stats, setStats] = React.useState({ simT: 0, decays: 0, fissions: 0 })
+  // The camera (2026-11-05). echarts-gl puts the camera back to the option's view on every redraw, and this chart
+  // redraws every REDRAW_MS, so the starting view goes in on the first draw only; later draws leave the live camera
+  // alone. The turn stops on the first press or scroll and stays stopped.
+  const touched = React.useRef(false)
+  const drawn = React.useRef(false)
 
   const ref = useEChart(
     loadDecay,
@@ -138,6 +144,8 @@ export function Decay2Chart() {
         sim.current = freshSim(model.current.count)
       }
       const { data: grid, max } = surface(model.current, sim.current, smoothRef.current)
+      const first = !drawn.current
+      drawn.current = true
       return {
         backgroundColor: 'transparent',
         tooltip: {
@@ -150,7 +158,15 @@ export function Decay2Chart() {
         xAxis3D: { type: 'value', name: 'N', min: 0, max: N_MAX, ...AXIS },
         yAxis3D: { type: 'value', name: 'Z', min: 0, max: Z_MAX, ...AXIS },
         zAxis3D: { type: 'value', name: '√ population', min: 0, ...AXIS },
-        grid3D: { boxWidth: 180, boxDepth: 120, boxHeight: 60, viewControl: { distance: 240, alpha: 32, beta: 20 }, environment: '#05070d' },
+        grid3D: {
+          boxWidth: 180,
+          boxDepth: 120,
+          boxHeight: 60,
+          // animation false: with it on, each redraw tweens the camera for 300 ms, and echarts-gl ignores a scroll or
+          // drag while a tween runs, which at one redraw every REDRAW_MS is most of the time.
+          viewControl: { ...GL_VIEW, animation: false, autoRotate: !touched.current, ...(first ? { distance: 240, alpha: 32, beta: 20 } : {}) },
+          environment: '#05070d',
+        },
         series: [
           {
             type: 'surface',
@@ -168,6 +184,20 @@ export function Decay2Chart() {
     undefined,
     { view },
   )
+
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const touch = () => {
+      touched.current = true
+    }
+    el.addEventListener('pointerdown', touch, { capture: true, passive: true })
+    el.addEventListener('wheel', touch, { capture: true, passive: true })
+    return () => {
+      el.removeEventListener('pointerdown', touch, { capture: true })
+      el.removeEventListener('wheel', touch, { capture: true })
+    }
+  }, [ref])
 
   // The clock: the simulation steps every animation frame; the surface redraws every REDRAW_MS and morphs between.
   React.useEffect(() => {

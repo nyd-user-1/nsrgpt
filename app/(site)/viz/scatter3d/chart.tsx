@@ -1,6 +1,7 @@
 'use client'
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { GL_VIEW } from '@/lib/viz-3d'
 import { loadE2, nearMagic, nuclideName } from '@/lib/viz-data'
 
 // E(2⁺) × B(E2) × Z for the even-even nuclides that have both (chart batch B, 2026-11-04): the floor is the two
@@ -32,7 +33,7 @@ export function Scatter3dChart() {
         xAxis3D: axis('E(2⁺), keV', true),
         yAxis3D: axis('B(E2), e²b²', true),
         zAxis3D: axis('Z', false),
-        grid3D: { boxWidth: 130, boxDepth: 110, boxHeight: 90, viewControl: { distance: 250, alpha: 18, beta: 38, autoRotate: true, autoRotateSpeed: 3 }, environment: '#05070d' },
+        grid3D: { boxWidth: 130, boxDepth: 110, boxHeight: 90, viewControl: { ...GL_VIEW, distance: 250, alpha: 18, beta: 38 }, environment: '#05070d' },
         series: [
           {
             type: 'scatter3D',

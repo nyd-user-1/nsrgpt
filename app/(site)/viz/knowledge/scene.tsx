@@ -8,7 +8,8 @@
 import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
-import { Html, OrbitControls } from '@react-three/drei'
+import { Html } from '@react-three/drei'
+import { SpinControls } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { X } from 'lucide-react'
 import { AGE_MAX, AGE_STOPS, NEVER, SNAPSHOT_YEAR, knowledgeName, loadKnowledge, type KnowledgeRow } from '@/lib/viz-knowledge'
@@ -209,7 +210,7 @@ export default function KnowledgeScene() {
       {rows && split ? (
         <Canvas flat dpr={[1, 2]} camera={{ position: [0, 170, 120], fov: 42, near: 1, far: 3000 }}>
           <Chart rows={rows} evaluated={split.evaluated} never={split.never} pal={pal} selected={selected} onSelect={setSelected} onHover={onHover} />
-          <OrbitControls makeDefault target={[0, 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} />
+          <SpinControls makeDefault target={[0, 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} />
           {theme.dark && (
             <EffectComposer multisampling={0}>
               <Bloom mipmapBlur intensity={0.35} luminanceThreshold={0.6} luminanceSmoothing={0.25} />
