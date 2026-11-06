@@ -178,12 +178,14 @@ const Chart = React.memo(function Chart({
   sim: { current: Sim }
   playing: { current: boolean }
   rate: { current: number }
-  selected: number | null
+  /** The selected nuclides (2026-11-05: several at once). */
+  selected: number[]
   /** The legend's isolated family: the others dim. */
   focus: Family | null
   /** Whether the pointer is over the canvas, for the crosshair. */
   inside: { current: boolean }
-  onSelect: (i: number | null) => void
+  /** `add`: Shift, Cmd or Ctrl was held, so the nuclide joins (or leaves) the selection instead of replacing it. */
+  onSelect: (i: number | null, add: boolean) => void
   onHover: (i: number | null) => void
   onStats: (s: Stats) => void
 }) {
@@ -402,11 +404,15 @@ const Chart = React.memo(function Chart({
 
   const pick = (e: { instanceId?: number }) => (e.instanceId === undefined ? null : e.instanceId)
 
-  const chain = React.useMemo(() => {
-    if (selected === null) return null
-    const { steps } = primaryChain(model.data, model.index, selected)
-    return steps.map((st) => new THREE.Vector3(model.pos[st.index * 3], model.pos[st.index * 3 + 1] + 1.6, model.pos[st.index * 3 + 2]))
-  }, [selected, model])
+  const chains = React.useMemo(
+    () =>
+      selected.map((sel) =>
+        primaryChain(model.data, model.index, sel).steps.map(
+          (st) => new THREE.Vector3(model.pos[st.index * 3], model.pos[st.index * 3 + 1] + 1.6, model.pos[st.index * 3 + 2]),
+        ),
+      ),
+    [selected, model],
+  )
 
   return (
     <>
@@ -451,7 +457,8 @@ const Chart = React.memo(function Chart({
         onClick={(e) => {
           if (e.delta > 4) return
           e.stopPropagation()
-          onSelect(pick(e))
+          const ne = e.nativeEvent as MouseEvent
+          onSelect(pick(e), ne.shiftKey || ne.metaKey || ne.ctrlKey)
         }}
         onPointerMove={(e) => {
           e.stopPropagation()
@@ -488,19 +495,30 @@ const Chart = React.memo(function Chart({
         <lineBasicMaterial vertexColors toneMapped={false} />
       </lineSegments>
 
-      {chain && chain.length > 1 && <Line points={chain} color={pal.ink} lineWidth={2} transparent opacity={0.85} />}
-      {selected !== null && (
-        <mesh position={[model.pos[selected * 3], model.pos[selected * 3 + 1] + 0.9, model.pos[selected * 3 + 2]]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+      {chains.map((c, k) => (c.length > 1 ? <Line key={selected[k]} points={c} color={pal.ink} lineWidth={2} transparent opacity={0.85} /> : null))}
+      {selected.map((sel) => (
+        <mesh key={sel} position={[model.pos[sel * 3], model.pos[sel * 3 + 1] + 0.9, model.pos[sel * 3 + 2]]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
           <torusGeometry args={[1.25, 0.12, 8, 32]} />
           <meshBasicMaterial color={pal.ink} toneMapped={false} />
         </mesh>
-      )}
+      ))}
     </>
   )
 })
 
 // ── page ────────────────────────────────────────────────────────────────────────────────────────
 const RATE_MIN = -12
+const YEAR = 3.15576e7
+/** Fixed moments to pause at: a minute to the age of the Earth. */
+const MOMENTS = [
+  { label: '1 min', t: 60 },
+  { label: '1 day', t: 86400 },
+  { label: '1 year', t: YEAR },
+  { label: '100 years', t: 100 * YEAR },
+  { label: '10,000 years', t: 1e4 * YEAR },
+  { label: '1 million years', t: 1e6 * YEAR },
+  { label: 'age of the Earth', t: 4.54e9 * YEAR },
+]
 const RATE_MAX = 18
 
 export default function DecayScene() {
@@ -521,10 +539,15 @@ export default function DecayScene() {
   const [playing, setPlaying] = React.useState(true)
   const [logRate, setLogRate] = React.useState(0)
   const [stats, setStats] = React.useState<Stats>({ simT: 0, decays: 0, fissions: 0, moving: 0 })
-  const [selected, setSelected] = React.useState<number | null>(null)
+  const [selected, setSelected] = React.useState<number[]>([])
+  // Moments to pause at (2026-11-05): fixed spans, plus each selected nuclide's half-life.
+  const [marks, setMarks] = React.useState<Set<string>>(new Set())
+  const [reached, setReached] = React.useState<string | null>(null)
   const [hover, setHover] = React.useState<number | null>(null)
   const [focus, setFocus] = React.useState<Family | null>(null)
   const inside = React.useRef(false)
+  // Moments already paused at in this run, so pressing play carries on past them.
+  const passed = React.useRef<Set<string>>(new Set())
 
   const toggle = () => {
     playingRef.current = !playingRef.current
@@ -533,7 +556,14 @@ export default function DecayScene() {
   const reset = () => {
     if (model) sim.current = freshSim(model.data.nuclides.length)
     setStats({ simT: 0, decays: 0, fissions: 0, moving: 0 })
+    setReached(null)
+    passed.current = new Set()
   }
+  const onSelect = React.useCallback(
+    (i: number | null, add: boolean) =>
+      setSelected((cur) => (i === null ? (add ? cur : []) : add ? (cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i]) : [i])),
+    [],
+  )
   const setRate = (v: number) => {
     setLogRate(v)
     rateRef.current = 10 ** v
@@ -542,7 +572,31 @@ export default function DecayScene() {
   const onHover = React.useCallback((i: number | null) => setHover((h) => (h === i ? h : i)), [])
 
   const hovered = model && hover !== null ? model.data.nuclides[hover] : null
-  const chain = model && selected !== null ? primaryChain(model.data, model.index, selected) : null
+  // The panel shows the most recently selected nuclide's chain; the others are chips above it.
+  const shown = selected.length ? selected[selected.length - 1] : null
+  const chain = model && shown !== null ? primaryChain(model.data, model.index, shown) : null
+
+  // The moments on offer: fixed spans, then the selected nuclides' half-lives.
+  const moments = React.useMemo(() => {
+    const fixed = MOMENTS.map((m) => ({ id: m.label, label: m.label, t: m.t }))
+    const halfLives = model
+      ? selected
+          .map((i) => model.data.nuclides[i])
+          .filter((x) => x.t !== null && x.t > 0)
+          .map((x) => ({ id: `T½ ${nucName(x)}`, label: `T½ ${nucName(x)}`, t: x.t as number }))
+      : []
+    return [...fixed, ...halfLives].sort((a, b) => a.t - b.t)
+  }, [model, selected])
+  // When elapsed time passes the next chosen moment, pause there.
+  React.useEffect(() => {
+    if (!playingRef.current) return
+    const next = moments.find((m) => marks.has(m.id) && m.t <= stats.simT && reached !== m.id && !passed.current.has(m.id))
+    if (!next) return
+    passed.current.add(next.id)
+    playingRef.current = false
+    setPlaying(false)
+    setReached(next.id)
+  }, [stats.simT, moments, marks, reached])
 
   return (
     <div
@@ -563,7 +617,7 @@ export default function DecayScene() {
             selected={selected}
             focus={focus}
             inside={inside}
-            onSelect={setSelected}
+            onSelect={onSelect}
             onHover={onHover}
             onStats={setStats}
           />
@@ -636,6 +690,25 @@ export default function DecayScene() {
             className="w-56 accent-[var(--paper-text)]"
           />
         </label>
+        <div className="flex max-w-[460px] flex-col gap-1 text-[11px]">
+          <span className="text-[var(--paper-muted)]">
+            Pause at{reached ? <span className="ml-2 text-[var(--paper-text)]">· paused at {reached}</span> : null}
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {moments.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                aria-pressed={marks.has(m.id)}
+                onClick={() => setMarks((cur) => { const n = new Set(cur); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n })}
+                className={`rounded-full border px-2 py-0.5 transition-colors ${marks.has(m.id) ? 'border-[var(--paper-text)] bg-[var(--paper-text)] text-[var(--paper)]' : 'border-[var(--paper-rule)]/30 text-[var(--paper-muted)] hover:bg-[var(--paper-quiet)]'}`}
+                style={MONO}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="grid grid-cols-[auto_auto] gap-x-3 text-[11px] tabular-nums" style={MONO}>
           <span className="text-[var(--paper-muted)]">Elapsed</span>
           <span>{stats.simT > 0 ? formatSeconds(stats.simT) : '0 s'}</span>
@@ -647,7 +720,7 @@ export default function DecayScene() {
       </div>
 
       {/* Hovered nuclide */}
-      {hovered && selected === null && (
+      {hovered && selected.length === 0 && (
         <div className="z-10 pointer-events-none absolute bottom-4 right-4 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-3 py-2 text-[12px] text-[var(--paper-text)] backdrop-blur-sm">
           <span className="font-medium">{nucName(hovered)}</span>
           <span className="ml-2 text-[var(--paper-muted)]" style={MONO}>
@@ -658,20 +731,34 @@ export default function DecayScene() {
       )}
 
       {/* The selected nuclide's chain */}
-      {model && chain && selected !== null && (
+      {model && chain && shown !== null && (
         <div className="z-10 absolute bottom-4 right-4 top-16 flex w-[320px] flex-col overflow-hidden rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/95 text-[var(--paper-text)] backdrop-blur-sm">
+          {selected.length > 1 && (
+            <div className="flex flex-wrap gap-1 border-b border-[var(--paper-rule)]/10 px-4 py-2">
+              {selected.map((i) => (
+                <span key={i} className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] ${i === shown ? 'border-[var(--paper-text)]' : 'border-[var(--paper-rule)]/30'}`} style={MONO}>
+                  <button type="button" onClick={() => setSelected((cur) => [...cur.filter((x) => x !== i), i])}>
+                    {nucName(model.data.nuclides[i])}
+                  </button>
+                  <button type="button" aria-label={`Remove ${nucName(model.data.nuclides[i])}`} onClick={() => setSelected((cur) => cur.filter((x) => x !== i))}>
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           <div className="flex items-start justify-between gap-3 px-4 pt-4">
             <div>
               <div className="text-[22px] leading-none" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
-                {nucName(model.data.nuclides[selected])}
+                {nucName(model.data.nuclides[shown])}
               </div>
               <div className="mt-1.5 text-[11px] text-[var(--paper-muted)]" style={MONO}>
-                Z {model.data.nuclides[selected].z} · N {model.data.nuclides[selected].n} · {halfLifeText(model.data.nuclides[selected])}
+                Z {model.data.nuclides[shown].z} · N {model.data.nuclides[shown].n} · {halfLifeText(model.data.nuclides[shown])}
               </div>
             </div>
             <button
               type="button"
-              onClick={() => setSelected(null)}
+              onClick={() => setSelected([])}
               aria-label="Close"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)]/25 transition-colors hover:bg-[var(--paper-quiet)]"
             >
@@ -696,7 +783,7 @@ export default function DecayScene() {
                     <tr
                       key={st.index}
                       className="cursor-pointer border-t border-[var(--paper-rule)]/10 hover:bg-[var(--paper-quiet)]"
-                      onClick={() => setSelected(st.index)}
+                      onClick={() => setSelected([st.index])}
                     >
                       <td className="py-1.5">
                         <span className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ background: theme.dark ? FAMILY[f].dark : FAMILY[f].light }} />
@@ -721,10 +808,10 @@ export default function DecayScene() {
                       : 'The chain loops.'}
               </p>
             )}
-            {model.data.nuclides[selected].m.length > 1 && (
+            {model.data.nuclides[shown].m.length > 1 && (
               <div className="mt-4 border-t border-[var(--paper-rule)]/10 pt-3">
                 <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--paper-faint)]">All branches</div>
-                {model.data.nuclides[selected].m.map(([code, pct]) => (
+                {model.data.nuclides[shown].m.map(([code, pct]) => (
                   <div key={code} className="flex justify-between text-[11.5px]" style={MONO}>
                     <span>{model.data.modes[code]?.label ?? code}</span>
                     <span>{pct === null ? '—' : `${pct}%`}</span>
