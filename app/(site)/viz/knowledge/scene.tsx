@@ -502,7 +502,7 @@ export default function KnowledgeScene() {
           Studied, never evaluated
         </span>
         <span className="text-[10px] text-[var(--paper-faint)]" style={MONO}>
-          {three ? 'height: adopted levels, log scale' : 'size: adopted levels'}
+          {three ? 'adopted levels, log scale' : 'size: adopted levels'}
         </span>
         <div className="mt-1 flex flex-col gap-1">
           <Switch
