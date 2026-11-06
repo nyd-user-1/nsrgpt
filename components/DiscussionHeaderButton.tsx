@@ -18,7 +18,7 @@ export function DiscussionHeaderButton({ paperMode, bare }: { paperMode?: boolea
         ? (open ? 'text-[var(--paper-strong)]' : 'text-[var(--paper-faint)] hover:text-[var(--paper-text)]')
         : (open ? 'text-[var(--paper-strong)]' : 'text-[var(--muted)] hover:text-[var(--txt)]')}`
     : `h-10 w-10 rounded-full shadow-md mr-2 ${paperMode
-        ? `border bg-[var(--paper)] ${open ? 'border-[var(--paper-strong)] text-[var(--paper-strong)]' : 'border-[var(--paper-rule)] text-[var(--paper-faint)] hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]'}`
+        ? `border bg-[var(--paper)] ${open ? 'border-[var(--paper-strong)] text-[var(--paper-strong)]' : 'border-[var(--paper-rule)] text-[var(--paper-faint)] hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))] hover:text-[var(--paper-text)]'}`
         : `border bg-[var(--surface)] ${open ? 'border-[var(--paper-strong)] text-[var(--paper-strong)]' : 'border-[var(--border)] text-[var(--muted)] hover:bg-[var(--inp-bg)] hover:text-[var(--txt)]'}`}`
 
   return (

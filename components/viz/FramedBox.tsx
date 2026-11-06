@@ -1,32 +1,24 @@
 'use client'
 
 import { useEffect } from 'react'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { HEADER_TITLES } from '@/lib/header-titles'
 import { vizNeighbours } from '@/lib/viz-charts'
 import { isEngaged, isTyping, setEngaged, useEngage } from '@/lib/viz-engage'
 
 // A framed chart page's frame (Brendan, 2026-11-04): edge to edge across the app's content area below the header,
-// always — the full width is the standard, so there is no column state and no expand. Three circle buttons in a
-// row in the top right: previous and next chart (the /viz index's box order, wrapping at the ends —
-// lib/viz-charts.ts) and close (back to /viz). The clone a /viz press grows ends on this same rect
-// (expand-box.tsx).
+// always — the full width is the standard, so there is no column state and no expand. The previous and next chart
+// are circle buttons in the header (components/AppLayout.tsx ChartNav, 2026-11-06); the close button is gone. The
+// clone a /viz press grows ends on this same rect (expand-box.tsx).
 //
 // Keys (2026-11-06): [ and ] step to the previous and next chart at any time. ← → do too, until the reader clicks into
 // the chart; from then the arrows belong to the chart (lib/viz-engage.ts) and the frame wears a thin ring, with the
 // camera's keys listed on a 3D chart. Esc hands the arrows back.
-
-const CIRCLE =
-  'flex h-10 w-10 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] shadow-md transition-colors hover:bg-[var(--paper-quiet)]'
 
 export function FramedBox({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const near = vizNeighbours(path)
   const router = useRouter()
   const { engaged, camera } = useEngage()
-  const name = (href: string, title: string) => HEADER_TITLES[href] ?? title
 
   // Each chart page starts with the arrows on chart stepping.
   useEffect(() => {
@@ -59,22 +51,6 @@ export function FramedBox({ children }: { children: React.ReactNode }) {
         if (!(e.target as HTMLElement).closest('[data-frame-nav]')) setEngaged(true)
       }}
     >
-      <div data-frame-nav className="absolute right-4 top-4 z-10 flex gap-2">
-        {near && (
-          <>
-            <Link href={near.prev.href} aria-label={`Previous chart: ${name(near.prev.href, near.prev.title)}`} title={name(near.prev.href, near.prev.title)} className={CIRCLE}>
-              <ChevronLeft className="h-4 w-4 text-[var(--paper-text)]" />
-            </Link>
-            <Link href={near.next.href} aria-label={`Next chart: ${name(near.next.href, near.next.title)}`} title={name(near.next.href, near.next.title)} className={CIRCLE}>
-              <ChevronRight className="h-4 w-4 text-[var(--paper-text)]" />
-            </Link>
-          </>
-        )}
-        {/* Close: back to /viz, reversing the box the press grew (Brendan, 2026-11-04). */}
-        <Link href="/" aria-label="Close the chart" className={CIRCLE}>
-          <X className="h-4 w-4 text-[var(--paper-text)]" />
-        </Link>
-      </div>
       {engaged && camera && (
         <p
           data-frame-nav

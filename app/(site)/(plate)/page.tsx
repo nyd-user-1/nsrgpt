@@ -1,4 +1,3 @@
-import { RevealFx } from "@/components/RevealFx";
 import { VizBoxMenu } from "./viz/box-menu";
 import { ExpandBox } from "./viz/expand-box";
 import { VIZ_CHARTS, type VizChart } from "@/lib/viz-charts";
@@ -22,7 +21,7 @@ export default function HomePage() {
 
   // The masthead and the byline are the (plate) layout's; the page is the plate.
   return (
-    <RevealFx className="flex min-h-0 flex-1 flex-col" delay={0.22} translateY={5}>
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="relative mt-[72px] flex min-h-0 flex-1 flex-col">
         {/* The plate as / has it (HomeContents): a fixed height, an even grid from its own measured size. */}
         <div className={`isolate flex flex-col overflow-hidden rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] ${PLATE_H}`}>
@@ -33,7 +32,7 @@ export default function HomePage() {
           </PlateGrid>
         </div>
       </div>
-    </RevealFx>
+    </div>
   );
 }
 

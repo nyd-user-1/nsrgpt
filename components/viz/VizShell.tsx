@@ -1,5 +1,4 @@
 import { PAPER_BRIDGE } from '@/components/editorial/PaperBridge'
-import { RevealFx } from '@/components/RevealFx'
 import { FramedBox } from '@/components/viz/FramedBox'
 
 // The /viz chart pages' frame: the chart alone, centered in the app's shell (Brendan, 2026-11-04: no wordmark,
@@ -20,10 +19,8 @@ export function VizShell({ children, framed }: { children: React.ReactNode; fram
         <FramedBox>
           {/* The + cursor belongs to the chart's own ground alone — not the frame, not the buttons. */}
           <div data-viz-chart className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {/* The chart arrives INSIDE the box the /viz press just grew, filling it (2026-11-04: every box). */}
-            <RevealFx className="flex min-h-0 min-w-0 flex-1 flex-col" delay={0.1} translateY={4}>
-              {children}
-            </RevealFx>
+            {/* The page's reveal is app/(site)/template.tsx's, on every navigation (2026-11-06). */}
+            {children}
           </div>
         </FramedBox>
       </div>

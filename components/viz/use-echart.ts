@@ -610,6 +610,8 @@ export function useEChart<D>(
     let onEvt: EventListener | undefined
     let rules: ReturnType<typeof makeRules> | undefined
     let marked: ReturnType<typeof makeMarks> | undefined
+    // Hidden until the first draw, which fades it in.
+    if (ref.current) ref.current.style.opacity = '0'
     let unhook: (() => void) | undefined
     ;(async () => {
       const [echarts, data] = await Promise.all([
@@ -626,6 +628,12 @@ export function useEChart<D>(
       const slider = Array.isArray(option.dataZoom) && option.dataZoom.some((d) => d.type === 'slider')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       chart.setOption(themed(option, dark) as any)
+      // The canvas fades in once it has drawn, rather than popping in after the page's reveal (2026-11-06).
+      requestAnimationFrame(() => {
+        if (!ref.current) return
+        ref.current.style.transition = 'opacity 0.35s ease'
+        ref.current.style.opacity = '1'
+      })
       // The datum under a click, when there is one; the canvas's own click decides whether it was a click.
       let hit: number | null = null
       let picked: ChartClick | null = null

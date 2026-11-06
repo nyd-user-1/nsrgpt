@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeftOpen, PanelLeftClose, Check, Copy } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, Check, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { VIZ_CHARTS } from "@/lib/viz-charts";
+import { VIZ_CHARTS, vizNeighbours } from "@/lib/viz-charts";
 import { DiscussionHeaderButton } from "@/components/DiscussionHeaderButton";
 import { UserPanel } from "@/components/UserPanel";
 import { VisitorLog } from "@/components/VisitorLog";
@@ -78,7 +78,7 @@ export function AppLayout({
             aria-label="Toggle sidebar"
             className={`hidden sm:flex h-10 w-10 items-center justify-center rounded-full shadow-md outline-none transition-colors ${
               paperMode
-                ? "border border-[var(--paper-rule)] bg-[var(--paper)] hover:bg-[var(--paper-quiet)]"
+                ? `border border-[var(--paper-rule)] bg-[var(--paper)] ${HOVER}`
                 : "border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--inp-bg)]"
             }`}
           >
@@ -99,6 +99,9 @@ export function AppLayout({
           ))}
 
           <div className="flex-1" />
+
+          {/* A chart page's previous and next chart, beside the panel button (Brendan, 2026-11-06). */}
+          {VIZ_CHARTS.some((c) => c.href === path) && <ChartNav path={path} />}
 
           {/* Commons button — toggles the follow-you panel. */}
           <DiscussionHeaderButton paperMode={paperMode} />
@@ -132,6 +135,28 @@ export function AppLayout({
 /** The header's chart switcher (Brendan, 2026-11-04): on a /viz chart page the title opens a list of every chart
  *  page in the /viz index's box order (lib/viz-charts.ts), named as the header names them (lib/header-titles.ts).
  *  Each item is a real link, so a modifier press opens a tab and shift+right-click reaches the pane. */
+/** A hover that shows on the paper in light and dark (Brendan, 2026-11-06): the ink at 14% over the paper. The paper
+ *  "quiet" tone it replaces was all but invisible on the dark paper. */
+const HOVER = "hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]";
+
+/** A chart page's previous and next chart, in the index's order, as circle buttons in the header (2026-11-06). */
+function ChartNav({ path }: { path: string }) {
+  const near = vizNeighbours(path);
+  if (!near) return null;
+  const name = (href: string, title: string) => HEADER_TITLES[href] ?? title;
+  const circle = `hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] shadow-md mr-2 transition-colors ${HOVER}`;
+  return (
+    <>
+      <Link href={near.prev.href} aria-label={`Previous chart: ${name(near.prev.href, near.prev.title)}`} title={name(near.prev.href, near.prev.title)} className={circle}>
+        <ChevronLeft className="h-4 w-4 text-[var(--paper-text)]" />
+      </Link>
+      <Link href={near.next.href} aria-label={`Next chart: ${name(near.next.href, near.next.title)}`} title={name(near.next.href, near.next.title)} className={circle}>
+        <ChevronRight className="h-4 w-4 text-[var(--paper-text)]" />
+      </Link>
+    </>
+  );
+}
+
 /** Copy the header's title (Brendan, 2026-11-06): shows on the title's hover, copies its text, and ticks once copied. */
 function CopyTitle({ title }: { title: string }) {
   const [done, setDone] = useState(false);
@@ -147,7 +172,7 @@ function CopyTitle({ title }: { title: string }) {
           window.setTimeout(() => setDone(false), 1500);
         } catch {}
       }}
-      className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--paper-faint,#94a3b8)] opacity-0 transition-opacity hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)] focus-visible:opacity-100 group-hover/title:opacity-100"
+      className={`flex h-7 w-7 items-center justify-center rounded-md text-[var(--paper-faint,#94a3b8)] opacity-0 transition-opacity ${HOVER} hover:text-[var(--paper-text)] focus-visible:opacity-100 group-hover/title:opacity-100`}
     >
       {done ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
@@ -163,7 +188,7 @@ function ChartSwitcher({ path, title }: { path: string; title: string }) {
         <button
           type="button"
           aria-label={`${title}: switch chart`}
-          className="-ml-2 flex items-center rounded-lg px-2 py-1 outline-none transition-colors hover:bg-[var(--paper-quiet)] focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)] data-[state=open]:bg-[var(--paper-quiet)]"
+          className={`-ml-2 flex items-center rounded-lg px-2 py-1 outline-none transition-colors ${HOVER} focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)] data-[state=open]:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]`}
         >
           <span className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
             {title}
