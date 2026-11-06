@@ -16,7 +16,7 @@ export const VIZ_CHARTS: VizChart[] = [
   { href: "/viz/simplex", title: "Line strips", body: "x product nucleus by A · y γ energy: every thermal-capture γ line in CapGam, 78,746 over 260 nuclei, shaded by intensity." },
   { href: "/viz/surface", title: "3D surface", body: "x N · y Z · z binding energy per nucleon as terrain, from the AME2020 masses; the ridge is the valley of stability." },
   { href: "/viz/graph", title: "Force graph", body: "Nodes the 3,420 ENSDF nuclides, coloured by decay mode; 4,783 edges, each from a nuclide to the daughter of one of its decay modes." },
-  { href: "/viz/reactions", title: "Flow lines", body: "Ground x N · y Z; the uranium, thorium and actinium decay series as routes. Each light moves faster the shorter its parent's half-life." },
+  { href: "/viz/reactions", title: "Flow lines", body: "x N · y Z: every ENSDF decay step as a line, coloured by mode, with one route lit from any nuclide, downstream or upstream. Each light moves faster the shorter its parent's half-life." },
   { href: "/viz/matrix", title: "Correlation matrix", body: "9×9 Pearson r across log T½, Qα, Qβ−, Sₙ, Sₚ, log E(2⁺), log B(E2), mass excess and log level count, over the 475 nuclides with all nine. Navy moves together; red apart." },
   { href: "/viz/decay", title: "Decay simulation", body: "x N · depth Z · height log₁₀ half-life, 3,420 ENSDF ground states. Each decays at its measured rate, scaled, and steps to its daughter." },
   { href: "/viz/decay2", title: "Decay simulation 2", body: "The decay simulation as a surface: x N · y Z · height √ population. It opens flat on every ground state and deforms as decays run." },
