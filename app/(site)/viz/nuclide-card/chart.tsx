@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, type DecayNuclide, type Mass } from '@/lib/viz-physics'
 import { type DecayData } from '@/lib/nuclide'
 
@@ -27,27 +28,13 @@ const COLOURS = [
   { light: '#2f6fdc', dark: '#5b9cff', swatch: 'bg-[#2f6fdc] dark:bg-[#5b9cff]' },
   { light: '#e8730c', dark: '#ff8a3d', swatch: 'bg-[#e8730c] dark:bg-[#ff8a3d]' },
 ]
-const SUPERS = '⁰¹²³⁴⁵⁶⁷⁸⁹'
 const PB208 = keyOf(82, 126)
 const U238 = keyOf(92, 146)
-
-/** "208Pb", "Pb208", "pb-208", "²⁰⁸Pb" → the nuclide's key, or null. "1n" is the neutron. */
-function parse(text: string, els: Map<string, number>): number | null {
-  const s = text.trim().replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (c) => String(SUPERS.indexOf(c))).replace(/[\s-]+/g, '')
-  const massFirst = s.match(/^(\d+)([a-z]{1,3})$/i)
-  const symbolFirst = s.match(/^([a-z]{1,3})(\d+)$/i)
-  const [a, el]: [number, string] = massFirst ? [Number(massFirst[1]), massFirst[2]] : symbolFirst ? [Number(symbolFirst[2]), symbolFirst[1]] : [0, '']
-  if (!el) return null
-  if (el === 'n' && a === 1) return keyOf(0, 1)
-  const z = els.get(el.toLowerCase())
-  return z === undefined ? null : keyOf(z, a - z)
-}
 
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
 
 export function NuclideCardChart() {
   const [keys, setKeys] = React.useState<[number, number | null]>([PB208, U238])
-  const [texts, setTexts] = React.useState<[string, string]>(['208Pb', '238U'])
   const [masses, setMasses] = React.useState<Mass[] | null>(null)
   const [decayData, setDecayData] = React.useState<DecayData | null>(null)
   React.useEffect(() => {
@@ -57,7 +44,15 @@ export function NuclideCardChart() {
     })
   }, [])
   const rowOfKey = React.useMemo(() => new Map((masses ?? []).map((m, i) => [keyOf(m.z, m.n), i])), [masses])
-  const els = React.useMemo(() => new Map((masses ?? []).filter((m) => m.z > 0).map((m) => [m.el.toLowerCase(), m.z])), [masses])
+  // The pickers' lists, Z then A: "208Pb", searchable as "Pb208" too.
+  const options = React.useMemo<PickerOption[]>(
+    () =>
+      (masses ?? [])
+        .slice()
+        .sort((a, b) => a.z - b.z || a.n - b.n)
+        .map((m) => ({ key: keyOf(m.z, m.n), label: `${m.z + m.n}${m.el}`, alt: `${m.el}${m.z + m.n}` })),
+    [masses],
+  )
 
   const ref = useEChart(
     loadMassesAndDecay,
@@ -121,10 +116,7 @@ export function NuclideCardChart() {
       // A table row pressed: that nuclide becomes the first.
       point: (row) => {
         const m = masses?.[row]
-        if (m) {
-          setKeys((k) => [keyOf(m.z, m.n), k[1]])
-          setTexts((t) => [`${m.z + m.n}${m.el}`, t[1]])
-        }
+        if (m) setKeys((k) => [keyOf(m.z, m.n), k[1]])
         return null
       },
     },
@@ -132,10 +124,10 @@ export function NuclideCardChart() {
 
   // Keyboard (Brendan, 2026-11-04): arrows step the first nuclide — left/right along the isotope
   // chain, up/down across elements (nearest N) — and Shift+arrows move the overlay the same way.
-  React.useEffect(() => {
-    if (!masses) return
-    const byKey = new Map(masses.map((m, i) => [keyOf(m.z, m.n), i]))
-    const step = (from: number, dz: number, dn: number): number | null => {
+  const step = React.useCallback(
+    (from: number, dz: number, dn: number): number | null => {
+      if (!masses) return null
+      const byKey = new Map(masses.map((m, i) => [keyOf(m.z, m.n), i]))
       const cur = masses[byKey.get(from) ?? -1]
       if (!cur) return null
       if (dn !== 0) {
@@ -150,7 +142,11 @@ export function NuclideCardChart() {
       if (!row.length) return null
       const next = row.reduce((a, b) => (Math.abs(a.n - cur.n) <= Math.abs(b.n - cur.n) ? a : b))
       return keyOf(next.z, next.n)
-    }
+    },
+    [masses],
+  )
+  React.useEffect(() => {
+    if (!masses) return
     const on = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null
       if (t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable)) return
@@ -162,22 +158,25 @@ export function NuclideCardChart() {
         const from = i === 1 ? ks[1] ?? ks[0] : ks[0]
         const to = step(from, dir[0], dir[1])
         if (to === null) return ks
-        const m = masses[byKey.get(to)!]
-        setTexts((tx) => (i === 0 ? [`${m.z + m.n}${m.el}`, tx[1]] : [tx[0], `${m.z + m.n}${m.el}`]))
         return i === 0 ? [to, ks[1]] : [ks[0], to]
       })
     }
     window.addEventListener('keydown', on)
     return () => window.removeEventListener('keydown', on)
-  }, [masses])
+  }, [masses, step])
 
-  const enter = (i: 0 | 1, text: string) => {
-    setTexts((t) => (i === 0 ? [text, t[1]] : [t[0], text]))
-    const k = text.trim() === '' && i === 1 ? null : parse(text, els)
-    if (k !== null && !rowOfKey.has(k)) return
+  const choose = (i: 0 | 1, k: number | null) => {
     if (k === null && i === 0) return
     setKeys((ks) => (i === 0 ? [k as number, ks[1]] : [ks[0], k]))
   }
+  // ‹ › step along the isotope chain, as ← → do.
+  const stepOne = (i: 0 | 1, dir: -1 | 1) =>
+    setKeys((ks) => {
+      const from = ks[i]
+      const to = from === null ? null : step(from, 0, dir)
+      if (to === null) return ks
+      return i === 0 ? [to, ks[1]] : [ks[0], to]
+    })
 
   // What the polygons mean for THESE nuclides, computed from the displayed values (Brendan, 2026-11-04).
   const takeaways = React.useMemo(() => {
@@ -204,26 +203,19 @@ export function NuclideCardChart() {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-3 px-3 pt-2" style={MONO}>
+      <div className="flex flex-col gap-2 px-3 pt-2">
         {([0, 1] as const).map((i) => (
-          <label key={i} className="flex items-center gap-2">
-            <span className={`h-2.5 w-2.5 rounded-full ${COLOURS[i].swatch}`} />
-            <input
-              list="nuclide-card-names"
-              value={texts[i]}
-              onChange={(e) => enter(i, e.target.value)}
-              placeholder={i === 0 ? '208Pb' : 'Overlay'}
-              aria-label={i === 0 ? 'Nuclide' : 'Overlay nuclide'}
-              spellCheck={false}
-              className="w-28 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 py-1 text-[12px] text-[var(--paper-text)] outline-none placeholder:text-[var(--paper-faint)] focus:border-[var(--paper-muted)]"
-            />
-          </label>
+          <NuclidePicker
+            key={i}
+            value={keys[i]}
+            options={options}
+            onPick={(k) => choose(i, k)}
+            onStep={(dir) => stepOne(i, dir)}
+            swatch={COLOURS[i].swatch}
+            label={i === 0 ? 'Nuclide' : 'Overlay nuclide'}
+            noneLabel={i === 1 ? 'No overlay' : undefined}
+          />
         ))}
-        <datalist id="nuclide-card-names">
-          {(masses ?? []).map((m) => (
-            <option key={keyOf(m.z, m.n)} value={`${m.z + m.n}${m.el}`} />
-          ))}
-        </datalist>
       </div>
       <div ref={ref} className="min-h-0 w-full flex-1" />
       <div className="shrink-0 border-t border-[var(--paper-rule)] px-4 py-3 text-[12px] leading-relaxed text-[var(--paper-muted)]">
@@ -237,7 +229,7 @@ export function NuclideCardChart() {
           </p>
         ))}
         <p className="m-0 mt-2 text-[11px] text-[var(--paper-faint)]" style={MONO}>
-          ← → isotope · ↑ ↓ element · Shift + arrows move the overlay · or type any nuclide in the boxes
+          ← → isotope · ↑ ↓ element · Shift + arrows move the overlay · [ ] previous or next chart
         </p>
       </div>
     </div>
