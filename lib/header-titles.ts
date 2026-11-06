@@ -24,6 +24,8 @@ export const HEADER_TITLES: Record<string, string> = {
   "/viz/particles": "Nuclides | Particles",
   "/viz/fission-yields": "Fission | Yields",
   "/viz/explorer": "Nuclides | 3D Explorer",
+  "/viz/radiation": "Nuclides | Decay Radiation",
+  "/viz/gamma-lines": "Decays | γ-Line Finder",
   "/viz/knowledge": "Nuclides | Knowledge Map",
   "/viz/levels": "Nuclides | Level Energies",
   "/viz/first-excited": "Nuclides | Aggregate Bar",

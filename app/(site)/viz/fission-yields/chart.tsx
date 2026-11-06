@@ -118,7 +118,8 @@ function MassCurve({ view, code }: { view: React.RefObject<View>; code: number }
       return {
         backgroundColor: 'transparent',
         animation: false,
-        grid: { left: 72, right: 32, top: 24, bottom: 56 },
+        // Clear of the panel on the left.
+        grid: { left: 340, right: 32, top: 24, bottom: 56 },
         tooltip: {
           trigger: 'axis',
           formatter: (ps: unknown) => {
