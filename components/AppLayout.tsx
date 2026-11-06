@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeftOpen, PanelLeftClose, ChevronsUpDown, Check } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, Check, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { VIZ_CHARTS } from "@/lib/viz-charts";
 import { DiscussionHeaderButton } from "@/components/DiscussionHeaderButton";
@@ -90,10 +90,11 @@ export function AppLayout({
           </button>
 
           {title && (VIZ_CHARTS.some((c) => c.href === path) ? <ChartSwitcher path={path} title={title} /> : (
-            <span className="ml-5 hidden items-center gap-1.5 sm:flex">
+            <span className="group/title ml-5 hidden items-center gap-1 sm:flex">
               <span className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
                 {title}
               </span>
+              <CopyTitle title={title} />
             </span>
           ))}
 
@@ -131,19 +132,42 @@ export function AppLayout({
 /** The header's chart switcher (Brendan, 2026-11-04): on a /viz chart page the title opens a list of every chart
  *  page in the /viz index's box order (lib/viz-charts.ts), named as the header names them (lib/header-titles.ts).
  *  Each item is a real link, so a modifier press opens a tab and shift+right-click reaches the pane. */
+/** Copy the header's title (Brendan, 2026-11-06): shows on the title's hover, copies its text, and ticks once copied. */
+function CopyTitle({ title }: { title: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      aria-label={`Copy "${title}"`}
+      title="Copy"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(title);
+          setDone(true);
+          window.setTimeout(() => setDone(false), 1500);
+        } catch {}
+      }}
+      className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--paper-faint,#94a3b8)] opacity-0 transition-opacity hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)] focus-visible:opacity-100 group-hover/title:opacity-100"
+    >
+      {done ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
+
 function ChartSwitcher({ path, title }: { path: string; title: string }) {
   return (
+    <span className="group/title ml-5 hidden items-center gap-1 sm:flex">
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+        {/* The title opens the chart list; a muted ground on hover says it's pressable (2026-11-06). */}
         <button
           type="button"
           aria-label={`${title}: switch chart`}
-          className="ml-5 hidden items-center gap-1.5 rounded-md outline-none sm:flex focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)]"
+          className="-ml-2 flex items-center rounded-lg px-2 py-1 outline-none transition-colors hover:bg-[var(--paper-quiet)] focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)] data-[state=open]:bg-[var(--paper-quiet)]"
         >
           <span className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
             {title}
           </span>
-          <ChevronsUpDown className="h-3.5 w-3.5 text-[var(--paper-faint,#94a3b8)]" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -168,5 +192,7 @@ function ChartSwitcher({ path, title }: { path: string; title: string }) {
         })}
       </DropdownMenuContent>
     </DropdownMenu>
+    <CopyTitle title={title} />
+    </span>
   );
 }
