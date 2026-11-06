@@ -1,0 +1,172 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { PanelLeftOpen, PanelLeftClose, ChevronsUpDown, Check } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { VIZ_CHARTS } from "@/lib/viz-charts";
+import { DiscussionHeaderButton } from "@/components/DiscussionHeaderButton";
+import { UserPanel } from "@/components/UserPanel";
+import { VisitorLog } from "@/components/VisitorLog";
+import { useShellPanel } from "@/components/shell";
+import { CornerClose } from "@/components/pane";
+import { HEADER_TITLES } from "@/lib/header-titles";
+
+/**
+ * The 44b app shell — a floating rounded content panel beside a collapsible
+ * sidebar, with a header (sidebar toggle · Commons) and a
+ * follow-you panel root on the right. Ported from /Code/44b.
+ *
+ * The sidebar is the visitor log above the user panel, which holds the
+ * light/dark switch and sign in or out (2026-10-07).
+ */
+export function AppLayout({
+  children,
+  paperMode,
+  headerTitle,
+}: {
+  children: React.ReactNode;
+  paperMode?: boolean;
+  /** A page's name in the header, beside the sidebar toggle — "Nuclides | Scatter Field" (2026-11-04). */
+  headerTitle?: string;
+}) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const path = usePathname();
+  const title = headerTitle ?? HEADER_TITLES[path];
+  const { headerMenu, closePage } = useShellPanel();
+
+  return (
+    <div data-app-frame className="nysgpt-app flex h-dvh overflow-hidden p-0 sm:p-[18px] bg-[var(--surface)] sm:bg-[var(--bg)]">
+      {/* Sidebar — wired in step 2; collapsed (w-0) until opened. */}
+      <div
+        data-chrome
+        className={`shrink-0 transition-[width,margin] duration-300 ease-in-out overflow-hidden ${
+          sidebarOpen ? "w-full sm:w-[240px] sm:mr-[18px]" : "w-0"
+        }`}
+      >
+        <div
+          className={`w-full sm:w-[240px] h-full rounded-none sm:rounded-2xl overflow-hidden sm:border bg-[var(--paper)] ${
+            paperMode ? "sm:border-[var(--paper-rule)]" : "sm:border-[var(--border)]"
+          }`}
+        >
+          <div className="flex h-full flex-col">
+            <div className="min-h-0 flex-1">
+              <VisitorLog />
+            </div>
+            <UserPanel />
+          </div>
+        </div>
+      </div>
+
+      {/* The card and its corner bite in one box (2026-11-05), as the switchboard's drawer holds its own: the
+          bite sits over the card's border, which it couldn't from inside the card's clip. */}
+      <div className="relative flex min-w-0 flex-1">
+      <div
+        data-app-card
+        className={`relative flex flex-1 flex-col min-w-0 rounded-none sm:rounded-2xl overflow-hidden shadow-header sm:border ${
+          paperMode
+            ? "bg-[var(--paper)] sm:border-[var(--paper-rule)]"
+            : "bg-[var(--surface)] sm:border-[var(--border)]"
+        }`}
+      >
+        {/* A plain right-click on the header's empty run opens the Nav for the page (components/shell.tsx). */}
+        {/* The header wears trinity's shadow by default — not scroll-gated (Brendan, 2026-11-04). */}
+        <div data-chrome onContextMenu={headerMenu("main")} className="relative z-10 flex items-center px-5 pt-5 pb-5 shadow-header">
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label="Toggle sidebar"
+            className={`hidden sm:flex h-10 w-10 items-center justify-center rounded-full shadow-md outline-none transition-colors ${
+              paperMode
+                ? "border border-[var(--paper-rule)] bg-[var(--paper)] hover:bg-[var(--paper-quiet)]"
+                : "border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--inp-bg)]"
+            }`}
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
+            ) : (
+              <PanelLeftOpen className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
+            )}
+          </button>
+
+          {title && (VIZ_CHARTS.some((c) => c.href === path) ? <ChartSwitcher path={path} title={title} /> : (
+            <span className="ml-5 hidden items-center gap-1.5 sm:flex">
+              <span className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
+                {title}
+              </span>
+            </span>
+          ))}
+
+          <div className="flex-1" />
+
+          {/* Commons button — toggles the follow-you panel. */}
+          <DiscussionHeaderButton paperMode={paperMode} />
+        </div>
+
+        {children}
+      </div>
+      {/* Trinity's "Close the page": while a panel stands beside the page, the panel takes the whole area. */}
+      {closePage && <CornerClose label="Close the page" onClose={closePage} ground="fill-[var(--bg)]" />}
+      </div>
+
+      <div id="app-panel-root" className="flex shrink-0 h-full" />
+
+      {/* Mobile sidebar toggle. */}
+      <button
+        data-chrome
+        onClick={() => setSidebarOpen((v) => !v)}
+        aria-label="Toggle sidebar"
+        className="sm:hidden fixed z-50 bottom-4 right-2 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] shadow-lg hover:bg-[var(--inp-bg)]"
+      >
+        {sidebarOpen ? (
+          <PanelLeftClose className="h-5 w-5" style={{ color: "#033882", fill: "#dbe7fa" }} />
+        ) : (
+          <PanelLeftOpen className="h-5 w-5" style={{ color: "#033882", fill: "#dbe7fa" }} />
+        )}
+      </button>
+    </div>
+  );
+}
+
+/** The header's chart switcher (Brendan, 2026-11-04): on a /viz chart page the title opens a list of every chart
+ *  page in the /viz index's box order (lib/viz-charts.ts), named as the header names them (lib/header-titles.ts).
+ *  Each item is a real link, so a modifier press opens a tab and shift+right-click reaches the pane. */
+function ChartSwitcher({ path, title }: { path: string; title: string }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={`${title}: switch chart`}
+          className="ml-5 hidden items-center gap-1.5 rounded-md outline-none sm:flex focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)]"
+        >
+          <span className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
+            {title}
+          </span>
+          <ChevronsUpDown className="h-3.5 w-3.5 text-[var(--paper-faint,#94a3b8)]" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        sideOffset={8}
+        className="nysgpt-app max-h-[70vh] w-[300px] rounded-xl border-[var(--paper-rule)] bg-[var(--paper)] p-1 text-[var(--paper-text)]"
+      >
+        {VIZ_CHARTS.map((c) => {
+          const on = c.href === path;
+          return (
+            <DropdownMenuItem
+              key={c.href}
+              asChild
+              className={`text-[13px] focus:bg-[var(--paper-quiet)] focus:text-[var(--paper-text)] ${on ? "font-medium text-[var(--paper-strong)]" : ""}`}
+            >
+              <Link href={c.href} aria-current={on ? "page" : undefined}>
+                <span className="min-w-0 flex-1 truncate">{HEADER_TITLES[c.href] ?? c.title}</span>
+                {on && <Check className="h-3.5 w-3.5 text-[var(--paper-strong)]" />}
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
