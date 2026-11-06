@@ -88,3 +88,107 @@ write("livechart-ground.json", {
   rows: rowsOut,
   fission: index,
 });
+
+// ── decay radiation ────────────────────────────────────────────────────────────────────────────────
+// Ground-state decays only (an isomer's decay rows carry its level energy as p_energy). Intensities are per 100
+// decays of the parent, every mode together (²¹²Bi: α lines 35.95, β− 64.06), so a line's energy times its
+// intensity / 100 is its share of an average decay.
+//
+//   public/viz-data/decay-energy.json   per nuclide, keV per decay: what stays in a sample (α, the daughter's
+//                                       recoil, β mean energies, electrons) and what leaves it (γ, X-rays,
+//                                       annihilation photons, neutrinos) — the particle view's heat
+//   public/viz-data/radiation/<Z>.json  per element, each isotope's lines by type — the decay radiation card
+//   public/viz-data/gamma/<bin>.json    every decay γ line, 250 keV to a file, sorted by energy — the γ-line finder
+//   public/viz-data/gamma/index.json    which slices exist, and the element symbols
+const RAD = ["a", "bm", "bp", "g", "e", "x"];
+const radiation = new Map(); // key z*1000+n → { z, n, el, t, lines: { a, bm, bp, ec, g, e, x } }
+const ground = (r) => r.p_energy === "0" || r.p_energy === "";
+const nucOf = (r) => {
+  const z = Number(r.p_z);
+  const n = Number(r.p_n);
+  const k = z * 1000 + n;
+  if (!radiation.has(k)) radiation.set(k, { z, n, el: r.p_symbol, t: num(r.half_life_sec, 5), lines: {} });
+  return radiation.get(k);
+};
+const push = (rec, type, line) => (rec.lines[type] ??= []).push(line);
+for (const type of RAD) {
+  let files = [];
+  try {
+    files = (await import("node:fs")).readdirSync(join(raw, "decay_rads", type));
+  } catch {
+    continue;
+  }
+  for (const f of files) {
+    const text = readFileSync(join(raw, "decay_rads", type, f), "utf8");
+    if (!text.includes(",")) continue; // the API's "no data" answer is a bare code
+    for (const r of parseCsv(text).filter(ground)) {
+      const rec = nucOf(r);
+      if (type === "a") {
+        const e = num(r.energy, 6), i = num(r.intensity, 4);
+        if (e && i) push(rec, "a", [e, i]);
+      } else if (type === "bm" || type === "bp") {
+        const mean = num(r.mean_energy, 6), end = num(r.max_energy ?? r["max_energy"], 6), i = num(r.intensity_beta, 4);
+        const nu = num(type === "bm" ? r.anti_nu_mean_energy : r.nu_mean_energy, 6);
+        if (mean && i) push(rec, type, [mean, end, i, nu]);
+        if (type === "bp") {
+          const ie = num(r.intensity_ec, 4), ee = num(r.energy_ec, 6);
+          if (ie) push(rec, "ec", [ee, ie]);
+        }
+      } else {
+        const e = num(r.energy, 6), i = num(r.intensity, 4);
+        if (e && i) push(rec, type, type === "e" ? [e, i, r.type === "AU" ? "Auger" : `CE ${r.shell ?? ""}`.trim()] : [e, i]);
+      }
+    }
+  }
+}
+if (radiation.size) {
+  // keV per decay, by where it goes.
+  const sum = (list, f) => (list ?? []).reduce((s, l) => s + f(l), 0);
+  const rows = [...radiation.values()]
+    .sort((a, b) => a.z - b.z || a.n - b.n)
+    .map((r) => {
+      const A = r.z + r.n;
+      const L = r.lines;
+      const alpha = sum(L.a, ([e, i]) => (e * i) / 100);
+      const recoil = sum(L.a, ([e, i]) => (e * i * 4) / Math.max(1, A - 4) / 100);
+      const beta = sum(L.bm, ([m, , i]) => (m * i) / 100) + sum(L.bp, ([m, , i]) => (m * i) / 100);
+      const electron = sum(L.e, ([e, i]) => (e * i) / 100);
+      const gamma = sum(L.g, ([e, i]) => (e * i) / 100);
+      const xray = sum(L.x, ([e, i]) => (e * i) / 100);
+      const annihilation = sum(L.bp, ([, , i]) => (1021.998 * i) / 100);
+      const neutrino = sum(L.bm, ([, , i, nu]) => ((nu ?? 0) * i) / 100) + sum(L.bp, ([, , i, nu]) => ((nu ?? 0) * i) / 100) + sum(L.ec, ([e, i]) => ((e ?? 0) * i) / 100);
+      return [r.z, r.n, ...[alpha, recoil, beta, electron, gamma, xray, annihilation, neutrino].map((v) => num(v, 5))];
+    });
+  write("decay-energy.json", {
+    source: `IAEA Live Chart API (nds.iaea.org/relnsd/v1/data), ENSDF decay radiation of ground states, ${DATE}`,
+    cols: ["z", "n", "alpha", "recoil", "beta", "electron", "gamma", "xray", "annihilation", "neutrino"],
+    rows,
+  });
+
+  // Per element, every isotope's lines.
+  mkdirSync(join(OUT, "radiation"), { recursive: true });
+  const byZ = new Map();
+  for (const r of radiation.values()) byZ.set(r.z, [...(byZ.get(r.z) ?? []), r]);
+  let total = 0;
+  for (const [z, list] of byZ) {
+    const text = JSON.stringify({ z, el: list[0].el, nuclides: list.sort((a, b) => a.n - b.n).map(({ n, t, lines }) => ({ n, t, lines })) });
+    writeFileSync(join(OUT, "radiation", `${z}.json`), text);
+    total += text.length;
+  }
+  console.log(`radiation/: ${byZ.size} files, ${(total / 1024).toFixed(0)} KB`);
+
+  // γ lines by energy.
+  mkdirSync(join(OUT, "gamma"), { recursive: true });
+  const lines = [];
+  for (const r of radiation.values()) for (const [e, i] of r.lines.g ?? []) lines.push([e, i, r.z, r.n]);
+  lines.sort((a, b) => a[0] - b[0]);
+  const BIN = 250;
+  const bins = new Map();
+  for (const l of lines) {
+    const b = Math.floor(l[0] / BIN);
+    bins.set(b, [...(bins.get(b) ?? []), l]);
+  }
+  for (const [b, list] of bins) writeFileSync(join(OUT, "gamma", `${b}.json`), JSON.stringify(list));
+  write("gamma/index.json", { source: `IAEA Live Chart API (nds.iaea.org/relnsd/v1/data), ENSDF decay γ lines of ground states, ${DATE}`, bin: BIN, bins: [...bins.keys()].sort((a, b) => a - b), els, count: lines.length });
+  console.log(`gamma/: ${lines.length} lines in ${bins.size} files`);
+}

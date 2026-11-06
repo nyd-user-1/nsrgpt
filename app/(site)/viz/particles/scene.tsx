@@ -14,7 +14,7 @@ import { Color, SRGBColorSpace, type Vector3 } from 'three'
 import { Pause, Play, RotateCcw } from 'lucide-react'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { FAMILY, familyOf, formatSeconds, halfLifeText, keyOf, loadMassesAndDecay, nucName, type Decay, type Mass } from '@/lib/viz-physics'
-import { heatModel, memberHeat, totalHeat, wattsText, type HeatModel } from '@/lib/viz-decay-heat'
+import { heatModel, loadMeasured, memberHeat, photonPower, totalHeat, wattsText, type HeatModel, type Measured } from '@/lib/viz-decay-heat'
 import { setCamera } from '@/lib/viz-engage'
 import { usePaperTheme } from '@/lib/use-paper-theme'
 import { buildPlume, VENTS, type Plume, type PlumeValues } from './plume'
@@ -67,8 +67,8 @@ const SLIDERS: { key: SliderKey; label: string; min: number; max: number; step: 
   { key: 'emission', label: 'Emission at peak heat', min: 500, max: 8000, step: 250, unit: '/s', digits: 0 },
 ]
 
-type Data = { decay: Decay; masses: Map<number, Mass>; index: Map<number, number> }
-type Readout = { fps: number; t: number; total: number; vents: number[] }
+type Data = { decay: Decay; masses: Map<number, Mass>; index: Map<number, number>; measured: Measured | null }
+type Readout = { fps: number; t: number; total: number; photons: number; vents: number[] }
 
 /** Each vent's heat and the total at time t, as shares of the sample's peak. */
 function shares(m: HeatModel | null, t: number): { vents: number[]; total: number } {
@@ -104,7 +104,7 @@ export default function ParticleScene() {
   const [air, setAir] = React.useState(false)
   const [playing, setPlaying] = React.useState(true)
   const [resets, setResets] = React.useState(0)
-  const [readout, setReadout] = React.useState<Readout>({ fps: 0, t: 0, total: 0, vents: [] })
+  const [readout, setReadout] = React.useState<Readout>({ fps: 0, t: 0, total: 0, photons: 0, vents: [] })
   // Bumped when a new plume is ready, so its colours are set.
   const [recolor, setRecolor] = React.useState(0)
   // The tracer lifetime rebuilds the scene, so it applies once the slider rests.
@@ -115,9 +115,10 @@ export default function ParticleScene() {
   }, [values.lifetime])
 
   React.useEffect(() => {
-    loadMassesAndDecay().then(
-      ([masses, decay]) =>
-        setData({ decay, masses: new Map(masses.map((m) => [keyOf(m.z, m.n), m])), index: new Map(decay.nuclides.map((x, i) => [keyOf(x.z, x.n), i])) }),
+    // The measured decay energies are optional: without them, the Q-value estimate stands in.
+    Promise.all([loadMassesAndDecay(), loadMeasured().catch(() => null)]).then(
+      ([[masses, decay], measured]) =>
+        setData({ decay, masses: new Map(masses.map((m) => [keyOf(m.z, m.n), m])), index: new Map(decay.nuclides.map((x, i) => [keyOf(x.z, x.n), i])), measured }),
       () => {
         setStatus('failed')
         setError('The decay data didn’t load.')
@@ -127,7 +128,7 @@ export default function ParticleScene() {
 
   const model = React.useMemo(() => {
     const i = data?.index.get(start)
-    return data && i !== undefined ? heatModel(data.decay, data.masses, i, VENTS) : null
+    return data && i !== undefined ? heatModel(data.decay, data.masses, i, VENTS, data.measured) : null
   }, [data, start])
 
   // What the frame loop reads between renders.
@@ -148,7 +149,7 @@ export default function ParticleScene() {
       (s) => {
         const m = live.current.model
         const t = live.current.t
-        setReadout({ fps: s.fps, t, total: m ? totalHeat(m, t) : 0, vents: m ? m.hottest.map((k) => memberHeat(m, k, t)) : [] })
+        setReadout({ fps: s.fps, t, total: m ? totalHeat(m, t) : 0, photons: m ? photonPower(m, t) : 0, vents: m ? m.hottest.map((k) => memberHeat(m, k, t)) : [] })
       },
       (e) => {
         if (!alive) return
@@ -293,7 +294,11 @@ export default function ParticleScene() {
               <div key={k} className="grid grid-cols-[10px_1fr_auto] items-center gap-x-2">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: swatch }} />
                 <span>
-                  {nucName(x)} <span className="text-[var(--paper-faint)]" style={MONO}>{halfLifeText(x)}</span>
+                  {nucName(x)}{' '}
+                  <span className="text-[var(--paper-faint)]" style={MONO} title={model.measured[k] ? undefined : 'No measured decay radiation: the Q-value estimate'}>
+                    {halfLifeText(x)}
+                    {model.measured[k] ? '' : ' · estimated'}
+                  </span>
                 </span>
                 <span className="tabular-nums" style={MONO}>
                   {wattsText(w)}
@@ -357,6 +362,8 @@ export default function ParticleScene() {
               <span className="text-right">{readout.t > 0 ? formatSeconds(readout.t) : '0 s'}</span>
               <span className="text-[var(--paper-muted)]">Heat</span>
               <span className="text-right">{wattsText(readout.total)}</span>
+              <span className="text-[var(--paper-muted)]" title="γ rays, X-rays and annihilation photons, which leave a small sample">Photons</span>
+              <span className="text-right">{wattsText(readout.photons)}</span>
             </div>
           </div>
 
