@@ -200,9 +200,10 @@ export function GraphChart() {
         shown = null
         draw()
       }
-      const legend = (e: { selected: Record<string, boolean> }) => {
+      const legend = (e: unknown) => {
+        const selected = (e as { selected: Record<string, boolean> }).selected
         hidden.clear()
-        for (const f of FAMILIES) if (e.selected[FAMILY[f].label] === false) hidden.add(f)
+        for (const f of FAMILIES) if (selected[FAMILY[f].label] === false) hidden.add(f)
         draw()
       }
       c.on('mouseover', over)
