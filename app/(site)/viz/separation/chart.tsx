@@ -1,6 +1,8 @@
 'use client'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { EChartLegend } from '@/components/viz/EChartLegend'
+import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, isDark, loadMasses, nucName, separationCandles } from '@/lib/viz-physics'
 
 // Neutron separation energy along each isotope chain, as candles (chart batch A, 2026-11-04). A nuclide's candle
@@ -26,7 +28,7 @@ export function SeparationChart() {
     return {
       backgroundColor: 'transparent',
       animation: false,
-      legend: { top: 0, textStyle: { color: '#334155' }, data: ['Sₙ', 'S₂ₙ / 2'] },
+      legend: { show: false, textStyle: { color: '#334155' }, data: ['Sₙ', 'S₂ₙ / 2'] },
       tooltip: {
         trigger: 'axis',
         formatter: (ps: unknown) => {
@@ -96,5 +98,12 @@ export function SeparationChart() {
       ],
     }
   }, false, (p) => (typeof p.dataIndex === 'number' ? p.dataIndex : null), { marks: true })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return (
+    <>
+      <VizControls>
+        <EChartLegend chart={ref} />
+      </VizControls>
+      <div ref={ref} className="min-h-0 w-full flex-1" />
+    </>
+  )
 }

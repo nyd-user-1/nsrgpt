@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { AXIS, isDark, sup } from '@/lib/viz-physics'
 import { ENERGIES, PARENTS, loadAllFission, massCurve, nzYields, type Energy, type FissionFile } from './data'
@@ -44,7 +45,7 @@ export function FissionChart() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
       {three ? <Yields3D view={latest} code={code(view)} /> : <MassCurve view={latest} code={code(view)} />}
 
-      <div className="z-10 absolute left-4 top-4 flex w-[250px] flex-col gap-2.5 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2.5 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+      <VizControls>
         <div className="flex flex-col gap-1">
           <span className="text-[var(--paper-muted)]">{three ? 'Parent' : 'Parents'}</span>
           <div className="flex flex-wrap gap-1">
@@ -104,7 +105,7 @@ export function FissionChart() {
             />
           </>
         )}
-      </div>
+      </VizControls>
     </div>
   )
 }
@@ -118,8 +119,7 @@ function MassCurve({ view, code }: { view: React.RefObject<View>; code: number }
       return {
         backgroundColor: 'transparent',
         animation: false,
-        // Clear of the panel on the left.
-        grid: { left: 340, right: 32, top: 24, bottom: 56 },
+        grid: { left: 72, right: 32, top: 24, bottom: 56 },
         tooltip: {
           trigger: 'axis',
           formatter: (ps: unknown) => {

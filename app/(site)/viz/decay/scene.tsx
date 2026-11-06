@@ -13,6 +13,7 @@ import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
 import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
+import { VizControls } from '@/components/viz/VizControls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Pause, Play, RotateCcw, X } from 'lucide-react'
 import {
@@ -638,10 +639,7 @@ export default function DecayScene() {
       )}
 
       {/* Legend: a click isolates a mode (the others dim); a second click, or another mode, changes it. */}
-      <div
-        className="z-10 absolute left-4 top-4 flex flex-col gap-0.5 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-2 py-2 text-[11px] text-[var(--paper-text)] backdrop-blur-sm"
-        style={{ cursor: 'default' }}
-      >
+      <VizControls>
         {FAMILIES.map((f) => (
           <button
             key={f}
@@ -657,10 +655,10 @@ export default function DecayScene() {
         <span className="mt-1 px-1.5 text-[10px] text-[var(--paper-faint)]" style={MONO}>
           height: log₁₀ half-life
         </span>
-      </div>
+      </VizControls>
 
       {/* Controls */}
-      <div className="z-10 absolute bottom-4 left-4 flex flex-wrap items-center gap-4 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-4 py-3 text-[var(--paper-text)] backdrop-blur-sm">
+      <VizControls>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -720,7 +718,7 @@ export default function DecayScene() {
           <span className="text-[var(--paper-muted)]">Fissions</span>
           <span>{stats.fissions.toLocaleString('en')}</span>
         </div>
-      </div>
+      </VizControls>
 
       {/* Hovered nuclide */}
       {hovered && selected.length === 0 && (
@@ -735,7 +733,7 @@ export default function DecayScene() {
 
       {/* The selected nuclide's chain */}
       {model && chain && shown !== null && (
-        <div className="z-10 absolute bottom-4 right-4 top-16 flex w-[320px] flex-col overflow-hidden rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/95 text-[var(--paper-text)] backdrop-blur-sm">
+        <VizControls>
           {selected.length > 1 && (
             <div className="flex flex-wrap gap-1 border-b border-[var(--paper-rule)]/10 px-4 py-2">
               {selected.map((i) => (
@@ -823,7 +821,7 @@ export default function DecayScene() {
               </div>
             )}
           </div>
-        </div>
+        </VizControls>
       )}
     </div>
   )

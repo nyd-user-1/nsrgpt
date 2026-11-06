@@ -11,6 +11,7 @@
 import * as React from 'react'
 import { Pause, Play, RotateCcw } from 'lucide-react'
 import { useEChart } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { formatSeconds, keyOf, loadDecay, type DecayData } from '@/lib/viz-decay'
 
@@ -249,7 +250,7 @@ export function Decay2Chart() {
   return (
     <div className="relative min-h-0 w-full flex-1">
       <div ref={ref} className="absolute inset-0" />
-      <div className="absolute bottom-4 left-4 z-10 flex flex-wrap items-center gap-4 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-4 py-3 text-[var(--paper-text)] backdrop-blur-sm">
+      <VizControls>
         <div className="flex items-center gap-2">
           <button type="button" onClick={toggle} aria-label={isPlaying ? 'Pause' : 'Play'} className={button}>
             {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -292,7 +293,7 @@ export function Decay2Chart() {
           <span className="text-[var(--paper-muted)]">Fissions</span>
           <span>{stats.fissions.toLocaleString('en')}</span>
         </div>
-      </div>
+      </VizControls>
     </div>
   )
 }

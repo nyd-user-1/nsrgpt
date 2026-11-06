@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { EChartLegend } from '@/components/viz/EChartLegend'
+import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { AXIS, halfLifeText, isDark, keyOf, loadDecay, nucName, sup, type Decay } from '@/lib/viz-physics'
 import { TYPES, budget, loadElement, type ElementFile, type Lines } from './data'
@@ -24,7 +26,6 @@ const PRESETS: [number, number][] = [
   [38, 52],
   [94, 145],
 ]
-const PANEL = 300
 
 type Shown = { key: number; file: ElementFile | null }
 type Item = { type: (typeof TYPES)[number]['id']; e: number; i: number; end?: number | null; kind?: string }
@@ -100,8 +101,8 @@ export function RadiationChart() {
       return {
         backgroundColor: 'transparent',
         animation: false,
-        grid: { left: PANEL + 72, right: 32, top: 24, bottom: 64 },
-        legend: { bottom: 8, data: TYPES.filter((t) => all.some((x) => x.type === t.id)).map((t) => t.label), textStyle: { color: '#475569', fontSize: 12 }, itemWidth: 10, itemHeight: 10, icon: 'circle' },
+        grid: { left: 72, right: 32, top: 24, bottom: 56 },
+        legend: { show: false, data: TYPES.filter((t) => all.some((x) => x.type === t.id)).map((t) => t.label), textStyle: { color: '#475569', fontSize: 12 }, itemWidth: 10, itemHeight: 10, icon: 'circle' },
         tooltip: {
           formatter: (p: unknown) => {
             const it = (p as { data: { it: Item } }).data?.it
@@ -146,7 +147,8 @@ export function RadiationChart() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
       <div ref={ref} className="min-h-0 w-full flex-1" />
 
-      <div className="z-10 absolute bottom-4 left-4 top-4 flex flex-col gap-3 overflow-y-auto rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-3 py-3 text-[11px] text-[var(--paper-text)] backdrop-blur-sm" style={{ width: PANEL - 16 }}>
+      <VizControls>
+        <EChartLegend chart={ref} items={TYPES.filter((t) => lines && items(lines).some((x) => x.type === t.id)).map((t) => ({ name: t.label, color: isDark() ? t.dark : t.light }))} />
         <div className="flex flex-wrap gap-1">
           {PRESETS.map(([pz, pn]) => {
             const k = keyOf(pz, pn)
@@ -221,7 +223,7 @@ export function RadiationChart() {
             </table>
           </div>
         )}
-      </div>
+      </VizControls>
     </div>
   )
 }

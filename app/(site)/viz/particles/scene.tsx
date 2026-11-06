@@ -16,6 +16,7 @@ import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker
 import { FAMILY, familyOf, formatSeconds, halfLifeText, keyOf, loadMassesAndDecay, nucName, type Decay, type Mass } from '@/lib/viz-physics'
 import { heatModel, loadMeasured, memberHeat, photonPower, totalHeat, wattsText, type HeatModel, type Measured } from '@/lib/viz-decay-heat'
 import { setCamera } from '@/lib/viz-engage'
+import { VizControls } from '@/components/viz/VizControls'
 import { usePaperTheme } from '@/lib/use-paper-theme'
 import { buildPlume, VENTS, type Plume, type PlumeValues } from './plume'
 import { World, hasWebGPU } from './world'
@@ -284,7 +285,7 @@ export default function ParticleScene() {
 
       {/* The vents: the sample's hottest members, their heat now. */}
       {model && !notice && (
-        <div className="z-10 absolute left-4 top-4 flex w-[240px] flex-col gap-1 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2.5 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+        <VizControls>
           {model.hottest.map((k, j) => {
             const x = data!.decay.nuclides[model.chain.members[k]]
             const w = readout.vents[j] ?? 0
@@ -312,12 +313,12 @@ export default function ParticleScene() {
           })}
           {more > 0 && <span className="text-[var(--paper-faint)]">+ {more} more</span>}
           {!model.hottest.length && <span className="text-[var(--paper-muted)]">No decay heat in the data for this nuclide.</span>}
-        </div>
+        </VizControls>
       )}
 
       {/* The physics */}
       {!notice && (
-        <div className="z-10 absolute bottom-4 right-4 top-4 flex w-[300px] flex-col gap-3 overflow-y-auto rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-4 py-3 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+        <VizControls>
           <div className="flex flex-col gap-1.5">
             <span className="text-[var(--paper-muted)]">Sample, 1 g</span>
             <div className="flex flex-wrap gap-1">
@@ -426,7 +427,7 @@ export default function ParticleScene() {
               {Math.round(readout.fps)} fps
             </span>
           </div>
-        </div>
+        </VizControls>
       )}
     </div>
   )

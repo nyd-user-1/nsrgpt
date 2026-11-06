@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { MenuSelect, type MenuOption } from '@/components/viz/MenuSelect'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { FAMILY, familyOfMode, isDark } from '@/lib/viz-physics'
@@ -188,7 +189,7 @@ export function ExplorerChart() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
       <div ref={ref} className="min-h-0 w-full flex-1" />
 
-      <div className="z-10 absolute bottom-4 left-4 top-4 flex w-[290px] flex-col gap-3 overflow-y-auto rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-3 py-3 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+      <VizControls>
         <div className="flex flex-wrap gap-1">
           {PRESETS.map((p) => (
             <button
@@ -279,7 +280,7 @@ export function ExplorerChart() {
         <span className="text-[var(--paper-faint)] tabular-nums" style={MONO}>
           {shown ? `${shown.keep.length.toLocaleString('en')} nuclides` : 'Loading…'}
         </span>
-      </div>
+      </VizControls>
     </div>
   )
 }

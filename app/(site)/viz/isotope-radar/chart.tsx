@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Pause, Play } from 'lucide-react'
 import { useEChart } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, type DecayNuclide, type Mass } from '@/lib/viz-physics'
 
@@ -121,7 +122,7 @@ export function IsotopeRadarChart() {
   const count = (masses ?? []).filter((m) => m.z === z).length
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-3 px-3 pt-2">
+      <VizControls>
         <NuclidePicker value={z} options={elements} onPick={(k) => k !== null && setZ(k)} onStep={stepZ} label="Element" />
         <button
           type="button"
@@ -134,7 +135,7 @@ export function IsotopeRadarChart() {
         <span className="text-[12px] text-[var(--paper-muted)]" style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}>
           {count ? `${count} isotopes` : ''}
         </span>
-      </div>
+      </VizControls>
       <div ref={ref} className="min-h-0 w-full flex-1" />
     </div>
   )

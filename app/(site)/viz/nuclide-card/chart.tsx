@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { isEngaged } from '@/lib/viz-engage'
 import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, type DecayNuclide, type Mass } from '@/lib/viz-physics'
@@ -208,7 +209,7 @@ export function NuclideCardChart() {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex flex-col gap-2 px-3 pt-2">
+      <VizControls>
         {([0, 1] as const).map((i) => (
           <NuclidePicker
             key={i}
@@ -221,9 +222,9 @@ export function NuclideCardChart() {
             noneLabel={i === 1 ? 'No overlay' : undefined}
           />
         ))}
-      </div>
+      </VizControls>
       <div ref={ref} className="min-h-0 w-full flex-1" />
-      <div className="shrink-0 border-t border-[var(--paper-rule)] px-4 py-3 text-[12px] leading-relaxed text-[var(--paper-muted)]">
+      <VizControls>
         <p className="m-0">
           Each spoke is one measured quantity on its own scale: a point at the rim is at or past the end of the scale, a point at
           the center means the value is absent. A larger polygon means larger energies overall.
@@ -236,7 +237,7 @@ export function NuclideCardChart() {
         <p className="m-0 mt-2 text-[11px] text-[var(--paper-faint)]" style={MONO}>
           Click the chart, then ← → isotope · ↑ ↓ element · Shift + arrows move the overlay · Esc: ← → step charts again
         </p>
-      </div>
+      </VizControls>
     </div>
   )
 }

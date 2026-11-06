@@ -13,6 +13,7 @@
 import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
+import { VizControls } from '@/components/viz/VizControls'
 import { Html, Line } from '@react-three/drei'
 import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
@@ -490,7 +491,7 @@ export default function KnowledgeScene() {
       )}
 
       {/* What the axes and colours are, and the two switches. */}
-      <div className="absolute left-4 top-4 flex w-[220px] flex-col gap-2 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2.5 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+      <VizControls>
         <span>Years since evaluation</span>
         <span className="h-2 w-full rounded-full" style={{ background: `linear-gradient(to right, ${stops.join(', ')})` }} />
         <span className="-mt-1 flex justify-between text-[10px] text-[var(--paper-faint)]" style={MONO}>
@@ -522,7 +523,7 @@ export default function KnowledgeScene() {
           <br />
           Shift-click adds more.
         </span>
-      </div>
+      </VizControls>
 
       {/* Under the pointer */}
       {!panel && (hovered || (grid && hoverBlock)) && (
@@ -546,7 +547,7 @@ export default function KnowledgeScene() {
 
       {/* One picked nuclide: its counts */}
       {one && (
-        <div className="absolute right-4 top-16 w-[280px] rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/95 px-4 pb-3 pt-4 text-[var(--paper-text)] backdrop-blur-sm">
+        <VizControls>
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[22px] leading-none" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
@@ -579,12 +580,12 @@ export default function KnowledgeScene() {
               <Row label="ENSDF evaluation" value="None" />
             )}
           </div>
-        </div>
+        </VizControls>
       )}
 
       {/* Picked blocks, or several picked nuclides: one list */}
       {panel && !one && (
-        <aside className="absolute bottom-4 right-4 top-16 flex w-[320px] max-w-[48%] flex-col overflow-hidden rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/95 text-[var(--paper-text)] backdrop-blur-sm">
+        <VizControls>
           <div className="flex items-start justify-between gap-3 px-4 pb-2 pt-3">
             <div>
               <div className="text-[18px] leading-tight" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
@@ -609,7 +610,7 @@ export default function KnowledgeScene() {
           <p className="border-t border-[var(--paper-rule)]/10 px-4 py-2 text-[10px] text-[var(--paper-faint)]">
             Years since the evaluation’s literature cutoff; — where never evaluated.
           </p>
-        </aside>
+        </VizControls>
       )}
     </div>
   )

@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart, valueRow } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { MenuSelect } from '@/components/viz/MenuSelect'
 import { loadLevelStats, nuclideName } from '@/lib/viz-data'
 
@@ -128,7 +129,7 @@ export function LevelSpansChart() {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex items-center gap-2 self-start text-[12px] text-[var(--paper-muted)]" style={SANS}>
+      <VizControls>
         Isotope chain
         <MenuSelect
           label="Isotope chain"
@@ -137,12 +138,14 @@ export function LevelSpansChart() {
           onChange={setZ}
           className="min-w-[180px] text-[12px]"
         />
-      </div>
+      </VizControls>
       <div ref={ref} className="min-h-0 w-full flex-1" />
-      <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[var(--paper-muted)]" style={SANS}>
+      <VizControls>
+      <p className="m-0 text-[12px] leading-relaxed text-[var(--paper-muted)]" style={SANS}>
         Each bar is one isotope. It runs from the ground state at 0 MeV up to the highest level known; the tick on the left
         marks the first excited level and the tick on the right the median level.
       </p>
+      </VizControls>
     </div>
   )
 }

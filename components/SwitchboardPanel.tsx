@@ -4,7 +4,10 @@ import dynamic from 'next/dynamic'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { X, ArrowLeft, Columns2, Columns3, LayoutGrid, Sparkles, ArrowUpRight, SquareDashedMousePointer, Wrench, Palette, FlaskConical, Network } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { X, ArrowLeft, Columns2, Columns3, LayoutGrid, Sparkles, ArrowUpRight, SquareDashedMousePointer, Wrench, Palette, FlaskConical, Network, ChartScatter, Check } from 'lucide-react'
+import { VIZ_CHARTS } from '@/lib/viz-charts'
+import { HEADER_TITLES } from '@/lib/header-titles'
 import { CountUp } from '@/components/CountUp'
 import { compact } from '@/lib/compact'
 import { useProductStatus } from '@/components/ProductStatus'
@@ -97,6 +100,8 @@ type View =
   | { kind: 'devtools' }
   | { kind: 'cloudflare' }
   | { kind: 'theme' }
+  | { kind: 'viz' }
+  | { kind: 'vizControls' }
   | AwsView
 
 export type ChannelId = 'slack' | 'discord' | 'ask'
@@ -129,6 +134,13 @@ type Ctx = {
   openCloudflare: () => void
   /** Opens the Theme view: trinity's theme palette (2026-11-04). */
   openTheme: () => void
+  /** Opens the Viz list: every chart page (Brendan, 2026-11-06). */
+  openViz: () => void
+  /** Opens the chart on the page's controls and legend, a layer below the Viz list. */
+  openVizControls: () => void
+  /** Where the chart on the page puts its controls and legend while that layer is open (components/viz/VizControls). */
+  vizSlot: HTMLElement | null
+  setVizSlot: (el: HTMLElement | null) => void
 }
 
 const PanelCtx = createContext<Ctx | null>(null)
@@ -164,6 +176,9 @@ export function SwitchboardProvider({ children }: { children: React.ReactNode })
   const openDevtools = useCallback(() => { setView({ kind: 'devtools' }); setOpen(true) }, [])
   const openCloudflare = useCallback(() => { setView({ kind: 'cloudflare' }); setOpen(true) }, [])
   const openTheme = useCallback(() => { setView({ kind: 'theme' }); setOpen(true) }, [])
+  const openViz = useCallback(() => { setView({ kind: 'viz' }); setOpen(true) }, [])
+  const openVizControls = useCallback(() => { setView({ kind: 'vizControls' }); setOpen(true) }, [])
+  const [vizSlot, setVizSlot] = useState<HTMLElement | null>(null)
   // Toggle always returns to the menu, so the trigger is a switch rather than a
   // way to resume wherever you happened to leave off.
   const toggle = useCallback(() => {
@@ -172,7 +187,7 @@ export function SwitchboardProvider({ children }: { children: React.ReactNode })
   }, [])
 
   return (
-    <PanelCtx.Provider value={{ open, expanded, setExpanded, full, setFull, view, cards, digest, toggle, close, openMenu, openProduct, openChannel, openAws, openBlocks, openDevtools, openCloudflare, openTheme }}>
+    <PanelCtx.Provider value={{ open, expanded, setExpanded, full, setFull, view, cards, digest, toggle, close, openMenu, openProduct, openChannel, openAws, openBlocks, openDevtools, openCloudflare, openTheme, openViz, openVizControls, vizSlot, setVizSlot }}>
       {children}
       <SwitchboardPanel />
     </PanelCtx.Provider>
@@ -297,8 +312,12 @@ function ChannelRow({
 }
 
 function SwitchboardPanel() {
-  const { open, expanded, setExpanded, full, setFull, view, cards, digest, close, openMenu, openProduct, openChannel, openBlocks, openDevtools, openCloudflare, openTheme } = useSwitchboard()
+  const { open, expanded, setExpanded, full, setFull, view, cards, digest, close, openMenu, openProduct, openChannel, openBlocks, openDevtools, openCloudflare, openTheme, openViz, openVizControls, setVizSlot } = useSwitchboard()
   const [mounted, setMounted] = useState(false)
+  const path = usePathname()
+  const router = useRouter()
+  // A layer down from the Viz list, back goes to the list; from anywhere else, to the menu.
+  const back = view.kind === 'vizControls' ? openViz : openMenu
   const { linkProps } = useProductStatus()
 
   useEffect(() => setMounted(true), [])
@@ -307,12 +326,13 @@ function SwitchboardPanel() {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (view.kind === 'product' || view.kind === 'channel' || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'cloudflare' || view.kind === 'theme') openMenu()
+      if (view.kind === 'vizControls') openViz()
+      else if (view.kind === 'product' || view.kind === 'channel' || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'cloudflare' || view.kind === 'theme' || view.kind === 'viz') openMenu()
       else close()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, view, close, openMenu])
+  }, [open, view, close, openMenu, openViz])
 
   if (!mounted) return null
 
@@ -320,7 +340,8 @@ function SwitchboardPanel() {
   const channel = view.kind === 'channel' ? CHANNELS[view.id] : null
   // One level down the live dot becomes a back arrow and the title becomes the
   // destination — that pair IS the navigation model, so no view stack is needed.
-  const deep = Boolean(product || channel || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'cloudflare' || view.kind === 'theme')
+  const deep = Boolean(product || channel || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'cloudflare' || view.kind === 'theme' || view.kind === 'viz' || view.kind === 'vizControls')
+  const chartHere = VIZ_CHARTS.find((c) => c.href === path)
   // A product's header is its DOMAIN, not its name — the hero figure + the
   // "Visit <name>" footer already carry the name, and the domain is the one
   // fact the old layout buried in a footnote line (design 2026-08-24).
@@ -329,7 +350,7 @@ function SwitchboardPanel() {
   // back to the menu: a Marketplace buyer did not come from the switchboard.
   const awsTitle = view.kind === 'aws-register' ? view.plan.product : view.kind === 'aws-console' ? view.sub.product : null
   const width = full ? 'sm:w-[calc(100vw-124px)]' : expanded ? 'sm:w-[50vw]' : 'sm:w-[423px]'
-  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'cloudflare' ? 'Cloudflare' : view.kind === 'theme' ? 'Theme' : channel?.name ?? 'Switchboard')
+  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'cloudflare' ? 'Cloudflare' : view.kind === 'theme' ? 'Theme' : view.kind === 'viz' ? 'Viz' : view.kind === 'vizControls' ? (chartHere ? (HEADER_TITLES[chartHere.href] ?? chartHere.title) : 'Viz') : channel?.name ?? 'Switchboard')
 
   return createPortal(
     <>
@@ -375,8 +396,8 @@ function SwitchboardPanel() {
           <div className="flex shrink-0 items-center gap-2 border-b border-[var(--paper-rule)] px-5 py-4">
             {deep ? (
               <button
-                onClick={openMenu}
-                aria-label="Back to the switchboard"
+                onClick={back}
+                aria-label={view.kind === 'vizControls' ? 'Back to the Viz list' : 'Back to the switchboard'}
                 className="shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -422,6 +443,33 @@ function SwitchboardPanel() {
               /* ── THEME — trinity's palette, as it is there: the six themes,
                      every colour a live control, Copy as CSS at the foot. ── */
               <ThemeControls />
+            ) : view.kind === 'viz' ? (
+              /* ── VIZ LIST — every chart page; a pick opens it and its controls (Brendan, 2026-11-06). ── */
+              <>
+                {VIZ_CHARTS.map((c) => (
+                  <button
+                    key={c.href}
+                    onClick={() => {
+                      if (c.href !== path) router.push(c.href)
+                      openVizControls()
+                    }}
+                    className={ROW}
+                  >
+                    <span className={LABEL} style={SERIF}>{HEADER_TITLES[c.href] ?? c.title}</span>
+                    {c.href === path ? <Check className={GLYPH} /> : <RowArrow />}
+                  </button>
+                ))}
+              </>
+            ) : view.kind === 'vizControls' ? (
+              /* ── VIZ CONTROLS — the chart on the page puts its controls and legend here (components/viz/
+                     VizControls.tsx), so the chart keeps its whole area. ── */
+              chartHere ? (
+                <div ref={setVizSlot} className="flex flex-col" />
+              ) : (
+                <p className="px-5 py-6 text-[13px] text-[var(--paper-muted)]" style={SANS}>
+                  Open a chart from the Viz list to see its controls here.
+                </p>
+              )
             ) : view.kind === 'blocks' ? (
               /* ── BLOCKS VIEW — trinity's shelf: saved blocks as tiles, the
                      rest dashed empty slots; tiles drag onto the chat. ── */
@@ -517,6 +565,7 @@ function SwitchboardPanel() {
                   { label: 'Discord', el: (k: string) => <ChannelRow key={k} icon={<img src="/discord-icon.svg" alt="" className="h-4 w-4 object-contain" />} onOpen={() => openChannel('discord')} href={CHANNELS.discord.href}>Discord</ChannelRow> },
                   { label: 'Slack', el: (k: string) => <ChannelRow key={k} icon={<img src="/logos/250px-Slack_icon_2019.svg.png" alt="" className="h-4 w-4 object-contain" />} onOpen={() => openChannel('slack')} href={CHANNELS.slack.href}>Slack</ChannelRow> },
                   { label: 'Theme', el: (k: string) => <Row key={k} icon={<Palette className="h-4 w-4" style={TWO_TONE} />} onClick={openTheme}>Theme</Row> },
+                  { label: 'Viz', el: (k: string) => <Row key={k} icon={<ChartScatter className="h-4 w-4" style={TWO_TONE} />} onClick={openViz}>Viz</Row> },
                   ...cards.map((c, i) => ({
                     label: c.title,
                     el: (k: string) => (

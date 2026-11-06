@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { VizControls } from '@/components/viz/VizControls'
 import dynamic from 'next/dynamic'
 import { X } from 'lucide-react'
 import { THEME_EVENT } from '@/lib/theme'
@@ -107,10 +108,7 @@ function ParityKey({ dark }: { dark: boolean }) {
   const tone = dark ? 'dark' : 'light'
   const swatch = (color: string) => <span className="inline-block h-2.5 w-2.5 rounded-[2px]" style={{ background: color }} />
   return (
-    <div
-      className="pointer-events-none absolute bottom-3 left-3 z-20 flex flex-col gap-1.5 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2 text-[11px] text-[var(--paper-text)] backdrop-blur-sm"
-      style={SANS}
-    >
+    <VizControls>
       <span className="flex items-center gap-3">
         <span className="flex items-center gap-1.5">{swatch(PARITY.plus[tone])} + parity</span>
         <span className="flex items-center gap-1.5">{swatch(PARITY.minus[tone])} − parity</span>
@@ -119,7 +117,7 @@ function ParityKey({ dark }: { dark: boolean }) {
       <span className="text-[10px] text-[var(--paper-faint)]" style={MONO}>
         lighter as energy rises to 10 MeV
       </span>
-    </div>
+    </VizControls>
   )
 }
 
@@ -128,8 +126,9 @@ function GoTo({ model, onGo }: { model: Model; onGo: (i: number) => void }) {
   const [text, setText] = React.useState('')
   const [miss, setMiss] = React.useState(false)
   return (
+    <VizControls>
     <form
-      className="absolute left-3 top-3 z-20"
+      className="flex flex-col gap-1"
       onSubmit={(e) => {
         e.preventDefault()
         const i = parseNuclide(model, text)
@@ -150,6 +149,7 @@ function GoTo({ model, onGo }: { model: Model; onGo: (i: number) => void }) {
         style={MONO}
       />
     </form>
+    </VizControls>
   )
 }
 
@@ -159,7 +159,7 @@ function LevelPanel({ model, i, row, onRow, onClose }: { model: Model; i: number
   for (let k = 0; k < x.L.length; k += 3) rows.push([x.L[k], x.L[k + 1], x.L[k + 2]])
   const head = 'pb-1.5 pt-1 text-[10px] font-normal tracking-[0.08em] text-[var(--paper-faint)]'
   return (
-    <aside className="absolute bottom-3 right-3 top-[60px] z-20 flex w-[290px] max-w-[48%] flex-col overflow-hidden rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] text-[var(--paper-text)]">
+    <VizControls>
       <div className="flex items-start justify-between gap-3 px-4 pb-2 pt-3">
         <div className="min-w-0">
           <h2 className="m-0 text-[28px] leading-[1.05]" style={SERIF}>
@@ -203,6 +203,6 @@ function LevelPanel({ model, i, row, onRow, onClose }: { model: Model; i: number
           </tbody>
         </table>
       </div>
-    </aside>
+    </VizControls>
   )
 }

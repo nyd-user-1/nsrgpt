@@ -8,6 +8,7 @@ import { BlockCard } from '@/components/ui/nova/block-card'
 import { useShelf, type ShelfItem } from '@/lib/home-blocks'
 import { cn } from '@/lib/utils'
 import { setShelfDrag } from '@/lib/shelf-drag'
+import { openDrawnNote } from '@/lib/drawn-notes'
 
 // The Blocks shelf, trinity's view (its discussion-panel BlocksShelf) in the switchboard panel:
 // a grid of square tiles — every block saved to the shelf, the rest of the grid dashed empty
@@ -43,6 +44,8 @@ export function BlocksShelf() {
 
   const open = (it: ShelfItem) => {
     if (!it.block) return
+    // A note's tile reopens its card (pax-trinity's discussion panel, 2026-11-06).
+    if (it.block.key.startsWith('note:')) return openDrawnNote(it.block.key.slice(5))
     if (it.block.path === path) document.getElementById(it.block.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     else router.push(`${it.block.path}#${it.block.anchor}`)
   }

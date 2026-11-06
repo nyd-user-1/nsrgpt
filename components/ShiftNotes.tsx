@@ -2,13 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronsUpDown, GripVertical, Megaphone, MessagesSquare, StickyNote, X, type LucideIcon } from 'lucide-react'
+import { ChevronsUpDown, Copy, Download, EllipsisVertical, GripVertical, LayoutGrid, Megaphone, MessagesSquare, Star, StickyNote, Trash2, X, type LucideIcon } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { Extension } from '@tiptap/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { TaskSurface, TaskToolbar, useTaskEditor } from '@/components/notes/rich-body'
+import { KebabMenu, MenuFlyout, MenuFoot, MenuRow, MenuSeparator } from '@/components/kebab-menu'
+import { useShellPanel } from '@/components/shell'
+import { useShelf } from '@/lib/home-blocks'
+import { NOTE_OPEN, readDefaultShape, useDefaultShape, useNoteFavorites } from '@/lib/drawn-notes'
 
-const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 
 /**
@@ -19,7 +23,8 @@ const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
  * skeleton fills it, and a note card opens there, as large as drawn. A
  * Shift-click still extends a selection — the drawing starts only once the
  * pointer has moved — and Escape while drawing lets it go. Notes are kept in
- * this browser (localStorage) until closed: the card's X discards it.
+ * this browser (localStorage): the card's menu closes one (kept; a Blocks tile
+ * reopens it) or deletes it.
  */
 
 /** What a drag can't start on: controls, fields, links, pictures and frames keep their own Shift. */
@@ -33,9 +38,9 @@ const HOLD_MS = 160
 const STORE = 'nysgpt-shift-notes'
 
 export type Rect = { x: number; y: number; w: number; h: number }
-type Mode = 'note' | 'chat' | 'comment'
+type Mode = 'note' | 'chat' | 'team'
 type Turn = { role: 'user' | 'assistant'; content: string }
-type Note = { id: string; rect: Rect; text: string; ready: boolean; mode?: Mode; chat?: Turn[]; comment?: string }
+type Note = { id: string; rect: Rect; text: string; ready: boolean; open?: boolean; mode?: Mode; chat?: Turn[]; comment?: string }
 
 const rectOf = (a: { x: number; y: number }, b: { x: number; y: number }): Rect => ({
   x: Math.min(a.x, b.x),
@@ -67,7 +72,7 @@ function load(): Note[] {
 
 function save(notes: Note[]) {
   try {
-    localStorage.setItem(STORE, JSON.stringify(notes.map(({ id, rect, text, mode, chat, comment }) => ({ id, rect, text, mode, chat, comment }))))
+    localStorage.setItem(STORE, JSON.stringify(notes.map(({ id, rect, text, open, mode, chat, comment }) => ({ id, rect, text, open, mode, chat, comment }))))
   } catch {
     /* a full or blocked store loses nothing but persistence */
   }
@@ -91,6 +96,16 @@ export function ShiftNotes() {
       return next
     })
   }, [])
+
+  // A Blocks tile reopens a closed note (pax-trinity's openDrawnNote, lib/drawn-notes.ts).
+  useEffect(() => {
+    const on = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id
+      if (id) change((all) => all.map((n) => (n.id === id ? { ...n, open: true } : n)))
+    }
+    window.addEventListener(NOTE_OPEN, on)
+    return () => window.removeEventListener(NOTE_OPEN, on)
+  }, [change])
 
   const open = useCallback(
     (rect: Rect) => {
@@ -180,13 +195,14 @@ export function ShiftNotes() {
           />,
           document.body,
         )}
-      {notes.map(n =>
+      {notes.filter(n => n.open !== false).map(n =>
         n.ready ? (
           <NoteCard
             key={n.id}
             note={n}
             onChange={(id, patch) => change(all => all.map(x => (x.id === id ? { ...x, ...patch } : x)))}
-            onClose={id => change(all => all.filter(x => x.id !== id))}
+            onClose={id => change(all => all.map(x => (x.id === id ? { ...x, open: false } : x)))}
+            onDelete={id => change(all => all.filter(x => x.id !== id))}
           />
         ) : (
           <Skeleton key={n.id} rect={n.rect} />
@@ -221,13 +237,17 @@ function Skeleton({ rect }: { rect: Rect }) {
 }
 
 
-/** The card's three shapes, switched from its title (Brendan, 2026-11-06): a note is a note, a chat is a chat, a
- *  comment is a comment, as in pax-trinity's floating note. */
-const MODES: { mode: Mode; label: string; icon: LucideIcon; hint?: string }[] = [
+/** A note's title: its first line, the markdown's marks and tags taken off (pax-trinity's floating-note.tsx). */
+const titleOf = (md: string) => md.split('\n').map((l) => l.replace(/<[^>]+>/g, '').replace(/^[#>\-*+\s]+|\d+\.\s+/g, '').replace(/[*_`]/g, '').trim()).find(Boolean) ?? 'Note'
+
+/** The card's shapes, switched from its title as pax-trinity's floating note switches its own (Brendan, 2026-11-06):
+ *  a note, a chat beside it, and a comment posted to the team. The star beside each makes it the reader's default. */
+const MODES: { mode: Mode; label: string; icon: LucideIcon }[] = [
   { mode: 'note', label: 'Note', icon: StickyNote },
-  { mode: 'chat', label: 'Chat', icon: MessagesSquare, hint: 'Shift Enter sends. The note goes with it.' },
-  { mode: 'comment', label: 'Comment', icon: Megaphone, hint: "Shift Enter posts to Slack and Discord, with this page's link." },
+  { mode: 'chat', label: 'Chat', icon: MessagesSquare },
+  { mode: 'team', label: 'Comment', icon: Megaphone },
 ]
+const modeOf = (m: string | null | undefined): Mode => (m === 'comment' ? 'team' : MODES.some((x) => x.mode === m) ? (m as Mode) : 'note')
 
 /** Shift Enter, sent to whoever is listening now: the editor is made once, its handler kept in a ref. */
 function sendOnShiftEnter(send: React.RefObject<() => void>) {
@@ -245,29 +265,38 @@ function sendOnShiftEnter(send: React.RefObject<() => void>) {
 }
 
 /**
- * The note card: the panel's chrome at hand size. The grip moves it, the corner resizes it, the X discards it. The
- * title switches it between Note, Chat and Comment; each writes in pax-trinity's TipTap editor (components/notes/
- * rich-body.tsx, markdown in and out) under its toolbar along the foot. Kept in this browser as it's written.
+ * The note card, pax-trinity's floating note (components/notes/floating-note.tsx) in the paper's colours: a tinted
+ * frame, the grip, the title that switches the shape (a star makes one the default) and the three-dot menu opposite;
+ * inside, the white card with the editor's toolbar at its top over the writing. The menu holds Favorite, Add to
+ * Blocks, Ask, Copy as Markdown, Download, Close and Delete. The bottom-right corner resizes: down for height, right
+ * for width, both together. Kept in this browser as it's written; Close keeps it (Blocks reopens it), Delete doesn't.
  */
 function NoteCard({
   note,
   onChange,
   onClose,
+  onDelete,
 }: {
   note: Note
   onChange: (id: string, patch: Partial<Note>) => void
   onClose: (id: string) => void
+  onDelete: (id: string) => void
 }) {
   const [rect, setRect] = useState(note.rect)
   const drag = useRef<{ dx: number; dy: number } | null>(null)
-  const size = useRef<{ x: number; y: number; w: number; h: number } | null>(null)
-  const [mode, setMode] = useState<Mode>(note.mode ?? 'note')
-  const [menu, setMenu] = useState(false)
+  const from = useRef<{ x: number; y: number; w: number; h: number } | null>(null)
+  const { shape: preferred, choose: chooseDefault } = useDefaultShape()
+  const mine = modeOf(preferred)
+  const [mode, setMode] = useState<Mode>(() => modeOf(note.mode ?? readDefaultShape()))
   const [busy, setBusy] = useState(false)
   const [said, setSaid] = useState<string | null>(null)
   const latest = useRef(note)
   latest.current = note
   const scroller = useRef<HTMLDivElement>(null)
+  const { askAbout } = useShellPanel()
+  const { favs, toggle: toggleFav } = useNoteFavorites()
+  const shelf = useShelf()
+  const path = usePathname()
 
   const sendChat = useRef<() => void>(() => {})
   const sendComment = useRef<() => void>(() => {})
@@ -286,7 +315,6 @@ function NoteCard({
 
   const choose = (m: Mode) => {
     setMode(m)
-    setMenu(false)
     setSaid(null)
     onChange(note.id, { mode: m })
   }
@@ -350,10 +378,21 @@ function NoteCard({
     setBusy(false)
   }
 
+  const download = (ext: 'md' | 'txt') => {
+    const body = note.text
+    const text = ext === 'md' ? body : body.replace(/\*\*|__|`/g, '').replace(/^(#+|>)\s?/gm, '')
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([text], { type: ext === 'md' ? 'text/markdown' : 'text/plain' }))
+    a.download = `${titleOf(body).replace(/[^\w -]+/g, '').trim().replace(/\s+/g, '-').toLowerCase() || 'note'}.${ext}`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   const settle = (r: Rect) => {
     setRect(r)
     onChange(note.id, { rect: r })
   }
+  // The grip moves the card, held inside the window.
   const grip = {
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault()
@@ -362,102 +401,146 @@ function NoteCard({
     },
     onPointerMove: (e: React.PointerEvent) => {
       if (!drag.current) return
-      settle(fit({ x: e.clientX - drag.current.dx, y: e.clientY - drag.current.dy, w: rect.w, h: rect.h }))
+      settle({ ...rect, x: Math.max(8, Math.min(e.clientX - drag.current.dx, window.innerWidth - rect.w - 8)), y: Math.max(8, Math.min(e.clientY - drag.current.dy, window.innerHeight - rect.h - 8)) })
     },
-    onPointerUp: () => (drag.current = null),
+    onPointerUp: () => void (drag.current = null),
   }
+  // The bottom-right corner resizes the card (pax-trinity, 2026-10-31): down for height, right for width, down and
+  // right for both, no smaller than 300 by 240 and no larger than the window has room for.
   const corner = {
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault()
       e.currentTarget.setPointerCapture(e.pointerId)
-      size.current = { x: e.clientX, y: e.clientY, w: rect.w, h: rect.h }
+      from.current = { x: e.clientX, y: e.clientY, w: rect.w, h: rect.h }
     },
     onPointerMove: (e: React.PointerEvent) => {
-      if (!size.current) return
-      settle(fit({ x: rect.x, y: rect.y, w: size.current.w + (e.clientX - size.current.x), h: size.current.h + (e.clientY - size.current.y) }))
+      const f = from.current
+      if (!f) return
+      const w = Math.max(300, Math.min(f.w + e.clientX - f.x, window.innerWidth - 8 - rect.x))
+      const h = Math.max(240, Math.min(f.h + e.clientY - f.y, window.innerHeight - 8 - rect.y))
+      settle({ ...rect, w: Math.round(w), h: Math.round(h) })
     },
-    onPointerUp: () => (size.current = null),
+    onPointerUp: () => void (from.current = null),
   }
 
   const current = MODES.find((m) => m.mode === mode) ?? MODES[0]
-  const surface = 'min-h-0 flex-1 overflow-y-auto px-4 py-3 text-[14px] leading-[1.6] text-[var(--paper-text)] [&_.rich-body]:min-h-full'
+  const key = `note:${note.id}`
+  const fav = favs.includes(note.id)
 
   return createPortal(
     <div
       data-note
       role="dialog"
       aria-label={current.label}
-      style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
-      className="nysgpt-app fixed z-[55] flex flex-col overflow-hidden rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] shadow-[0_4px_32px_rgba(0,0,0,0.18)]"
+      style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h, ...SANS }}
+      className="nysgpt-app fixed z-[55] flex flex-col rounded-[18px] border border-[var(--paper-rule)] bg-[var(--paper-quiet)] p-1 shadow-[0_4px_32px_rgba(0,0,0,0.18)]"
     >
-      <div className="relative flex shrink-0 items-center gap-1.5 border-b border-[var(--paper-rule)] py-2 pr-2 pl-2.5">
-        <span {...grip} aria-label="Move" title="Move" className="flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-[var(--paper-faint)] active:cursor-grabbing">
-          <GripVertical className="h-4 w-4" />
+      <div className="flex shrink-0 items-center gap-1.5 pt-1.5 pr-1.5 pb-2 pl-2">
+        <span {...grip} aria-label="Move" title="Move" className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center text-[var(--paper-faint)] active:cursor-grabbing">
+          <GripVertical className="size-4" />
         </span>
-        <button
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={menu}
-          onClick={() => setMenu((v) => !v)}
-          className="flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-[var(--paper-quiet)]"
-        >
-          <span className="truncate text-[15px] text-[var(--paper-text)]" style={SERIF}>
-            {current.label}
-          </span>
-          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-[var(--paper-faint)]" />
-        </button>
-        <span className="flex-1" />
-        <button onClick={() => onClose(note.id)} aria-label="Discard the note" className="shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]">
-          <X className="h-4 w-4" />
-        </button>
-        {menu && (
-          <div role="menu" className="absolute top-full left-10 z-10 mt-1 w-44 overflow-hidden rounded-xl border border-[var(--paper-rule)] bg-[var(--paper)] py-1 shadow-lg" style={SANS}>
-            {MODES.map((m) => (
-              <button
-                key={m.mode}
-                role="menuitemradio"
-                aria-checked={m.mode === mode}
-                onClick={() => choose(m.mode)}
-                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--paper-quiet)] ${m.mode === mode ? 'text-[var(--paper-text)]' : 'text-[var(--paper-muted)]'}`}
-              >
-                <m.icon className="h-4 w-4" />
-                <span className="flex-1">{m.label}</span>
-                {m.mode === mode && <Check className="h-3.5 w-3.5" />}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {mode === 'chat' ? (
-        <div ref={scroller} className="flex min-h-0 flex-1 flex-col overflow-y-auto" style={SANS}>
-          {(note.chat ?? []).map((t, i) => (
-            <div key={i} className={`border-b border-[var(--paper-rule-soft)] px-4 py-2.5 text-[13px] leading-[1.6] ${t.role === 'user' ? 'text-[var(--paper-text)]' : 'bg-[var(--paper-quiet)] text-[var(--paper-text)]'}`}>
-              <div className="mb-0.5 text-[10px] uppercase tracking-[0.14em] text-[var(--paper-faint)]">{t.role === 'user' ? 'You' : 'NSRgpt'}</div>
-              <div className="prose prose-sm max-w-none text-[var(--paper-text)] [&_p]:my-1">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
+        {/* The title, as pax-trinity's: the muted ground on hover, and at its end the up-down mark, which opens the
+            shapes. */}
+        <div className="min-w-0 flex-1">
+          <KebabMenu
+            label="Shape"
+            align="left"
+            width="w-56"
+            trigger={
+              <>
+                {current.label}
+                <ChevronsUpDown className="size-3.5 text-[var(--paper-faint)] opacity-0 transition-opacity group-hover/anchor:opacity-100 group-aria-expanded/anchor:opacity-100" />
+              </>
+            }
+            triggerClassName="group/anchor inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-[15px] font-semibold text-[var(--paper-text)] outline-none transition-colors select-none hover:bg-[var(--paper-quiet)] aria-expanded:bg-[var(--paper-quiet)] focus-visible:outline-1"
+          >
+            {MODES.map(({ mode: m, label, icon: Icon }) => (
+              <div key={m} className="flex items-center gap-0.5">
+                <div className="min-w-0 flex-1">
+                  <MenuRow icon={<Icon />} label={label} checked={mode === m} onClick={() => choose(m)} />
+                </div>
+                {/* The reader's default: the shape every card opens on. */}
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={mine === m}
+                  aria-label={mine === m ? `${label} is my default` : `Make ${label} my default`}
+                  title={mine === m ? 'My default' : 'Make this my default'}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    chooseDefault(m)
+                  }}
+                  className="flex size-7 shrink-0 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-100 hover:text-slate-500"
+                >
+                  <Star className={mine === m ? 'size-3.5 fill-amber-400 text-amber-400' : 'size-3.5'} />
+                </button>
               </div>
+            ))}
+          </KebabMenu>
+        </div>
+        <KebabMenu label="Note options" width="w-52" trigger={<EllipsisVertical className="size-4" />} triggerClassName="inline-flex size-8 items-center justify-center rounded-md text-[var(--paper-text)] outline-none hover:bg-[var(--paper-quiet)] aria-expanded:bg-[var(--paper-quiet)]">
+          {/* pax-trinity's note menu: Favorite, Add to Blocks (the shelf's tile reopens the card), Ask, Copy as
+              Markdown, Download, Close and Delete. */}
+          <MenuRow icon={<Star className={fav ? 'fill-amber-400 text-amber-400' : undefined} />} label={fav ? 'Unfavorite' : 'Favorite'} onClick={() => toggleFav(note.id)} />
+          <MenuRow
+            icon={<LayoutGrid />}
+            label={shelf.has(key) ? 'Remove from Blocks' : 'Add to Blocks'}
+            checked={shelf.has(key)}
+            onClick={() => {
+              if (shelf.has(key)) shelf.remove(key)
+              else shelf.add({ key, title: titleOf(note.text.trim() ? note.text : (note.comment ?? '')), path: path ?? '/', anchor: `note-${note.id}` })
+            }}
+          />
+          <MenuRow icon={<MessagesSquare />} label="Ask NSRgpt" onClick={() => askAbout({ context: () => `My note, "${titleOf(note.text)}":\n\n${note.text}` })} />
+          <MenuSeparator />
+          <MenuRow icon={<Copy />} label="Copy as Markdown" onClick={() => void navigator.clipboard.writeText(note.text)} />
+          <MenuFlyout id="download" icon={<Download />} label="Download">
+            <MenuRow label="Markdown" onClick={() => download('md')} />
+            <MenuRow label="Text" onClick={() => download('txt')} />
+          </MenuFlyout>
+          <MenuRow icon={<X />} label="Close" onClick={() => onClose(note.id)} />
+          <MenuSeparator />
+          <MenuRow
+            icon={<Trash2 />}
+            label="Delete note"
+            danger
+            onClick={() => {
+              if (shelf.has(key)) shelf.remove(key)
+              onDelete(note.id)
+            }}
+          />
+          <MenuSeparator />
+          <MenuFoot title="My notes" sub="Kept in this browser" />
+        </KebabMenu>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[14px] border border-[var(--paper-rule)] bg-[var(--paper)]">
+        <TaskToolbar editor={editor} className="shrink-0 border-b border-[var(--paper-rule)] px-2 py-1" />
+        {mode === 'chat' ? (
+          <div ref={scroller} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {(note.chat ?? []).map((t, i) => (
+              <div key={i} className={`border-b border-[var(--paper-rule-soft)] px-4 py-2.5 text-[13px] leading-[1.6] ${t.role === 'user' ? 'text-[var(--paper-text)]' : 'bg-[var(--paper-quiet)] text-[var(--paper-text)]'}`}>
+                <div className="mb-0.5 text-[10px] uppercase tracking-[0.14em] text-[var(--paper-faint)]">{t.role === 'user' ? 'You' : 'NSRgpt'}</div>
+                <div className="prose prose-sm max-w-none text-[var(--paper-text)] [&_p]:my-1">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
+                </div>
+              </div>
+            ))}
+            <div className="cursor-text px-4 py-3 text-[14px] leading-[1.6] text-[var(--paper-text)]" onClick={() => chatEditor?.commands.focus()}>
+              <TaskSurface editor={chatEditor} className="min-h-16 [&_.ProseMirror]:min-h-16" />
             </div>
-          ))}
-          <div className="px-4 py-3 text-[14px] leading-[1.6] text-[var(--paper-text)]">
-            <TaskSurface editor={chatEditor} className="min-h-16 [&_.ProseMirror]:min-h-16" />
           </div>
-        </div>
-      ) : (
-        <div className={surface} style={SANS}>
-          <TaskSurface editor={editor} />
-        </div>
-      )}
-
-      <div className="flex shrink-0 flex-col gap-1 border-t border-[var(--paper-rule)] px-2 py-1.5" style={SANS}>
-        <TaskToolbar editor={editor} className="flex-wrap" />
-        {(current.hint || said || busy) && (
-          <span role="status" className="truncate px-1 text-[11px] text-[var(--paper-faint)]" title={said ?? current.hint}>
-            {busy ? (mode === 'chat' ? 'Answering…' : 'Posting…') : (said ?? current.hint)}
+        ) : (
+          <div className="min-h-0 flex-1 cursor-text overflow-y-auto px-4 py-3 text-[14px] leading-[1.6] text-[var(--paper-text)]" onClick={() => editor?.commands.focus()}>
+            <TaskSurface editor={editor} className="min-h-full [&_.ProseMirror]:min-h-full" />
+          </div>
+        )}
+        {(said || busy) && (
+          <span role="status" className="shrink-0 truncate border-t border-[var(--paper-rule)] px-3 py-1 text-[11px] text-[var(--paper-faint)]" title={said ?? undefined}>
+            {busy ? (mode === 'chat' ? 'Answering…' : 'Posting…') : said}
           </span>
         )}
       </div>
-      <span {...corner} aria-label="Resize" className="absolute right-0 bottom-0 h-5 w-5 cursor-nwse-resize touch-none" />
+      <span {...corner} aria-label="Resize" className="absolute right-0 bottom-0 size-4 cursor-nwse-resize touch-none" />
     </div>,
     document.body,
   )

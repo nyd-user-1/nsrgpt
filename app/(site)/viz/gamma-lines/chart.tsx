@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useEChart } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, formatSeconds, ink, isDark, keyOf, loadDecay, nucName, type Decay } from '@/lib/viz-physics'
 
 // The γ-line finder (Brendan, 2026-11-06): a detector shows a peak; which nuclides emit there? Every γ line of every
@@ -116,7 +117,7 @@ export function GammaLinesChart() {
       return {
         backgroundColor: 'transparent',
         animation: false,
-        grid: { left: 380, right: 32, top: 24, bottom: 56 },
+        grid: { left: 72, right: 32, top: 24, bottom: 56 },
         tooltip: {
           formatter: (p: unknown) => {
             const d = (p as { data: { value: [number, number]; name: string } }).data
@@ -156,7 +157,7 @@ export function GammaLinesChart() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
       <div ref={ref} className="min-h-0 w-full flex-1" />
 
-      <div className="z-10 absolute bottom-4 left-4 top-4 flex w-[350px] flex-col gap-3 overflow-hidden rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-3 py-3 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+      <VizControls>
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1">
             <span className="text-[var(--paper-muted)]">Energy, keV</span>
@@ -204,7 +205,7 @@ export function GammaLinesChart() {
             </table>
           </div>
         </div>
-      </div>
+      </VizControls>
     </div>
   )
 }

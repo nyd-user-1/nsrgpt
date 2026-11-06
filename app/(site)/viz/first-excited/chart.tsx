@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart, valueRow, type ChartClick } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { loadE2, nuclideName } from '@/lib/viz-data'
 
 // Every even-even nuclide's first 2⁺ energy against Z, and the same points gathered into one bar per element, the
@@ -83,13 +84,15 @@ export function FirstExcitedChart() {
     `rounded-md px-2.5 py-1 text-[12px] transition-colors ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)]' : 'text-[var(--paper-muted)] hover:text-[var(--paper-text)]'}`
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex gap-1 self-start" style={SANS} role="group" aria-label="View">
+      <VizControls>
+      <div className="flex gap-1" style={SANS} role="group" aria-label="View">
         {VIEWS.map((label, i) => (
           <button key={label} type="button" aria-pressed={view === i} className={btn(view === i)} onClick={() => setView(i)}>
             {label}
           </button>
         ))}
       </div>
+      </VizControls>
       <div ref={ref} className="min-h-0 w-full flex-1" />
     </div>
   )

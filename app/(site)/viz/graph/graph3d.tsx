@@ -13,6 +13,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { FAMILIES, FAMILY, familyOf, halfLifeText, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
 import { usePaperTheme } from '@/lib/use-paper-theme'
+import { VizControls } from '@/components/viz/VizControls'
 import { additive, chainsOf, graphModel, loadGraphLayout, loadGraphLayout3d, positions3d, sizeOf, type GraphModel, type Pin } from './model'
 
 const MORPH = 0.6
@@ -80,7 +81,7 @@ export default function Graph3D({ decay, pinned, onPin, flow, open }: { decay: D
       )}
 
       {/* The legend, as the 2D graph's: a click hides or shows a decay mode. */}
-      <div className="z-10 absolute bottom-2 left-1/2 flex -translate-x-1/2 flex-wrap justify-center gap-x-3.5 gap-y-1 text-[12px] text-[var(--paper-muted)]">
+      <VizControls>
         {present.map((f) => (
           <button
             key={f}
@@ -93,7 +94,7 @@ export default function Graph3D({ decay, pinned, onPin, flow, open }: { decay: D
             {FAMILY[f].label}
           </button>
         ))}
-      </div>
+      </VizControls>
 
       {hovered && (
         <div className="z-10 pointer-events-none absolute bottom-12 right-4 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/90 px-3 py-2 text-[12px] text-[var(--paper-text)] backdrop-blur-sm">

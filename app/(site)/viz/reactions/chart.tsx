@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { EChartLegend } from '@/components/viz/EChartLegend'
+import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { AXIS, FAMILY, decayIndex, decayLinks, familyOf, halfLifeText, ink, isDark, keyOf, loadDecay, modesText, nucName, type Decay, type Link, stepPeriod as period } from '@/lib/viz-physics'
 import { FAMILIES, familyOfMode, type Family } from '@/lib/nuclide'
@@ -145,7 +147,7 @@ export function ReactionsChart() {
             return ''
           },
         },
-        legend: { top: 0, textStyle: { color: dark ? '#cbd5e1' : '#334155' }, data: FAMILIES.filter((f) => byFamily.has(f)).map((f) => FAMILY[f].label) },
+        legend: { show: false, textStyle: { color: dark ? '#cbd5e1' : '#334155' }, data: FAMILIES.filter((f) => byFamily.has(f)).map((f) => FAMILY[f].label) },
         grid: { left: 48, right: 24, top: 36, bottom: 40 },
         xAxis: { type: 'value', name: 'N', min: 0, max: 180, ...AXIS, splitLine: { lineStyle: { color: 'rgba(100,116,139,0.08)' } } },
         yAxis: { type: 'value', name: 'Z', min: 0, max: 120, ...AXIS, splitLine: { lineStyle: { color: 'rgba(100,116,139,0.08)' } } },
@@ -223,7 +225,8 @@ export function ReactionsChart() {
   const CHIP = 'rounded-full border px-3 py-1 text-[12px] transition-colors'
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-2 px-3 pt-2">
+      <VizControls>
+        <EChartLegend chart={ref} />
         <NuclidePicker value={start} options={options} onPick={(k) => k !== null && setStart(k)} onStep={stepStart} label="Start nuclide" />
         <div className="ml-1 flex overflow-hidden rounded-full border border-[var(--paper-rule)] text-[12px]">
           {[false, true].map((u) => (
@@ -255,9 +258,9 @@ export function ReactionsChart() {
             </button>
           )
         })}
-      </div>
+      </VizControls>
       <div ref={ref} className="min-h-0 w-full flex-1" />
-      <div className="shrink-0 border-t border-[var(--paper-rule)] px-4 py-3 text-[12px] leading-relaxed text-[var(--paper-muted)]">
+      <VizControls>
         <p className="m-0 text-[var(--paper-text)]">{summary}</p>
         <p className="m-0 mt-1">
           Every decay step in ENSDF is a faint line on the chart of nuclides, coloured by decay mode; each dot behind is a nuclide in
@@ -265,7 +268,7 @@ export function ReactionsChart() {
           parent&apos;s half-life: the fast lights are the short-lived steps. Scroll to zoom, drag to pan, click any nuclide to route
           from it; the legend switches each decay mode&apos;s lines off and on.
         </p>
-      </div>
+      </VizControls>
     </div>
   )
 }

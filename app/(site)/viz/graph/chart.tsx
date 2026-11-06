@@ -4,6 +4,8 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { X } from 'lucide-react'
 import { useEChart, type ChartClick } from '@/components/viz/use-echart'
+import { EChartLegend } from '@/components/viz/EChartLegend'
+import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { FAMILIES, FAMILY, familyColor, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
 import { additive, chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphModel, type Pin } from './model'
@@ -35,8 +37,8 @@ const modelOf = ([decay, layout]: Loaded) => {
   return m
 }
 
-/** The legend's band along the foot, which the dimming leaves alone. */
-const LEGEND_BAND = 40
+/** The foot the dimming leaves alone: none, now the legend is in the right panel (2026-11-06). */
+const LEGEND_BAND = 0
 /** The 3D switch's morph, ms (graph3d.tsx MORPH). */
 const MORPH_MS = 600
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -86,7 +88,7 @@ export function GraphChart() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
       {shown3d && decay ? <Graph3D decay={decay} pinned={pinned} onPin={onPin} flow={flow} open={three} /> : <Graph2D pinned={pinned} onPin={onPin} flow={flow} />}
 
-      <div className="z-10 absolute left-4 top-4 flex w-[230px] flex-col gap-2 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2.5 text-[11px] text-[var(--paper-text)] backdrop-blur-sm">
+      <VizControls>
         <NuclidePicker value={last} options={options} onPick={(k) => onPin(k, false)} onStep={stepPin} label="Pin nuclide" noneLabel="None" />
         {pinned.length > 0 && decay && (
           <div className="flex flex-wrap gap-1">
@@ -114,7 +116,7 @@ export function GraphChart() {
           <br />
           Shift-click adds more.
         </span>
-      </div>
+      </VizControls>
     </div>
   )
 }
@@ -141,8 +143,8 @@ function Graph2D({ pinned, onPin, flow }: { pinned: number[]; onPin: Pin; flow: 
           },
         },
         legend: {
+          show: false,
           data: present.map((f) => FAMILY[f].label),
-          bottom: 8,
           icon: 'circle',
           itemWidth: 10,
           itemHeight: 10,
@@ -156,7 +158,7 @@ function Graph2D({ pinned, onPin, flow }: { pinned: number[]; onPin: Pin; flow: 
             // Top and bottom only, centred: ECharts then keeps the layout's own proportions instead of stretching
             // it to the box, and the whole graph fits the height on open.
             top: 16,
-            bottom: LEGEND_BAND + 8,
+            bottom: 16,
             left: 'center',
             roam: true,
             scaleLimit: { min: 0.4, max: 24 },
@@ -383,6 +385,9 @@ function Graph2D({ pinned, onPin, flow }: { pinned: number[]; onPin: Pin; flow: 
 
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
+      <VizControls>
+        <EChartLegend chart={ref} items={FAMILIES.map((f) => ({ name: FAMILY[f].label, color: familyColor(f) }))} />
+      </VizControls>
       <div ref={ref} className="min-h-0 w-full flex-1" />
       <canvas ref={overlay} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" />
     </div>

@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { EChartLegend } from '@/components/viz/EChartLegend'
+import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { AXIS, FAMILY, decayIndex, familyOf, formatSeconds, halfLifeText, ink, isDark, keyOf, loadDecay, nucName, type Decay } from '@/lib/viz-physics'
 import { atoms, logTimes, solveChain, timeSpan } from '@/lib/viz-bateman'
@@ -80,7 +82,7 @@ export function DecayChainChart() {
       return {
         backgroundColor: 'transparent',
         animation: false,
-        legend: { type: 'scroll', top: 0, textStyle: { color: dark ? '#cbd5e1' : '#334155' } },
+        legend: { show: false, type: 'scroll', textStyle: { color: dark ? '#cbd5e1' : '#334155' } },
         grid: { left: 70, right: 28, top: 40, bottom: 48 },
         tooltip: {
           trigger: 'axis',
@@ -185,7 +187,8 @@ export function DecayChainChart() {
   const CHIP = 'rounded-full border px-3 py-1 text-[12px] transition-colors'
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-2 px-3 pt-2">
+      <VizControls>
+        <EChartLegend chart={ref} />
         <NuclidePicker value={start} options={options} onPick={(k) => k !== null && setStart(k)} onStep={stepStart} label="Start nuclide" />
         <div className="ml-1 flex overflow-hidden rounded-full border border-[var(--paper-rule)] text-[12px]">
           {[false, true].map((a) => (
@@ -213,9 +216,9 @@ export function DecayChainChart() {
             </button>
           )
         })}
-      </div>
+      </VizControls>
       <div ref={ref} className="min-h-0 w-full flex-1" />
-      <div className="shrink-0 border-t border-[var(--paper-rule)] px-4 py-3 text-[12px] leading-relaxed text-[var(--paper-muted)]">
+      <VizControls>
         {preset ? (
           <p className="m-0 text-[var(--paper-text)]">{preset.note}</p>
         ) : head ? (
@@ -229,7 +232,7 @@ export function DecayChainChart() {
           over every branch ENSDF records. Dots mark each daughter&apos;s peak, and a click on a line starts the chain from that member; dashed lines mark the start&apos;s half-life, ten
           half-lives, and when total activity peaks. Ground states only, so isomers such as ⁹⁹ᵐTc are not shown.
         </p>
-      </div>
+      </VizControls>
     </div>
   )
 }

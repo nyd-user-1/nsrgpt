@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 import { useEChart, valueRow } from '@/components/viz/use-echart'
+import { EChartLegend } from '@/components/viz/EChartLegend'
+import { VizControls } from '@/components/viz/VizControls'
 import { loadE2, nearMagic, nuclideName } from '@/lib/viz-data'
 import { isDark } from '@/lib/viz-physics'
 
@@ -33,7 +35,7 @@ export function WeightChart() {
       return {
         backgroundColor: 'transparent',
         animationDuration: 900,
-        legend: { top: 0, textStyle: { color: '#334155' } },
+        legend: { show: false, textStyle: { color: '#334155' } },
         tooltip: {
           formatter: (p: unknown) => {
             const v = (p as { value: [number, number, number] }).value
@@ -52,5 +54,12 @@ export function WeightChart() {
     valueRow(2),
     { marks: true, point: (row) => (where.current[row] ? { seriesIndex: where.current[row][0], dataIndex: where.current[row][1] } : null) },
   )
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return (
+    <>
+      <VizControls>
+        <EChartLegend chart={ref} />
+      </VizControls>
+      <div ref={ref} className="min-h-0 w-full flex-1" />
+    </>
+  )
 }

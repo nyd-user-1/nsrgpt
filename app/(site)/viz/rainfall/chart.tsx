@@ -1,6 +1,8 @@
 'use client'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { EChartLegend } from '@/components/viz/EChartLegend'
+import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, FAMILIES, FAMILY, countsByA, familyColor, loadDecay } from '@/lib/viz-physics'
 
 const full = new Intl.NumberFormat('en')
@@ -23,7 +25,7 @@ export function RainfallChart() {
           return `A ${list[0].axisValue} — ${full.format(total)} nuclides<br/>${lines.join(' · ')}`
         },
       },
-      legend: { top: 0, icon: 'roundRect', textStyle: { color: '#334155' }, itemWidth: 14, itemHeight: 8 },
+      legend: { show: false, icon: 'roundRect', textStyle: { color: '#334155' }, itemWidth: 14, itemHeight: 8 },
       grid: { left: 56, right: 24, top: 40, bottom: 64 },
       dataZoom: [
         { type: 'slider', bottom: 8, start: 0, end: 100 },
@@ -45,5 +47,12 @@ export function RainfallChart() {
       })),
     }
   }, false, (p) => (typeof p.dataIndex === 'number' ? p.dataIndex : null))
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return (
+    <>
+      <VizControls>
+        <EChartLegend chart={ref} />
+      </VizControls>
+      <div ref={ref} className="min-h-0 w-full flex-1" />
+    </>
+  )
 }
