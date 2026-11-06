@@ -6,7 +6,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
-import { Y_PER_KEV, label, type Model } from './model'
+import { PARITY, Y_PER_KEV, label, type Model } from './model'
 
 // The level energies in 3D (2026-11-04, prototype B). The floor is the (N, Z) plane, one unit per nucleon,
 // x = N and z = −Z, so from the front the chart of nuclides reads as it does on paper. Every kept level of
@@ -17,6 +17,7 @@ import { Y_PER_KEV, label, type Model } from './model'
 // runs on dark paper only, where the falling particles are the one thing bright enough to catch it.
 
 export type Palette = { bg: string; ink: string; accent: string; dark: boolean }
+
 
 const MAGIC = [2, 8, 20, 28, 50, 82, 126]
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -37,6 +38,7 @@ type Props = {
 export function Scene({ model, palette, focus, hover, row, onSelect, onHover }: Props) {
   const target = React.useMemo(() => new THREE.Vector3(model.maxN / 2, 4, -model.maxZ / 2), [model])
   const cross = useCrossRules()
+  const opened = React.useRef(focus)
   return (
     <Canvas
       {...cross}
@@ -57,8 +59,9 @@ export function Scene({ model, palette, focus, hover, row, onSelect, onHover }: 
       <Rig model={model} focus={focus} />
       <SpinControls
         makeDefault
-        // A selection flies the camera to it (Rig); the turn stops so the two don't pull against each other.
-        stopped={focus >= 0}
+        // A new selection flies the camera to it (Rig); the turn stops so the two don't pull against each other.
+        // The page opens with ²⁰⁸Pb selected, which flies nowhere, so only a change stops it.
+        stopped={focus !== opened.current}
         target={target}
         enableDamping
         dampingFactor={0.08}
@@ -75,8 +78,9 @@ export function Scene({ model, palette, focus, hover, row, onSelect, onHover }: 
   )
 }
 
-/** Every level: a thin square at (N, energy, −Z). Low levels in a stronger ink, high ones toward the paper;
- *  the selected nuclide in the accent, its neighbours halfway there. */
+/** Every level: a thin square at (N, energy, −Z), coloured by parity (2026-11-05): + blue, − orange, none given in
+ *  the ink; each lighter toward the paper as its energy rises to 10 MeV. The selected nuclide in the accent, its
+ *  neighbours halfway there. */
 function LevelField({ model, palette, focus }: { model: Model; palette: Palette; focus: number }) {
   const { mesh, colors } = React.useMemo(() => {
     const geometry = slab(0.72, 0.05)
@@ -120,6 +124,8 @@ function LevelField({ model, palette, focus }: { model: Model; palette: Palette;
     const low = bg.clone().lerp(ink, 0.55)
     const high = bg.clone().lerp(ink, 0.2)
     const near = low.clone().lerp(accent, 0.55)
+    const plus = new THREE.Color(PARITY.plus[palette.dark ? 'dark' : 'light'])
+    const minus = new THREE.Color(PARITY.minus[palette.dark ? 'dark' : 'light'])
     const c = new THREE.Color()
     const fz = focus >= 0 ? model.z[focus] : -99
     const fn = focus >= 0 ? model.n[focus] : -99
@@ -128,7 +134,12 @@ function LevelField({ model, palette, focus }: { model: Model; palette: Palette;
       for (let k = model.start[i], end = k + model.size[i]; k < end; k++) {
         if (d === 0) c.copy(accent)
         else if (d === 1) c.copy(near)
-        else c.copy(low).lerp(high, Math.min(1, model.energy[k] / 10000))
+        else {
+          const t = Math.min(1, model.energy[k] / 10000)
+          const p = model.parity[k]
+          if (p === 0) c.copy(low).lerp(high, t)
+          else c.copy(p > 0 ? plus : minus).lerp(bg, t * 0.7)
+        }
         c.toArray(colors, k * 3)
       }
     }

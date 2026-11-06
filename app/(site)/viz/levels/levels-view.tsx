@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { X } from 'lucide-react'
 import { THEME_EVENT } from '@/lib/theme'
 import { loadLevels } from '@/lib/viz-data'
-import { find, label, parseNuclide, toModel, type Model } from './model'
+import { PARITY, find, label, parseNuclide, toModel, type Model } from './model'
 import type { Palette } from './scene'
 
 // The /viz/levels page's client half: the snapshot (public/viz-data/levels.json) and the three.js scene load
@@ -96,7 +96,29 @@ export function LevelsView() {
         </p>
       )}
       {model && <GoTo model={model} onGo={select} />}
+      {model && palette && <ParityKey dark={palette.dark} />}
       {model && focus >= 0 && <LevelPanel model={model} i={focus} row={row} onRow={setRow} onClose={() => select(-1)} />}
+    </div>
+  )
+}
+
+/** The parity colours (2026-11-05), at the foot of the scene on the left. */
+function ParityKey({ dark }: { dark: boolean }) {
+  const tone = dark ? 'dark' : 'light'
+  const swatch = (color: string) => <span className="inline-block h-2.5 w-2.5 rounded-[2px]" style={{ background: color }} />
+  return (
+    <div
+      className="pointer-events-none absolute bottom-3 left-3 z-20 flex flex-col gap-1.5 rounded-xl border border-[var(--paper-rule)]/15 bg-[var(--paper)]/85 px-3 py-2 text-[11px] text-[var(--paper-text)] backdrop-blur-sm"
+      style={SANS}
+    >
+      <span className="flex items-center gap-3">
+        <span className="flex items-center gap-1.5">{swatch(PARITY.plus[tone])} + parity</span>
+        <span className="flex items-center gap-1.5">{swatch(PARITY.minus[tone])} − parity</span>
+        <span className="flex items-center gap-1.5">{swatch('var(--paper-muted)')} Not assigned</span>
+      </span>
+      <span className="text-[10px] text-[var(--paper-faint)]" style={MONO}>
+        lighter as energy rises to 10 MeV
+      </span>
     </div>
   )
 }

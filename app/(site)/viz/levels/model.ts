@@ -6,6 +6,12 @@ import type { Levels } from '@/lib/viz-data'
 /** World units per keV: 10 MeV stands 50 units tall over a floor ~180 × 120 (one unit per nucleon). */
 export const Y_PER_KEV = 50 / 10000
 
+/** The parity colours, light and dark paper; the legend (levels-view.tsx) and the scene read these. */
+export const PARITY = {
+  plus: { light: '#2f6fdc', dark: '#5b9cff' },
+  minus: { light: '#e8730c', dark: '#ff8a3d' },
+} as const
+
 export type Model = {
   count: number
   total: number
@@ -15,6 +21,8 @@ export type Model = {
   size: Int32Array
   /** keV, every kept level, nuclide by nuclide, ascending within each. */
   energy: Float32Array
+  /** Each level's parity from its Jπ: 1 for +, −1 for −, 0 where none is given or both are. */
+  parity: Int8Array
   /** The highest kept level per nuclide, keV. */
   top: Float32Array
   maxN: number
@@ -24,6 +32,13 @@ export type Model = {
 }
 
 const key = (z: number, n: number) => z * 1000 + n
+
+/** "3/2-" → −1, "(2+)" → 1; "(1+,2-)", "1/2" or "" → 0. A tentative parity in brackets counts as given. */
+export function parityOf(jpi: string): -1 | 0 | 1 {
+  const plus = jpi.includes('+')
+  const minus = jpi.includes('-')
+  return plus === minus ? 0 : plus ? 1 : -1
+}
 
 export function toModel(d: Levels): Model {
   const list = d.nuclides
@@ -38,6 +53,7 @@ export function toModel(d: Levels): Model {
     start: new Int32Array(count),
     size: new Int32Array(count),
     energy: new Float32Array(total),
+    parity: new Int8Array(total),
     top: new Float32Array(count),
     maxN: 0,
     maxZ: 0,
@@ -50,7 +66,10 @@ export function toModel(d: Levels): Model {
     m.n[i] = x.n
     m.start[i] = at
     m.size[i] = x.L.length / 3
-    for (let k = 0; k < x.L.length; k += 3) m.energy[at++] = Number(x.L[k])
+    for (let k = 0; k < x.L.length; k += 3) {
+      m.parity[at] = parityOf(String(x.L[k + 1]))
+      m.energy[at++] = Number(x.L[k])
+    }
     m.top[i] = m.energy[at - 1] ?? 0
     m.maxN = Math.max(m.maxN, x.n)
     m.maxZ = Math.max(m.maxZ, x.z)
