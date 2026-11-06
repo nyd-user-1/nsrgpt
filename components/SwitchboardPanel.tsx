@@ -69,7 +69,7 @@ export const CHANNELS: Record<ChannelId, { name: string; href: string; sameTab?:
     blurb: 'The public channel. Every night the harvest posts what it found — new documents, new patents, new models.',
   },
   ask: {
-    name: 'Ask NYSgpt',
+    name: 'Ask NSRgpt',
     href: 'https://44b.nysgpt.com/chat',
     sameTab: true,
     blurb: 'A cited answer over the whole corpus — papers, patents, models, benchmarks — with its sources attached.',
@@ -487,7 +487,7 @@ function SwitchboardPanel() {
               /* ── MENU VIEW ───────────────────────────────────────────── */
               <>
                 <div className="border-b border-[var(--paper-rule)] px-5 py-6">
-                  <h2 className="text-[26px] leading-none text-[var(--paper-text)]" style={SERIF}>NYSgpt</h2>
+                  <h2 className="text-[26px] leading-none text-[var(--paper-text)]" style={SERIF}>NSRgpt</h2>
                   <p className="mt-3 text-[13px] leading-[1.6] text-[var(--paper-muted)]" style={SANS}>{INTRO}</p>
                 </div>
 
@@ -514,7 +514,7 @@ function SwitchboardPanel() {
                   href={CHANNELS.ask.href}
                   sameTab
                 >
-                  Ask NYSgpt
+                  Ask NSRgpt
                 </ChannelRow>
 
                 <div className={ROW.replace('border-b', 'border-b')}>

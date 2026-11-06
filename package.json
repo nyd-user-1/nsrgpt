@@ -1,13 +1,12 @@
 {
-  "name": "blog-template",
+  "name": "nsrgpt",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "fumadocs-mdx && next dev --turbopack",
-    "build": "fumadocs-mdx && next build",
+    "dev": "next dev --turbopack",
+    "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "fumadocs-mdx"
+    "lint": "next lint"
   },
   "dependencies": {
     "@aws-sdk/client-api-gateway": "^3.1147.0",

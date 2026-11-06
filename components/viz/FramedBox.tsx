@@ -32,7 +32,7 @@ export function FramedBox({ children }: { children: React.ReactNode }) {
           </>
         )}
         {/* Close: back to /viz, reversing the box the press grew (Brendan, 2026-11-04). */}
-        <Link href="/viz" aria-label="Close the chart" className={CIRCLE}>
+        <Link href="/" aria-label="Close the chart" className={CIRCLE}>
           <X className="h-4 w-4 text-[var(--paper-text)]" />
         </Link>
       </div>

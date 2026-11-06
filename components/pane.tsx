@@ -18,7 +18,7 @@ const BTN =
 
 /** The framed page's own title (its metadata), less the site suffix; its path until it has loaded. */
 function pageTitle(doc: Document | null | undefined, href: string) {
-  const t = doc?.title?.replace(/\s+-\s+NYSgpt$/, "").trim()
+  const t = doc?.title?.replace(/\s+-\s+NSRgpt$/, "").trim()
   if (t) return t
   const p = href.split(/[?#]/)[0] || "/"
   return p === "/" ? "Home" : p.split("/").filter(Boolean).pop()!.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase())

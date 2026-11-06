@@ -18,7 +18,7 @@ export function BareHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-10 flex items-center justify-between px-6 py-5">
       <Link href="/" className="text-[28px] leading-none text-foreground" style={{ ...SERIF, letterSpacing: "-0.03em" }}>
-        NYSgpt
+        NSRgpt
       </Link>
       <button
         type="button"

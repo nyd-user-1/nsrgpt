@@ -1,9 +1,9 @@
 export const siteConfig = {
-  name: "NYSgpt",
+  name: "NSRgpt",
   // TODO: final domain TBD (nysgpt.com landing vs blog.nysgpt.com vs /blog route)
   url: "https://nysgpt.com",
   description:
-    "Case studies and build notes from the NYSgpt family of AI products — the unique features, components, and design patterns behind each one.",
+    "Charts, tables and chat over the Nuclear Science References corpus and the NNDC databases: ENSDF, XUNDL, EXFOR and AME2020.",
 };
 
 export type SiteConfig = typeof siteConfig;

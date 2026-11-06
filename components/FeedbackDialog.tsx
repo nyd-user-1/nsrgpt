@@ -53,7 +53,7 @@ export function FeedbackDialog() {
           <div className="flex flex-col overflow-hidden rounded-xl border bg-background shadow-sm">
             <DialogHeader className="flex h-14 shrink-0 flex-row items-center justify-between gap-3 border-b pr-3 pl-5">
               <DialogTitle className="text-xl font-normal text-foreground" style={SERIF}>Contact</DialogTitle>
-              <DialogDescription className="sr-only">Send a message to NYSgpt.</DialogDescription>
+              <DialogDescription className="sr-only">Send a message to NSRgpt.</DialogDescription>
               <DialogClose className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <X className="size-4" aria-hidden />
                 <span className="sr-only">Close</span>

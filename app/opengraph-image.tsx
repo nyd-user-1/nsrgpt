@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/site";
 // No runtime declaration: ImageResponse runs on the default Node runtime, the
 // edge runtime is deprecated, and OpenNext refuses an inline edge function
 // (the Cloudflare branch's second CI failure, 2026-11-03).
-export const alt = "NYSgpt — case studies and build notes";
+export const alt = "NSRgpt — charts and tables over the Nuclear Science References corpus";
 export const size = {
   width: 1200,
   height: 630,

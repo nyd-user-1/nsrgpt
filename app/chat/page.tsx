@@ -38,7 +38,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
           the button's paper variables resolve without redressing the chat. */}
       <header data-chrome className="nysgpt-app pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between px-6 py-5">
         <Link href="/" className="pointer-events-auto text-[28px] leading-none text-foreground" style={{ fontFamily: "var(--font-display), Georgia, serif", letterSpacing: "-0.03em" }}>
-          NYSgpt
+          NSRgpt
         </Link>
         <span className="pointer-events-auto">
           <DiscussionHeaderButton />

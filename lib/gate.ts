@@ -20,5 +20,6 @@ export function isProductUrl(url: string): boolean {
 
 /** A product URL, routed through the gate; anything else, untouched. */
 export function gated(url: string): string {
-  return isProductUrl(url) ? `/go?to=${encodeURIComponent(url)}` : url;
+  // NSRgpt has no /go gate (2026-11-05): product links go straight to the product.
+  return url;
 }

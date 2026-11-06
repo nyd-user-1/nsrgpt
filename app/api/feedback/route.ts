@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   try {
     await ses.send(
       new SendEmailCommand({
-        FromEmailAddress: `NYSgpt Contact <${INBOX}>`,
+        FromEmailAddress: `NSRgpt Contact <${INBOX}>`,
         Destination: { ToAddresses: [INBOX] },
         ReplyToAddresses: [email],
         Content: { Simple: { Subject: { Data: `Contact from ${name || email}` }, Body: { Text: { Data: `${message}\n\n— ${name || "(no name)"} <${email}>\n${at}` } } } },

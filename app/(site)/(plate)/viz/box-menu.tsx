@@ -11,7 +11,7 @@ import { KebabMenu, MenuFoot, MenuRow, MenuSeparator } from '@/components/kebab-
 import { useShelf } from '@/lib/home-blocks'
 
 export function VizBoxMenu({ title, anchor, href }: { title: string; anchor: string; href?: string }) {
-  const path = usePathname() ?? '/viz'
+  const path = usePathname() ?? '/'
   const shelf = useShelf()
   const key = `${path}#${anchor}`
   const on = shelf.has(key)

@@ -57,7 +57,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
         href={AWS_STARTUP}
         target="_blank"
         rel="noreferrer noopener"
-        aria-label="NYSgpt on AWS Startups"
+        aria-label="NSRgpt on AWS Startups"
         className="@container group/name relative self-stretch flex items-center justify-center border-l border-r @min-[56rem]:border-r-0 border-[var(--paper-rule)] px-6 py-8 no-underline transition-colors hover:bg-[var(--paper-quiet)] @min-[56rem]:w-[clamp(260px,30cqw,360px)] @min-[56rem]:px-8"
       >
         <span
@@ -65,7 +65,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
           /* Sized to the nameplate (cqw), so the wordmark always fits its cell. */
           style={{ ...SERIF, fontSize: 'clamp(2rem, 22cqw, 4.5rem)', fontWeight: 400, letterSpacing: '-0.03em' }}
         >
-          NYSgpt
+          NSRgpt
         </span>
         {/* The AWS mark dissolves in over the wordmark, with a small zoom. */}
         <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-500 group-hover/name:opacity-100">
@@ -132,7 +132,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
                     },
                   }
                 : {})}
-              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${i < 2 ? 'border-b' : ''} ${i === 0 || i === 1 || i === 3 ? 'cursor-pointer' : ''}`}
+              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${i < 2 ? 'border-b' : ''} ${i === 0 ? 'cursor-pointer' : ''}`}
               /* The word's kind colour, as the boxes of that kind wear it on hover. */
               style={{ '--kind': l.color, '--kind-tint': `color-mix(in oklab, ${l.color} 5%, var(--paper))` } as React.CSSProperties}
             >

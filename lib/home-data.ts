@@ -954,10 +954,11 @@ export type Kind = keyof typeof KINDS;
  * marks a figure measured to the unit, which a wide cell spells out.
  */
 export const LEDGER: { word: string; value: number; unit: string; exact?: boolean; color: string }[] = [
-  { word: "Data", value: 12_121_473_625, unit: "Records", exact: true, color: KINDS.Data },
-  { word: "Models", value: 3_873_428_105, unit: "Parameters", exact: true, color: KINDS.Model },
-  { word: "Platforms", value: 3_125_952, unit: "Requests", exact: true, color: KINDS.Platform },
-  { word: "Tools", value: TOOLS.filter((t) => t.tag === "Tool").length + IN_HOUSE.length, unit: "AI tools", color: KINDS.Tool },
+  // NSRgpt (2026-11-05): row counts from the NSR lake, Athena database nysgpt_nsr.
+  { word: "NSR", value: 303_568, unit: "References", exact: true, color: KINDS.Data },
+  { word: "Nuclides", value: 1_210_113, unit: "Nuclide links", exact: true, color: KINDS.Model },
+  { word: "ENSDF", value: 20_120, unit: "Datasets", exact: true, color: KINDS.Platform },
+  { word: "EXFOR", value: 27_070, unit: "Entries", exact: true, color: KINDS.Tool },
 ];
 
 /**
@@ -972,4 +973,6 @@ export const SWITCHBOARD: HomeCardData[] = [
   ...TOOLS.map((c) => ({ ...c, accent: KINDS[(c.tag ?? "Tool") as Kind] })),
   ...IN_HOUSE.map((c) => ({ ...c, accent: KINDS.Tool })),
   ...APIS.map((a) => ({ ...a, accent: KINDS.Data })),
-].sort((a, b) => a.title.localeCompare(b.title));
+].sort((a, b) => a.title.localeCompare(b.title))
+  // NSRgpt (2026-11-05): the right panel keeps only the NSR product and its API.
+  .filter((c) => c.title === "Science" || c.title === "Science API");

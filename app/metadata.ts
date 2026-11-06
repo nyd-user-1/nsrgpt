@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { siteConfig } from "@/lib/site";
 
 export const metadataKeywords = [
-    "NYSgpt",
+    "NSRgpt",
     "AI products",
     "case studies",
     "Next.js",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
             url: siteConfig.url,
         },
     ],
-    creator: "NYSgpt",
+    creator: "NSRgpt",
     openGraph: {
         type: "website",
         locale: "en_US",
