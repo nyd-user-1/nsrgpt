@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { SpinControls } from '@/lib/viz-3d-controls'
+import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Y_PER_KEV, label, type Model } from './model'
 
@@ -36,8 +36,10 @@ type Props = {
 
 export function Scene({ model, palette, focus, hover, row, onSelect, onHover }: Props) {
   const target = React.useMemo(() => new THREE.Vector3(model.maxN / 2, 4, -model.maxZ / 2), [model])
+  const cross = useCrossRules()
   return (
     <Canvas
+      {...cross}
       flat
       dpr={[1, 2]}
       camera={{ position: [target.x - 10, 105, 75], fov: 40, near: 0.5, far: 3000 }}
@@ -434,7 +436,7 @@ function Picker({ model, onSelect, onHover }: { model: Model; onSelect: (i: numb
     const hover = (i: number) => {
       if (i === last) return
       last = i
-      el.style.cursor = i >= 0 ? 'pointer' : ''
+      // The plus stays over a level too (2026-11-05), as on the 2D charts: the canvas takes the wrapper's cursor.
       latest.current.onHover(i)
     }
     const onDown = (e: PointerEvent) => {

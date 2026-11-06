@@ -12,7 +12,7 @@ import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
-import { SpinControls } from '@/lib/viz-3d-controls'
+import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Pause, Play, RotateCcw, X } from 'lucide-react'
 import {
@@ -524,6 +524,7 @@ const RATE_MAX = 18
 
 export default function DecayScene() {
   const box = React.useRef<HTMLDivElement>(null)
+  const cross = useCrossRules()
   const theme = useTheme(box)
   const [data, setData] = React.useState<DecayData | null>(null)
   const [failed, setFailed] = React.useState(false)
@@ -608,7 +609,7 @@ export default function DecayScene() {
       onPointerLeave={() => (inside.current = false)}
     >
       {model ? (
-        <Canvas flat dpr={[1, 2]} camera={{ position: [0, 150, 170], fov: 42, near: 1, far: 3000 }}>
+        <Canvas flat dpr={[1, 2]} camera={{ position: [0, 150, 170], fov: 42, near: 1, far: 3000 }} {...cross}>
           <Chart
             model={model}
             pal={pal}

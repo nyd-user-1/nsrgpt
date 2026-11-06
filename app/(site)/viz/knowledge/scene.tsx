@@ -9,7 +9,7 @@ import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { SpinControls } from '@/lib/viz-3d-controls'
+import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { X } from 'lucide-react'
 import { AGE_MAX, AGE_STOPS, NEVER, SNAPSHOT_YEAR, knowledgeName, loadKnowledge, type KnowledgeRow } from '@/lib/viz-knowledge'
@@ -79,8 +79,46 @@ const Chart = React.memo(function Chart({
   // zeros and every marker went black.
   const sphereCol = React.useMemo(() => new Float32Array(evaluated.length * 3), [evaluated])
   const ringCol = React.useMemo(() => new Float32Array(never.length * 3), [never])
+  // The hover marker (2026-11-05): the point under the pointer grows 1.5× and an ink ring sits around it. Both change
+  // outside React: one instance's matrix rewritten and uploaded alone, and the ring mesh moved, so the 7,986 markers
+  // never re-render for a hover.
+  const marker = React.useRef<THREE.Mesh>(null)
+  const lit = React.useRef<{ mesh: THREE.InstancedMesh; k: number; size: number } | null>(null)
+  const tmp = React.useMemo(() => ({ m: new THREE.Matrix4(), p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() }), [])
+  const resize = (mesh: THREE.InstancedMesh, k: number, size: number) => {
+    mesh.getMatrixAt(k, tmp.m)
+    tmp.m.decompose(tmp.p, tmp.q, tmp.s)
+    mesh.setMatrixAt(k, tmp.m.compose(tmp.p, tmp.q, tmp.s.setScalar(size)))
+    // Just this instance's 16 floats; the renderer clears the ranges once it has uploaded them.
+    mesh.instanceMatrix.addUpdateRange(k * 16, 16)
+    mesh.instanceMatrix.needsUpdate = true
+    return tmp.p
+  }
+  const light = (mesh: THREE.InstancedMesh | null, k: number | null) => {
+    const was = lit.current
+    if (was && was.mesh === mesh && was.k === k) return
+    if (was) resize(was.mesh, was.k, was.size)
+    lit.current = null
+    const ring = marker.current
+    if (!mesh || k === null) {
+      if (ring) ring.visible = false
+      return
+    }
+    const r = rows[(mesh === spheres.current ? evaluated : never)[k]]
+    const size = mesh === spheres.current ? radius(r.levels) : 1
+    const at = resize(mesh, k, size * 1.5)
+    lit.current = { mesh, k, size }
+    if (ring) {
+      ring.position.set(at.x, 0, at.z)
+      ring.scale.setScalar((mesh === spheres.current ? size : 0.42) * 1.5 + 0.3)
+      ring.visible = true
+    }
+  }
 
   React.useLayoutEffect(() => {
+    // Every matrix is written fresh below, so a grown marker is back to its size.
+    lit.current = null
+    if (marker.current) marker.current.visible = false
     const m = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(), c = new THREE.Color()
     const sp = spheres.current
     if (sp) {
@@ -91,6 +129,8 @@ const Chart = React.memo(function Chart({
         sp.setMatrixAt(k, m.compose(p, q, s))
         sp.setColorAt(k, ageColor(pal.stops, age(r) / AGE_MAX, c))
       })
+      // A hover's pending range would make this a one-instance upload; the whole buffer goes.
+      sp.instanceMatrix.clearUpdateRanges()
       sp.instanceMatrix.needsUpdate = true
       if (sp.instanceColor) sp.instanceColor.needsUpdate = true
       sp.computeBoundingSphere()
@@ -104,6 +144,7 @@ const Chart = React.memo(function Chart({
         rg.setMatrixAt(k, m.compose(p, q, s))
         rg.setColorAt(k, pal.never)
       })
+      rg.instanceMatrix.clearUpdateRanges()
       rg.instanceMatrix.needsUpdate = true
       if (rg.instanceColor) rg.instanceColor.needsUpdate = true
       rg.computeBoundingSphere()
@@ -117,7 +158,7 @@ const Chart = React.memo(function Chart({
     return new Float32Array(pts)
   }, [])
 
-  const handlers = (list: number[]) => ({
+  const handlers = (list: number[], mesh: React.RefObject<THREE.InstancedMesh | null>) => ({
     onClick: (e: { delta: number; instanceId?: number; stopPropagation: () => void }) => {
       if (e.delta > 4 || e.instanceId === undefined) return
       e.stopPropagation()
@@ -125,9 +166,14 @@ const Chart = React.memo(function Chart({
     },
     onPointerMove: (e: { instanceId?: number; stopPropagation: () => void }) => {
       e.stopPropagation()
+      light(e.instanceId === undefined ? null : mesh.current, e.instanceId ?? null)
       onHover(e.instanceId === undefined ? null : list[e.instanceId])
     },
-    onPointerOut: () => onHover(null),
+    onPointerOut: () => {
+      // Only this mesh's own marker: the pointer may already be on the other mesh's.
+      if (lit.current?.mesh === mesh.current) light(null, null)
+      onHover(null)
+    },
   })
 
   const sel = selected === null ? null : rows[selected]
@@ -148,16 +194,21 @@ const Chart = React.memo(function Chart({
         Z
       </Html>
 
-      <instancedMesh ref={rings} args={[ringGeom, undefined, never.length]} frustumCulled={false} {...handlers(never)}>
+      <instancedMesh ref={rings} args={[ringGeom, undefined, never.length]} frustumCulled={false} {...handlers(never, rings)}>
         <meshBasicMaterial toneMapped={false} side={THREE.DoubleSide} />
         <instancedBufferAttribute attach="instanceColor" args={[ringCol, 3]} />
       </instancedMesh>
 
-      <instancedMesh ref={spheres} args={[undefined, undefined, evaluated.length]} frustumCulled={false} {...handlers(evaluated)}>
+      <instancedMesh ref={spheres} args={[undefined, undefined, evaluated.length]} frustumCulled={false} {...handlers(evaluated, spheres)}>
         <sphereGeometry args={[1, 12, 10]} />
         <meshBasicMaterial toneMapped={false} />
         <instancedBufferAttribute attach="instanceColor" args={[sphereCol, 3]} />
       </instancedMesh>
+
+      <mesh ref={marker} visible={false} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+        <torusGeometry args={[1, 0.05, 8, 48]} />
+        <meshBasicMaterial color={pal.ink} toneMapped={false} />
+      </mesh>
 
       {sel && (
         <mesh position={[sel.n - N0, 0, -(sel.z - Z0)]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
@@ -199,6 +250,7 @@ export default function KnowledgeScene() {
   const [selected, setSelected] = React.useState<number | null>(null)
   const [hover, setHover] = React.useState<number | null>(null)
   const onHover = React.useCallback((i: number | null) => setHover((h) => (h === i ? h : i)), [])
+  const cross = useCrossRules()
 
   const stops = theme.dark ? AGE_STOPS.dark : AGE_STOPS.light
   const hovered = rows && hover !== null ? rows[hover] : null
@@ -206,9 +258,9 @@ export default function KnowledgeScene() {
   const fmt = (v: number) => v.toLocaleString('en')
 
   return (
-    <div ref={box} className="relative min-h-0 flex-1 overflow-hidden rounded-xl" style={{ ...SANS, cursor: hover !== null ? 'pointer' : undefined }}>
+    <div ref={box} className="relative min-h-0 flex-1 overflow-hidden rounded-xl" style={SANS}>
       {rows && split ? (
-        <Canvas flat dpr={[1, 2]} camera={{ position: [0, 170, 120], fov: 42, near: 1, far: 3000 }}>
+        <Canvas flat dpr={[1, 2]} camera={{ position: [0, 170, 120], fov: 42, near: 1, far: 3000 }} {...cross}>
           <Chart rows={rows} evaluated={split.evaluated} never={split.never} pal={pal} selected={selected} onSelect={setSelected} onHover={onHover} />
           <SpinControls makeDefault target={[0, 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} />
           {theme.dark && (
