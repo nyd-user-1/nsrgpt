@@ -77,7 +77,7 @@ export function FirstExcitedChart() {
     },
     false,
     rowOf,
-    { view, replace: true, point: (row) => (view ? null : { seriesIndex: 0, dataIndex: row }) },
+    { view, replace: true, marks: true, point: (row) => (view ? null : { seriesIndex: 0, dataIndex: row }) },
   )
   const btn = (on: boolean) =>
     `rounded-md px-2.5 py-1 text-[12px] transition-colors ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)]' : 'text-[var(--paper-muted)] hover:text-[var(--paper-text)]'}`

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { VIZ_POINT, isEmbedded } from '@/lib/pane'
 import { STRUCTURE_TABLES } from '@/lib/viz-structure-tables'
@@ -10,9 +10,10 @@ import { fromLog, loadExfor, targetName } from '@/lib/viz-exfor'
 import { halfLifeText, loadDecay, nucName } from '@/lib/viz-decay'
 import { loadField } from '@/lib/viz-data'
 
-/** A pressed row points at its datum: framed, the shell relays it; same-page, the chart hears it directly. */
-function pointAt(slug: string, row: number) {
-  const msg = { type: VIZ_POINT, slug, row }
+/** A pressed row points at its datum: framed, the shell relays it; same-page, the chart hears it directly. `rows`
+ *  is the whole selection (brief 06), which the chart marks; `row`, when given, is the datum its crosshair walks to. */
+function pointAt(slug: string, row: number | undefined, rows: number[]) {
+  const msg = { type: VIZ_POINT, slug, row, rows }
   if (isEmbedded()) window.parent.postMessage(msg, window.location.origin)
   else window.dispatchEvent(new CustomEvent(VIZ_POINT, { detail: msg }))
 }
@@ -22,6 +23,10 @@ function pointAt(slug: string, row: number) {
 // fetched in the browser once the page is up — the page renders at once, the worker computes nothing,
 // and a file the chart already pulled comes from the browser's cache. A hundred rows to a page;
 // ?row=<i> opens on that row's page with the row marked (the clicked datum, when the chart can name it).
+//
+// Rows are selectable (brief 06, 2026-11-05): a click picks one row, Shift-click the run from the last pick, Cmd
+// or Ctrl-click adds or drops one. The chart marks every picked row: a band on its candle or bar, the hover
+// outline on its dot or cell. Leaving the table clears the chart's marks.
 
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -89,6 +94,8 @@ export function DataTable({ slug }: { slug: string }) {
   const [table, setTable] = useState<Table | null>(null)
   const [page, setPage] = useState(0)
   const [mark, setMark] = useState<number | null>(null)
+  const [picked, setPicked] = useState<Set<number>>(() => new Set())
+  const anchor = useRef<number | null>(null)
   const marked = useRef<HTMLTableRowElement>(null)
 
   useEffect(() => {
@@ -103,12 +110,37 @@ export function DataTable({ slug }: { slug: string }) {
       if (Number.isInteger(row) && row >= 0 && row < t.rows.length) {
         setMark(row)
         setPage(Math.floor(row / PER))
+        setPicked(new Set([row]))
+        anchor.current = row
+        pointAt(slug, undefined, [row])
       }
     })
     return () => {
       live = false
+      pointAt(slug, undefined, [])
     }
   }, [slug])
+
+  const press = (e: MouseEvent, at: number) => {
+    const add = e.metaKey || e.ctrlKey
+    let next: Set<number>
+    if (e.shiftKey && anchor.current !== null) {
+      const lo = Math.min(anchor.current, at)
+      const hi = Math.max(anchor.current, at)
+      next = add ? new Set(picked) : new Set()
+      for (let i = lo; i <= hi; i++) next.add(i)
+    } else if (add) {
+      next = new Set(picked)
+      if (next.has(at)) next.delete(at)
+      else next.add(at)
+      anchor.current = at
+    } else {
+      next = new Set([at])
+      anchor.current = at
+    }
+    setPicked(next)
+    pointAt(slug, next.has(at) ? at : undefined, [...next].sort((a, b) => a - b))
+  }
 
   useEffect(() => {
     marked.current?.scrollIntoView({ block: 'center' })
@@ -160,13 +192,18 @@ export function DataTable({ slug }: { slug: string }) {
         <tbody>
           {rows.map((r, k) => {
             const at = from + k
-            const on = at === mark
+            const on = picked.has(at)
             return (
               <tr
                 key={at}
-                ref={on ? marked : undefined}
-                onClick={() => pointAt(slug, at)}
-                className={`cursor-pointer border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)]' : ''}`}
+                ref={at === mark ? marked : undefined}
+                aria-selected={on}
+                onMouseDown={(e) => {
+                  // Shift and Cmd/Ctrl pick rows; they mustn't select the text as well.
+                  if (e.shiftKey || e.metaKey || e.ctrlKey) e.preventDefault()
+                }}
+                onClick={(e) => press(e, at)}
+                className={`cursor-pointer select-none border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
               >
                 {r.map((v, i) => (
                   <td key={i} className={`py-1.5 pr-4 ${i ? 'text-right tabular-nums' : 'text-left'}`} style={typeof v === 'number' ? MONO : undefined}>

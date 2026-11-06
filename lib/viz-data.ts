@@ -80,6 +80,33 @@ export const loadE2 = get<E2>('e2')
 export const loadLevelStats = get<LevelStats>('level-stats')
 export const loadNuclideMatrix = get<NuclideMatrix>('nuclide-matrix')
 
+/** One nuclide behind the matrix, its nine measures in nuclide-matrix.json's order. */
+export type MatrixRow = { z: number; n: number; el: string; v: number[] }
+
+/** The matrix's nuclides, for the scatter a cell opens (brief 06, 2026-11-05): the same selection and the same
+ *  nine measures scripts/viz-matrix-snapshot.mjs takes, from the same three committed files, so the scatter is
+ *  the cell's r drawn out. 475 nuclides at the 2026-11-04 snapshot. */
+export function loadMatrixRows(): Promise<MatrixRow[]> {
+  const masses = get<{ els: string[]; cols: string[]; rows: (number | null)[][] }>('masses')
+  const decay = get<{ nuclides: { z: number; n: number; t: number | null }[] }>('decay')
+  return Promise.all([masses(), decay(), loadE2()]).then(([m, d, e2]) => {
+    const key = (z: number, n: number) => z * 1000 + n
+    const col = Object.fromEntries(m.cols.map((c, i) => [c, i]))
+    const halfLife = new Map(d.nuclides.map((x): [number, number | null] => [key(x.z, x.n), x.t]))
+    const mass = new Map(m.rows.map((r): [number, (number | null)[]] => [key(r[col.z] as number, r[col.n] as number), r]))
+    const out: MatrixRow[] = []
+    for (const [z, n, e2keV, be2] of e2.rows) {
+      const r = mass.get(key(z, n))
+      const t = halfLife.get(key(z, n))
+      if (!r || be2 === null || typeof t !== 'number' || t <= 0) continue
+      const nl = r[col.nl]
+      const v = [Math.log10(t), r[col.qa], r[col.qb], r[col.sn], r[col.sp], Math.log10(e2keV), Math.log10(be2), r[col.d], nl ? Math.log10(nl) : null]
+      if (v.every((x) => typeof x === 'number' && Number.isFinite(x))) out.push({ z, n, el: e2.els[z], v: v as number[] })
+    }
+    return out
+  })
+}
+
 export const MAGIC = [2, 8, 20, 28, 50, 82, 126]
 /** Z or N within 2 of a magic number. */
 export const nearMagic = (z: number, n: number) => MAGIC.some((m) => Math.abs(z - m) <= 2 || Math.abs(n - m) <= 2)

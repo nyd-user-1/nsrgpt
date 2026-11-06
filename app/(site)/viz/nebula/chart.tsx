@@ -48,6 +48,6 @@ export function NebulaChart({ fill }: { fill?: boolean }) {
         },
       ],
     }
-  }, false, firstSeriesRow)
+  }, false, firstSeriesRow, { marks: true })
   return <div ref={ref} className={fill ? 'h-full min-h-0 w-full flex-1' : 'h-[78vh] w-full'} />
 }

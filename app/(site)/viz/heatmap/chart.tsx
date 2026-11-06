@@ -61,8 +61,8 @@ export function HeatmapChart() {
           { lte: NOT_OBSERVED, label: 'Expected, not observed', color: dark ? '#3a3a3a' : '#dcdcdc' },
         ],
       },
-      series: [{ type: 'heatmap', data, progressive: 2000, emphasis: { itemStyle: { borderColor: ink(dark), borderWidth: 1 } } }],
+      series: [{ type: 'heatmap', data, progressive: 2000 }],
     }
-  }, false, firstSeriesRow)
+  }, false, firstSeriesRow, { marks: true })
   return <div ref={ref} className="min-h-0 w-full flex-1" />
 }
