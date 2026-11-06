@@ -11,7 +11,7 @@
 import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
+import { Html, Line } from '@react-three/drei'
 import { X } from 'lucide-react'
 import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { AGE_MAX, AGE_STOPS, NEVER, SNAPSHOT_YEAR, knowledgeName, loadKnowledge, type KnowledgeRow } from '@/lib/viz-knowledge'
@@ -57,14 +57,14 @@ function useTheme(el: React.RefObject<HTMLDivElement | null>) {
   return theme
 }
 
-type Palette = { bg: THREE.Color; ink: THREE.Color; grid: THREE.Color; stops: THREE.Color[]; never: THREE.Color }
+type Palette = { bg: THREE.Color; ink: THREE.Color; grid: THREE.Color; stops: THREE.Color[]; never: THREE.Color; blue: THREE.Color }
 function palette(dark: boolean, paper: string, ink: string): Palette {
   const bg = new THREE.Color(dark ? '#15120d' : '#ffffff')
   try { bg.set(paper) } catch { /* keep the theme default */ }
   const inkC = new THREE.Color(dark ? '#f0e9d8' : '#16181d')
   try { inkC.set(ink) } catch { /* keep the theme default */ }
   const stops = (dark ? AGE_STOPS.dark : AGE_STOPS.light).map((c) => new THREE.Color(c))
-  return { bg, ink: inkC, grid: inkC.clone().lerp(bg, 0.75), stops, never: new THREE.Color(dark ? NEVER.dark : NEVER.light) }
+  return { bg, ink: inkC, grid: inkC.clone().lerp(bg, 0.75), stops, never: new THREE.Color(dark ? NEVER.dark : NEVER.light), blue: new THREE.Color(dark ? '#5b9cff' : '#2563eb') }
 }
 
 /** The age scale at t ∈ [0, 1]: teal → amber → rust, as on the knowledge map. */
@@ -216,11 +216,26 @@ function Floor({ pal, grid, picked, onBlockHover, onPick }: { pal: Palette; grid
             <planeGeometry args={[BLOCK, BLOCK]} />
             <meshBasicMaterial color={pal.ink} transparent opacity={0.1} depthWrite={false} toneMapped={false} />
           </mesh>
+          {/* The picked block: a blue outline over a light blue fill (Brendan, 2026-11-06). */}
           {picked && (
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={centre(picked)} raycast={noRaycast}>
-              <planeGeometry args={[BLOCK, BLOCK]} />
-              <meshBasicMaterial color={pal.ink} transparent opacity={0.22} depthWrite={false} toneMapped={false} />
-            </mesh>
+            <>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={centre(picked)} raycast={noRaycast}>
+                <planeGeometry args={[BLOCK, BLOCK]} />
+                <meshBasicMaterial color={pal.blue} transparent opacity={0.14} depthWrite={false} toneMapped={false} />
+              </mesh>
+              <Line
+                points={[
+                  [x0 + picked.bn * BLOCK, 0.06, z0 - picked.bz * BLOCK],
+                  [x0 + (picked.bn + 1) * BLOCK, 0.06, z0 - picked.bz * BLOCK],
+                  [x0 + (picked.bn + 1) * BLOCK, 0.06, z0 - (picked.bz + 1) * BLOCK],
+                  [x0 + picked.bn * BLOCK, 0.06, z0 - (picked.bz + 1) * BLOCK],
+                  [x0 + picked.bn * BLOCK, 0.06, z0 - picked.bz * BLOCK],
+                ]}
+                color={pal.blue}
+                lineWidth={3}
+                raycast={noRaycast}
+              />
+            </>
           )}
         </>
       )}
@@ -299,6 +314,8 @@ export default function Knowledge3dScene() {
           <Columns rows={rows} evaluated={split.evaluated} never={split.never} pal={pal} grid={grid} onHover={onHover} onPick={onPick} />
           <Floor pal={pal} grid={grid} picked={pickedBlock} onBlockHover={setHoverBlock} onPick={onPick} />
           {one && <Frame r={one} pal={pal} />}
+          {/* The column under the pointer wears the same frame (Brendan, 2026-11-06). */}
+          {hovered && hovered !== one && <Frame r={hovered} pal={pal} />}
           <SpinControls makeDefault target={[0, 8, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} maxPolarAngle={Math.PI / 2 - 0.03} />
         </Canvas>
       ) : (
