@@ -9,6 +9,9 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
+  // next-themes serialises its pre-paint function into the HTML with toString; wrangler's keep_names wraps it in
+  // __name() calls that don't exist in the browser, so the theme script threw on every page (2026-11-05).
+  "keep_names": false,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
