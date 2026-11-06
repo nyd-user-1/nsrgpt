@@ -5,7 +5,7 @@
   //   build:  npx opennextjs-cloudflare build
   //   deploy: npx opennextjs-cloudflare deploy
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "nysgpt",
+  "name": "nsrgpt",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
