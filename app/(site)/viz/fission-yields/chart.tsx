@@ -137,7 +137,8 @@ function MassCurve({ view, code }: { view: React.RefObject<View>; code: number }
             showSymbol: false,
             lineStyle: { width: 1.8 },
             color: dark ? PARENTS[i].dark : PARENTS[i].light,
-            data: massCurve(files[i], v.energy).filter(([, y]) => y >= 1e-6),
+            // From A = 60: below it are only ternary fission's light particles (¹H to ¹⁰Be), off this axis.
+            data: massCurve(files[i], v.energy).filter(([a, y]) => a >= 60 && y >= 1e-6),
           })),
       }
     },

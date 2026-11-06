@@ -34,6 +34,12 @@ const PRESETS: { label: string; s: Settings }[] = [
   { label: 'Q-values', s: { ...BASE, color: 'mode', x: axis('qbm'), y: axis('qec'), z: axis('qa') } },
 ]
 
+const SUPS: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' }
+/** A log axis's tick: 10 to the power, "10⁻⁶", where the power is whole. */
+const tick = (v: number) => (Number.isInteger(v) ? `10${String(v).replace(/[-\d]/g, (c) => SUPS[c])}` : fmt.format(10 ** v))
+/** A value for a limit field's hint: plain when it reads easily, else in powers of ten. */
+const hint = (v: number) => (v !== 0 && (Math.abs(v) >= 1e6 || Math.abs(v) < 1e-3) ? v.toExponential(2).replace('e+', 'e') : fmt.format(v))
+
 const num = (s: string) => (s.trim() === '' || !Number.isFinite(Number(s)) ? null : Number(s))
 
 /** The rows the settings keep: all three values present (positive on a log axis), inside the limits and the filter. */
@@ -132,7 +138,7 @@ export function ExplorerChart() {
         type: 'value',
         name: label(k),
         nameTextStyle: { color: '#64748b' },
-        axisLabel: { color: '#475569', ...(cur[k].log ? { formatter: (v: number) => fmt.format(10 ** v) } : {}) },
+        axisLabel: { color: '#475569', ...(cur[k].log ? { formatter: tick } : {}) },
         axisLine: { lineStyle: { color: '#1e293b' } },
       })
       const unitOf = (k: 'x' | 'y' | 'z') => vmap.get(cur[k].v)?.unit ?? ''
@@ -227,9 +233,9 @@ export function ExplorerChart() {
               </label>
             </div>
             <div className="flex items-center gap-1.5 pl-5">
-              <Limit label={`${k.toUpperCase()} lower limit`} value={s[k].lo} placeholder={ranges?.[j] ? fmt.format(ranges[j]![0]) : ''} onChange={(lo) => setAxis(k, { lo })} />
+              <Limit label={`${k.toUpperCase()} lower limit`} value={s[k].lo} placeholder={ranges?.[j] ? hint(ranges[j]![0]) : ''} onChange={(lo) => setAxis(k, { lo })} />
               <span className="text-[var(--paper-faint)]">to</span>
-              <Limit label={`${k.toUpperCase()} upper limit`} value={s[k].hi} placeholder={ranges?.[j] ? fmt.format(ranges[j]![1]) : ''} onChange={(hi) => setAxis(k, { hi })} />
+              <Limit label={`${k.toUpperCase()} upper limit`} value={s[k].hi} placeholder={ranges?.[j] ? hint(ranges[j]![1]) : ''} onChange={(hi) => setAxis(k, { hi })} />
             </div>
           </div>
         ))}

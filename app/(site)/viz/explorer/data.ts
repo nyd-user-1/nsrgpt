@@ -82,9 +82,10 @@ export function valuesOf(g: Ground, id: string, fy: Map<string, FissionFile>): (
     const f = fy.get(parent)
     const ys = f?.[kind][energy]
     if (!f || !ys) return g.rows.map(() => null)
+    // Independent yields add their isomers in; a ground state's cumulative yield already counts them.
     const by = new Map<number, number>()
     ys.forEach((y, i) => {
-      if (!y) return
+      if (!y || (kind === 'cum' && f.m[i] !== 0)) return
       const k = f.z[i] * 1000 + (f.a[i] - f.z[i])
       by.set(k, (by.get(k) ?? 0) + y * 100)
     })

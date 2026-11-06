@@ -60,13 +60,15 @@ export function massCurve(f: FissionFile, e: Energy): [number, number][] {
   return [...byA.entries()].sort(([a], [b]) => a - b).map(([a, y]) => [a, y * 100])
 }
 
-/** Each product nuclide's yield on the N–Z plane, its states summed, % per fission. */
+/** Each product nuclide's yield on the N–Z plane, % per fission: independent yields with the isomers' added in;
+ *  cumulative ones from the ground state alone, since a ground state's cumulative yield already counts what its
+ *  isomers feed it. */
 export function nzYields(f: FissionFile, e: Energy, kind: 'ind' | 'cum'): { z: number; n: number; y: number }[] {
   const ys = f[kind][e]
   if (!ys) return []
   const byNuc = new Map<number, { z: number; n: number; y: number }>()
   ys.forEach((y, i) => {
-    if (!y) return
+    if (!y || (kind === 'cum' && f.m[i] !== 0)) return
     const z = f.z[i]
     const n = f.a[i] - z
     const k = z * 1000 + n
