@@ -83,6 +83,14 @@ export const familyColor = (f: Family, dark = isDark()) => (dark ? FAMILY[f].dar
 /** The paper's ink and its quiet grey, per theme — for marks that sit on the paper itself. */
 export const ink = (dark = isDark()) => (dark ? '#f0e9d8' : '#16181d')
 
+/** Seconds a light takes to cross a decay step, by its parent's half-life: 0.3 s for the shortest, 14 s for the
+ *  longest, on a log scale. The flow lines' rule (/viz/reactions), shared with the force graph's flow (2026-11-06). */
+export const stepPeriod = (t: number | null) => {
+  if (t === null || t <= 0) return 14
+  const k = (Math.log10(t) + 7) / 25
+  return 0.3 + 13.7 * Math.min(1, Math.max(0, k))
+}
+
 /** The axes as the other /viz charts dress them (use-echart recolours these for dark paper). */
 export const AXIS = {
   nameTextStyle: { color: '#64748b' },

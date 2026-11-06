@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
-import { AXIS, FAMILY, decayIndex, decayLinks, familyOf, halfLifeText, ink, isDark, keyOf, loadDecay, modesText, nucName, type Decay, type Link } from '@/lib/viz-physics'
+import { AXIS, FAMILY, decayIndex, decayLinks, familyOf, halfLifeText, ink, isDark, keyOf, loadDecay, modesText, nucName, type Decay, type Link, stepPeriod as period } from '@/lib/viz-physics'
 import { FAMILIES, familyOfMode, type Family } from '@/lib/nuclide'
 
 // The decay network as a route map (Brendan, 2026-11-05: "like a subway map or a traffic map"). Every decay
@@ -24,12 +24,6 @@ const PRESETS = [
 const MIN_PCT = 0.001
 const MAX_ROUTE = 1500
 
-/** Seconds a light takes to cross its step: 0.3 s for the shortest half-lives, 14 s for the longest. */
-const period = (t: number | null) => {
-  if (t === null || t <= 0) return 14
-  const k = (Math.log10(t) + 7) / 25
-  return 0.3 + 13.7 * Math.min(1, Math.max(0, k))
-}
 
 const linksOf = new WeakMap<Decay, Link[]>()
 const allLinks = (d: Decay) => {
