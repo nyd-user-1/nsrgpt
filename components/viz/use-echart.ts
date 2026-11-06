@@ -343,8 +343,9 @@ function makeMarks(echarts: any, chart: any) {
     for (const a of axes) {
       let el = hoverBands.get(a)
       if (!el) {
-        el = add(new G.Rect({ shape: { x: 0, y: 0, width: 0, height: 0 }, style: {}, zlevel: BAND_Z, silent: true, ignore: true }))
-        hoverBands.set(a, el)
+        const made: Shape = add(new G.Rect({ shape: { x: 0, y: 0, width: 0, height: 0 }, style: {}, zlevel: BAND_Z, silent: true, ignore: true }))
+        hoverBands.set(a, made)
+        el = made
       }
       const r = c === null ? null : bandRect(chart, a, c)
       el.attr(r ? { ignore: false, shape: r, style: { fill: bandColour(ink) } } : { ignore: true })
