@@ -1,0 +1,4 @@
+# Workers static assets headers (2026-11-05). The chart data files keep their names across
+# snapshots, so an hour of browser cache, then a day of serving the cached copy while it revalidates.
+/viz-data/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400

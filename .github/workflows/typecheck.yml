@@ -27,10 +27,6 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # .source/ is generated and gitignored; the blog imports it. postinstall runs this too.
-      - name: Generate .source
-        run: pnpm exec fumadocs-mdx
-
       # next-env.d.ts is gitignored. typegen writes it, plus .next/types: the route types and the
       # page/layout export checks that `next build` runs.
       - name: Generate Next types

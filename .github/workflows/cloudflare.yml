@@ -1,0 +1,28 @@
+# The Cloudflare build (2026-11-05): a push to main builds the Next app through
+# @opennextjs/cloudflare and deploys the worker named nsrgpt (wrangler.jsonc).
+# Copied from NYSgpt's cloudflare-branch workflow. GitHub Actions runs it because
+# the Workers Builds repo connection needs a dashboard click. Secrets:
+# CLOUDFLARE_API_TOKEN (workers edit), CLOUDFLARE_ACCOUNT_ID.
+name: Deploy to Cloudflare
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable && corepack prepare pnpm@11.1.1 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: npx opennextjs-cloudflare build
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+      - run: npx opennextjs-cloudflare deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
