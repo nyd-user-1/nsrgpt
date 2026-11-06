@@ -1,6 +1,9 @@
 import { VizBoxMenu } from "./viz/box-menu";
 import { ExpandBox } from "./viz/expand-box";
+import { PaneButton } from "./viz/pane-button";
+import { PlateKeys } from "./viz/plate-keys";
 import { VIZ_CHARTS, type VizChart } from "@/lib/viz-charts";
+import { HEADER_TITLES } from "@/lib/header-titles";
 import { PLATE_H } from "@/lib/plate";
 import { PlateGrid } from "@/app/PlateGrid";
 
@@ -22,6 +25,7 @@ export default function HomePage() {
   // The masthead and the byline are the (plate) layout's; the page is the plate.
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <PlateKeys />
       <div className="relative mt-[72px] flex min-h-0 flex-1 flex-col">
         {/* The plate as / has it (HomeContents): a fixed height, an even grid from its own measured size. */}
         <div className={`isolate flex flex-col overflow-hidden rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] ${PLATE_H}`}>
@@ -42,9 +46,16 @@ function VizBox({ chart, index }: { chart: VizChart; index: number }) {
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="m-0 line-clamp-4 text-[20px] leading-[1.1]" style={{ ...SERIF, color: "var(--paper-text)" }}>
-            {chart.title}
-          </h3>
+          {/* Every box's title the same shape (Brendan, 2026-11-06): two lines, always, a longer name ending in "…";
+              hovering shows it whole. The chart type sits beneath. */}
+          <div className="min-w-0">
+            <h3 title={HEADER_TITLES[chart.href] ?? chart.title} className="m-0 line-clamp-2 min-h-[2.2em] text-[20px] leading-[1.1]" style={{ ...SERIF, color: "var(--paper-text)" }}>
+              {HEADER_TITLES[chart.href] ?? chart.title}
+            </h3>
+            <p className="m-0 mt-1.5 text-[11px] text-[var(--paper-faint)]" style={SANS}>
+              {chart.title}
+            </p>
+          </div>
           <span className="flex h-[22px] shrink-0 items-center">
             <VizBoxMenu title={chart.title} anchor={chart.href.replace(/^\//, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase()} href={chart.href} />
           </span>
@@ -53,10 +64,11 @@ function VizBox({ chart, index }: { chart: VizChart; index: number }) {
           {chart.body}
         </p>
       </div>
-      <div className="relative mt-4 flex items-end justify-end gap-3">
+      <div className="relative mt-4 flex items-end justify-between gap-3">
         <span className="shrink-0 text-[10px] tabular-nums tracking-[0.2em] text-[var(--paper-faint)]" style={MONO}>
           {String(index + 1).padStart(2, "0")}
         </span>
+        <PaneButton href={chart.href} title={chart.title} />
       </div>
     </>
   );

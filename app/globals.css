@@ -135,6 +135,14 @@
 }
 
 @layer base {
+  /* Three pointers (Brendan, 2026-11-06): the hand on anything pressable — the switchers, the circle buttons, every
+     control — the scope over a chart's plot (lib/viz-cursor.ts), and the arrow everywhere else. Tailwind 4's base
+     leaves buttons on the arrow. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

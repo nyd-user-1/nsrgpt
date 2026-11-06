@@ -54,6 +54,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
           a click opens the page in a new tab. The Data cell opens the switchboard. */}
       <a
         data-inspect="Wordmark"
+        data-nav="masthead"
         href={AWS_STARTUP}
         target="_blank"
         rel="noreferrer noopener"
@@ -91,6 +92,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
                  default; these cells link nowhere, so mark the scope explicitly. */
               data-countup-scope
               data-inspect="LedgerCell"
+              data-nav="masthead"
               /* The first cell toggles the switchboard. */
               {...(i === 0
                 ? {

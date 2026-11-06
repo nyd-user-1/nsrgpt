@@ -42,7 +42,7 @@ export function ExpandBox({ href, className, style, children }: { href: string; 
 
   return (
     <>
-      <a ref={ref} href={href} onClick={onClick} className={className} style={style}>
+      <a ref={ref} href={href} onClick={onClick} data-nav="plate" className={className} style={style}>
         {children}
       </a>
       {box &&

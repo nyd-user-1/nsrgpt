@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { usePathname } from 'next/navigation'
 import { VIZ_POINT } from '@/lib/pane'
+import { scopeCursor } from '@/lib/viz-cursor'
 
 import { useShellPanel } from '@/components/shell'
 import { inspectorOn } from '@/components/dev/inspector-state'
@@ -26,6 +27,20 @@ import { isEngaged, isTyping, setCamera } from '@/lib/viz-engage'
 // zoom) is not a click, nor is a press on a zoom slider along the foot. Nothing else rides the charts.
 
 /** What ECharts hands a click on a datum. */
+/** A tooltip set off the dot at 45° (Brendan, 2026-11-06): up and to the right, OFFSET px clear, so neither the scope,
+ *  the dot nor the rules through it run under the text; at the right edge it goes up and to the left (135°), at the
+ *  top edge down instead. For a tooltip's `position`. */
+export function diagonalTip(point: number[], _p: unknown, _dom: unknown, _rect: unknown, size: { contentSize: number[]; viewSize: number[] }) {
+  const OFFSET = 26
+  const [w, h] = size.contentSize
+  const [vw] = size.viewSize
+  let x = point[0] + OFFSET
+  let y = point[1] - OFFSET - h
+  if (x + w > vw - 4) x = point[0] - OFFSET - w
+  if (y < 4) y = point[1] + OFFSET
+  return [Math.max(4, x), y]
+}
+
 export type ChartClick = { seriesIndex?: number; dataIndex?: number; dataType?: string; seriesType?: string; value?: unknown }
 /** The row a click names when the chart's first series draws the snapshot's rows in order. */
 export const firstSeriesRow = (p: ChartClick) => (p.seriesIndex === 0 && typeof p.dataIndex === 'number' ? p.dataIndex : null)
@@ -155,6 +170,8 @@ type At = { seriesIndex: number; dataIndex: number }
 type MarkKind = 'dot' | 'band' | 'cell' | 'stick'
 
 const HOVER_Z = 10
+/** Pixels from the pointer within which the nearest scatter dot hovers. */
+const NEAR = 10
 const PICKED_Z = 9
 const BAND_Z = -1
 /** The most picked rows drawn at once. */
@@ -540,9 +557,49 @@ function makeMarks(echarts: any, chart: any) {
     if (p.componentType !== 'series' || typeof p.seriesIndex !== 'number' || typeof p.dataIndex !== 'number') return
     const kind = kindOf(chart, p.seriesIndex)
     if (kind && kind !== 'band') showHover(kind, { seriesIndex: p.seriesIndex, dataIndex: p.dataIndex })
+    if (kind === 'dot') near = { seriesIndex: p.seriesIndex, dataIndex: p.dataIndex }
   })
   chart.on('mouseout', (p: MouseParams) => {
-    if (p.componentType === 'series') hideHover()
+    // A dot's mark stays while the pointer is still near it (the nearest-point hover below).
+    if (p.componentType === 'series' && (typeof p.seriesIndex !== 'number' || kindOf(chart, p.seriesIndex) !== 'dot')) hideHover()
+  })
+  // The nearest point hovers (Brendan, 2026-11-06): a scatter's dots are a few pixels across, too small to land on, so
+  // the dot nearest the pointer within NEAR px takes the hover mark, the tooltip and the click, as if the pointer were
+  // on it.
+  let near: At | null = null
+  let tip = false
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dots = (): any[] => chart.getModel().getSeries().filter((s: any) => s.subType === 'scatter' && s.coordinateSystem?.type === 'cartesian2d')
+  zr.on('mousemove', (e: { offsetX: number; offsetY: number }) => {
+    let best: At | null = null
+    let bd = NEAR * NEAR
+    for (const s of dots()) {
+      const d = s.getData()
+      for (let i = 0, n = d.count(); i < n; i++) {
+        const q = d.getItemLayout(i) as number[] | undefined
+        if (!q || !Number.isFinite(q[0])) continue
+        const dx = q[0] - e.offsetX
+        const dy = q[1] - e.offsetY
+        const dd = dx * dx + dy * dy
+        if (dd < bd) {
+          bd = dd
+          best = { seriesIndex: s.seriesIndex, dataIndex: d.getRawIndex(i) }
+        }
+      }
+    }
+    const same = !!best && !!near && best.seriesIndex === near.seriesIndex && best.dataIndex === near.dataIndex
+    const had = near !== null
+    near = best
+    if (best) {
+      if (!same) showHover('dot', best)
+      // Every move: ECharts' own tooltip hides itself over blank canvas, so the tip is asked for again each time.
+      chart.dispatchAction({ type: 'showTip', seriesIndex: best.seriesIndex, dataIndex: best.dataIndex })
+      tip = true
+    } else if (had || tip) {
+      hideHover()
+      if (tip) chart.dispatchAction({ type: 'hideTip' })
+      tip = false
+    }
   })
   // The band follows the pointer's column, found from the pixel: a large candlestick series hovers as one shape.
   zr.on('mousemove', (e: { offsetX: number; offsetY: number }) => {
@@ -557,6 +614,8 @@ function makeMarks(echarts: any, chart: any) {
   zr.on('globalout', () => {
     hideHover()
     showBand(null)
+    near = null
+    tip = false
   })
   // A zoom moves every datum: the picked marks follow once it has settled; a hover mark would sit stale.
   chart.on('datazoom', () => {
@@ -578,6 +637,8 @@ function makeMarks(echarts: any, chart: any) {
       hideHover()
       showBand(null)
     },
+    /** The dot the nearest-point hover holds, if any: a click there is a click on it. */
+    nearest: () => near,
     pick(rows: number[], point?: (row: number) => At | null) {
       pickedRows = rows
       resolve = point
@@ -662,13 +723,13 @@ export function useEChart<D>(
         const setCursor = proxy.setCursor.bind(proxy)
         proxy.setCursor = (c?: string) => {
           const base = !c || c === 'default' || c === 'pointer'
-          const next = base ? (plot ? 'crosshair' : 'default') : c
-          cross = next === 'crosshair'
+          const next = base ? (plot ? scopeCursor() : 'default') : c
+          cross = next === scopeCursor()
           if (!cross) r.hide()
           setCursor(next)
         }
       }
-      zr.setCursorStyle('crosshair')
+      zr.setCursorStyle(scopeCursor())
       marked = latest.current.marks ? makeMarks(echarts, chart) : undefined
       // The rules ride the + (Brendan, 2026-11-05): anywhere over the chart — plot, axes, a GL scene —
       // the inspector's two blue lines cross at the pointer; where the cursor is the slider's own, none.
@@ -679,7 +740,7 @@ export function useEChart<D>(
         const b = box.getBoundingClientRect()
         const was = plot
         plot = plotContains(chart, e.clientX - b.left, e.clientY - b.top)
-        if (plot !== was) zr.setCursorStyle(plot ? 'crosshair' : 'default')
+        if (plot !== was) zr.setCursorStyle(plot ? scopeCursor() : 'default')
         if (plot && cross && !inspectorOn()) r.at(e.clientX, e.clientY)
         else r.hide()
       }
@@ -715,8 +776,13 @@ export function useEChart<D>(
         }
         // A beat, so a datum's click event (which a GL layer may send after the canvas's) lands first.
         window.setTimeout(() => {
-          const row = hit
-          const p = picked
+          // Near a dot but not on it, the click is the dot's (the nearest-point hover).
+          const n = !picked ? marked?.nearest() : null
+          const np = n ? ({ seriesIndex: n.seriesIndex, dataIndex: n.dataIndex, seriesType: 'scatter' } as ChartClick) : null
+          // A label pinned to the chart (a markPoint) is the chart's own business: it opens no table.
+          if ((picked as { componentType?: string } | null)?.componentType === 'markPoint') return
+          const row = hit ?? (np ? (latest.current.rowOf?.(np) ?? null) : null)
+          const p = picked ?? np
           hit = null
           picked = null
           if (latest.current.onPick) {

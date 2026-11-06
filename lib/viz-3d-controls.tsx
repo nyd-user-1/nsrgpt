@@ -8,6 +8,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { CAMERA_KEYS, CAMERA_PAN as PAN, CAMERA_ROT as ROT, CAMERA_ZOOM as ZOOM, SPIN_DEG_PER_S } from '@/lib/viz-3d'
 import { inspectorOn } from '@/components/dev/inspector-state'
 import { isEngaged, isTyping, setCamera } from '@/lib/viz-engage'
+import { scopeCursor } from '@/lib/viz-cursor'
 
 /** OrbitControls that turn slowly on open (lib/viz-3d.ts). The turn stops at the first press, drag or scroll, and
  *  Space starts or stops it at any time (Brendan, 2026-11-06). Once the reader has clicked into the chart
@@ -184,12 +185,12 @@ export function useCrossRules() {
     (e: React.PointerEvent) => {
       const l = lines.current
       const onFloor = !floorDeclared || overFloor
-      ;(e.currentTarget as HTMLElement).style.cursor = onFloor ? 'crosshair' : 'default'
+      ;(e.currentTarget as HTMLElement).style.cursor = onFloor ? scopeCursor() : 'default'
       if (!l || !onFloor || e.pointerType === 'touch' || inspectorOn()) return hide()
       Object.assign(l.v.style, { display: '', left: `${e.clientX}px`, top: '0', width: '1px', height: '100dvh' })
       Object.assign(l.h.style, { display: '', top: `${e.clientY}px`, left: '0', height: '1px', width: '100dvw' })
     },
     [hide],
   )
-  return { onPointerMove, onPointerLeave: hide, style: { cursor: 'crosshair' } as React.CSSProperties }
+  return { onPointerMove, onPointerLeave: hide, style: { cursor: scopeCursor() } as React.CSSProperties }
 }

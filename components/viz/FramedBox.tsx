@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { vizNeighbours } from '@/lib/viz-charts'
+import { VIZ_CHARTS, vizNeighbours } from '@/lib/viz-charts'
 import { isEngaged, isTyping, setEngaged, useEngage } from '@/lib/viz-engage'
 import { CAMERA_KEY_LIST } from '@/lib/viz-3d'
 
@@ -18,6 +18,7 @@ import { CAMERA_KEY_LIST } from '@/lib/viz-3d'
 export function FramedBox({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const near = vizNeighbours(path)
+  const chart = VIZ_CHARTS.find((c) => c.href === path)
   const router = useRouter()
   const { engaged, camera, keys } = useEngage()
 
@@ -62,6 +63,8 @@ export function FramedBox({ children }: { children: React.ReactNode }) {
         </p>
       )}
       {children}
+      {/* The chart type at the foot, inside the border (Brendan, 2026-11-06). */}
+      {chart && <div className="flex shrink-0 items-center py-2.5 pl-10 pr-3 text-[13px] text-[var(--paper-text)]">{chart.title}</div>}
     </div>
   )
 }

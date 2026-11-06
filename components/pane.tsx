@@ -2,7 +2,11 @@
 
 import * as React from "react"
 import { usePathname, useSearchParams } from "next/navigation"
-import { Columns2, Columns3, Maximize2, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Columns2, Columns3, Maximize2, X } from "lucide-react"
+import { vizNeighbours } from "@/lib/viz-charts"
+import { TitleText } from "@/components/TitleText"
+import { CopyTitle, HOVER } from "@/components/CopyTitle"
+import { HEADER_TITLES } from "@/lib/header-titles"
 
 import { PANE_MESSAGE, PANE_PARAM, isEmbedded, isPanePath } from "@/lib/pane"
 import type { PanelSize } from "@/components/shell"
@@ -14,7 +18,7 @@ import type { PanelSize } from "@/components/shell"
 
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const
 const BTN =
-  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] shadow-md outline-none transition-colors hover:bg-[var(--paper-quiet)]"
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:border-2 border-[var(--paper-rule)] bg-[var(--paper)] shadow-md outline-none transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]"
 
 /** The framed page's own title (its metadata), less the site suffix; its path until it has loaded. */
 function pageTitle(doc: Document | null | undefined, href: string) {
@@ -52,6 +56,9 @@ export function PaneFrame({
   paired?: boolean
 }) {
   const [title, setTitle] = React.useState(() => pageTitle(null, href))
+  // A chart's header name is its physics name (lib/header-titles.ts); its type is at the chart frame's foot.
+  const path = href.split(/[?#]/)[0]
+  const name = HEADER_TITLES[path] ?? title
   // Next sets the title a beat after a client navigation, so read it again shortly after each move.
   React.useEffect(() => {
     const read = () => setTitle(pageTitle(frameRef.current?.contentDocument, href))
@@ -66,16 +73,37 @@ export function PaneFrame({
       style={{ "--pane-w": width, "--pane-r": offsetRight ?? "18px" } as React.CSSProperties}
       className={`nysgpt-app fixed inset-0 z-40 flex flex-col overflow-hidden bg-[var(--paper)] sm:inset-y-[18px] sm:left-auto sm:right-[var(--pane-r)] sm:w-[var(--pane-w)] sm:rounded-2xl sm:border sm:border-[var(--paper-rule)] sm:shadow-header ${dragging ? "" : "transition-[width,right] duration-300 ease-in-out"}`}
     >
-      <div onContextMenu={onMenu} className="flex shrink-0 items-center gap-3 px-5 pt-5 pb-5">
-        <p className="min-w-0 flex-1 truncate text-[22px] leading-none text-[var(--paper-text)]" style={{ ...SERIF, letterSpacing: "-0.02em" }}>
-          {title}
-        </p>
+      <div onContextMenu={onMenu} className="relative z-10 flex shrink-0 items-center gap-3 border-b border-[var(--paper-rule)] px-5 pt-5 pb-5 shadow-header">
+        {/* The title as panel 1's (Brendan, 2026-11-06): the ground on hover, and the copy button beside it. */}
+        <span className="group/title flex min-w-0 flex-1 items-center gap-1">
+          <span className={`-ml-2 flex min-w-0 rounded-lg px-2 py-1 transition-colors ${HOVER}`}>
+            <TitleText text={name} className="text-[22px] leading-none text-[var(--paper-text)]" style={{ ...SERIF, letterSpacing: "-0.02em" }} />
+          </span>
+          <CopyTitle title={name} />
+        </span>
+        {/* A chart's previous and next chart, as the main header has them (Brendan, 2026-11-06): the frame moves. */}
+        {(() => {
+          const near = vizNeighbours(href.split(/[?#]/)[0])
+          if (!near) return null
+          const go = (to: string) => frameRef.current?.contentWindow?.location.assign(to)
+          const nameOf = (c: { href: string; title: string }) => HEADER_TITLES[c.href] ?? c.title
+          return (
+            <>
+              <button type="button" onClick={() => go(near.prev.href)} className={`${BTN} hidden sm:flex`} aria-label={`Previous chart: ${nameOf(near.prev)}`} title={nameOf(near.prev)}>
+                <ChevronLeft className="h-4 w-4 text-[var(--paper-text)]" />
+              </button>
+              <button type="button" onClick={() => go(near.next.href)} className={`${BTN} hidden sm:flex`} aria-label={`Next chart: ${nameOf(near.next)}`} title={nameOf(near.next)}>
+                <ChevronRight className="h-4 w-4 text-[var(--paper-text)]" />
+              </button>
+            </>
+          )
+        })()}
         {/* The icon shows the size the next press goes to: a third, half, then the whole area. */}
         <button type="button" onClick={onSize} className={`${BTN} hidden sm:flex`} aria-label={nextSize === "half" ? "Half the page" : nextSize === "full" ? "Full page" : "A third of the page"}>
-          {nextSize === "half" ? <Columns2 className="h-4 w-4 text-[#033882]" /> : nextSize === "full" ? <Maximize2 className="h-4 w-4 text-[#033882]" /> : <Columns3 className="h-4 w-4 text-[#033882]" />}
+          {nextSize === "half" ? <Columns2 className="h-4 w-4 text-[var(--paper-text)]" /> : nextSize === "full" ? <Maximize2 className="h-4 w-4 text-[var(--paper-text)]" /> : <Columns3 className="h-4 w-4 text-[var(--paper-text)]" />}
         </button>
         <button type="button" onClick={onClose} className={BTN} aria-label="Close the panel">
-          <X className="h-4 w-4 text-[#033882]" />
+          <X className="h-4 w-4 text-[var(--paper-text)]" />
         </button>
       </div>
       {/* While the divider is dragged the frame gives up the pointer, or it would swallow the drag. */}
@@ -92,9 +120,9 @@ export function PaneFrame({
     {paired && (
       <div
         style={{ "--pane-r": offsetRight ?? "18px" } as React.CSSProperties}
-        className={`pointer-events-none fixed bottom-[18px] right-[var(--pane-r)] z-40 size-11 ${dragging ? "" : "transition-[right] duration-300 ease-in-out"}`}
+        className={`nysgpt-app pointer-events-none fixed bottom-[18px] right-[var(--pane-r)] z-40 size-11 ${dragging ? "" : "transition-[right] duration-300 ease-in-out"}`}
       >
-        <CornerClose label="Close" onClose={onClose} />
+        <CornerClose label="Close" onClose={onClose} name="Panel 2" />
       </div>
     )}
     </>
@@ -106,18 +134,39 @@ export function PaneFrame({
 // leaves the edges and in at its inner corner; the bite is painted the shell's ground so the pane reads as cut.
 // NYSgpt's ground behind the panes is the body's (--background) and their border is --paper-rule, and they
 // float from sm, not md.
-const BITE_EDGE = "M43.5 0V0.5A8 8 0 0 1 35.5 8.5H18.5A10 10 0 0 0 8.5 18.5V35.5A8 8 0 0 1 0.5 43.5H0"
-const BITE_FILL = `${BITE_EDGE}V44H44V0Z`
+/** The bite's edge, `w` wide: rounded out where it leaves the top edge, in at its inner corner, out at the foot. */
+const biteEdge = (w: number) => `M${w - 0.5} 0V0.5A8 8 0 0 1 ${w - 8.5} 8.5H18.5A10 10 0 0 0 8.5 18.5V35.5A8 8 0 0 1 0.5 43.5H0`
 /** `ground`: the fill class for what lies behind the corner — the body for the right-hand panels, the app
- *  frame's --bg for the main card (2026-11-05). */
-export function CornerClose({ label, onClose, ground = "fill-background" }: { label: string; onClose: () => void; ground?: string }) {
+ *  frame's --bg for the main card (2026-11-05). `name`: the panel's page, shown beside the close as Chrome's
+ *  split view shows each side's site (Brendan, 2026-11-06); the bite widens to hold it. */
+export function CornerClose({ label, onClose, ground = "fill-background", name }: { label: string; onClose: () => void; ground?: string; name?: string }) {
+  const text = React.useRef<HTMLSpanElement>(null)
+  const [w, setW] = React.useState(44)
+  React.useLayoutEffect(() => {
+    const el = text.current
+    if (!name || !el) return setW(44)
+    const fit = () => setW(Math.ceil(18.5 + 16 + 6 + el.offsetWidth + 38))
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [name])
+  const edge = biteEdge(w)
   return (
-    <div className="pointer-events-none absolute bottom-0 right-0 z-30 hidden size-11 sm:block">
-      <svg aria-hidden viewBox="0 0 44 44" className="absolute inset-0 size-full">
-        <path d={BITE_FILL} className={ground} />
-        <path d={BITE_EDGE} fill="none" strokeWidth={1} className="stroke-[var(--paper-rule)]" />
+    <div className="pointer-events-none absolute bottom-0 right-0 z-30 hidden h-11 sm:block" style={{ width: w }}>
+      <svg aria-hidden viewBox={`0 0 ${w} 44`} className="absolute inset-0 size-full">
+        <path d={`${edge}V44H${w}V0Z`} className={ground} />
+        <path d={edge} fill="none" strokeWidth={1} className="stroke-[var(--paper-rule)]" />
       </svg>
-      <button type="button" onClick={onClose} aria-label={label} className="pointer-events-auto absolute bottom-1.5 right-1.5 flex size-6 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-300/70 hover:text-pax2-blue">
+      {name && (
+        <span className="absolute bottom-0 left-[18.5px] flex h-[35px] items-center gap-1.5 text-[13px] text-[var(--paper-text)]">
+          <img src="/favicon.svg" alt="" className="size-4 shrink-0" />
+          <span ref={text} className="max-w-[240px] truncate">
+            {name}
+          </span>
+        </span>
+      )}
+      <button type="button" onClick={onClose} aria-label={label} className="pointer-events-auto absolute bottom-1.5 right-1.5 flex size-6 items-center justify-center rounded-md text-[var(--paper-text)] transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]">
         <X className="size-3.5" strokeWidth={2.25} />
       </button>
     </div>

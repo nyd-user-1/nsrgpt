@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeftOpen, PanelLeftClose, Check, ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { VIZ_CHARTS, vizNeighbours } from "@/lib/viz-charts";
 import { DiscussionHeaderButton } from "@/components/DiscussionHeaderButton";
 import { UserPanel } from "@/components/UserPanel";
 import { VisitorLog } from "@/components/VisitorLog";
 import { useShellPanel } from "@/components/shell";
+import { CopyTitle } from "@/components/CopyTitle";
 import { CornerClose } from "@/components/pane";
+import { TitleText } from "@/components/TitleText";
 import { HEADER_TITLES } from "@/lib/header-titles";
 
 /**
@@ -72,13 +74,13 @@ export function AppLayout({
       >
         {/* A plain right-click on the header's empty run opens the Nav for the page (components/shell.tsx). */}
         {/* The header wears trinity's shadow by default — not scroll-gated (Brendan, 2026-11-04). */}
-        <div data-chrome onContextMenu={headerMenu("main")} className="relative z-10 flex items-center px-5 pt-5 pb-5 shadow-header">
+        <div data-chrome onContextMenu={headerMenu("main")} className={`relative z-10 flex items-center border-b px-5 pt-5 pb-5 shadow-header ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             aria-label="Toggle sidebar"
             className={`hidden sm:flex h-10 w-10 items-center justify-center rounded-full shadow-md outline-none transition-colors ${
               paperMode
-                ? `border border-[var(--paper-rule)] bg-[var(--paper)] ${HOVER}`
+                ? `border border-[var(--paper-rule)] hover:border-2 bg-[var(--paper)] ${HOVER}`
                 : "border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--inp-bg)]"
             }`}
           >
@@ -91,9 +93,7 @@ export function AppLayout({
 
           {title && (VIZ_CHARTS.some((c) => c.href === path) ? <ChartSwitcher path={path} title={title} /> : (
             <span className="group/title ml-5 hidden items-center gap-1 sm:flex">
-              <span className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
-                {title}
-              </span>
+              <TitleText text={title} className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
               <CopyTitle title={title} />
             </span>
           ))}
@@ -110,7 +110,7 @@ export function AppLayout({
         {children}
       </div>
       {/* Trinity's "Close the page": while a panel stands beside the page, the panel takes the whole area. */}
-      {closePage && <CornerClose label="Close the page" onClose={closePage} ground="fill-[var(--bg)]" />}
+      {closePage && <CornerClose label="Close the page" onClose={closePage} ground="fill-[var(--bg)]" name="Panel 1" />}
       </div>
 
       <div id="app-panel-root" className="flex shrink-0 h-full" />
@@ -120,7 +120,7 @@ export function AppLayout({
         data-chrome
         onClick={() => setSidebarOpen((v) => !v)}
         aria-label="Toggle sidebar"
-        className="sm:hidden fixed z-50 bottom-4 right-2 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] shadow-lg hover:bg-[var(--inp-bg)]"
+        className="sm:hidden fixed z-50 bottom-4 right-2 flex h-12 w-12 items-center justify-center rounded-full border hover:border-2 border-[var(--border)] bg-[var(--surface)] shadow-lg hover:bg-[var(--inp-bg)]"
       >
         {sidebarOpen ? (
           <PanelLeftClose className="h-5 w-5" style={{ color: "#033882", fill: "#dbe7fa" }} />
@@ -144,7 +144,7 @@ function ChartNav({ path }: { path: string }) {
   const near = vizNeighbours(path);
   if (!near) return null;
   const name = (href: string, title: string) => HEADER_TITLES[href] ?? title;
-  const circle = `hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] shadow-md mr-2 transition-colors ${HOVER}`;
+  const circle = `hidden sm:flex h-10 w-10 items-center justify-center rounded-full border hover:border-2 border-[var(--paper-rule)] bg-[var(--paper)] shadow-md mr-2 transition-colors ${HOVER}`;
   return (
     <>
       <Link href={near.prev.href} aria-label={`Previous chart: ${name(near.prev.href, near.prev.title)}`} title={name(near.prev.href, near.prev.title)} className={circle}>
@@ -157,28 +157,6 @@ function ChartNav({ path }: { path: string }) {
   );
 }
 
-/** Copy the header's title (Brendan, 2026-11-06): shows on the title's hover, copies its text, and ticks once copied. */
-function CopyTitle({ title }: { title: string }) {
-  const [done, setDone] = useState(false);
-  return (
-    <button
-      type="button"
-      aria-label={`Copy "${title}"`}
-      title="Copy"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(title);
-          setDone(true);
-          window.setTimeout(() => setDone(false), 1500);
-        } catch {}
-      }}
-      className={`flex h-7 w-7 items-center justify-center rounded-md text-[var(--paper-faint,#94a3b8)] opacity-0 transition-opacity ${HOVER} hover:text-[var(--paper-text)] focus-visible:opacity-100 group-hover/title:opacity-100`}
-    >
-      {done ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-    </button>
-  );
-}
-
 function ChartSwitcher({ path, title }: { path: string; title: string }) {
   return (
     <span className="group/title ml-5 hidden items-center gap-1 sm:flex">
@@ -188,11 +166,9 @@ function ChartSwitcher({ path, title }: { path: string; title: string }) {
         <button
           type="button"
           aria-label={`${title}: switch chart`}
-          className={`-ml-2 flex items-center rounded-lg px-2 py-1 outline-none transition-colors ${HOVER} focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)] data-[state=open]:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]`}
+          className={`-ml-2 flex items-center rounded-lg px-2.5 py-1.5 outline-none transition-colors ${HOVER} focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)] data-[state=open]:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]`}
         >
-          <span className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
-            {title}
-          </span>
+          <TitleText text={title} className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
