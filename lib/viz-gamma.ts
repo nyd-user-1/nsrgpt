@@ -40,6 +40,14 @@ export const setName = (s: { z: number; n: number; el: string }) => `${String(s.
 /** "¹⁰⁰Ru · ⁹⁹Ru(n,γ)" for headings. */
 export const setLabel = (s: GammaSet) => `${setName(s)} · ${s.target.replace(/^\d+/, (a) => a.replace(/\d/g, (d) => SUP[d]))}(n,γ)`
 
+/** The strips' opening view (brief 06, 2026-11-05): 41 product nuclei centred on ¹⁵⁸Gd (¹⁵⁷Gd's capture is the
+ *  largest in the set) rather than all of them squeezed into the width; the slider along the foot moves it. */
+export function openWindow(data: Capgam, span = 20): [number, number] {
+  const at = Math.max(0, data.sets.findIndex((s) => s.el === 'Gd' && s.z + s.n === 158))
+  const start = Math.max(0, Math.min(at - span, data.sets.length - 1 - 2 * span))
+  return [start, Math.min(data.sets.length - 1, start + 2 * span)]
+}
+
 /** Every line, set by set and low to high within a set — the order the strips draw and their table lists. */
 export type GammaLine = { set: number; e: number; i: number | null; primary: boolean }
 export function allLines(data: Capgam): GammaLine[] {

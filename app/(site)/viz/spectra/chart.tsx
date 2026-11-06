@@ -7,7 +7,7 @@
 
 import * as React from 'react'
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
-import { E_MAX_KEV, I_FLOOR, allLines, loadCapgam, logI, setLabel, setName, type Capgam, type GammaLine } from '@/lib/viz-gamma'
+import { E_MAX_KEV, I_FLOOR, allLines, loadCapgam, logI, openWindow, setLabel, setName, type Capgam, type GammaLine } from '@/lib/viz-gamma'
 
 const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -21,6 +21,7 @@ function Strips({ onPick }: { onPick: (set: number) => void }) {
       const names = data.sets.map(setName)
       const ls = allLines(data)
       lines.current = ls
+      const [startValue, endValue] = openWindow(data)
       return {
         backgroundColor: 'transparent',
         animation: false,
@@ -35,7 +36,7 @@ function Strips({ onPick }: { onPick: (set: number) => void }) {
         xAxis: { type: 'category', data: names, axisTick: { show: false }, splitLine: { show: false }, ...AXIS },
         yAxis: { type: 'value', name: 'Eγ (keV)', min: 0, max: E_MAX_KEV, splitLine: { lineStyle: { color: '#1e293b', opacity: 0.12 } }, ...AXIS },
         dataZoom: [
-          { type: 'slider', xAxisIndex: 0, bottom: 10, height: 22, brushSelect: true },
+          { type: 'slider', xAxisIndex: 0, bottom: 10, height: 22, brushSelect: true, startValue, endValue },
           { type: 'inside', xAxisIndex: 0 },
           { type: 'slider', yAxisIndex: 0, right: 6, width: 14, brushSelect: true },
         ],
@@ -48,7 +49,6 @@ function Strips({ onPick }: { onPick: (set: number) => void }) {
             data: ls.map((l) => [l.set, l.e, logI(l.i)]),
             progressive: 5000,
             progressiveThreshold: 10000,
-            emphasis: { scale: 2.4 },
           },
         ],
       }
@@ -56,6 +56,7 @@ function Strips({ onPick }: { onPick: (set: number) => void }) {
     false,
     firstSeriesRow,
     {
+      marks: true,
       onPick: (p) => {
         const l = typeof p.dataIndex === 'number' ? lines.current[p.dataIndex] : undefined
         if (l) onPick(l.set)
@@ -88,16 +89,19 @@ function Spectrum({ index }: { index: number }) {
             return `${v[0].toLocaleString('en')} keV · ${v[1]} per 100 captures`
           },
         },
-        grid: { left: 44, right: 10, top: 10, bottom: 34 },
+        grid: { left: 44, right: 10, top: 10, bottom: 52 },
         xAxis: { type: 'value', name: 'keV', nameGap: 4, min: 0, max: top, splitLine: { show: false }, ...AXIS },
         yAxis: { type: 'log', min: I_FLOOR, max: 100, splitLine: { lineStyle: { color: '#1e293b', opacity: 0.1 } }, ...AXIS },
-        dataZoom: [{ type: 'inside', xAxisIndex: 0 }],
+        dataZoom: [
+          { type: 'inside', xAxisIndex: 0 },
+          { type: 'slider', xAxisIndex: 0, bottom: 4, height: 14, showDetail: false },
+        ],
         series: [bar(false, '#1e3a8a'), bar(true, '#dc2626')],
       }
     },
     false,
     undefined,
-    { onPick: () => {} },
+    { onPick: () => {}, marks: true },
   )
   return <div ref={ref} className="h-[260px] w-full" />
 }
