@@ -21,9 +21,6 @@ export type Triples = { y: number; refs: number; cites: number; nsr: boolean }[]
 /** Reaction flow: each (nuclide, reaction) pairing's (ΔN, ΔZ) trajectory, weighted by papers. */
 export type Flows = { n: number; z: number; dn: number; dz: number; w: number }[]
 
-/** Co-authorship among the 1,200 most-published authors; edges at four-plus shared papers. */
-export type Graph = { nodes: { id: string; name: string; c: number }[]; edges: { s: string; t: string; w: number }[] }
-
 /** 36 Pearson correlations across nine per-paper measures, from the snapshot run. */
 export type Matrix = { vars: string[]; cells: [number, number, number][] }
 
@@ -59,7 +56,6 @@ export const loadPerYear = get<PerYear>('per-year')
 export const loadScatter = get<Scatter>('scatter')
 export const loadTriples = get<Triples>('triples')
 export const loadFlows = get<Flows>('flows')
-export const loadGraph = get<Graph>('graph')
 export const loadMatrix = get<Matrix>('matrix')
 export const loadLevels = get<Levels>('levels')
 
