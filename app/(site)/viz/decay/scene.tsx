@@ -12,7 +12,7 @@ import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
-import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
+import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Pause, Play, RotateCcw, X } from 'lucide-react'
 import {
@@ -604,7 +604,7 @@ export default function DecayScene() {
     <div
       ref={box}
       className="relative min-h-0 flex-1 overflow-hidden rounded-xl"
-      style={{ ...SANS, cursor: 'crosshair' }}
+      style={SANS}
       onPointerEnter={() => (inside.current = true)}
       onPointerLeave={() => (inside.current = false)}
     >
@@ -623,6 +623,7 @@ export default function DecayScene() {
             onHover={onHover}
             onStats={setStats}
           />
+          <CrossFloor x0={-N0} x1={N_MAX - N0} z0={-(Z_MAX - Z0)} z1={Z0} y={-0.5} />
           <SpinControls makeDefault target={[0, 26, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} />
           {theme.dark && (
             <EffectComposer multisampling={0}>

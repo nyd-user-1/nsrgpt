@@ -6,6 +6,7 @@ import { VIZ_POINT } from '@/lib/pane'
 
 import { useShellPanel } from '@/components/shell'
 import { inspectorOn } from '@/components/dev/inspector-state'
+import { isEngaged, isTyping, setCamera } from '@/lib/viz-engage'
 
 // The /viz pages' one shared mechanism: mount an ECharts canvas in a ref'd div, loading echarts
 // (and echarts-gl, when the chart needs WebGL) on the client only — the GL bundle touches window
@@ -243,6 +244,128 @@ function categoryAt(chart: any, axisIndex: number, x: number, y: number): number
   return Math.max(0, Math.min(n - 1, Math.round((x - p0) / (p1 - p0))))
 }
 
+type GLControl = {
+  autoRotate: boolean
+  minDistance: number
+  maxDistance: number
+  getAlpha: () => number
+  getBeta: () => number
+  getDistance: () => number
+  setAlpha: (v: number) => void
+  setBeta: (v: number) => void
+  setDistance: (v: number) => void
+}
+
+/** A GL chart's camera (Brendan, 2026-11-06), as the three.js scenes' (lib/viz-3d-controls.tsx): the turn stops at the
+ *  first press or scroll and stays stopped (echarts-gl would start it again after 3 s of stillness), Space starts or
+ *  stops it, and once the reader has clicked into the chart the keys drive the camera: ← → orbit, ↑ ↓ tilt, + − zoom,
+ *  0 resets. Returns the unwiring, or null for a chart with no grid3D. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function wireGL(chart: any, box: HTMLElement): (() => void) | null {
+  const model = chart?.getModel?.()
+  const gm = model?.getComponent?.('grid3D', 0)
+  if (!gm) return null
+  const control = (): GLControl | undefined => chart.getViewOfComponentModel?.(gm)?._control
+  setCamera(true)
+  let home: [number, number, number] | null = null
+  const held = new Set<string>()
+  let frame = 0
+  let last = 0
+  const stop = () => {
+    const c = control()
+    if (c) c.autoRotate = false
+  }
+  const tick = (now: number) => {
+    const c = control()
+    if (!c || !held.size) {
+      frame = 0
+      return
+    }
+    const t = Math.min((now - (last || now)) / 1000, 0.05)
+    last = now
+    const x = (held.has('ArrowRight') ? 1 : 0) - (held.has('ArrowLeft') ? 1 : 0)
+    const y = (held.has('ArrowUp') ? 1 : 0) - (held.has('ArrowDown') ? 1 : 0)
+    if (x) c.setBeta(c.getBeta() + x * 70 * t)
+    if (y) c.setAlpha(c.getAlpha() + y * 70 * t)
+    const z = (held.has('+') || held.has('=') ? -1 : 0) + (held.has('-') || held.has('_') ? 1 : 0)
+    if (z) c.setDistance(Math.min(c.maxDistance, Math.max(c.minDistance, c.getDistance() * (1 + z * 1.6 * t))))
+    frame = requestAnimationFrame(tick)
+  }
+  const down = (e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e)) return
+    const c = control()
+    if (!c) return
+    if (!home) home = [c.getAlpha(), c.getBeta(), c.getDistance()]
+    if (e.key === ' ') {
+      e.preventDefault()
+      c.autoRotate = !c.autoRotate
+      return
+    }
+    if (!isEngaged()) return
+    if (e.key === '0') {
+      c.setAlpha(home[0])
+      c.setBeta(home[1])
+      c.setDistance(home[2])
+      return
+    }
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '_'].includes(e.key)) return
+    e.preventDefault()
+    c.autoRotate = false
+    held.add(e.key)
+    if (!frame) {
+      last = 0
+      frame = requestAnimationFrame(tick)
+    }
+  }
+  const up = (e: KeyboardEvent) => held.delete(e.key)
+  const clear = () => held.clear()
+  box.addEventListener('pointerdown', stop)
+  box.addEventListener('wheel', stop, { passive: true })
+  window.addEventListener('keydown', down)
+  window.addEventListener('keyup', up)
+  window.addEventListener('blur', clear)
+  return () => {
+    cancelAnimationFrame(frame)
+    box.removeEventListener('pointerdown', stop)
+    box.removeEventListener('wheel', stop)
+    window.removeEventListener('keydown', down)
+    window.removeEventListener('keyup', up)
+    window.removeEventListener('blur', clear)
+    setCamera(false)
+  }
+}
+
+/** Whether pixel (x, y) is inside the chart's plot (Brendan, 2026-11-06): the crosshair belongs there, and off it the
+ *  pointer is the ordinary arrow. The plot is a cartesian grid's rectangle, a radar's circle, or for a chart with
+ *  neither (the force graph) the view its nodes are drawn in; a GL scene, or anything else, counts everywhere. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function plotContains(chart: any, x: number, y: number): boolean {
+  const model = chart?.getModel?.()
+  if (!model) return true
+  if (model.getComponent('grid3D', 0) || model.getComponent('globe', 0)) return true
+  let defined = false
+  for (let i = 0; ; i++) {
+    const r = model.getComponent('grid', i)?.coordinateSystem?.getRect?.()
+    if (!r) break
+    defined = true
+    if (x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height) return true
+  }
+  for (let i = 0; ; i++) {
+    const cs = model.getComponent('radar', i)?.coordinateSystem as { cx: number; cy: number; r: number } | undefined
+    if (!cs) break
+    defined = true
+    if (Math.hypot(x - cs.cx, y - cs.cy) <= cs.r + 4) return true
+  }
+  let inView = false
+  model.eachSeries?.((s: { coordinateSystem?: { getViewRectAfterRoam?: () => { contain: (x: number, y: number) => boolean } } }) => {
+    const rect = s.coordinateSystem?.getViewRectAfterRoam?.()
+    if (!rect) return
+    defined = true
+    if (rect.contain(x, y)) inView = true
+  })
+  return inView || !defined
+}
+
 /** The shape that marks one datum (a dot, a cell, a stick), or null. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function markShape(chart: any, kind: MarkKind, at: At): { circle?: { cx: number; cy: number; r: number }; rect?: { x: number; y: number; width: number; height: number }; fill: string } | null {
@@ -256,27 +379,32 @@ function markShape(chart: any, kind: MarkKind, at: At): { circle?: { cx: number;
   if (kind === 'stick') {
     const l = data.getItemLayout(i) as { x: number; y: number; width: number; height: number } | undefined
     if (!l) return null
-    const x = Math.min(l.x, l.x + l.width) - 1.5
-    const y = Math.min(l.y, l.y + l.height)
-    return { rect: { x, y, width: Math.abs(l.width) + 3, height: Math.abs(l.height) }, fill }
+    // At least 8 px wide and 6 px tall, so a hair-thin stick still shows it's the one (2026-11-06).
+    const W = Math.max(8, Math.abs(l.width) + 4)
+    const H = Math.max(6, Math.abs(l.height))
+    const x = Math.min(l.x, l.x + l.width) + Math.abs(l.width) / 2 - W / 2
+    const y = Math.min(l.y, l.y + l.height) + Math.abs(l.height) / 2 - H / 2
+    return { rect: { x, y, width: W, height: H }, fill }
   }
   const p = pixelOf(chart, at)
   if (!p) return null
   if (kind === 'cell') {
     const cs = s.coordinateSystem
-    const w = Math.max(6, cs.getAxis('x').getBandWidth())
-    const h = Math.max(6, cs.getAxis('y').getBandWidth())
+    const w = Math.max(10, cs.getAxis('x').getBandWidth() + 2)
+    const h = Math.max(10, cs.getAxis('y').getBandWidth() + 2)
     return { rect: { x: p[0] - w / 2, y: p[1] - h / 2, width: w, height: h }, fill: 'none' }
   }
   const size = data.getItemVisual(i, 'symbolSize') as number | number[] | undefined
   const [w, h] = Array.isArray(size) ? size : [size ?? 6, size ?? 6]
   const symbol = data.getItemVisual(i, 'symbol') as string | undefined
+  // Grown 1.6×, and never under 14 × 7 px for a strip or 6 px in radius for a dot (2026-11-06): the capture-γ strips
+  // are 1.5 px tall, and grown 1.6× they were still a hairline nobody could see.
   if (symbol === 'rect') {
-    const W = w * 1.6
-    const H = Math.max(h * 1.6, 2.5)
+    const W = Math.max(w * 1.6, 14)
+    const H = Math.max(h * 1.6, 7)
     return { rect: { x: p[0] - W / 2, y: p[1] - H / 2, width: W, height: H }, fill }
   }
-  return { circle: { cx: p[0], cy: p[1], r: Math.max(w, h) * 0.8 }, fill }
+  return { circle: { cx: p[0], cy: p[1], r: Math.max(Math.max(w, h) * 0.8, 6) }, fill }
 }
 
 /** Optional extras (2026-11-04, chart batches A and B).
@@ -319,8 +447,8 @@ function makeMarks(echarts: any, chart: any) {
 
   const shapeOf = (m: NonNullable<ReturnType<typeof markShape>>, zlevel: number) =>
     m.circle
-      ? new G.Circle({ shape: m.circle, style: { fill: m.fill, stroke: ink, lineWidth: 1.5 }, zlevel, silent: true })
-      : new G.Rect({ shape: m.rect, style: { fill: m.fill, stroke: ink, lineWidth: 1.5 }, zlevel, silent: true })
+      ? new G.Circle({ shape: m.circle, style: { fill: m.fill, stroke: ink, lineWidth: 2 }, zlevel, silent: true })
+      : new G.Rect({ shape: m.rect, style: { fill: m.fill, stroke: ink, lineWidth: 2 }, zlevel, silent: true })
 
   const hideHover = () => {
     hoverDot.attr({ ignore: true })
@@ -329,7 +457,7 @@ function makeMarks(echarts: any, chart: any) {
   const showHover = (kind: MarkKind, at: At) => {
     const m = markShape(chart, kind, at)
     if (!m) return hideHover()
-    const style = { fill: m.fill, stroke: ink, lineWidth: 1.5 }
+    const style = { fill: m.fill, stroke: ink, lineWidth: 2 }
     if (m.circle) {
       hoverBox.attr({ ignore: true })
       hoverDot.attr({ ignore: false, shape: m.circle, style })
@@ -485,11 +613,14 @@ export function useEChart<D>(
       rules = r
       let cross = true
       let over = false
+      // Inside the plot (plotContains): the + and the rules; outside it, the arrow and none (2026-11-06).
+      let plot = true
       const proxy = zr.handler?.proxy as { setCursor?: (c?: string) => void } | undefined
       if (proxy?.setCursor) {
         const setCursor = proxy.setCursor.bind(proxy)
         proxy.setCursor = (c?: string) => {
-          const next = !c || c === 'default' || c === 'pointer' ? 'crosshair' : c
+          const base = !c || c === 'default' || c === 'pointer'
+          const next = base ? (plot ? 'crosshair' : 'default') : c
           cross = next === 'crosshair'
           if (!cross) r.hide()
           setCursor(next)
@@ -503,7 +634,11 @@ export function useEChart<D>(
       const move = (e: PointerEvent) => {
         if (e.pointerType === 'touch') return
         over = true
-        if (cross && !inspectorOn()) r.at(e.clientX, e.clientY)
+        const b = box.getBoundingClientRect()
+        const was = plot
+        plot = plotContains(chart, e.clientX - b.left, e.clientY - b.top)
+        if (plot !== was) zr.setCursorStyle(plot ? 'crosshair' : 'default')
+        if (plot && cross && !inspectorOn()) r.at(e.clientX, e.clientY)
         else r.hide()
       }
       const leave = () => {
@@ -518,10 +653,12 @@ export function useEChart<D>(
       box.addEventListener('pointermove', move)
       box.addEventListener('pointerleave', leave)
       window.addEventListener('scroll', stale, true)
+      const glOff = wireGL(chart, box)
       unhook = () => {
         box.removeEventListener('pointermove', move)
         box.removeEventListener('pointerleave', leave)
         window.removeEventListener('scroll', stale, true)
+        glOff?.()
       }
       zr.on('mousedown', (e: { offsetX: number; offsetY: number }) => {
         down = [e.offsetX, e.offsetY]

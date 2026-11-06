@@ -4,6 +4,7 @@ import * as React from 'react'
 
 import { useEChart } from '@/components/viz/use-echart'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
+import { isEngaged } from '@/lib/viz-engage'
 import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, type DecayNuclide, type Mass } from '@/lib/viz-physics'
 import { type DecayData } from '@/lib/nuclide'
 
@@ -91,6 +92,8 @@ export function NuclideCardChart() {
             type: 'radar',
             symbol: 'circle',
             symbolSize: 6,
+            // The point under the pointer grows and wears an outline (2026-11-06).
+            emphasis: { scale: 2, itemStyle: { borderColor: dark ? '#f0e9d8' : '#16181d', borderWidth: 2 } },
             data: picked.map((m, i) => {
               const c = dark ? COLOURS[i].dark : COLOURS[i].light
               const d = dOf(m)
@@ -148,6 +151,8 @@ export function NuclideCardChart() {
   React.useEffect(() => {
     if (!masses) return
     const on = (e: KeyboardEvent) => {
+      // The arrows step isotopes once the reader has clicked into the chart; before that they step charts (2026-11-06).
+      if (!isEngaged()) return
       const t = e.target as HTMLElement | null
       if (t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable)) return
       const dir = e.key === 'ArrowRight' ? [0, 1] : e.key === 'ArrowLeft' ? [0, -1] : e.key === 'ArrowUp' ? [1, 0] : e.key === 'ArrowDown' ? [-1, 0] : null
@@ -229,7 +234,7 @@ export function NuclideCardChart() {
           </p>
         ))}
         <p className="m-0 mt-2 text-[11px] text-[var(--paper-faint)]" style={MONO}>
-          ← → isotope · ↑ ↓ element · Shift + arrows move the overlay · [ ] previous or next chart
+          Click the chart, then ← → isotope · ↑ ↓ element · Shift + arrows move the overlay · Esc: ← → step charts again
         </p>
       </div>
     </div>

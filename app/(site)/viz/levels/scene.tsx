@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
+import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { PARITY, Y_PER_KEV, label, type Model } from './model'
 
@@ -51,6 +51,7 @@ export function Scene({ model, palette, focus, hover, row, onSelect, onHover }: 
       <color attach="background" args={[palette.bg]} />
       <LevelField model={model} palette={palette} focus={focus} />
       <Floor model={model} palette={palette} />
+      <CrossFloor x0={0} x1={model.maxN} z0={-model.maxZ} z1={0} />
       <Gammas model={model} palette={palette} focus={focus} />
       <RowMarker model={model} palette={palette} focus={focus} row={row} />
       {hover >= 0 && hover !== focus && <Tag model={model} i={hover} />}

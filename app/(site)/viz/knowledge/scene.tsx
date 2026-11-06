@@ -14,7 +14,7 @@ import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
-import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
+import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { X } from 'lucide-react'
 import { AGE_MAX, AGE_STOPS, NEVER, SNAPSHOT_YEAR, knowledgeName, loadKnowledge, type KnowledgeRow } from '@/lib/viz-knowledge'
@@ -473,6 +473,7 @@ export default function KnowledgeScene() {
           <directionalLight position={[80, 160, 60]} intensity={1.2} />
           <Nuclides rows={rows} evaluated={split.evaluated} never={split.never} pal={pal} three={three} grid={grid} onHover={onHover} onPick={onPick} />
           <Floor pal={pal} grid={grid} blocks={blocks} onBlockHover={setHoverBlock} onBlock={onBlock} />
+          <CrossFloor x0={GX0} x1={GX0 + GW} z0={GZ0 - GD} z1={GZ0} />
           {!grid && picks.map((i) => <Outline key={i} r={rows[i]} three={three} pal={pal} heavy />)}
           {hovered && hover !== null && !picks.includes(hover) && <Outline r={hovered} three={three} pal={pal} heavy={false} />}
           <SpinControls makeDefault target={[0, 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} maxPolarAngle={Math.PI / 2 - 0.03} />
