@@ -81,7 +81,7 @@ export function FramedBox({ children }: { children: React.ReactNode }) {
           className="pointer-events-none absolute bottom-4 left-1/2 z-10 m-0 -translate-x-1/2 rounded-full border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 px-3 py-1 text-[11px] text-[var(--paper-muted)] backdrop-blur-sm"
           style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
         >
-          ← → orbit · ↑ ↓ tilt · + − zoom · Shift + arrows pan · Space rotation · 0 reset · Esc leave
+          ← → orbit · ↑ ↓ tilt · Cmd + ↑ ↓ or + − zoom · Shift + arrows pan · Space rotation · 0 reset · Esc leave
         </p>
       )}
       {children}

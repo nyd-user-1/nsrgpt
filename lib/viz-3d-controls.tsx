@@ -17,7 +17,7 @@ const CAMERA_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 
 
 /** OrbitControls that turn slowly on open (lib/viz-3d.ts). The turn stops at the first press, drag or scroll, and
  *  Space starts or stops it at any time (Brendan, 2026-11-06). Once the reader has clicked into the chart
- *  (lib/viz-engage.ts), the keys drive the camera: ← → orbit, ↑ ↓ tilt, + − zoom, Shift + arrows pan, 0 resets
+ *  (lib/viz-engage.ts), the keys drive the camera: ← → orbit, ↑ ↓ tilt, + − or Cmd + ↑ ↓ zoom, Shift + arrows pan, 0 resets
  *  the view; a held key moves smoothly, frame by frame. `stopped` ends the turn from outside, for a scene that flies
  *  its own camera to a selection. */
 export function SpinControls({ stopped = false, onStart, ...props }: React.ComponentProps<typeof OrbitControls> & { stopped?: boolean }) {
@@ -36,6 +36,19 @@ export function SpinControls({ stopped = false, onStart, ...props }: React.Compo
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       shift.current = e.shiftKey
+      // Cmd + ↑ ↓ zoom too (Brendan, 2026-11-06), a step a press: macOS sends no key-up while Cmd is held, so a held
+      // set would stick.
+      if (e.metaKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && isEngaged() && !isTyping(e)) {
+        e.preventDefault()
+        const c = ref.current
+        if (c) {
+          if (e.key === 'ArrowUp') c.dollyIn(1.15)
+          else c.dollyOut(1.15)
+          c.update()
+        }
+        setSpinning(false)
+        return
+      }
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e)) return
       if (e.key === ' ') {
         e.preventDefault()
@@ -55,6 +68,7 @@ export function SpinControls({ stopped = false, onStart, ...props }: React.Compo
     const up = (e: KeyboardEvent) => {
       shift.current = e.shiftKey
       held.current.delete(e.key)
+      if (e.key === 'Meta') held.current.clear()
     }
     const clear = () => held.current.clear()
     window.addEventListener('keydown', down)

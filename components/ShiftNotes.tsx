@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { GripVertical, X } from 'lucide-react'
-
-import { useShellPanel } from '@/components/shell'
+import { Check, ChevronsUpDown, GripVertical, Megaphone, MessagesSquare, StickyNote, X, type LucideIcon } from 'lucide-react'
+import { Extension } from '@tiptap/react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { TaskSurface, TaskToolbar, useTaskEditor } from '@/components/notes/rich-body'
 
 const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
@@ -31,7 +33,9 @@ const HOLD_MS = 160
 const STORE = 'nysgpt-shift-notes'
 
 export type Rect = { x: number; y: number; w: number; h: number }
-type Note = { id: string; rect: Rect; text: string; ready: boolean }
+type Mode = 'note' | 'chat' | 'comment'
+type Turn = { role: 'user' | 'assistant'; content: string }
+type Note = { id: string; rect: Rect; text: string; ready: boolean; mode?: Mode; chat?: Turn[]; comment?: string }
 
 const rectOf = (a: { x: number; y: number }, b: { x: number; y: number }): Rect => ({
   x: Math.min(a.x, b.x),
@@ -54,7 +58,7 @@ function fit(r: Rect): Rect {
 
 function load(): Note[] {
   try {
-    const kept = JSON.parse(localStorage.getItem(STORE) ?? '[]') as { id: string; rect: Rect; text: string }[]
+    const kept = JSON.parse(localStorage.getItem(STORE) ?? '[]') as Omit<Note, 'ready'>[]
     return kept.map(n => ({ ...n, ready: true }))
   } catch {
     return []
@@ -63,7 +67,7 @@ function load(): Note[] {
 
 function save(notes: Note[]) {
   try {
-    localStorage.setItem(STORE, JSON.stringify(notes.map(({ id, rect, text }) => ({ id, rect, text }))))
+    localStorage.setItem(STORE, JSON.stringify(notes.map(({ id, rect, text, mode, chat, comment }) => ({ id, rect, text, mode, chat, comment }))))
   } catch {
     /* a full or blocked store loses nothing but persistence */
   }
@@ -112,6 +116,9 @@ export function ShiftNotes() {
     }
     const move = (e: PointerEvent) => {
       if (!start) return
+      // While Shift is held for a note, the page under it stays put (Brendan, 2026-11-06): the moves stop here, in the
+      // capture phase, so a chart never orbits, pans or drags under the outline. A Shift-click still reaches it.
+      e.stopPropagation()
       if (!drawing) {
         if (Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return
         drawing = true
@@ -213,10 +220,34 @@ function Skeleton({ rect }: { rect: Rect }) {
   )
 }
 
+
+/** The card's three shapes, switched from its title (Brendan, 2026-11-06): a note is a note, a chat is a chat, a
+ *  comment is a comment, as in pax-trinity's floating note. */
+const MODES: { mode: Mode; label: string; icon: LucideIcon; hint?: string }[] = [
+  { mode: 'note', label: 'Note', icon: StickyNote },
+  { mode: 'chat', label: 'Chat', icon: MessagesSquare, hint: 'Shift Enter sends. The note goes with it.' },
+  { mode: 'comment', label: 'Comment', icon: Megaphone, hint: "Shift Enter posts to Slack and Discord, with this page's link." },
+]
+
+/** Shift Enter, sent to whoever is listening now: the editor is made once, its handler kept in a ref. */
+function sendOnShiftEnter(send: React.RefObject<() => void>) {
+  return Extension.create({
+    name: 'sendOnShiftEnter',
+    addKeyboardShortcuts() {
+      return {
+        'Shift-Enter': () => {
+          send.current?.()
+          return true
+        },
+      }
+    },
+  })
+}
+
 /**
- * The note card: the panel's chrome at hand size. The grip moves it, the
- * corner resizes it, the X discards it, and the body is plain writing saved
- * as it is typed.
+ * The note card: the panel's chrome at hand size. The grip moves it, the corner resizes it, the X discards it. The
+ * title switches it between Note, Chat and Comment; each writes in pax-trinity's TipTap editor (components/notes/
+ * rich-body.tsx, markdown in and out) under its toolbar along the foot. Kept in this browser as it's written.
  */
 function NoteCard({
   note,
@@ -228,52 +259,101 @@ function NoteCard({
   onClose: (id: string) => void
 }) {
   const [rect, setRect] = useState(note.rect)
-  const box = useRef<HTMLDivElement>(null)
-  const area = useRef<HTMLTextAreaElement>(null)
   const drag = useRef<{ dx: number; dy: number } | null>(null)
   const size = useRef<{ x: number; y: number; w: number; h: number } | null>(null)
-  const { askAbout } = useShellPanel()
+  const [mode, setMode] = useState<Mode>(note.mode ?? 'note')
+  const [menu, setMenu] = useState(false)
   const [busy, setBusy] = useState(false)
   const [said, setSaid] = useState<string | null>(null)
+  const latest = useRef(note)
+  latest.current = note
+  const scroller = useRef<HTMLDivElement>(null)
 
-  /** Comment: the note and this page's link, to Slack and Discord (app/api/notes/team), place by place. */
-  const comment = async () => {
-    if (!note.text.trim() || busy) return
+  const sendChat = useRef<() => void>(() => {})
+  const sendComment = useRef<() => void>(() => {})
+  const [chatExt] = useState(() => [sendOnShiftEnter(sendChat)])
+  const [commentExt] = useState(() => [sendOnShiftEnter(sendComment)])
+  const [draft, setDraft] = useState('')
+  const noteEditor = useTaskEditor({ value: note.text, onChange: (md) => onChange(note.id, { text: md }), placeholder: 'Write a note…', headings: true })
+  const chatEditor = useTaskEditor({ value: draft, onChange: setDraft, placeholder: 'Ask about this page. Shift Enter sends.', extensions: chatExt })
+  const commentEditor = useTaskEditor({ value: note.comment ?? '', onChange: (md) => onChange(note.id, { comment: md }), placeholder: 'Write a comment. Shift Enter posts.', extensions: commentExt })
+  const editor = mode === 'note' ? noteEditor : mode === 'chat' ? chatEditor : commentEditor
+
+  // The shape it's switched to takes the pen.
+  useEffect(() => {
+    editor?.commands.focus('end')
+  }, [mode, editor])
+
+  const choose = (m: Mode) => {
+    setMode(m)
+    setMenu(false)
+    setSaid(null)
+    onChange(note.id, { mode: m })
+  }
+
+  /** Chat: the draft and the turns before it to /api/chat, the note as context; the answer streams into the card. */
+  sendChat.current = async () => {
+    const text = draft.trim()
+    if (!text || busy) return
+    const turns: Turn[] = [...(latest.current.chat ?? []), { role: 'user', content: text }]
+    onChange(note.id, { chat: turns })
+    chatEditor?.commands.clearContent()
+    setDraft('')
+    setBusy(true)
+    const body = latest.current.text.trim()
+    let answer = ''
+    const put = () => onChange(note.id, { chat: [...turns, { role: 'assistant', content: answer || '…' }] })
+    put()
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: turns, ...(body ? { systemContext: `The reader's note, which this chat sits beside:\n\n${body}` } : {}) }),
+      })
+      if (!res.ok || !res.body) answer = (await res.json().catch(() => ({ error: '' })) as { error?: string }).error || 'Something went wrong. Please try again.'
+      else {
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        for (;;) {
+          const { done, value } = await reader.read()
+          if (done) break
+          answer += decoder.decode(value, { stream: true })
+          put()
+          scroller.current?.scrollTo({ top: scroller.current.scrollHeight })
+        }
+      }
+    } catch {
+      answer = "The server can't be reached."
+    }
+    put()
+    setBusy(false)
+  }
+
+  /** Comment: the comment and this page's link, to Slack and Discord (app/api/notes/team), place by place. */
+  sendComment.current = async () => {
+    const text = (latest.current.comment ?? '').trim()
+    if (!text || busy) return
     setBusy(true)
     setSaid(null)
     try {
       const res = await fetch('/api/notes/team', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: note.text, url: window.location.href }),
+        body: JSON.stringify({ text, url: window.location.href }),
       })
-      const out = (await res.json().catch(() => ({}))) as {
-        error?: string
-        results?: { place: string; ok: boolean; error?: string }[]
-      }
+      const out = (await res.json().catch(() => ({}))) as { error?: string; results?: { place: string; ok: boolean; error?: string }[] }
       const name = (p: string) => (p === 'slack' ? 'Slack' : 'Discord')
-      setSaid(
-        out.results
-          ? out.results.map(r => (r.ok ? `Posted to ${name(r.place)}` : `${name(r.place)}: ${r.error}`)).join(' · ')
-          : (out.error ?? `It answered ${res.status}.`),
-      )
+      setSaid(out.results ? out.results.map((r) => (r.ok ? `Posted to ${name(r.place)}` : `${name(r.place)}: ${r.error}`)).join(' · ') : (out.error ?? `It answered ${res.status}.`))
     } catch {
       setSaid("The server can't be reached.")
     }
     setBusy(false)
   }
 
-  // A fresh card takes the pen straight away.
-  useEffect(() => {
-    if (!note.text) area.current?.focus()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   const settle = (r: Rect) => {
     setRect(r)
     onChange(note.id, { rect: r })
   }
-
   const grip = {
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault()
@@ -282,13 +362,10 @@ function NoteCard({
     },
     onPointerMove: (e: React.PointerEvent) => {
       if (!drag.current) return
-      settle(
-        fit({ x: e.clientX - drag.current.dx, y: e.clientY - drag.current.dy, w: rect.w, h: rect.h }),
-      )
+      settle(fit({ x: e.clientX - drag.current.dx, y: e.clientY - drag.current.dy, w: rect.w, h: rect.h }))
     },
     onPointerUp: () => (drag.current = null),
   }
-
   const corner = {
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault()
@@ -297,81 +374,90 @@ function NoteCard({
     },
     onPointerMove: (e: React.PointerEvent) => {
       if (!size.current) return
-      settle(
-        fit({
-          x: rect.x,
-          y: rect.y,
-          w: size.current.w + (e.clientX - size.current.x),
-          h: size.current.h + (e.clientY - size.current.y),
-        }),
-      )
+      settle(fit({ x: rect.x, y: rect.y, w: size.current.w + (e.clientX - size.current.x), h: size.current.h + (e.clientY - size.current.y) }))
     },
     onPointerUp: () => (size.current = null),
   }
 
+  const current = MODES.find((m) => m.mode === mode) ?? MODES[0]
+  const surface = 'min-h-0 flex-1 overflow-y-auto px-4 py-3 text-[14px] leading-[1.6] text-[var(--paper-text)] [&_.rich-body]:min-h-full'
+
   return createPortal(
     <div
-      ref={box}
       data-note
       role="dialog"
-      aria-label="Note"
+      aria-label={current.label}
       style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
       className="nysgpt-app fixed z-[55] flex flex-col overflow-hidden rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] shadow-[0_4px_32px_rgba(0,0,0,0.18)]"
     >
-      <div className="flex shrink-0 items-center gap-1.5 border-b border-[var(--paper-rule)] py-2 pr-2 pl-2.5">
-        <span
-          {...grip}
-          aria-label="Move"
-          title="Move"
-          className="flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-[var(--paper-faint)] active:cursor-grabbing"
-        >
+      <div className="relative flex shrink-0 items-center gap-1.5 border-b border-[var(--paper-rule)] py-2 pr-2 pl-2.5">
+        <span {...grip} aria-label="Move" title="Move" className="flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-[var(--paper-faint)] active:cursor-grabbing">
           <GripVertical className="h-4 w-4" />
         </span>
-        <h3 className="min-w-0 flex-1 truncate text-[15px] text-[var(--paper-text)]" style={SERIF}>
-          Note
-        </h3>
         <button
-          onClick={() => onClose(note.id)}
-          aria-label="Discard the note"
-          className="shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={menu}
+          onClick={() => setMenu((v) => !v)}
+          className="flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-[var(--paper-quiet)]"
         >
+          <span className="truncate text-[15px] text-[var(--paper-text)]" style={SERIF}>
+            {current.label}
+          </span>
+          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-[var(--paper-faint)]" />
+        </button>
+        <span className="flex-1" />
+        <button onClick={() => onClose(note.id)} aria-label="Discard the note" className="shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]">
           <X className="h-4 w-4" />
         </button>
+        {menu && (
+          <div role="menu" className="absolute top-full left-10 z-10 mt-1 w-44 overflow-hidden rounded-xl border border-[var(--paper-rule)] bg-[var(--paper)] py-1 shadow-lg" style={SANS}>
+            {MODES.map((m) => (
+              <button
+                key={m.mode}
+                role="menuitemradio"
+                aria-checked={m.mode === mode}
+                onClick={() => choose(m.mode)}
+                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--paper-quiet)] ${m.mode === mode ? 'text-[var(--paper-text)]' : 'text-[var(--paper-muted)]'}`}
+              >
+                <m.icon className="h-4 w-4" />
+                <span className="flex-1">{m.label}</span>
+                {m.mode === mode && <Check className="h-3.5 w-3.5" />}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <textarea
-        ref={area}
-        value={note.text}
-        onChange={e => onChange(note.id, { text: e.target.value })}
-        placeholder="Write…"
-        className="min-h-0 flex-1 resize-none bg-transparent p-4 text-[14px] leading-[1.6] text-[var(--paper-text)] outline-none placeholder:text-[var(--paper-faint)]"
-        style={SANS}
-      />
-      <div className="flex shrink-0 items-center gap-2 border-t border-[var(--paper-rule)] px-3 py-2" style={SANS}>
-        <button
-          onClick={() => askAbout({ context: () => note.text })}
-          disabled={!note.text.trim()}
-          className="rounded-full border border-[var(--paper-rule)] px-3 py-1 text-[12px] text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)] disabled:opacity-40"
-        >
-          Chat
-        </button>
-        <button
-          onClick={() => void comment()}
-          disabled={!note.text.trim() || busy}
-          className="rounded-full border border-[var(--paper-rule)] px-3 py-1 text-[12px] text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)] disabled:opacity-40"
-        >
-          {busy ? 'Posting…' : 'Comment'}
-        </button>
-        {said && (
-          <span role="status" className="min-w-0 flex-1 truncate text-[11px] text-[var(--paper-faint)]" title={said}>
-            {said}
+
+      {mode === 'chat' ? (
+        <div ref={scroller} className="flex min-h-0 flex-1 flex-col overflow-y-auto" style={SANS}>
+          {(note.chat ?? []).map((t, i) => (
+            <div key={i} className={`border-b border-[var(--paper-rule-soft)] px-4 py-2.5 text-[13px] leading-[1.6] ${t.role === 'user' ? 'text-[var(--paper-text)]' : 'bg-[var(--paper-quiet)] text-[var(--paper-text)]'}`}>
+              <div className="mb-0.5 text-[10px] uppercase tracking-[0.14em] text-[var(--paper-faint)]">{t.role === 'user' ? 'You' : 'NSRgpt'}</div>
+              <div className="prose prose-sm max-w-none text-[var(--paper-text)] [&_p]:my-1">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
+              </div>
+            </div>
+          ))}
+          <div className="px-4 py-3 text-[14px] leading-[1.6] text-[var(--paper-text)]">
+            <TaskSurface editor={chatEditor} className="min-h-16 [&_.ProseMirror]:min-h-16" />
+          </div>
+        </div>
+      ) : (
+        <div className={surface} style={SANS}>
+          <TaskSurface editor={editor} />
+        </div>
+      )}
+
+      <div className="flex shrink-0 flex-col gap-1 border-t border-[var(--paper-rule)] px-2 py-1.5" style={SANS}>
+        <TaskToolbar editor={editor} className="flex-wrap" />
+        {(current.hint || said || busy) && (
+          <span role="status" className="truncate px-1 text-[11px] text-[var(--paper-faint)]" title={said ?? current.hint}>
+            {busy ? (mode === 'chat' ? 'Answering…' : 'Posting…') : (said ?? current.hint)}
           </span>
         )}
       </div>
-      <span
-        {...corner}
-        aria-label="Resize"
-        className="absolute right-0 bottom-0 h-5 w-5 cursor-nwse-resize touch-none"
-      />
+      <span {...corner} aria-label="Resize" className="absolute right-0 bottom-0 h-5 w-5 cursor-nwse-resize touch-none" />
     </div>,
     document.body,
   )

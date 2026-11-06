@@ -166,6 +166,13 @@ function inkNow(): string {
   return v || (isDark() ? '#f0e9d8' : '#16181d')
 }
 
+/** The page's ground, for the halo under a mark's ink ring (2026-11-06): a dark ring round a light one (or the reverse)
+ *  shows on any cell, where an ink ring alone vanished among the heatmaps' near-white cells. */
+function paperNow(): string {
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim()
+  return v || (isDark() ? '#15120d' : '#ffffff')
+}
+
 /** The band's colour: the ink, faint. */
 function bandColour(ink: string): string {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(ink)
@@ -292,10 +299,17 @@ function wireGL(chart: any, box: HTMLElement): (() => void) | null {
     frame = requestAnimationFrame(tick)
   }
   const down = (e: KeyboardEvent) => {
-    if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e)) return
     const c = control()
     if (!c) return
     if (!home) home = [c.getAlpha(), c.getBeta(), c.getDistance()]
+    // Cmd + ↑ ↓ zoom, a step a press (macOS sends no key-up while Cmd is held).
+    if (e.metaKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && isEngaged() && !isTyping(e)) {
+      e.preventDefault()
+      c.autoRotate = false
+      c.setDistance(Math.min(c.maxDistance, Math.max(c.minDistance, c.getDistance() * (e.key === 'ArrowUp' ? 0.87 : 1.15))))
+      return
+    }
+    if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e)) return
     if (e.key === ' ') {
       e.preventDefault()
       c.autoRotate = !c.autoRotate
@@ -317,7 +331,10 @@ function wireGL(chart: any, box: HTMLElement): (() => void) | null {
       frame = requestAnimationFrame(tick)
     }
   }
-  const up = (e: KeyboardEvent) => held.delete(e.key)
+  const up = (e: KeyboardEvent) => {
+    held.delete(e.key)
+    if (e.key === 'Meta') held.clear()
+  }
   const clear = () => held.clear()
   box.addEventListener('pointerdown', stop)
   box.addEventListener('wheel', stop, { passive: true })
@@ -390,8 +407,8 @@ function markShape(chart: any, kind: MarkKind, at: At): { circle?: { cx: number;
   if (!p) return null
   if (kind === 'cell') {
     const cs = s.coordinateSystem
-    const w = Math.max(10, cs.getAxis('x').getBandWidth() + 2)
-    const h = Math.max(10, cs.getAxis('y').getBandWidth() + 2)
+    const w = Math.max(16, cs.getAxis('x').getBandWidth() + 6)
+    const h = Math.max(16, cs.getAxis('y').getBandWidth() + 6)
     return { rect: { x: p[0] - w / 2, y: p[1] - h / 2, width: w, height: h }, fill: 'none' }
   }
   const size = data.getItemVisual(i, 'symbolSize') as number | number[] | undefined
@@ -437,6 +454,9 @@ function makeMarks(echarts: any, chart: any) {
     zr.add(el)
     return el
   }
+  // Each mark is two rings: a wide one in the page's ground, then the ink one on it.
+  const hoverDotHalo = add(new G.Circle({ shape: { cx: 0, cy: 0, r: 0 }, style: {}, zlevel: HOVER_Z, silent: true, ignore: true }))
+  const hoverBoxHalo = add(new G.Rect({ shape: { x: 0, y: 0, width: 0, height: 0 }, style: {}, zlevel: HOVER_Z, silent: true, ignore: true }))
   const hoverDot = add(new G.Circle({ shape: { cx: 0, cy: 0, r: 0 }, style: {}, zlevel: HOVER_Z, silent: true, ignore: true }))
   const hoverBox = add(new G.Rect({ shape: { x: 0, y: 0, width: 0, height: 0 }, style: {}, zlevel: HOVER_Z, silent: true, ignore: true }))
   const hoverBands = new Map<number, Shape>()
@@ -445,24 +465,38 @@ function makeMarks(echarts: any, chart: any) {
   let pickedRows: number[] = []
   let resolve: ((row: number) => At | null) | undefined
 
-  const shapeOf = (m: NonNullable<ReturnType<typeof markShape>>, zlevel: number) =>
+  /** A mark's two rings, halo first: the page's ground 6 px wide, the ink 2 px on top of it. */
+  const shapesOf = (m: NonNullable<ReturnType<typeof markShape>>, zlevel: number) =>
     m.circle
-      ? new G.Circle({ shape: m.circle, style: { fill: m.fill, stroke: ink, lineWidth: 2 }, zlevel, silent: true })
-      : new G.Rect({ shape: m.rect, style: { fill: m.fill, stroke: ink, lineWidth: 2 }, zlevel, silent: true })
+      ? [
+          new G.Circle({ shape: m.circle, style: { fill: 'none', stroke: paperNow(), lineWidth: 6 }, zlevel, silent: true }),
+          new G.Circle({ shape: m.circle, style: { fill: m.fill, stroke: ink, lineWidth: 2 }, zlevel, silent: true }),
+        ]
+      : [
+          new G.Rect({ shape: m.rect, style: { fill: 'none', stroke: paperNow(), lineWidth: 6 }, zlevel, silent: true }),
+          new G.Rect({ shape: m.rect, style: { fill: m.fill, stroke: ink, lineWidth: 2 }, zlevel, silent: true }),
+        ]
 
   const hideHover = () => {
     hoverDot.attr({ ignore: true })
     hoverBox.attr({ ignore: true })
+    hoverDotHalo.attr({ ignore: true })
+    hoverBoxHalo.attr({ ignore: true })
   }
   const showHover = (kind: MarkKind, at: At) => {
     const m = markShape(chart, kind, at)
     if (!m) return hideHover()
     const style = { fill: m.fill, stroke: ink, lineWidth: 2 }
+    const halo = { fill: 'none', stroke: paperNow(), lineWidth: 6 }
     if (m.circle) {
       hoverBox.attr({ ignore: true })
+      hoverBoxHalo.attr({ ignore: true })
+      hoverDotHalo.attr({ ignore: false, shape: m.circle, style: halo })
       hoverDot.attr({ ignore: false, shape: m.circle, style })
     } else {
       hoverDot.attr({ ignore: true })
+      hoverDotHalo.attr({ ignore: true })
+      hoverBoxHalo.attr({ ignore: false, shape: m.rect, style: halo })
       hoverBox.attr({ ignore: false, shape: m.rect, style })
     }
   }
@@ -497,7 +531,7 @@ function makeMarks(echarts: any, chart: any) {
         }
       } else if (kind) {
         const m = markShape(chart, kind, d)
-        if (m) picked.push(add(shapeOf(m, PICKED_Z)))
+        if (m) for (const el of shapesOf(m, PICKED_Z)) picked.push(add(el))
       }
     }
   }

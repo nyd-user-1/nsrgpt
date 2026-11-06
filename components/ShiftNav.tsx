@@ -3,17 +3,19 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
+import { VIZ_CHARTS } from '@/lib/viz-charts'
+import { HEADER_TITLES } from '@/lib/header-titles'
 import {
   ArrowUpLeft,
   ArrowUpRight,
   Bell,
-  BookOpen,
+  ChartScatter,
+  CircleUser,
   EllipsisVertical,
-  Grid3x3,
   GripVertical,
   History,
   House,
-  KeyRound,
+  MessagesSquare,
   Link2,
   PanelRight,
   Search,
@@ -57,15 +59,19 @@ const RECENT = 5
 const STORE = 'nysgpt-nav-recents'
 
 /** The pages a reader can go to, with their sidebar-grade icons. */
+// NSRgpt's pages (2026-11-06): the chart index, chat and the account pages; every chart is listed under Charts.
 const PAGES: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/', label: 'Home', icon: House },
-  { href: '/legislative-api/dictionary', label: 'Data dictionary', icon: BookOpen },
-  { href: '/legislative-api/coverage', label: 'Coverage', icon: Grid3x3 },
-  { href: '/account/api', label: 'API console', icon: KeyRound },
+  { href: '/chat', label: 'Chat', icon: MessagesSquare },
+  { href: '/account', label: 'Account', icon: CircleUser },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
+
+/** Every chart page, in the index's order, named as the header names it. */
+const CHARTS: { href: string; label: string; icon: LucideIcon }[] = VIZ_CHARTS.map((c) => ({ href: c.href, label: HEADER_TITLES[c.href] ?? c.title, icon: ChartScatter }))
+const ALL = [...PAGES, ...CHARTS]
 
 type Entry = {
   key: string
@@ -170,11 +176,12 @@ function NavCard({
     const needle = q.trim().toLowerCase()
     const recent: Entry[] = recents
       .filter(h => h !== here)
-      .map(h => PAGES.find(p => p.href === h))
+      .map(h => ALL.find(p => p.href === h))
       .filter((p): p is (typeof PAGES)[number] => !!p)
       .slice(0, RECENT)
       .map(p => ({ ...entry(p), key: `recent:${p.href}`, icon: History }))
     const pages = PAGES.map(entry)
+    const charts = CHARTS.map(entry)
     const boxes: Entry[] = cards.map(c => ({
       key: `box:${c.title}`,
       label: c.title,
@@ -184,12 +191,13 @@ function NavCard({
       out: c.href || undefined,
     }))
     if (needle) {
-      const hits = [...pages, ...boxes].filter(e => e.label.toLowerCase().includes(needle))
+      const hits = [...pages, ...charts, ...boxes].filter(e => e.label.toLowerCase().includes(needle))
       return [{ label: null, entries: hits.sort((a, b) => rank(a.label, needle) - rank(b.label, needle)) }]
     }
     return [
       { label: 'Recent', entries: recent },
       { label: 'Pages', entries: pages },
+      { label: 'Charts', entries: charts },
       { label: 'Boxes', entries: boxes },
     ].filter(s => s.entries.length)
   }, [q, recents, here, cards, entry])
