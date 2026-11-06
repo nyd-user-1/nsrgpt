@@ -20,6 +20,7 @@ export const HEADER_TITLES: Record<string, string> = {
   "/viz/weight": "Nuclides | Two-Series Scatter",
   "/viz/decay": "Nuclides | Decay Simulation",
   "/viz/decay2": "Nuclides | Decay Surface",
+  "/viz/decay-chain": "Nuclides | Decay Chain",
   "/viz/knowledge": "Nuclides | Knowledge Map",
   "/viz/levels": "Nuclides | Level Energies",
   "/viz/first-excited": "Nuclides | Aggregate Bar",
