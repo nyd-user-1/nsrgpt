@@ -8,7 +8,7 @@ import { AXIS, formatSeconds, ink, isDark, keyOf, loadDecay, nucName, type Decay
 // The γ-line finder (Brendan, 2026-11-06): a detector shows a peak; which nuclides emit there? Every γ line of every
 // ground-state decay in ENSDF (the IAEA Live Chart API, public/viz-data/gamma/), by energy. Type an energy and a
 // window: the lines inside it list strongest first, with the emitter's half-life, and the chart shows the
-// neighbourhood, the window shaded. Filters drop short-lived emitters and weak lines. The lines load 250 keV at a
+// neighbourhood, the window shaded. Filters drop short-lived emitters (under an hour, to start) and weak lines. The lines load 250 keV at a
 // time, only the slices the window touches. A nuclide's name opens its decay radiation card.
 
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -57,7 +57,8 @@ const INTENSITIES = [
 export function GammaLinesChart() {
   const [energy, setEnergy] = React.useState('661.66')
   const [window_, setWindow] = React.useState('2')
-  const [minT, setMinT] = React.useState(0)
+  // An hour by default: a detector's peaks are mostly long-lived emitters, and the exotic short-lived ones crowd every energy.
+  const [minT, setMinT] = React.useState(3600)
   const [minI, setMinI] = React.useState(0)
   const [decay, setDecay] = React.useState<Decay | null>(null)
   const [near, setNear] = React.useState<Line[]>([])
@@ -72,12 +73,14 @@ export function GammaLinesChart() {
   React.useEffect(() => {
     if (!valid) return
     let live = true
-    void loadIndex().then(async (idx) => {
-      const from = Math.floor(Math.max(0, e - SPAN) / idx.bin)
-      const to = Math.floor((e + SPAN) / idx.bin)
-      const got = await Promise.all(idx.bins.filter((b) => b >= from && b <= to).map(loadSlice))
-      if (live) setNear(got.flat().filter((l) => l[0] >= e - SPAN && l[0] <= e + SPAN))
-    })
+    loadIndex()
+      .then(async (idx) => {
+        const from = Math.floor(Math.max(0, e - SPAN) / idx.bin)
+        const to = Math.floor((e + SPAN) / idx.bin)
+        const got = await Promise.all(idx.bins.filter((b) => b >= from && b <= to).map(loadSlice))
+        if (live) setNear(got.flat().filter((l) => l[0] >= e - SPAN && l[0] <= e + SPAN))
+      })
+      .catch(() => live && setNear([]))
     return () => {
       live = false
     }
@@ -106,8 +109,8 @@ export function GammaLinesChart() {
       const dark = isDark()
       const hit = ink(dark)
       const faint = dark ? 'rgba(240,233,216,0.28)' : 'rgba(22,24,29,0.25)'
-      const data = v.near.filter((l) => l[1] >= Y_MIN).map((l) => {
-        const on = Math.abs(l[0] - v.e) <= v.w && v.passes(l)
+      const data = v.near.filter((l) => l[1] >= Y_MIN && v.passes(l)).map((l) => {
+        const on = Math.abs(l[0] - v.e) <= v.w
         return { value: [l[0], l[1]], name: v.nameOf(l), on }
       })
       return {
