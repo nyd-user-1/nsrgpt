@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { X, ChevronRight, ArrowLeft, ArrowRight, Columns2, Columns3, LayoutGrid, Sparkles, ArrowUpRight, SquareDashedMousePointer, Wrench, Palette, Cloud } from 'lucide-react'
+import { X, ArrowLeft, Columns2, Columns3, LayoutGrid, Sparkles, ArrowUpRight, SquareDashedMousePointer, Wrench, Palette, FlaskConical, Network } from 'lucide-react'
 import { CountUp } from '@/components/CountUp'
 import { compact } from '@/lib/compact'
 import { useProductStatus } from '@/components/ProductStatus'
@@ -223,12 +223,30 @@ const GLYPH = 'h-4 w-4 shrink-0 text-[var(--paper-faint)] transition-colors grou
 const LABEL =
   'min-w-0 flex-1 truncate text-[15px] leading-tight text-[var(--paper-text)] transition-colors group-hover/row:text-[var(--paper-strong)]'
 
-/** A plain row: the whole thing drills down. Used by the ten products. */
-function Row({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+/** The Circle Button's two tones (AppLayout's sidebar toggle): navy stroke over a light-blue fill. */
+const TWO_TONE = { color: '#033882', fill: '#dbe7fa' } as const
+
+/** A row's icon: grows a little and lifts on the row's hover, as in pax-trinity (2026-11-05). */
+function RowIcon({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="flex h-4 w-4 shrink-0 items-center justify-center transition-transform duration-200 ease-out group-hover/row:-translate-y-0.5 group-hover/row:scale-[1.18]">
+      {children}
+    </span>
+  )
+}
+
+/** The row's arrow: up-right, nudging further up-right on hover. */
+function RowArrow() {
+  return <ArrowUpRight className={`${GLYPH} transition-transform duration-200 ease-out group-hover/row:-translate-y-0.5 group-hover/row:translate-x-0.5`} />
+}
+
+/** A plain row: icon, label, arrow; the whole thing drills down. */
+function Row({ children, icon, onClick }: { children: React.ReactNode; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button onClick={onClick} className={ROW}>
+      <RowIcon>{icon}</RowIcon>
       <span className={LABEL} style={SERIF}>{children}</span>
-      <ChevronRight className={GLYPH} />
+      <RowArrow />
     </button>
   )
 }
@@ -262,14 +280,8 @@ function ChannelRow({
        hit area without growing the row. Splitting the row must not resize it. */
     <div className={ROW}>
       <button onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-        <span className="shrink-0 text-[var(--paper-faint)]">{icon}</span>
+        <RowIcon>{icon}</RowIcon>
         <span className={LABEL} style={SERIF}>{children}</span>
-        <span
-          className="shrink-0 rounded-full border border-[var(--paper-rule)] px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-[var(--paper-faint)] transition-colors group-hover/row:border-[var(--paper-strong)] group-hover/row:text-[var(--paper-strong)]"
-          style={MONO}
-        >
-          Open
-        </span>
       </button>
       <Link
         href={href}
@@ -278,10 +290,7 @@ function ChannelRow({
         onClick={e => e.stopPropagation()}
         className="-my-2 flex shrink-0 items-center justify-center rounded-full p-2 transition-colors hover:bg-[var(--paper-rule-soft)]"
       >
-        <span className="relative h-4 w-4">
-          <ArrowRight className={`${GLYPH} absolute inset-0 opacity-100 group-hover/row:opacity-0`} />
-          <ArrowUpRight className={`${GLYPH} absolute inset-0 opacity-0 group-hover/row:opacity-100`} />
-        </span>
+        <RowArrow />
       </Link>
     </div>
   )
@@ -498,71 +507,27 @@ function SwitchboardPanel() {
                   <p className="mt-3 text-[13px] leading-[1.6] text-[var(--paper-muted)]" style={SANS}>{INTRO}</p>
                 </div>
 
-                {/* lucide ships no Slack or Discord mark, so both are brand
-                    assets from /public — the same files 44B's panel uses, which
-                    keeps the two panels identical. */}
-                <ChannelRow
-                  icon={<img src="/logos/250px-Slack_icon_2019.svg.png" alt="" className="h-4 w-4 shrink-0 object-contain" />}
-                  onOpen={() => openChannel('slack')}
-                  href={CHANNELS.slack.href}
-                >
-                  Slack
-                </ChannelRow>
-                <ChannelRow
-                  icon={<img src="/discord-icon.svg" alt="" className="h-4 w-4 shrink-0 object-contain" />}
-                  onOpen={() => openChannel('discord')}
-                  href={CHANNELS.discord.href}
-                >
-                  Discord
-                </ChannelRow>
-                <ChannelRow
-                  icon={<Sparkles className="h-4 w-4" />}
-                  onOpen={() => openChannel('ask')}
-                  href={CHANNELS.ask.href}
-                  sameTab
-                >
-                  Ask NSRgpt
-                </ChannelRow>
-
-                <div className={ROW.replace('border-b', 'border-b')}>
-                  <button onClick={openBlocks} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                    <span className="shrink-0 text-[var(--paper-faint)]"><LayoutGrid className="h-4 w-4" /></span>
-                    <span className={LABEL} style={SERIF}>Blocks</span>
-                    <ChevronRight className={GLYPH} />
-                  </button>
-                </div>
-
-                <div className={ROW.replace('border-b', 'border-b')}>
-                  <button onClick={openDevtools} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                    <span className="shrink-0 text-[var(--paper-faint)]"><Wrench className="h-4 w-4" /></span>
-                    <span className={LABEL} style={SERIF}>Dev tools</span>
-                    <ChevronRight className={GLYPH} />
-                  </button>
-                </div>
-
-                <div className={ROW.replace('border-b', 'border-b')}>
-                  <button onClick={openCloudflare} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                    <span className="shrink-0 text-[var(--paper-faint)]"><Cloud className="h-4 w-4" /></span>
-                    <span className={LABEL} style={SERIF}>Cloudflare</span>
-                    <ChevronRight className={GLYPH} />
-                  </button>
-                </div>
-
-                <div className={ROW.replace('border-b', 'border-b')}>
-                  <button onClick={openTheme} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                    <span className="shrink-0 text-[var(--paper-faint)]"><Palette className="h-4 w-4" /></span>
-                    <span className={LABEL} style={SERIF}>Theme</span>
-                    <ChevronRight className={GLYPH} />
-                  </button>
-                </div>
-
-                <p className="px-5 pb-2 pt-5 text-[10px] uppercase tracking-[0.28em] text-[var(--paper-faint)]" style={MONO}>
-                  Products
-                </p>
-
-                {cards.map((c, i) => (
-                  <Row key={c.href + c.title} onClick={() => openProduct(i)}>{c.title}</Row>
-                ))}
+                {/* One list, A–Z (Brendan, 2026-11-05). lucide ships no Slack, Discord or Cloudflare mark, so
+                    those three are brand files from /public; the rest wear the Circle Button's two tones. */}
+                {[
+                  { label: 'Ask NSRgpt', el: (k: string) => <ChannelRow key={k} icon={<Sparkles className="h-4 w-4" style={TWO_TONE} />} onOpen={() => openChannel('ask')} href={CHANNELS.ask.href} sameTab>Ask NSRgpt</ChannelRow> },
+                  { label: 'Blocks', el: (k: string) => <Row key={k} icon={<LayoutGrid className="h-4 w-4" style={TWO_TONE} />} onClick={openBlocks}>Blocks</Row> },
+                  { label: 'Cloudflare', el: (k: string) => <Row key={k} icon={<img src="/logos/cloudflare.png" alt="" className="h-4 w-4 object-contain" />} onClick={openCloudflare}>Cloudflare</Row> },
+                  { label: 'Dev tools', el: (k: string) => <Row key={k} icon={<Wrench className="h-4 w-4" style={TWO_TONE} />} onClick={openDevtools}>Dev tools</Row> },
+                  { label: 'Discord', el: (k: string) => <ChannelRow key={k} icon={<img src="/discord-icon.svg" alt="" className="h-4 w-4 object-contain" />} onOpen={() => openChannel('discord')} href={CHANNELS.discord.href}>Discord</ChannelRow> },
+                  { label: 'Slack', el: (k: string) => <ChannelRow key={k} icon={<img src="/logos/250px-Slack_icon_2019.svg.png" alt="" className="h-4 w-4 object-contain" />} onOpen={() => openChannel('slack')} href={CHANNELS.slack.href}>Slack</ChannelRow> },
+                  { label: 'Theme', el: (k: string) => <Row key={k} icon={<Palette className="h-4 w-4" style={TWO_TONE} />} onClick={openTheme}>Theme</Row> },
+                  ...cards.map((c, i) => ({
+                    label: c.title,
+                    el: (k: string) => (
+                      <Row key={k} icon={c.title.endsWith('API') ? <Network className="h-4 w-4" style={TWO_TONE} /> : <FlaskConical className="h-4 w-4" style={TWO_TONE} />} onClick={() => openProduct(i)}>
+                        {c.title}
+                      </Row>
+                    ),
+                  })),
+                ]
+                  .sort((a, b) => a.label.localeCompare(b.label))
+                  .map((r) => r.el(r.label))}
               </>
             )}
 
