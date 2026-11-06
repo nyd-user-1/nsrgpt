@@ -90,13 +90,20 @@ const LOAD: Record<string, () => Promise<Table>> = {
   ...STRUCTURE_TABLES,
 }
 
+// Arrow keys step the selection after a row is picked (Brendan, 2026-11-06), on every chart's table: ↑ ↓ move to the
+// row above or below and the chart's mark follows; Shift+↑ ↓ grows the range from the row first picked.
+
 export function DataTable({ slug }: { slug: string }) {
   const [table, setTable] = useState<Table | null>(null)
   const [page, setPage] = useState(0)
   const [mark, setMark] = useState<number | null>(null)
   const [picked, setPicked] = useState<Set<number>>(() => new Set())
   const anchor = useRef<number | null>(null)
-  const marked = useRef<HTMLTableRowElement>(null)
+  const marked = useRef<HTMLTableRowElement | null>(null)
+  // The row the arrow keys move from: the last one pressed or stepped to.
+  const cursor = useRef<number | null>(null)
+  const [cur, setCur] = useState<number | null>(null)
+  const curRow = useRef<HTMLTableRowElement | null>(null)
 
   useEffect(() => {
     let live = true
@@ -139,8 +146,41 @@ export function DataTable({ slug }: { slug: string }) {
       anchor.current = at
     }
     setPicked(next)
+    cursor.current = at
+    setCur(at)
     pointAt(slug, next.has(at) ? at : undefined, [...next].sort((a, b) => a - b))
   }
+
+  useEffect(() => {
+    if (!table) return
+    const on = (e: KeyboardEvent) => {
+      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || cursor.current === null) return
+      const t = e.target as HTMLElement | null
+      if (t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable)) return
+      e.preventDefault()
+      const at = Math.min(table.rows.length - 1, Math.max(0, cursor.current + (e.key === 'ArrowDown' ? 1 : -1)))
+      cursor.current = at
+      let next: Set<number>
+      if (e.shiftKey && anchor.current !== null) {
+        next = new Set()
+        for (let i = Math.min(anchor.current, at); i <= Math.max(anchor.current, at); i++) next.add(i)
+      } else {
+        next = new Set([at])
+        anchor.current = at
+      }
+      setPicked(next)
+      setCur(at)
+      setPage(Math.floor(at / PER))
+      pointAt(slug, at, [...next].sort((a, b) => a - b))
+    }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [table, slug])
+
+  // The stepped-to row stays in view, clear of the sticky count bar.
+  useEffect(() => {
+    curRow.current?.scrollIntoView({ block: 'nearest' })
+  }, [cur, page])
 
   useEffect(() => {
     marked.current?.scrollIntoView({ block: 'center' })
@@ -196,14 +236,17 @@ export function DataTable({ slug }: { slug: string }) {
             return (
               <tr
                 key={at}
-                ref={at === mark ? marked : undefined}
+                ref={(el) => {
+                  if (at === mark) marked.current = el
+                  if (at === cur) curRow.current = el
+                }}
                 aria-selected={on}
                 onMouseDown={(e) => {
                   // Shift and Cmd/Ctrl pick rows; they mustn't select the text as well.
                   if (e.shiftKey || e.metaKey || e.ctrlKey) e.preventDefault()
                 }}
                 onClick={(e) => press(e, at)}
-                className={`cursor-pointer border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
+                className={`scroll-mt-12 cursor-pointer border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
               >
                 {r.map((v, i) => (
                   <td key={i} className={`py-1.5 pr-4 ${i ? 'text-right tabular-nums' : 'text-left'}`} style={typeof v === 'number' ? MONO : undefined}>
