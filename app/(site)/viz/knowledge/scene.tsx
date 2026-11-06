@@ -12,7 +12,7 @@
 
 import * as React from 'react'
 import * as THREE from 'three'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
 import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
@@ -38,6 +38,8 @@ const heightOf = (levels: number) => Math.max(0.3, 14 * Math.log10(1 + levels))
 const COLUMN = 0.86
 const TILE_H = 0.25
 const NEVER_SIDE = 0.62
+/** Seconds the 3D switch takes to grow tiles into columns, or back. */
+const MORPH = 0.6
 const age = (r: KnowledgeRow) => Math.max(0, SNAPSHOT_YEAR - r.cutoff)
 const wx = (n: number) => n - N0
 const wz = (z: number) => -(z - Z0)
@@ -133,20 +135,59 @@ const Nuclides = React.memo(function Nuclides({
   const solidCol = React.useMemo(() => new Float32Array(evaluated.length * 3), [evaluated])
   const hollowCol = React.useMemo(() => new Float32Array(never.length * 3), [never])
 
-  React.useLayoutEffect(() => {
-    const m = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(), c = new THREE.Color()
-    const sm = solids.current
-    if (sm) {
+  // Each tile's 2D and 3D footprint and height, so the 3D switch can morph between them (2026-11-06): tiles grow into
+  // columns, and back, over MORPH seconds, eased, one matrix write per instance per frame while it runs.
+  const shapes = React.useMemo(() => {
+    const a = { s2: new Float32Array(evaluated.length), h2: new Float32Array(evaluated.length), s3: new Float32Array(evaluated.length), h3: new Float32Array(evaluated.length) }
+    evaluated.forEach((ri, k) => {
+      const r = rows[ri]
+      const flat = shapeOf(r, false)
+      const tall = shapeOf(r, true)
+      a.s2[k] = flat.side
+      a.h2[k] = flat.h
+      a.s3[k] = tall.side
+      a.h3[k] = tall.h
+    })
+    return a
+  }, [rows, evaluated])
+  const mix = React.useRef<number | null>(null)
+  const place = React.useCallback(
+    (t: number) => {
+      const sm = solids.current
+      if (!sm) return
+      const e = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
+      const m = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3()
       evaluated.forEach((ri, k) => {
         const r = rows[ri]
-        const { side, h } = shapeOf(r, three)
+        const side = shapes.s2[k] + (shapes.s3[k] - shapes.s2[k]) * e
+        const h = shapes.h2[k] + (shapes.h3[k] - shapes.h2[k]) * e
         sm.setMatrixAt(k, m.compose(p.set(wx(r.n), 0, wz(r.z)), q, s.set(side, h, side)))
-        sm.setColorAt(k, ageColor(pal.stops, age(r) / AGE_MAX, c))
       })
       sm.instanceMatrix.needsUpdate = true
+    },
+    [rows, evaluated, shapes],
+  )
+  useFrame((_, dt) => {
+    const target = three ? 1 : 0
+    if (mix.current === null || mix.current === target) return
+    const step = Math.min(dt, 0.05) / MORPH
+    mix.current = target > mix.current ? Math.min(target, mix.current + step) : Math.max(target, mix.current - step)
+    place(mix.current)
+    if (mix.current === target) solids.current?.computeBoundingSphere()
+  })
+
+  React.useLayoutEffect(() => {
+    const c = new THREE.Color()
+    const sm = solids.current
+    if (sm) {
+      // The first draw lands at the current view; later switches animate (useFrame above).
+      if (mix.current === null) mix.current = three ? 1 : 0
+      place(mix.current)
+      evaluated.forEach((ri, k) => sm.setColorAt(k, ageColor(pal.stops, age(rows[ri]) / AGE_MAX, c)))
       if (sm.instanceColor) sm.instanceColor.needsUpdate = true
       sm.computeBoundingSphere()
     }
+    const m = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3()
     const hm = hollows.current
     if (hm) {
       never.forEach((ri, k) => {
@@ -158,7 +199,9 @@ const Nuclides = React.memo(function Nuclides({
       if (hm.instanceColor) hm.instanceColor.needsUpdate = true
       hm.computeBoundingSphere()
     }
-  }, [rows, evaluated, never, pal, three])
+    // `three` is left out on purpose: a switch animates in useFrame rather than snapping here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, evaluated, never, pal, place])
 
   // With Select grid on, a click picks a block (the floor below), so the nuclides stand aside from the pointer.
   const handlers = (list: number[]) => ({
@@ -432,7 +475,7 @@ export default function KnowledgeScene() {
           <Floor pal={pal} grid={grid} blocks={blocks} onBlockHover={setHoverBlock} onBlock={onBlock} />
           {!grid && picks.map((i) => <Outline key={i} r={rows[i]} three={three} pal={pal} heavy />)}
           {hovered && hover !== null && !picks.includes(hover) && <Outline r={hovered} three={three} pal={pal} heavy={false} />}
-          <SpinControls makeDefault target={[0, three ? 8 : 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} maxPolarAngle={Math.PI / 2 - 0.03} />
+          <SpinControls makeDefault target={[0, 0, 0]} enableDamping dampingFactor={0.08} minDistance={25} maxDistance={700} maxPolarAngle={Math.PI / 2 - 0.03} />
           {theme.dark && (
             <EffectComposer multisampling={0}>
               <Bloom mipmapBlur intensity={0.35} luminanceThreshold={0.6} luminanceSmoothing={0.25} />
