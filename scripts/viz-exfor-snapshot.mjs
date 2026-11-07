@@ -4,7 +4,7 @@
 //
 // Source: IAEA-NDS/exfor_json (https://github.com/IAEA-NDS/exfor_json), the IAEA's JSON export of the whole EXFOR
 // library, commit 36b38778d9feb27d0142cd052f078ad2452c2e31 (2026-09-08). The lake's exfor_entries (Athena
-// nysgpt_nsr) was exported without its data tables, so the numbers come from the export itself. The clone is
+// nsr) was exported without its data tables, so the numbers come from the export itself. The clone is
 // read as data only. Reproduce:
 //   git clone https://github.com/IAEA-NDS/exfor_json /tmp/exfor_json && git -C /tmp/exfor_json checkout 36b38778
 //   node scripts/viz-exfor-snapshot.mjs /tmp/exfor_json

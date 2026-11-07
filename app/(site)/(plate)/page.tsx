@@ -12,6 +12,10 @@ export const metadata = {
   description: "Charts and tables over the Nuclear Science References corpus and the NNDC databases: ENSDF, XUNDL, EXFOR and AME2020.",
 };
 
+// The boxes A to Z by the name each one shows, left to right and top to bottom across the frames (Brendan, 2026-11-07).
+const nameOf = (c: VizChart) => HEADER_TITLES[c.href] ?? c.title;
+const BY_NAME = [...VIZ_CHARTS].sort((a, b) => nameOf(a).localeCompare(nameOf(b), "en", { sensitivity: "base", numeric: true }));
+
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const;
 const MONO = { fontFamily: "var(--font-mono), ui-monospace, monospace" } as const;
@@ -29,8 +33,8 @@ export default function HomePage() {
       <div className="relative mt-[72px] flex min-h-0 flex-1 flex-col">
         {/* The plate as / has it (HomeContents): a fixed height, an even grid from its own measured size. */}
         <div className={`isolate flex flex-col overflow-hidden rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] ${PLATE_H}`}>
-          <PlateGrid className="-m-px min-h-0 flex-1" minW={220}>
-            {VIZ_CHARTS.map((chart, i) => (
+          <PlateGrid className="-m-px min-h-0 flex-1" minW={220} maxCols={4}>
+            {BY_NAME.map((chart, i) => (
               <VizBox key={chart.href} chart={chart} index={i} />
             ))}
           </PlateGrid>

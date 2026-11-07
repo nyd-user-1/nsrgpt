@@ -118,11 +118,35 @@ export function chartForwardFirst() {
 /** ChartRoot: covers the content area and shrinks onto the masthead's main box. */
 export function chartRoot(first = false) {
   const to = mainRect()
-  if (!to) return uncover()
-  const word = document.querySelector('[data-inspect="Wordmark"]')?.getBoundingClientRect()
-  const el: HTMLElement = clone('data-viz-root', to, word ?? originIn(to), FULL, SMALL, first, () => fadeAway(el))
+  if (!to) {
+    uncover()
+    return landed()
+  }
+  const mark = document.querySelector<HTMLElement>('[data-inspect="Wordmark"]')
+  const word = mark?.getBoundingClientRect()
+  const el: HTMLElement = clone('data-viz-root', to, word ?? originIn(to), FULL, SMALL, first, () => {
+    fadeAway(el)
+    // The masthead's wordmark draws once the clone has gone (app/HomeMasthead.tsx).
+    window.setTimeout(landed, GROW_MS + 180)
+  })
+  // The clone carries the wordmark, at its own size and centered (Brendan, 2026-11-07), so the main box lands with
+  // NSRgpt already in it, exactly over the real one, instead of an empty box arriving last.
+  const text = mark?.querySelector<HTMLElement>('span')
+  if (text) {
+    const cs = getComputedStyle(text)
+    const copy = document.createElement('span')
+    copy.textContent = text.textContent
+    Object.assign(copy.style, {
+      fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, letterSpacing: cs.letterSpacing,
+      lineHeight: cs.lineHeight, color: cs.color, whiteSpace: 'nowrap',
+    })
+    Object.assign(el.style, { display: 'flex', alignItems: 'center', justifyContent: 'center' })
+    el.appendChild(copy)
+  }
   uncover()
 }
+
+const landed = () => window.dispatchEvent(new Event('chart-root-landed'))
 
 /** ChartBack: covers the content area and shrinks into its top-left corner. */
 export function chartBack() {

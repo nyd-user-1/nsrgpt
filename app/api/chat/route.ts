@@ -3,6 +3,8 @@ import { converseStream, docBytes } from "@/lib/chat-data/bedrock"
 import { streamWithTools } from "@/lib/chat-data/converse-loop"
 import { dataToolSpecs, isDataTool, nsrPrompt, nsrWired, runDataTool } from "@/lib/chat-data/tools"
 import { MODEL_IDS } from "@/lib/model-options"
+import { searchPapers, type NsrHit } from "@/lib/nsr-search"
+import { isSearchBackend } from "@/lib/search-backends"
 
 // The /chat answer, trinity's mechanics on NYSgpt's stack (2026-11-04): a system prompt, then the
 // reply streamed back as plain text — the picker's model id when it is on the list, a PDF as a
@@ -20,9 +22,7 @@ Speak as I, in the first person singular: "I", "me", "my". Never "we" or "our", 
 
 Every figure carries its scope: say what the number counts and where it is from. When the record has a number, use that exact number; when it does not, say so plainly.
 
-A script you draft goes alone in a \`\`\`pax-script code block (that tag, nothing else inside); the page shows it as a script card. Right after its code block add a \`\`\`pax-cite\`\`\` block: a JSON array with one entry per line that leans on evidence, each {"quote": "<a few exact words from that line>", "note": "<one sentence: why the line is written this way>", "ids": ["<ids>"]}. Never mention the block in prose. Real code goes in an ordinary code block tagged with its language.
-
-A conversational fork goes out as a \`\`\`pax-choices\`\`\` block: a JSON array of 3 or 4 short strings; the page draws them as tappable chips. Structured intake goes out as a \`\`\`pax-fields\`\`\` block: a JSON array of one or two fields, kinds "text", "textarea", and "choice" with "options". Never mention either block in prose.
+Math goes in LaTeX: $…$ inline, $$…$$ for display. Cite NSR papers by key number (e.g. 2019AB12); the page turns each key number into a link to its record.
 
 When the user's message carries a PDF, answer from it: quote its numbers, cite its pages as (p. N), and say plainly what it does not cover.`
 
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   if (process.env.NYSGPT_CHAT_OPEN !== "1" && !(await currentUser())) {
     return new Response(JSON.stringify({ error: "Sign in to chat." }), { status: 402, headers: { "Content-Type": "application/json" } })
   }
-  const { messages, systemContext, model, document } = (await req.json()) as { messages: { role: "user" | "assistant"; content: string }[]; systemContext?: string; model?: string; record?: boolean; document?: { name?: string; data?: string } }
+  const { messages, systemContext, model, document, searchBackend } = (await req.json()) as { messages: { role: "user" | "assistant"; content: string }[]; systemContext?: string; model?: string; record?: boolean; document?: { name?: string; data?: string }; searchBackend?: string }
   // A PDF the user attached in /chat: read by the model itself, as a document block on the last
   // user message, re-sent with every question in that conversation. Capped at 3.5 MB.
   const pdf = document?.data ? Buffer.from(document.data, "base64") : null
@@ -45,7 +45,12 @@ export async function POST(req: Request) {
   const extra = typeof systemContext === "string" && systemContext.trim() ? `\n\n${systemContext.slice(0, 80_000)}` : ""
   // The data tools ride Anthropic models alone (the loop's tool_use protocol).
   const tools = nsrWired() && modelId.includes("anthropic.")
-  const system = BASE_SYSTEM_PROMPT + (tools ? `\n\n${nsrPrompt()}` : "") + extra
+  // The paper search runs first (the composer's backend, the other as fallback): its papers go to the
+  // model with the question and to the page in a header, as the Sources list under the answer.
+  const question = lastUserAt >= 0 ? messages[lastUserAt].content : ""
+  const found = isSearchBackend(searchBackend) && question.trim() ? await searchPapers(question.slice(0, 500), searchBackend) : null
+  const papers = found ? `\n\nPapers my NSR search found closest to this question (key number, year, title), most similar first. Lean on them where they answer it, cite them by key number, and say plainly when they don't:\n${found.hits.map((h: NsrHit) => `${h.key_number} (${h.year ?? "n.d."}) ${h.title}`).join("\n")}` : ""
+  const system = BASE_SYSTEM_PROMPT + (tools ? `\n\n${nsrPrompt()}` : "") + papers + extra
   const turns = messages
     .map((m, i) => ({ m, i }))
     .filter(({ m }) => m.content.trim())
@@ -87,5 +92,8 @@ export async function POST(req: Request) {
       }
     },
   })
-  return new Response(stream, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" } })
+  const sourceHeaders: Record<string, string> = found
+    ? { "x-nsr-backend": found.backend, "x-nsr-sources": encodeURIComponent(JSON.stringify(found.hits.map((h) => ({ key_number: h.key_number, title: h.title, doi: h.doi, similarity: h.similarity })))) }
+    : {}
+  return new Response(stream, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache", ...sourceHeaders } })
 }

@@ -5,7 +5,7 @@ import { athenaQuery, athenaWired, lit } from "./athena"
 // The chat's NSR data tools: the Nuclear Science References corpus (303,568 references — the
 // complete NSR dump plus arXiv/APS additions, with the full relational layer), read-only, from the
 // lake. Since 2026-11-04 the corpus is parquet in S3 (the Aurora snapshot nsr-final-2026-10-15,
-// exported) queried through Athena — Glue database nysgpt_nsr, workgroup nysgpt-chat; see
+// exported) queried through Athena — Glue database nsr, workgroup nsrgpt (New account, us-east-2); see
 // athena.ts. Three tools: free SQL for counts, filters and joins; a scored text scan for topical
 // questions; one record in full by key number. Without the Athena key the tools answer that the
 // corpus is not wired here.
@@ -177,7 +177,7 @@ nsr_sql speaks Trino SQL (Athena engine 3), not Postgres:
 - JSON columns are JSON text: json_extract_scalar(col, '$.field'), CAST(json_parse(col) AS array(varchar)).
 - Useful: count_if(cond), approx_distinct, approx_percentile, corr, array_agg, array_join, year(date), date_trunc. ORDER BY … NULLS LAST works.
 
-Tables (database nysgpt_nsr) and the columns that matter:
+Tables (database nsr) and the columns that matter:
 - nsr (303,568): key_number, pub_year int, reference, authors (text), title, doi, abstract, tldr, keywords, venue, publication_date (text 'YYYY-MM-DD'), entry_date date, reference_type, journal_code, citation_count, influential_citation_count, reference_count, openalex_cited_by, nuclides array, reactions array, z_values array(integer), subjects array, topics array, fields_of_study array, exfor_keys (text), arxiv_id, is_open_access, oa_status, is_nsr (false = arXiv/APS addition), collaborations/authors_json/openalex_topics (JSON text). Nuclides read '137Cs' (mass then symbol), reactions '(N,G)' (uppercase). Titles and abstracts carry LaTeX ('$^{7}$Li'). NSR keys read 2010SC08; the additions are keyed by DOI.
 - nsr_authors (1.40M): key_number, author_key bigint, order_index → authors (128,190): author_key, initial1, initial2, last_name. Author queries join these, not nsr.authors.
 - nsr_nuclides (1.21M): key_number, z, n, a, element_symbol, element_name — the typed nuclide layer; prefer it for physics filters (by Z, N, A).

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>nsr pages and their data</title>
+<style>
+  body { margin: 0; background: #f6f5f1; color: #1f2328; font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
+  main { max-width: 1080px; margin: 48px auto; padding: 0 24px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .date { color: #6b7280; font-size: 13px; margin-bottom: 28px; }
+  h2 { font-size: 13px; margin: 32px 0 10px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e2da; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 14px; border-top: 1px solid #e5e2da; font-size: 14px; }
+  th { background: #faf9f6; border-top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #6b7280; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  code { background: #efede7; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; white-space: nowrap; }
+  .muted { color: #6b7280; }
+  .live { color: #b42318; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>nsr pages and their data</h1>
+  <div class="date">2026-11-06 · /Users/brendanstanton/Code/nsr</div>
+
+  <h2>Pages</h2>
+  <table>
+    <tr><th>Page</th><th>Route</th><th>Data</th></tr>
+    <tr><td>Chat</td><td><code>/</code> <code>/new-chat</code> <code>/c/:id</code></td><td><code>/api/chat</code> nsr + Bedrock + Semantic Scholar · <code>/api/feed</code> research_feed · <code>/api/chat-sessions</code> chat_sessions · <code>/api/graph</code> · <code>/api/paper</code> Semantic Scholar</td></tr>
+    <tr><td>NSR references</td><td><code>/nsr</code></td><td><code>/api/records</code> nsr · <code>/api/search</code> nsr, nsr_embeddings · <code>/api/dict</code> nsr, authors, nsr_authors · <code>/api/record</code> nsr · <code>/api/feed</code> research_feed</td></tr>
+    <tr><td>Search</td><td><code>/search</code></td><td><code>/api/search</code> nsr, nsr_embeddings, query encoder · <code>/api/record</code> nsr · <code>/api/chat</code></td></tr>
+    <tr><td>ENSDF index</td><td><code>/ensdf</code></td><td><code>/api/nuclide</code> ensdf_datasets, ensdf_refs, nsr, nsr_nuclides, nuclide_dict</td></tr>
+    <tr><td>XUNDL index</td><td><code>/xundl</code></td><td><code>/api/nuclide</code> xundl_archive_datasets, xundl_refs, nsr, nsr_nuclides, nuclide_dict</td></tr>
+    <tr><td>Chart of nuclides</td><td><code>/ensdf/chart</code> <code>/xundl/chart</code></td><td><code>/data/structure/</code></td></tr>
+    <tr><td>Mass chain, nuclide, element</td><td><code>/ensdf/:a</code> <code>/xundl/:a</code></td><td><code>/api/nuclide</code> (tables as ENSDF and XUNDL index) · <code>/api/ensnds</code> PDFs in nsr-pdfs/ensnds · <code>/data/ensnds-map.json</code></td></tr>
+    <tr><td>Dataset references</td><td><code>/ensdf/:a/refs</code> <code>/xundl/:a/refs</code></td><td><code>/api/nuclide</code></td></tr>
+    <tr><td>Graph</td><td><code>/graph</code> <code>/graph/:a</code></td><td><code>/api/graph</code> nsr, authors, nsr_authors, exfor_entries, nsr_exfor, nsr_nuclides, nsr_reactions, nuclide_dict, reaction_dict · <code>/api/community</code> workspace_views · <code>/api/upload</code> nsr-pdfs/workspace · <code>/api/chat</code> · <code>/data/catalog.json</code> <span class="muted">· 4 uncommitted lines (prompt-chain TODO)</span></td></tr>
+    <tr><td>Tools</td><td><code>/tools</code></td><td><code>/data/ame2020.json</code> <code>/data/bbdecay.json</code> <code>/data/be2/</code> <code>/data/capgam/</code> · <code>/api/bricc</code> BrIcc at ANU · <code>/api/logft</code> NNDC LogFT</td></tr>
+    <tr><td>ENDF reports</td><td><code>/endf</code></td><td><code>/data/endf.json</code></td></tr>
+    <tr><td>ENSDF archive</td><td><code>/ensdf/archive</code></td><td><code>/data/ensdf-archivals.json</code> · files in nsr-pdfs/archivals</td></tr>
+    <tr><td>XUNDL archive</td><td><code>/xundl/archive</code></td><td><code>/data/xundl-archivals.json</code></td></tr>
+    <tr><td>NSR archive</td><td><code>/nsr/archive</code></td><td><code>/data/nsr-archivals.json</code></td></tr>
+    <tr><td>Community</td><td><code>/community</code></td><td><code>/api/community</code> community_issues, community_posts, community_threads, workspace_views</td></tr>
+    <tr><td>Code</td><td><code>/code</code></td><td><code>/data/nsdd-repos.json</code></td></tr>
+    <tr><td>ENSDF about, help, evaluation, docs</td><td><code>/ensdf/about</code> <code>/ensdf/help</code> <code>/ensdf/evaluation</code> <code>/ensdf/docs</code></td><td class="muted">Text only</td></tr>
+    <tr><td>XUNDL about</td><td><code>/xundl/about</code></td><td class="muted">Text only</td></tr>
+    <tr><td>Resources, Features, Announcing</td><td><code>/resources</code> <code>/features</code> <code>/announcing</code></td><td class="muted">Text only</td></tr>
+    <tr><td>Sidebar</td><td class="muted">every page</td><td><code>/api/chat-sessions</code> chat_sessions · <code>/data/structure/index.json</code> <code>/data/endf.json</code> <code>/data/*-archivals.json</code> <code>/data/nsdd-repos.json</code></td></tr>
+  </table>
+
+  <h2>Port to nsrgpt</h2>
+  <table>
+    <tr><th>Page</th><th>nsrgpt route</th><th>Served as</th><th>Notes</th></tr>
+    <tr><td>Chat</td><td><code>/chat</code></td><td><span class="live">Live</span></td><td>nsrgpt already has <code>/chat</code> on Bedrock. nsr's retrieval, research feed and saved sessions merge into it.</td></tr>
+    <tr><td>NSR references</td><td><code>/nsr</code></td><td><span class="live">Live</span></td><td>Filters and pages over 303,568 records</td></tr>
+    <tr><td>Search</td><td><code>/search</code></td><td><span class="live">Live</span></td><td>Needs the NSR-CPT encoder and the vectors in nsr_embeddings</td></tr>
+    <tr><td>Graph</td><td><code>/graph</code></td><td><span class="live">Live</span></td><td>Queries, saved workspaces and file uploads. Carries the uncommitted TODO. nsrgpt's <code>/viz/graph</code> is a different chart.</td></tr>
+    <tr><td>Community</td><td><code>/community</code></td><td><span class="live">Live</span></td><td>Readers write posts and threads</td></tr>
+    <tr><td>Tools</td><td><code>/tools</code></td><td>Static + outside services</td><td>BrIcc and LogFT are called at request time</td></tr>
+    <tr><td>Mass chain, nuclide, element</td><td><code>/ensdf/:a</code> <code>/xundl/:a</code></td><td>Static + PDFs</td><td>One JSON file per nuclide. PDFs from nsr-pdfs.</td></tr>
+    <tr><td>ENSDF archive</td><td><code>/ensdf/archive</code></td><td>Static + PDFs</td><td>PDFs from nsr-pdfs/archivals</td></tr>
+    <tr><td>ENSDF index</td><td><code>/ensdf</code></td><td>Static</td><td></td></tr>
+    <tr><td>XUNDL index</td><td><code>/xundl</code></td><td>Static</td><td></td></tr>
+    <tr><td>Chart of nuclides</td><td><code>/ensdf/chart</code> <code>/xundl/chart</code></td><td>Static</td><td></td></tr>
+    <tr><td>Dataset references</td><td><code>/ensdf/:a/refs</code> <code>/xundl/:a/refs</code></td><td>Static</td><td></td></tr>
+    <tr><td>ENDF reports</td><td><code>/endf</code></td><td>Static</td><td></td></tr>
+    <tr><td>XUNDL archive</td><td><code>/xundl/archive</code></td><td>Static</td><td></td></tr>
+    <tr><td>NSR archive</td><td><code>/nsr/archive</code></td><td>Static</td><td></td></tr>
+    <tr><td>Code</td><td><code>/code</code></td><td>Static</td><td></td></tr>
+    <tr><td>ENSDF about, help, evaluation, docs</td><td><code>/ensdf/about</code> <code>/ensdf/help</code> <code>/ensdf/evaluation</code> <code>/ensdf/docs</code></td><td>Static</td><td></td></tr>
+    <tr><td>XUNDL about</td><td><code>/xundl/about</code></td><td>Static</td><td></td></tr>
+    <tr><td>Resources, Features, Announcing</td><td><code>/resources</code> <code>/features</code> <code>/announcing</code></td><td>Static</td><td></td></tr>
+    <tr><td>Sidebar</td><td class="muted">every page</td><td>—</td><td>Its entries go into the SideBarMenu ui-agent is building</td></tr>
+  </table>
+
+  <h2>Where the data is now</h2>
+  <table>
+    <tr><th>Source</th><th>Location</th></tr>
+    <tr><td>Database tables</td><td>All 42, exported Nov 4 as parquet from Aurora snapshot <code>nsr-final-2026-10-15</code>. New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/lake/nsr-database/2026-10-15/</code>. Old account (2525-cli): <code>s3://govblock-lake-638175140432/lake/v1/nsr/nsr-to-lake-2026-11-04/</code> and <code>s3://nsr-lake-638175140432/lake/v1/nsr/nsr-to-lake-2026-11-04/</code></td></tr>
+    <tr><td>IAEA pull</td><td>New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/raw/iaea-livechart/2026-11-06/</code>. Old account (2525-cli): <code>s3://govblock-lake-638175140432/lake/v1/nsr/iaea-livechart/2026-11-06/</code></td></tr>
+    <tr><td>Athena</td><td>Database <code>nysgpt_nsr</code>, 30 tables, reading the govblock-lake copy. Not in Athena: chat_sessions, research_feed, community_issues, community_posts, community_threads, workspace_views, nsr_embeddings</td></tr>
+    <tr><td>Static files</td><td><code>nsr/public/data/</code>: ame2020, bbdecay, be2, capgam, catalog, endf, ensdf-archivals, ensnds-map, nsdd-repos, nsr-archivals, structure, xundl-archivals</td></tr>
+    <tr><td>PDFs</td><td>New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/files/pdfs/</code>. Old account (2525-cli): <code>s3://nsr-pdfs/</code>. Folders: arxiv/, archivals/, ensnds/, workspace/</td></tr>
+    <tr><td>NSR-CPT training</td><td>New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/work/embed-v2/</code>. Old account (2525-cli): <code>s3://nsr-embed-v2/</code></td></tr>
+    <tr><td>Outside services</td><td>Bedrock (chat) · Semantic Scholar · BrIcc (ANU) · NNDC LogFT · query encoder on the nsr-serve EC2 box or Cloudflare Workers AI</td></tr>
+  </table>
+</main>
+</body>
+</html>

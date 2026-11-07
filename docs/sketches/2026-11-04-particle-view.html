@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Particle view — prototype sketch</title>
+<style>
+  body { background:#0a0a0c; color:#e8e4da; font:15px/1.5 Georgia, serif; margin:40px auto; max-width:1080px; padding:0 24px; }
+  h1 { font-size:24px; font-weight:normal; margin:0 0 4px; }
+  .sub { color:#8b8577; font-size:13.5px; margin-bottom:24px; }
+  .stage { position:relative; border:1px solid #2a2a30; border-radius:10px; overflow:hidden; box-shadow:0 4px 12px -8px rgba(0,0,0,.8); }
+  canvas { display:block; width:100%; height:520px; cursor:crosshair; }
+  .note { position:absolute; font:11.5px ui-monospace, Menlo, monospace; color:#9a937f; max-width:220px; }
+  .note b { color:#e8c468; font-weight:600; }
+  .pane { position:absolute; top:14px; right:14px; bottom:14px; width:30%; background:rgba(16,16,20,.92); border:1px solid #2a2a30; border-radius:8px; padding:14px 16px; font:11.5px ui-monospace, Menlo, monospace; color:#b8b1a0; }
+  .pane h3 { font:600 13px Georgia, serif; color:#e8e4da; margin:0 0 8px; }
+  .pane .deck { color:#7c9a6d; white-space:pre; font-size:10px; line-height:1.45; }
+  .pane .row { border-top:1px solid #26262c; padding:5px 0; }
+  .legend { display:flex; gap:26px; margin:20px 0 6px; font-size:13px; color:#b8b1a0; }
+  .legend span b { color:#e8c468; font-weight:600; }
+  ol { color:#c9c3b4; font-size:13.5px; } li { margin:4px 0; }
+  .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
+</style>
+</head>
+<body>
+
+<h1>The field, lit by its literature</h1>
+<div class="sub">Every particle is a real nuclide — all ~10,043 from nuclide_dict. I already hold everything each click needs: the papers, the ENSDF card deck, the XUNDL sets.</div>
+
+<div class="stage">
+  <canvas id="c" width="1032" height="520"></canvas>
+  <div class="note" style="left:20px;top:18px"><b>position</b> — (N, Z) wrapped onto a sphere; the valley of stability runs bright through its core</div>
+  <div class="note" style="left:20px;top:110px"><b>glow + size</b> — log of paper count (1.21M paper–nuclide links)</div>
+  <div class="note" style="left:20px;top:202px"><b>color</b> — recency: amber = papers this decade, cool white = quiet since the '70s</div>
+  <div class="note" style="left:20px;bottom:64px"><b>pulse</b> — nuclides with XUNDL datasets revised this month flare (88 arrived since 11-03)</div>
+  <div class="note" style="left:20px;bottom:18px"><b>cursor</b> crosshair · drag orbits · scroll zooms</div>
+  <div class="pane">
+    <h3>137Cs — on click</h3>
+    <div class="row">papers 1,284 · latest 2026</div>
+    <div class="row">XUNDL: 137CS B- HALF-LIFE:XUNDL-1 · rev 2026-10</div>
+    <div class="row">EXFOR entries linked: 41</div>
+    <div class="row deck">137CS   ADOPTED LEVELS, GAMMAS
+137CS c  Compiled (unevaluated) dataset
+137CS  L 0.0      7/2+     30.08 Y
+137CS  L 455.5    5/2+ ...</div>
+    <div class="row">→ full deck, papers, EXFOR — all served from my own tables</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><b>R3F + drei + postprocessing</b> — Points buffer, bloom, OrbitControls</span>
+  <span><b>one committed JSON</b> — no live DB in the client</span>
+  <span><b>60fps at 10k</b></span>
+</div>
+
+<ol>
+  <li>One Athena pass bakes <span class="mono">data/particles.json</span>: nuclide, Z, N, papers, latest_year, xundl_last_revised, has_ensdf — ~10k rows, a few hundred KB.</li>
+  <li>Sphere positions from (N, Z) with jitter; drift and breathing from a time uniform in the point shader — no FBO, no physics engine.</li>
+  <li>Click → side panel (the pane pattern NYSgpt already ships): that nuclide's papers, its ENSDF deck, its XUNDL sets, its EXFOR links.</li>
+  <li>The XUNDL monthly sweep is the live wire: rerun it and yesterday's 88 new datasets arrive as a visible pulse — the field breathes with BNL's own cadence.</li>
+  <li>v2, if wanted: dgreenheck's WebGPU particle fluids for decay scatter — real constraint physics; v1 doesn't need it.</li>
+</ol>
+
+<div style="border-top:1px solid #2a2a30; margin-top:34px; padding-top:18px">
+<h1 style="font-size:20px">Proposals — 2026-11-04</h1>
+
+<h2 style="font-size:15px; color:#e8c468">4.1 First particle prototype</h2>
+<ol style="margin-top:4px">
+  <li><b>What it shows:</b> the chart of nuclides as the state of nuclear structure knowledge. Position (N, Z). Elevation/size: count of known levels (ENSDF). Color: years since last evaluation (ENSDF cutoff). Pulse: XUNDL datasets revised this month. Dim marker: nuclides with literature but no evaluation.</li>
+  <li><b>Click a nuclide:</b> side panel with its ENSDF levels/half-lives, pending XUNDL datasets, EXFOR entries, recent papers.</li>
+  <li><b>Build:</b> R3F + Points + bloom; one committed JSON from nuclide_dict + ensdf_index + xundl_datasets + nsr_nuclides counts; NYSgpt paper tokens for every surface (the design system this sketch ignored).</li>
+</ol>
+
+<h2 style="font-size:15px; color:#e8c468">4.2 Data recommendations per chart — physical quantities only</h2>
+<p style="font-size:12px; color:#9a937f">Sources already parsed and held: AME2020 masses (public/data/ame2020.json), B(E2) tables (be2.json), capture-gamma spectra (capgam/, 38MB), double-beta tables (bbdecay.json), ENSDF decks (levels, J&pi;, T&frac12;, gammas, decay modes), EXFOR entries, decay_processes &Delta; vectors.</p>
+<table style="border-collapse:collapse; width:100%; font-size:12.5px">
+<tr style="text-align:left; border-bottom:1px solid #4a4a52"><th style="padding:4px 8px 4px 0">Chart</th><th>Data</th><th>Use case</th></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Scatter field</td><td>AME2020 masses</td><td>Binding energy per nucleon vs mass number A, every nuclide — the curve peaks at iron-56</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Stacked area</td><td>ENSDF decay modes</td><td>Nuclide count per mass number A, stacked by primary decay mode (β−, β+/EC, α, SF, stable)</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Bar run</td><td>ENSDF half-lives</td><td>Every nuclide's half-life, sorted, log axis — from 10⁻²² s to 10²⁴ years in one run of bars</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Two-series scatter</td><td>be2.json</td><td>First 2⁺ energy vs B(E2) for even-even nuclei; near-magic series against midshell series — collectivity separates them</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Heatmap (N,Z)</td><td>ENSDF half-lives</td><td>log T½ as heat over the chart of nuclides — the NNDC wall chart, from our own decks</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">3D scatter</td><td>be2.json</td><td>E(2⁺) × B(E2) × Z — collectivity in three measured quantities</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">3D dataset scatter</td><td>EXFOR data tables</td><td>Incident energy × cross section × year, one point per measurement</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Noise field</td><td>capgam spectra</td><td>Capture-gamma lines per nuclide as vertical strips; ADD a 2D version with the dataZoom stretch and a detail column showing the selected nuclide's full spectrum</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">3D surface</td><td>AME2020 masses</td><td>Binding energy per nucleon as terrain over (N, Z) — the measured mass surface; magic numbers show as ridges</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Force graph</td><td>decay_processes + ENSDF</td><td>The decay network: nuclides as nodes, decay modes as directed edges — chains form on their own</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Flow lines</td><td>decay chains + half-lives</td><td>The uranium, thorium, actinium series as routes over the (N, Z) map; light speed set by half-life</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">Correlation matrix</td><td>AME2020 + ENSDF + be2</td><td>T½, Qα, Qβ, Sₙ, Sₚ, E(2⁺), B(E2), mass excess, level count — which physical quantities move together</td></tr>
+<tr><td colspan="3" style="padding:10px 0 2px; font-weight:600; border-bottom:1px solid #4a4a52">New examples</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">scatter-aggregate-bar</td><td>ENSDF first excited states</td><td>Every E(2⁺) as a point, aggregating into mean-per-Z bars — shell closures spike out of the aggregate</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">custom-ohlc</td><td>ENSDF levels</td><td>Per nuclide along an isotope chain: ground, first excited, median, highest known level — the excitation span as range bars</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">candlestick-sh</td><td>AME2020 separation energies</td><td>Sₙ along each isotope chain as candles — the even-odd pairing stagger reads directly; volume row = known level count</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">candlestick-large</td><td>ENSDF levels, all nuclides</td><td>~3,445 candles, one per evaluated nuclide: min/first/median/max level energy — the GL example proves the scale holds</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">radar-custom</td><td>AME2020 + ENSDF per nuclide</td><td>One polygon per nuclide: T½, Qα, Qβ−, Sₙ, Sₚ, E(2⁺) — overlay two isotopes to compare</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">heatmap-cartesian</td><td>capgam</td><td>Gamma energy bins × element, intensity as heat — a punch card of where the strong lines sit</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">heatmap-large</td><td>capgam, full 38MB</td><td>The spectral atlas: x = Eγ bin, y = every nuclide ordered by A, heat = line intensity</td></tr>
+<tr><td style="padding:4px 8px 4px 0; vertical-align:top">lines-ny, reimagined</td><td>decay chains + half-lives</td><td>Covered above as Flow lines — the decay series are the routes; moving lights step at each nuclide's half-life</td></tr>
+</table>
+</div>
+
+<script>
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const CX = 420, CY = 260, R = 195;
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+for (let i = 0; i < 2600; i++) {
+  // band around a great diagonal: the valley of stability
+  const t = rnd() * Math.PI * 2, phi = Math.acos(2 * rnd() - 1);
+  let x = Math.sin(phi) * Math.cos(t), y = Math.cos(phi), z = Math.sin(phi) * Math.sin(t);
+  const valley = Math.exp(-Math.pow((x + y) * 1.4, 2));          // density ridge
+  if (rnd() > 0.25 + valley * 0.75) continue;
+  const px = CX + x * R + (rnd() - .5) * 14, py = CY + y * R * .96 + (rnd() - .5) * 14;
+  const depth = (z + 1) / 2;
+  const papers = Math.pow(rnd(), 2.6) * valley;                   // log-ish paper glow
+  const r = 0.6 + papers * 3.2;
+  const recent = rnd() < 0.35 + valley * 0.3;
+  const a = 0.14 + depth * 0.5 + papers * 0.4;
+  ctx.beginPath(); ctx.arc(px, py, r, 0, 7);
+  ctx.fillStyle = recent ? `rgba(232,196,104,${a})` : `rgba(214,222,235,${a * 0.8})`;
+  ctx.shadowColor = recent ? 'rgba(232,180,80,.9)' : 'rgba(180,200,235,.5)';
+  ctx.shadowBlur = papers * 22;
+  ctx.fill();
+}
+// a few XUNDL pulses
+for (const [px, py] of [[473,197],[352,330],[512,308]]) {
+  ctx.beginPath(); ctx.arc(px, py, 6, 0, 7);
+  ctx.strokeStyle = 'rgba(232,160,60,.8)'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(px, py, 11, 0, 7);
+  ctx.strokeStyle = 'rgba(232,160,60,.25)'; ctx.stroke();
+}
+ctx.shadowBlur = 0;
+</script>
+
+</body>
+</html>

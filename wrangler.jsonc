@@ -18,14 +18,12 @@
   },
   // Secrets set by hand, once (wrangler secret put; they survive every deploy):
   //   AWS_BEARER_TOKEN_BEDROCK — the nysgpt-chat-worker IAM user's Bedrock API key
-  //   NSR_ATHENA_KEY_ID        — that user's access key (policy nsr-athena-read): the chat's
-  //   NSR_ATHENA_SECRET          NSR tools query the lake parquet through Athena
+  //   NSR_ATHENA_KEY_ID        — access key of nsrgpt-chat-worker (New account, policy nsr-athena-read):
+  //   NSR_ATHENA_SECRET          the chat's NSR tools query nsr-lake through Athena (us-east-2)
   //   NSR_DATABASE_URL         — unused since 2026-11-04 (the NSR corpus left Neon for the lake)
-  "vars": {
-    // The workers.dev build answers without a Cognito session (sign-in isn't wired there).
-    // Delete this line to require sign-in again.
-    "NYSGPT_CHAT_OPEN": "1"
-  },
+  // NYSGPT_CHAT_OPEN is gone (2026-11-07): the chat requires a signed-in reader. Set it to "1"
+  // in "vars" to answer without a session again.
+  "vars": {},
   "observability": {
     "enabled": true
   }

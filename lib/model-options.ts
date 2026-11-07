@@ -3,17 +3,19 @@
 // this account in us-east-1 on 2026-10-20; the newer profiles Bedrock lists (Claude 5.x, GPT-6, Grok 4.7,
 // GLM-5.3) are not enabled here, and Nova Premier, Opus 4.1 and Palmyra X4 are retired or legacy. The chat
 // route takes only ids in this list. Kept free of server imports: the picker and the route both read it.
+// Claude's models wear the Claude mark (leuk's public/brand/claude-mark.webp) and go by their own names, "Sonnet 4.6"
+// (Brendan, 2026-11-07).
 
 export type ModelOption = { id: string; label: string; description: string; logo: string }
 
 const L = (f: string) => `/logos/models/${f}`
 
 export const MODEL_OPTIONS: ModelOption[] = [
-  { id: "us.anthropic.claude-sonnet-4-6", label: "Claude Sonnet 4.6", description: "Fast and smart", logo: L("anthropic.webp") },
-  { id: "us.anthropic.claude-haiku-4-5-20251001-v1:0", label: "Claude Haiku 4.5", description: "Fastest", logo: L("anthropic.webp") },
-  { id: "us.anthropic.claude-opus-4-6-v1", label: "Claude Opus 4.6", description: "Most capable", logo: L("anthropic.webp") },
-  { id: "us.anthropic.claude-opus-4-5-20251101-v1:0", label: "Claude Opus 4.5", description: "Anthropic", logo: L("anthropic.webp") },
-  { id: "us.anthropic.claude-sonnet-4-5-20250929-v1:0", label: "Claude Sonnet 4.5", description: "Anthropic", logo: L("anthropic.webp") },
+  { id: "us.anthropic.claude-sonnet-4-6", label: "Sonnet 4.6", description: "Fast and smart", logo: L("claude.webp") },
+  { id: "us.anthropic.claude-haiku-4-5-20251001-v1:0", label: "Haiku 4.5", description: "Fastest", logo: L("claude.webp") },
+  { id: "us.anthropic.claude-opus-4-6-v1", label: "Opus 4.6", description: "Most capable", logo: L("claude.webp") },
+  { id: "us.anthropic.claude-opus-4-5-20251101-v1:0", label: "Opus 4.5", description: "Anthropic", logo: L("claude.webp") },
+  { id: "us.anthropic.claude-sonnet-4-5-20250929-v1:0", label: "Sonnet 4.5", description: "Anthropic", logo: L("claude.webp") },
   { id: "openai.gpt-oss-120b-1:0", label: "gpt-oss 120B", description: "OpenAI, open weight", logo: L("openai.webp") },
   { id: "us.meta.llama4-maverick-17b-instruct-v1:0", label: "Llama 4 Maverick", description: "Meta, open weight", logo: L("meta_small.svg") },
   { id: "us.meta.llama4-scout-17b-instruct-v1:0", label: "Llama 4 Scout", description: "Meta, long context", logo: L("meta_small.svg") },

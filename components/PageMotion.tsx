@@ -3,11 +3,12 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { isEmbedded } from '@/lib/pane'
-import { chartBack, chartForward, chartForwardFirst, chartRoot, removeGrow, takeBack } from '@/lib/viz-grow'
+import { chartBack, chartForward, chartForwardFirst, chartRoot, markBack, removeGrow, takeBack } from '@/lib/viz-grow'
 
 // Panel 1's page transitions (Brendan, 2026-11-06; lib/viz-grow.ts): ChartRoot whenever / arrives or first loads,
 // ChartForward on every other page's first load and on every link to another page, ChartBack after the
-// previous-chart button. A link that runs its own (the index's boxes, the chart buttons) carries data-motion-own.
+// previous-chart button and on the browser's back (2026-11-07). A link that runs its own (the index's boxes, the chart
+// buttons) carries data-motion-own.
 
 export function PageMotion() {
   const path = usePathname()
@@ -27,6 +28,14 @@ export function PageMotion() {
 
   // ChartForward's clone goes once the next page is up.
   useEffect(() => removeGrow, [path])
+
+  // The browser's back (and forward) arrives as ChartBack (Brendan, 2026-11-07): /search back to /chat, any page back.
+  useEffect(() => {
+    if (isEmbedded()) return
+    const back = () => markBack()
+    window.addEventListener('popstate', back)
+    return () => window.removeEventListener('popstate', back)
+  }, [])
 
   useEffect(() => {
     if (isEmbedded()) return

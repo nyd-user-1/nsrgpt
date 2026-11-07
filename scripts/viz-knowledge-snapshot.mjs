@@ -1,5 +1,5 @@
 // The knowledge map's snapshot (/viz/knowledge, prototype C, 2026-11-04): what the literature and the evaluations
-// hold for each nuclide, as plain counts from the lake (Athena, nysgpt_nsr), written to
+// hold for each nuclide, as plain counts from the lake (Athena, nsr), written to
 // public/viz-data/knowledge.json. Rerun by hand; it uses the local AWS CLI's credentials:
 //   node scripts/viz-knowledge-snapshot.mjs
 //
@@ -27,7 +27,7 @@ const parseNucid = (id) => {
 };
 
 // ── Athena ────────────────────────────────────────────────────────────────────────────────────────
-const aws = (...args) => execFileSync("aws", [...args, "--region", "us-east-1", "--output", "json"], { encoding: "utf8", maxBuffer: 1 << 30 });
+const aws = (...args) => execFileSync("aws", [...args, "--profile", "nysgpt-new", "--region", "us-east-2", "--output", "json"], { encoding: "utf8", maxBuffer: 1 << 30 });
 function parseCsv(text) {
   const rows = [];
   let row = [], field = "", q = false;
@@ -46,12 +46,12 @@ function parseCsv(text) {
   return rows;
 }
 async function athena(sql) {
-  const qid = JSON.parse(aws("athena", "start-query-execution", "--work-group", "nysgpt-chat", "--query-execution-context", "Database=nysgpt_nsr", "--query-string", sql)).QueryExecutionId;
+  const qid = JSON.parse(aws("athena", "start-query-execution", "--work-group", "nsrgpt", "--query-execution-context", "Database=nsr", "--query-string", sql)).QueryExecutionId;
   for (;;) {
     const exec = JSON.parse(aws("athena", "get-query-execution", "--query-execution-id", qid)).QueryExecution;
     const s = exec.Status.State;
     if (s === "SUCCEEDED") {
-      const csv = execFileSync("aws", ["s3", "cp", exec.ResultConfiguration.OutputLocation, "-"], { encoding: "utf8", maxBuffer: 1 << 30 });
+      const csv = execFileSync("aws", ["s3", "cp", "--profile", "nysgpt-new", exec.ResultConfiguration.OutputLocation, "-"], { encoding: "utf8", maxBuffer: 1 << 30 });
       return parseCsv(csv).slice(1);
     }
     if (s === "FAILED" || s === "CANCELLED") throw new Error(`Athena ${s}: ${exec.Status.StateChangeReason}`);
@@ -113,7 +113,7 @@ const rows = [...map.values()]
     return [r.z, r.n, r.papers, r.levels, r.cards, r.exfor, r.xundl, cutoff, r.eval];
   });
 
-const out = { source: "NSR, EXFOR links, ENSDF Adopted Levels, XUNDL, ENSDF evaluation index (nysgpt_nsr), snapshot 2026-11-04", columns, rows };
+const out = { source: "NSR, EXFOR links, ENSDF Adopted Levels, XUNDL, ENSDF evaluation index (nsr), snapshot 2026-11-04", columns, rows };
 const json = JSON.stringify(out);
 writeFileSync("public/viz-data/knowledge.json", json);
 const evaluated = rows.filter((r) => r[8]).length;

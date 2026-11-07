@@ -89,7 +89,7 @@ Every chart is a page under `/viz/`, listed in `lib/viz-charts.ts` (the order th
 | `public/viz-data/graph-layout*.json` | Force graph layouts, 2D and 3D | `scripts/viz-graph-layout.mjs`, `scripts/viz-graph-layout-3d.mjs` |
 | `public/viz-data/fission/`, `livechart-ground.json`, `decay-energy.json`, `radiation/`, `gamma/` | IAEA Live Chart API | `scripts/iaea-livechart-pull.mjs`, then `scripts/iaea-livechart-build.mjs` |
 
-Raw IAEA Live Chart pulls, as served, and the built files are in `s3://govblock-lake-638175140432/lake/v1/nsr/iaea-livechart/2026-11-06/` with a `manifest.json`. The NSR corpus export is in `s3://govblock-lake-638175140432/lake/v1/nsr/`. The live site never calls an outside data source at request time.
+All NSRgpt data is in `s3://nsr-lake-613473203863` (AWS profile `nysgpt-new`, us-east-2); `INVENTORY.md` at its root lists every folder. The nsr database export (42 tables) is in `lake/nsr-database/2026-10-15/`, the raw IAEA Live Chart pull with its built files and `manifest.json` in `raw/iaea-livechart/2026-11-06/`, paper PDFs in `files/pdfs/`, and NSR-CPT training files in `work/embed-v2/`. Athena reads it through the Glue database `nsr` and the workgroup `nsrgpt`: the 42 tables, the view `nsr`, and the IAEA views `iaea_*`. The live site never calls an outside data source at request time.
 
 ## Layout
 

@@ -1,5 +1,5 @@
 // The decay simulation's snapshot (/viz/decay, 2026-11-04): every ENSDF Adopted Levels deck's ground state —
-// its half-life and decay branchings — read once from the lake (Athena, nysgpt_nsr.ensdf_datasets) and written
+// its half-life and decay branchings — read once from the lake (Athena, nsr.ensdf_datasets) and written
 // to public/viz-data/decay.json. Rerun by hand; it uses the local AWS CLI's credentials:
 //   node scripts/viz-decay-snapshot.mjs
 //
@@ -23,14 +23,14 @@ const ELEMENTS = ["Nn","H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al
 const zOf = (sym) => ELEMENTS.findIndex((e) => e.toUpperCase() === sym.toUpperCase());
 
 // ── Athena ────────────────────────────────────────────────────────────────────────────────────────
-const aws = (...args) => execFileSync("aws", [...args, "--region", "us-east-1", "--output", "json"], { encoding: "utf8", maxBuffer: 1 << 30 });
+const aws = (...args) => execFileSync("aws", [...args, "--profile", "nysgpt-new", "--region", "us-east-2", "--output", "json"], { encoding: "utf8", maxBuffer: 1 << 30 });
 
 // The ground state's cards only: the deck's non-comment L records, first sixteen (the ground state and its
 // continuations come first) — a few MB instead of the decks' 100 MB.
 const SQL = `SELECT nucid, array_join(slice(filter(split(raw, chr(10)), l -> length(l) >= 8 AND substr(l, 8, 1) = 'L' AND substr(l, 7, 1) = ' '), 1, 16), chr(31)) AS cards
 FROM ensdf_datasets WHERE dsid LIKE 'ADOPTED LEVELS%'`;
 
-const qid = JSON.parse(aws("athena", "start-query-execution", "--work-group", "nysgpt-chat", "--query-execution-context", "Database=nysgpt_nsr", "--query-string", SQL)).QueryExecutionId;
+const qid = JSON.parse(aws("athena", "start-query-execution", "--work-group", "nsrgpt", "--query-execution-context", "Database=nsr", "--query-string", SQL)).QueryExecutionId;
 let exec;
 for (;;) {
   exec = JSON.parse(aws("athena", "get-query-execution", "--query-execution-id", qid)).QueryExecution;
@@ -39,7 +39,7 @@ for (;;) {
   if (s === "FAILED" || s === "CANCELLED") throw new Error(`Athena ${s}: ${exec.Status.StateChangeReason}`);
   await new Promise((r) => setTimeout(r, 1000));
 }
-const csv = execFileSync("aws", ["s3", "cp", exec.ResultConfiguration.OutputLocation, "-"], { encoding: "utf8", maxBuffer: 1 << 30 });
+const csv = execFileSync("aws", ["s3", "cp", "--profile", "nysgpt-new", exec.ResultConfiguration.OutputLocation, "-"], { encoding: "utf8", maxBuffer: 1 << 30 });
 
 /** Athena's CSV: every field quoted, quotes doubled. */
 function parseCsv(text) {
@@ -190,7 +190,7 @@ for (const [nucid, cards] of rows) {
 }
 nuclides.sort((p, q) => p.z - q.z || p.n - q.n);
 
-const out = { source: "ENSDF Adopted Levels, ground states (nysgpt_nsr.ensdf_datasets), snapshot 2026-11-04", modes: MODES, nuclides };
+const out = { source: "ENSDF Adopted Levels, ground states (nsr.ensdf_datasets), snapshot 2026-11-04", modes: MODES, nuclides };
 const json = JSON.stringify(out);
 writeFileSync("public/viz-data/decay.json", json);
 

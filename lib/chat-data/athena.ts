@@ -2,19 +2,19 @@ import "server-only"
 
 import { AwsClient } from "aws4fetch"
 
-// Athena for the chat's NSR tools (2026-11-04). The corpus lives in the lake as parquet
-// (s3://govblock-lake-638175140432/lake/v1/nsr/nsr-to-lake-2026-11-04/), catalogued in Glue as
-// nysgpt_nsr. The worker can't load the AWS SDK's node paths and Athena has no bearer-token road,
-// so this signs the Athena JSON API with aws4fetch (pure-JS SigV4): StartQueryExecution → poll
+// Athena for the chat's NSR tools (2026-11-04; moved to the New account 2026-11-07). The corpus
+// lives in s3://nsr-lake-613473203863/lake/nsr-database/2026-10-15/ as parquet, catalogued in Glue
+// as nsr (us-east-2). The worker can't load the AWS SDK's node paths and Athena has no bearer-token
+// road, so this signs the Athena JSON API with aws4fetch (pure-JS SigV4): StartQueryExecution → poll
 // GetQueryExecution → GetQueryResults, first page only.
 //
 // Credentials: NSR_ATHENA_KEY_ID / NSR_ATHENA_SECRET — an access key on IAM user
-// nysgpt-chat-worker, whose nsr-athena-read policy allows the nysgpt-chat workgroup, Glue reads on
-// nysgpt_nsr, the NSR prefix of the lake, and the workgroup's results prefix. Nothing else.
+// nsrgpt-chat-worker (New account), whose nsr-athena-read policy allows the nsrgpt workgroup, Glue
+// reads on nsr, reads on the lake, and the workgroup's results prefix. Nothing else.
 
-const REGION = "us-east-1"
-const WORKGROUP = "nysgpt-chat"
-const DATABASE = "nysgpt_nsr"
+const REGION = "us-east-2"
+const WORKGROUP = "nsrgpt"
+const DATABASE = "nsr"
 
 let client: AwsClient | null = null
 const aws = () => {

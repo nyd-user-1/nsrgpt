@@ -4,7 +4,7 @@
 //   node scripts/viz-levels-snapshot.mjs                 (queries Athena with the local AWS CLI)
 //   node scripts/viz-levels-snapshot.mjs --csv=PATH      (reuses a results CSV already downloaded)
 //
-// Source: nysgpt_nsr.ensdf_datasets.raw (one card deck per dataset), dsid 'ADOPTED LEVELS…', minus
+// Source: nsr.ensdf_datasets.raw (one card deck per dataset), dsid 'ADOPTED LEVELS…', minus
 // the unobserved/not-observed decks; Z and N from nuclide_dict. Athena splits each deck into its
 // 80-column cards and returns only the L (level) and G (gamma) records, plus G continuation records
 // that carry FL= (the gamma's final level), in deck order.
@@ -49,12 +49,12 @@ where e.dsid like 'ADOPTED LEVELS%' and e.dsid not like '%UNOBSERVED' and e.dsid
 order by e.nucid, t.i`;
 
 // ---------------------------------------------------------------- Athena (local AWS CLI)
-const aws = (...args) => execFileSync("aws", args, { encoding: "utf8" }).trim();
+const aws = (...args) => execFileSync("aws", [...args, "--profile", "nysgpt-new", "--region", "us-east-2"], { encoding: "utf8" }).trim();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function athenaCsv() {
-  const id = aws("athena", "start-query-execution", "--work-group", "nysgpt-chat",
-    "--query-execution-context", "Database=nysgpt_nsr", "--query-string", SQL,
+  const id = aws("athena", "start-query-execution", "--work-group", "nsrgpt",
+    "--query-execution-context", "Database=nsr", "--query-string", SQL,
     "--query", "QueryExecutionId", "--output", "text");
   for (;;) {
     const [state, why] = aws("athena", "get-query-execution", "--query-execution-id", id,
@@ -66,7 +66,7 @@ async function athenaCsv() {
   const loc = aws("athena", "get-query-execution", "--query-execution-id", id,
     "--query", "QueryExecution.ResultConfiguration.OutputLocation", "--output", "text");
   console.log(`results: ${loc}`);
-  return spawn("aws", ["s3", "cp", loc, "-"], { stdio: ["ignore", "pipe", "inherit"] }).stdout;
+  return spawn("aws", ["s3", "cp", "--profile", "nysgpt-new", loc, "-"], { stdio: ["ignore", "pipe", "inherit"] }).stdout;
 }
 
 // ---------------------------------------------------------------- CSV (Athena quotes every field; no field spans lines)
@@ -234,7 +234,7 @@ for (const x of kept) {
 }
 
 const doc = {
-  source: "ENSDF adopted levels and gammas (nysgpt_nsr.ensdf_datasets), snapshot 2026-11-04",
+  source: "ENSDF adopted levels and gammas (nsr.ensdf_datasets), snapshot 2026-11-04",
   caps: { maxKeV: MAX_KEV, levels: MAX_LEVELS, gammas: MAX_GAMMAS },
   nuclides: kept,
 };

@@ -11,7 +11,7 @@ You're the lead on NSRgpt. Read this, then wait for Brendan's first instruction.
   - `MenuSelect` in place of every native `<select>`
   - chart controls and legends moved to the right panel (Viz › chart, `components/viz/VizControls.tsx`, `EChartLegend.tsx`)
   - ShiftNote ported from pax-trinity's `floating-note.tsx`
-- IAEA data: raw and site files in `s3://govblock-lake-638175140432/lake/v1/nsr/iaea-livechart/2026-11-06/`. Scripts: `scripts/iaea-livechart-pull.mjs` and `scripts/iaea-livechart-build.mjs`. Sketch: `docs/sketches/2026-11-06-livechart-api.html`.
+- IAEA data: raw and site files in `s3://nsr-lake-613473203863/raw/iaea-livechart/2026-11-06/` (profile `nysgpt-new`; Athena database `nsr`, views `iaea_*`). Scripts: `scripts/iaea-livechart-pull.mjs` and `scripts/iaea-livechart-build.mjs`. Sketch: `docs/sketches/2026-11-06-livechart-api.html`.
 
 ## Open items (Brendan to rule)
 1. General organisation: merging the original nsr repo, and moving all of `public/viz-data` to S3.

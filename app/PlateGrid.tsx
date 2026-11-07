@@ -9,15 +9,16 @@ import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
  * snap sideways, never a half-visible column. A last page with fewer boxes takes the grid that fills
  * the plate best (two large tools sit side by side, not stacked).
  *
- * `minW`/`minH`: the smallest a box may be. Before the plate is measured (the server render) it lays
- * out for a desktop plate.
+ * `minW`/`minH`: the smallest a box may be. `maxCols`: the most columns a page takes, however wide the plate
+ * (the index holds 4, so its 32 boxes deal into four even pages of 8; Brendan, 2026-11-07). Before the plate is
+ * measured (the server render) it lays out for a desktop plate.
  */
 
 type Fit = { rows: number; cols: number }
 
-function grid(w: number, h: number, minW: number, minH: number): Fit {
+function grid(w: number, h: number, minW: number, minH: number, maxCols = Infinity): Fit {
   const rows = h >= 2 * minH ? 2 : 1
-  let cols = Math.max(1, Math.floor(w / minW))
+  let cols = Math.max(1, Math.min(maxCols, Math.floor(w / minW)))
   // A single row stays even too.
   if (rows === 1 && cols > 1 && cols % 2) cols -= 1
   return { rows, cols }
@@ -36,7 +37,7 @@ function pageFit(n: number, { rows, cols }: Fit, w: number, h: number, aspect: n
   return best ? { rows: best.rows, cols: best.cols } : { rows, cols }
 }
 
-export function PlateGrid({ children, minW = 220, minH = 200, className = '' }: { children: ReactNode; minW?: number; minH?: number; className?: string }) {
+export function PlateGrid({ children, minW = 220, minH = 200, maxCols, className = '' }: { children: ReactNode; minW?: number; minH?: number; maxCols?: number; className?: string }) {
   const items = Children.toArray(children)
   const ref = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 1250, h: 420 })
@@ -50,7 +51,7 @@ export function PlateGrid({ children, minW = 220, minH = 200, className = '' }: 
     return () => ro.disconnect()
   }, [])
 
-  const fit = grid(size.w, size.h, minW, minH)
+  const fit = grid(size.w, size.h, minW, minH, maxCols)
   const cap = fit.rows * fit.cols
   const pages: ReactNode[][] = []
   for (let i = 0; i < items.length; i += cap) pages.push(items.slice(i, i + cap))

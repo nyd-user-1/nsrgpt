@@ -11,7 +11,7 @@
 // retry, and files already on disk are skipped, so a rerun resumes. The API asks for a User-Agent header.
 //
 //   node scripts/iaea-livechart-pull.mjs <out dir> [types=a,bm,bp,g,e,x]
-// Then copy the folder to s3://govblock-lake-638175140432/lake/v1/nsr/iaea-livechart/<date>/.
+// Then copy the folder to s3://nsr-lake-613473203863/raw/iaea-livechart/<date>/ (profile nysgpt-new).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { parseCsv } from "./iaea-livechart-csv.mjs";

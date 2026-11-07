@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What I hold — NSR data estate</title>
+<style>
+  :root { --ink:#16181d; --faint:#6b7280; --rule:#d7d3c8; --paper:#faf8f2; --acc:#1d4ed8; --gold:#b45309; --green:#15803d; --red:#b91c1c; }
+  body { background:var(--paper); color:var(--ink); font:15px/1.5 Georgia, serif; margin:40px auto; max-width:1080px; padding:0 24px; }
+  h1 { font-size:26px; font-weight:normal; margin:0 0 4px; }
+  .sub { color:var(--faint); margin-bottom:28px; font-size:13.5px; }
+  table { border-collapse:collapse; width:100%; margin:18px 0 30px; font-size:13.5px; }
+  th { text-align:left; border-bottom:1px solid var(--ink); font-weight:600; padding:6px 10px 4px 0; }
+  td { border-bottom:1px solid var(--rule); padding:6px 10px 6px 0; vertical-align:top; }
+  .n { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .have { color:var(--green); font-weight:600; } .partial { color:var(--gold); font-weight:600; } .miss { color:var(--red); font-weight:600; }
+  .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
+  svg text { font:12px ui-monospace, Menlo, monospace; fill:var(--ink); }
+  svg .dim text { fill:var(--faint); }
+  .box { fill:#fff; stroke:var(--ink); stroke-width:1; rx:3; }
+  .soft { fill:#fff; stroke:var(--faint); stroke-dasharray:3 3; rx:3; }
+  .edge { stroke:var(--faint); stroke-width:1; fill:none; }
+  .lbl { font-size:10.5px; fill:var(--faint); }
+</style>
+</head>
+<body>
+
+<h1>What I hold, against the NNDC wall of nine</h1>
+<div class="sub">Everything below is already mine — in the lake (s3://govblock-lake…/lake/v1/nsr/nsr-to-lake-2026-11-04/, 42 parquet tables, 29 queryable in Athena <span class="mono">nysgpt_nsr</span>), with the raw distributions mirrored at s3://nsr-pdfs/archivals/. Counts from docs/data-accounting.md, 2026-06-30 dump.</div>
+
+<table>
+<tr><th>NNDC box</th><th>Do I have it?</th><th>What I actually hold</th><th class="n">Scale</th></tr>
+<tr><td><b>NSR</b></td><td class="have">YES — full</td><td>Complete corpus 1857–2026, exact parity with the dump; typed nuclide/reaction/subject selectors, canonical authors, S2 enrichment (citations, abstracts), 74% with PDFs at NNDC</td><td class="n">255,315 entries<br>+49.5k arXiv/APS</td></tr>
+<tr><td><b>ENSDF</b></td><td class="have">YES — full</td><td>Every evaluated dataset with its complete card deck (the text in the Dispatcher servlet), every archival distribution since 2004 mirrored to S3, plus ENSDF→NSR key links</td><td class="n">20,121 decks<br>3,445 nuclides</td></tr>
+<tr><td><b>XUNDL</b></td><td class="have">YES</td><td>Dataset listings per nuclide with revision dates + NNDC recids for deep links; archive sweep tables. The feed moves ~88 datasets/day — a refresh is one servlet sweep</td><td class="n">per-nuclide sets</td></tr>
+<tr><td><b>EXFOR</b></td><td class="have">YES</td><td>Full entries from IAEA-NDS exfor_json — title, year, institutes, REACTION codes, and the entire raw entry JSON — linked to NSR keys</td><td class="n">entries + 23,515 links</td></tr>
+<tr><td><b>ENDF</b></td><td class="partial">PARTIAL</td><td><span class="mono">endf_reports</span> table (reports layer); not the evaluated cross-section library itself</td><td class="n">—</td></tr>
+<tr><td><b>NuDat / MIRD / Sigma</b></td><td class="miss">NO — derivable</td><td>These are NNDC's rendered products over ENSDF/ENDF. I hold their substrate (the card decks); parsing levels/gammas/half-lives out of my own decks recreates them</td><td class="n">—</td></tr>
+<tr><td>Dictionaries</td><td class="have">YES</td><td>nuclide_dict (typed Z/N/A), reaction_dict (ΔZ/ΔN/ΔA, fission/transfer), particle_dict, decay_processes, subjects, journals (606), authors (128,190 + 7,565 aliases)</td><td class="n">10,043 nuclides</td></tr>
+<tr><td>ML layer</td><td class="have">YES</td><td>Three embedding sets (incl. NSR-CPT encoder), eval queries, training mining — in the lake, kept out of Athena on purpose</td><td class="n">—</td></tr>
+</table>
+
+<svg viewBox="0 0 1040 560" width="100%">
+  <!-- center: nsr -->
+  <rect class="box" x="420" y="230" width="200" height="86"/>
+  <text x="432" y="252" font-weight="bold">nsr  255,315</text>
+  <text x="432" y="270" class="lbl">key_number PK · title · year</text>
+  <text x="432" y="284" class="lbl">DOI · type · S2: citations,</text>
+  <text x="432" y="298" class="lbl">influential, abstract, venue</text>
+
+  <!-- people, left top -->
+  <rect class="box" x="60" y="60" width="200" height="56"/>
+  <text x="72" y="82">nsr_authors  1.40M</text>
+  <text x="72" y="100" class="lbl">→ authors 128,190 · aliases</text>
+  <path class="edge" d="M260 100 C 350 120, 390 200, 440 230"/>
+
+  <!-- nuclides, left mid -->
+  <rect class="box" x="60" y="180" width="200" height="56"/>
+  <text x="72" y="202">nsr_nuclides  1.21M</text>
+  <text x="72" y="220" class="lbl">→ nuclide_dict 10,043 (Z,N,A)</text>
+  <path class="edge" d="M260 208 C 340 215, 370 250, 420 258"/>
+
+  <!-- reactions, left low -->
+  <rect class="box" x="60" y="300" width="200" height="56"/>
+  <text x="72" y="322">nsr_reactions  229k</text>
+  <text x="72" y="340" class="lbl">→ reaction_dict ΔZ/ΔN/ΔA</text>
+  <path class="edge" d="M260 324 C 340 320, 370 290, 420 284"/>
+
+  <!-- subjects/topics, left bottom -->
+  <rect class="box" x="60" y="420" width="200" height="56"/>
+  <text x="72" y="442">subjects 687k · topics 214k</text>
+  <text x="72" y="460" class="lbl">T1/2, SIGMA, A-DECAY…</text>
+  <path class="edge" d="M260 442 C 350 440, 390 330, 440 316"/>
+
+  <!-- exfor, right top -->
+  <rect class="box" x="780" y="60" width="210" height="70"/>
+  <text x="792" y="82">exfor_entries</text>
+  <text x="792" y="100" class="lbl">raw entry JSON · reactions</text>
+  <text x="792" y="114" class="lbl">institutes · subentries</text>
+  <path class="edge" d="M780 100 C 700 120, 660 200, 620 236"/>
+  <text x="664" y="150" class="lbl">nsr_exfor 23,515</text>
+
+  <!-- ensdf, right mid -->
+  <rect class="box" x="780" y="200" width="210" height="86"/>
+  <text x="792" y="222" font-weight="bold">ensdf_datasets 20,121</text>
+  <text x="792" y="240" class="lbl">nucid · dsid · FULL CARD DECK</text>
+  <text x="792" y="254" class="lbl">+ ensdf_index · archive ledger</text>
+  <text x="792" y="268" class="lbl">+ every distribution since 2004</text>
+  <path class="edge" d="M780 240 C 710 245, 680 260, 620 262"/>
+  <text x="652" y="238" class="lbl">ensdf_refs</text>
+
+  <!-- xundl, right low -->
+  <rect class="box" x="780" y="330" width="210" height="70"/>
+  <text x="792" y="352">xundl_datasets</text>
+  <text x="792" y="370" class="lbl">nuclide · dataset · last_revised</text>
+  <text x="792" y="384" class="lbl">recid → NNDC deep link · ~88/day</text>
+  <path class="edge" d="M780 358 C 710 350, 680 300, 620 290"/>
+  <text x="656" y="330" class="lbl">xundl_refs</text>
+
+  <!-- ml, bottom right, soft -->
+  <g class="dim">
+  <rect class="soft" x="600" y="450" width="390" height="56"/>
+  <text x="612" y="472">nsr_embeddings ×3 · eval_queries · train_mining</text>
+  <text x="612" y="490">in the lake, deliberately outside Athena</text>
+  </g>
+  <path class="edge" d="M560 316 C 580 380, 620 430, 680 450" stroke-dasharray="3 3"/>
+
+  <!-- stores, bottom left, soft -->
+  <g class="dim">
+  <rect class="soft" x="60" y="500" width="460" height="40"/>
+  <text x="72" y="525">lake parquet (42) · Athena nysgpt_nsr (29) · s3://nsr-pdfs/archivals (raw ENSDF/NSR zips)</text>
+  </g>
+</svg>
+
+<h1 style="margin-top:44px">Data dictionary — all 42 tables</h1>
+<div class="sub">Columns from sql/ schema files; row counts from docs/data-accounting.md and the 2026-11-04 lake verification where measured.</div>
+
+<table>
+<tr><th>Table</th><th class="n">Rows</th><th>Columns</th><th>Contents</th></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">Literature core</td></tr>
+<tr><td class="mono">nsr</td><td class="n">303,568</td><td class="mono">key_number, pub_year, reference, authors, title, doi, exfor_keys, keywords + reference_type, journal_code, index_information, coden_text, entry_date, modification_date, is_primary, pdf_available, xundl_available, collaborations, authors_json, sentence_groups, subjects[], topics[], raw jsonb + S2: s2_paper_id, citation_count, influential_citation_count, reference_count, abstract, tldr, venue, publication_date, is_open_access</td><td>One row per reference: 255,315 NSR entries (1857–2026) + 49.5k arXiv/APS additions, with full NNDC metadata and Semantic Scholar enrichment</td></tr>
+<tr><td class="mono">nsr_authors</td><td class="n">1,404,442</td><td class="mono">key_number, author_key, order_index</td><td>Paper→author links, ordered</td></tr>
+<tr><td class="mono">authors</td><td class="n">128,190</td><td class="mono">author_key, initial1, initial2, last_name</td><td>Canonical author identities</td></tr>
+<tr><td class="mono">author_aliases</td><td class="n">7,565</td><td class="mono">initial1, initial2, last_name, author_key</td><td>Alternate spellings → canonical author</td></tr>
+<tr><td class="mono">collaboration_names</td><td class="n">—</td><td class="mono">collaboration_name, author_key, is_alias</td><td>Collaboration names (3.0% of papers)</td></tr>
+<tr><td class="mono">journals</td><td class="n">606</td><td class="mono">journal_code, title, min_year, max_year</td><td>Journal code → full title + year span</td></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">Typed selectors (per paper)</td></tr>
+<tr><td class="mono">nsr_nuclides</td><td class="n">1,210,113</td><td class="mono">key_number, z, n, a, element_symbol, element_name, sub_type, selector_flag, selector_index</td><td>Paper→nuclide links with role (TARGET, DAUGHTER, …)</td></tr>
+<tr><td class="mono">nsr_reactions</td><td class="n">229,143</td><td class="mono">key_number, reaction_code, selector_flag, selector_index</td><td>Paper→reaction links</td></tr>
+<tr><td class="mono">nsr_subjects</td><td class="n">686,880</td><td class="mono">key_number, subject_code, sub_type, selector_flag, selector_index</td><td>Paper→subject codes (T1/2, SIGMA, A-DECAY, …)</td></tr>
+<tr><td class="mono">nsr_topics</td><td class="n">214,376</td><td class="mono">key_number, topic</td><td>Paper→topic class (NUCLEAR_REACTIONS, NUCLEAR_STRUCTURE, RADIOACTIVITY, …)</td></tr>
+<tr><td class="mono">nsr_mass_ranges</td><td class="n">—</td><td class="mono">key_number, minimum, maximum, selector_flag, selector_index</td><td>Papers indexed by mass-number range</td></tr>
+<tr><td class="mono">nsr_z_ranges</td><td class="n">—</td><td class="mono">key_number, minimum, maximum, selector_flag, selector_index</td><td>Papers indexed by Z range</td></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">Dictionaries</td></tr>
+<tr><td class="mono">nuclide_dict</td><td class="n">10,043</td><td class="mono">nuclide_code, z, n, a, element</td><td>Every nuclide code with typed Z/N/A</td></tr>
+<tr><td class="mono">reaction_dict</td><td class="n">—</td><td class="mono">reaction_code, incident_particle, outgoing_particles, is_alpha_transfer, is_fission, is_polarized, is_two_nucleon_transfer, is_charge_exchange, is_determinable, delta_z, delta_n, delta_a</td><td>Reaction codes with physics flags and ΔZ/ΔN/ΔA</td></tr>
+<tr><td class="mono">reaction_display</td><td class="n">—</td><td class="mono">reaction_code, exchange_codes, latex_codes</td><td>Reaction rendering (LaTeX)</td></tr>
+<tr><td class="mono">particle_dict</td><td class="n">—</td><td class="mono">particle_code, z, a</td><td>Particle codes (n, p, d, t, α, …)</td></tr>
+<tr><td class="mono">decay_processes</td><td class="n">—</td><td class="mono">subject_code, delta_z, delta_n, delta_a, latex_code</td><td>Decay modes with ΔZ/ΔN/ΔA</td></tr>
+<tr><td class="mono">subject_dict</td><td class="n">—</td><td class="mono">subject_code, description</td><td>Subject code → plain-English description</td></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">ENSDF (evaluated structure data)</td></tr>
+<tr><td class="mono">ensdf_datasets</td><td class="n">20,121</td><td class="mono">nucid, a, element, dsid, dsref, pub, entry_date, num_cards, raw</td><td>One row per evaluated dataset for 3,445 nuclides — <b>raw holds the full card deck</b> (levels, gammas, half-lives, spins) in ENSDF format</td></tr>
+<tr><td class="mono">ensdf_index</td><td class="n">—</td><td class="mono">row_type, a, element, citation, cutoff, xundl_sets</td><td>Evaluation index per mass chain/nuclide with cutoff date</td></tr>
+<tr><td class="mono">ensdf_refs</td><td class="n">—</td><td class="mono">nucid, dsid, key_number</td><td>ENSDF dataset → NSR paper links</td></tr>
+<tr><td class="mono">ensdf_archive_files</td><td class="n">—</td><td class="mono">year, file, s3_key, bytes</td><td>Ledger of every ENSDF distribution since 2004 mirrored to s3://nsr-pdfs/archivals/</td></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">XUNDL (unevaluated experimental compilations)</td></tr>
+<tr><td class="mono">xundl_datasets</td><td class="n">—</td><td class="mono">a, nuclide, dataset, last_revised, recid</td><td>Current XUNDL listings per nuclide with revision month and NNDC record id</td></tr>
+<tr><td class="mono">xundl_archive_datasets</td><td class="n">—</td><td class="mono">nucid, a, element, dsid, dsref, pub, entry_date, num_cards, raw</td><td>Archived XUNDL datasets with full card decks</td></tr>
+<tr><td class="mono">xundl_refs</td><td class="n">—</td><td class="mono">nucid, dsid, key_number</td><td>XUNDL dataset → NSR paper links</td></tr>
+<tr><td class="mono">xundl_archive_files</td><td class="n">—</td><td class="mono">year, file, s3_key, bytes</td><td>XUNDL distribution mirror ledger</td></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">EXFOR and ENDF</td></tr>
+<tr><td class="mono">exfor_entries</td><td class="n">—</td><td class="mono">exfor_id, title, year, authors, institutes, reactions, num_subentries, raw</td><td>Full EXFOR experiment entries from IAEA-NDS — raw holds the complete entry JSON</td></tr>
+<tr><td class="mono">nsr_exfor</td><td class="n">23,515</td><td class="mono">key_number, exfor_id</td><td>NSR paper → EXFOR entry links</td></tr>
+<tr><td class="mono">endf_reports</td><td class="n">—</td><td class="mono">seq_number, report_number, authors, title, report_date, cross_reference, pdf_url</td><td>ENDF report index with PDF links</td></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">Retrieval / ML</td></tr>
+<tr><td class="mono">nsr_embeddings</td><td class="n">—</td><td class="mono">key_number, embedding vector(1024), model, text_hash, embedded_at</td><td>NSR-CPT embeddings over title+keywords</td></tr>
+<tr><td class="mono">nsr_embeddings_nsr</td><td class="n">—</td><td class="mono">(as nsr_embeddings)</td><td>Base-model comparison set</td></tr>
+<tr><td class="mono">nsr_embeddings_commercial</td><td class="n">—</td><td class="mono">key_number, model, embedding vector(1536), embedded_at</td><td>Commercial-model comparison set</td></tr>
+<tr><td class="mono">nsr_eval_queries</td><td class="n">—</td><td class="mono">qid, family, text, embedding, embedded_at</td><td>Frozen benchmark queries</td></tr>
+<tr><td class="mono">nsr_eval_queries_candidate</td><td class="n">—</td><td class="mono">qid, run_id, embedding, embedded_at</td><td>Candidate-model benchmark runs</td></tr>
+<tr><td class="mono">nsr_train_mining</td><td class="n">—</td><td class="mono">(training pairs)</td><td>Mined triplets for NSR-CPT fine-tuning</td></tr>
+<tr><td class="mono">query_vec_cache</td><td class="n">—</td><td class="mono">text_hash, model, embedding, hits, created_at, last_seen</td><td>Query embedding cache</td></tr>
+<tr><td colspan="4" style="font-weight:600;border-bottom-color:var(--ink)">App state</td></tr>
+<tr><td class="mono">chat_sessions</td><td class="n">—</td><td class="mono">id, title, messages jsonb, created_at, updated_at</td><td>Saved chats</td></tr>
+<tr><td class="mono">community_threads / community_posts / community_issues</td><td class="n">—</td><td class="mono">id, title, author, body, status, severity, assignee, entity_ref, timestamps</td><td>Community discussion and issue tracking</td></tr>
+<tr><td class="mono">research_feed</td><td class="n">—</td><td class="mono">id, event_type, category, entity_type, entity_value, display_text, metadata</td><td>Activity feed events</td></tr>
+<tr><td class="mono">workspace_views</td><td class="n">—</td><td class="mono">id, name, description, saved_by, state jsonb</td><td>Saved workspace layouts</td></tr>
+</table>
+
+<h1 style="margin-top:44px">Reusable tool: ENSDF card parser</h1>
+<div class="sub">A positional decoder for the 80-column card format every NNDC structure dataset uses — ENSDF and XUNDL alike. Written once, now three implementations; reusable for any deck we pull, including the ~88 new XUNDL datasets arriving daily.</div>
+
+<table>
+<tr><th>Implementation</th><th>What it emits</th></tr>
+<tr><td class="mono">nsr/api/_lib/ensdf.ts (173 ln, TypeScript — the reference)</td><td>Full Dataset object: identification, Q record (Q−, Sₙ, Sₚ, Qα), parents, levels (energy, Jπ, T½) with attached gammas (E, RI, multipolarity, mixing, conversion) and feeds (β/EC/α intensities, log ft), comments and continuations resolved</td></tr>
+<tr><td class="mono">NYSgpt/scripts/viz-decay-snapshot.mjs</td><td>Ground states only → decay.json (half-lives in seconds, decay modes with branching %)</td></tr>
+<tr><td class="mono">NYSgpt/scripts/viz-levels-snapshot.mjs</td><td>Level schemes → levels.json (139,868 levels, 64,064 gammas with resolved final states)</td></tr>
+</table>
+
+<table>
+<tr><th>Format rule</th><th>Bytes</th></tr>
+<tr><td>Nuclide id (NUCID)</td><td class="mono">0–5</td></tr>
+<tr><td>Continuation marker (non-blank = continues the record above)</td><td class="mono">5</td></tr>
+<tr><td>Comment flag (c / d / t = comment card)</td><td class="mono">6</td></tr>
+<tr><td>Record type (L level · G gamma · B/E/A feed · Q q-values · P parent · H history · N normalization)</td><td class="mono">7</td></tr>
+<tr><td>Record body (fields at fixed positions per type; e.g. identification card: DSID 9–39, DSREF 39–65, PUB 65–74, date 74–80; Q card: Q− 9–21, Sₙ 21–31, Sₚ 31–41, Qα 41–55)</td><td class="mono">9–80</td></tr>
+<tr><td>Continuation fields split on $ and appended to the record above; comments attach to the nearest L/G/feed record</td><td class="mono">—</td></tr>
+</table>
+
+<div class="sub">Reuse candidates: XUNDL archive decks (same format, xundl_archive_datasets.raw), the full ENSDF archive mirror on S3 (every distribution since 2004), monthly refreshes, and any future page that needs levels, gammas, feeds, or Q-values as structured data.</div>
+
+</body>
+</html>

@@ -6,6 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-nuclear: oklch(0.708 0.165 254);
+  --color-nuclear-foreground: oklch(0.985 0 0);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -241,6 +243,35 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Scrollbars everywhere: pax-trinity's slim rounded thumb and no track (src/app/pax2.css; Brendan, 2026-11-07: no
+   standard scrollbars anywhere). */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: rgb(100 116 139 / 0.4);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139 / 0.6);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(100 116 139 / 0.45) transparent;
+  }
 }
 
 /* The dialogs' scrollbar: a thin rounded thumb inset from the edge, no track,
@@ -604,5 +635,26 @@ html[data-motion-first] [data-app-card] > :not([data-main-header]) {
 @keyframes motion-first-safety {
   to {
     visibility: visible;
+  }
+}
+
+/* pax-trinity's lift (src/app/pax2.css, copied 2026-11-07): a card that can be opened rises 3 px and its shadow
+   deepens to the third elevation. The docs' cards wear it (components/docs/DocCards.tsx). */
+.lift {
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms ease;
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--pax2-shadow-3);
+}
+.press:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lift {
+    animation: none !important;
+    transition: none !important;
   }
 }
