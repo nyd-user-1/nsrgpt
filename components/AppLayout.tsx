@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { PageMotion } from "@/components/PageMotion";
 import { PanelLeftOpen, PanelLeftClose, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { VIZ_CHARTS, vizNeighbours } from "@/lib/viz-charts";
@@ -14,6 +15,7 @@ import { CopyTitle } from "@/components/CopyTitle";
 import { CornerClose } from "@/components/pane";
 import { TitleText } from "@/components/TitleText";
 import { HEADER_TITLES } from "@/lib/header-titles";
+import { chartForward, markBack } from "@/lib/viz-grow";
 
 /**
  * The 44b app shell — a floating rounded content panel beside a collapsible
@@ -72,9 +74,9 @@ export function AppLayout({
             : "bg-[var(--surface)] sm:border-[var(--border)]"
         }`}
       >
-        {/* A plain right-click on the header's empty run opens the Nav for the page (components/shell.tsx). */}
+        {/* A click on any part of the header that isn't a control opens the Nav (components/shell.tsx). */}
         {/* The header wears trinity's shadow by default — not scroll-gated (Brendan, 2026-11-04). */}
-        <div data-chrome onContextMenu={headerMenu("main")} className={`relative z-10 flex items-center border-b px-5 pt-5 pb-5 shadow-header ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
+        <div data-chrome data-main-header {...headerMenu("main")} className={`relative z-10 flex items-center border-b px-5 pt-5 pb-5 shadow-header ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
           <button
             onClick={() => setSidebarOpen((v) => !v)}
             aria-label="Toggle sidebar"
@@ -98,7 +100,9 @@ export function AppLayout({
             </span>
           ))}
 
-          <div className="flex-1" />
+          {/* The header's empty space shows the hand: a click there opens the Nav (Brendan, 2026-11-06). It reaches
+              into the header's padding so the whole empty area has it. */}
+          <div className="-my-5 flex-1 cursor-pointer self-stretch" />
 
           {/* A chart page's previous and next chart, beside the panel button (Brendan, 2026-11-06). */}
           {VIZ_CHARTS.some((c) => c.href === path) && <ChartNav path={path} />}
@@ -108,6 +112,7 @@ export function AppLayout({
         </div>
 
         {children}
+        <PageMotion />
       </div>
       {/* Trinity's "Close the page": while a panel stands beside the page, the panel takes the whole area. */}
       {closePage && <CornerClose label="Close the page" onClose={closePage} ground="fill-[var(--bg)]" name="Panel 1" />}
@@ -142,15 +147,40 @@ const HOVER = "hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]
 /** A chart page's previous and next chart, in the index's order, as circle buttons in the header (2026-11-06). */
 function ChartNav({ path }: { path: string }) {
   const near = vizNeighbours(path);
+  const router = useRouter();
+  // Next runs ChartForward, previous ChartBack (lib/viz-grow.ts, components/PageMotion.tsx; Brendan 2026-11-06).
   if (!near) return null;
   const name = (href: string, title: string) => HEADER_TITLES[href] ?? title;
   const circle = `hidden sm:flex h-10 w-10 items-center justify-center rounded-full border hover:border-2 border-[var(--paper-rule)] bg-[var(--paper)] shadow-md mr-2 transition-colors ${HOVER}`;
   return (
     <>
-      <Link href={near.prev.href} aria-label={`Previous chart: ${name(near.prev.href, near.prev.title)}`} title={name(near.prev.href, near.prev.title)} className={circle}>
+      <Link
+        href={near.prev.href}
+        data-motion-own
+        onClick={(e) => {
+          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          e.preventDefault();
+          markBack();
+          router.push(near.prev.href);
+        }}
+        aria-label={`Previous chart: ${name(near.prev.href, near.prev.title)}`}
+        title={name(near.prev.href, near.prev.title)}
+        className={circle}
+      >
         <ChevronLeft className="h-4 w-4 text-[var(--paper-text)]" />
       </Link>
-      <Link href={near.next.href} aria-label={`Next chart: ${name(near.next.href, near.next.title)}`} title={name(near.next.href, near.next.title)} className={circle}>
+      <Link
+        href={near.next.href}
+        data-motion-own
+        onClick={(e) => {
+          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          e.preventDefault();
+          chartForward(() => router.push(near.next.href));
+        }}
+        aria-label={`Next chart: ${name(near.next.href, near.next.title)}`}
+        title={name(near.next.href, near.next.title)}
+        className={circle}
+      >
         <ChevronRight className="h-4 w-4 text-[var(--paper-text)]" />
       </Link>
     </>
@@ -158,6 +188,7 @@ function ChartNav({ path }: { path: string }) {
 }
 
 function ChartSwitcher({ path, title }: { path: string; title: string }) {
+  const router = useRouter();
   return (
     <span className="group/title ml-5 hidden items-center gap-1 sm:flex">
     <DropdownMenu>
@@ -184,7 +215,16 @@ function ChartSwitcher({ path, title }: { path: string; title: string }) {
               asChild
               className={`text-[13px] focus:bg-[var(--paper-quiet)] focus:text-[var(--paper-text)] ${on ? "font-medium text-[var(--paper-strong)]" : ""}`}
             >
-              <Link href={c.href} aria-current={on ? "page" : undefined}>
+              <Link
+                href={c.href}
+                aria-current={on ? "page" : undefined}
+                onClick={(e) => {
+                  // ChartForward to the picked chart; the menu still closes on the click.
+                  if (on || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                  e.preventDefault();
+                  chartForward(() => router.push(c.href));
+                }}
+              >
                 <span className="min-w-0 flex-1 truncate">{HEADER_TITLES[c.href] ?? c.title}</span>
                 {on && <Check className="h-3.5 w-3.5 text-[var(--paper-strong)]" />}
               </Link>

@@ -94,6 +94,8 @@ export default function RootLayout({
       <body>
         {/* Marks a framed load (the second panel, lib/pane.ts) before paint, so its chrome never shows. */}
         <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
+        {/* A first load keeps Panel 1's content hidden until its page transition covers it (lib/viz-grow.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: `if(!document.documentElement.hasAttribute('data-embed'))document.documentElement.setAttribute('data-motion-first','')` }} />
         {/* Trinity's theme script (lib/theme.ts), before paint — only once a theme has been picked in the
             Theme view, so NYSgpt's own light/dark stands for everyone who hasn't. */}
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem(${JSON.stringify(THEME_KEY)}))${THEME_SCRIPT}}catch(e){}` }} />

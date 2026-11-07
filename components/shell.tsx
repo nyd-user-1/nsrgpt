@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { chartForward } from "@/lib/viz-grow"
 import { useRouter } from "next/navigation"
 
 import type { ChipOffer } from "@/lib/question-resolver"
@@ -54,8 +55,8 @@ type PanelState = {
   nav: NavAt | null
   openNav: (at: NavAt) => void
   closeNav: () => void
-  /** A plain right-click on a header's empty run opens the Nav for that header's side. */
-  headerMenu: (side: Side) => (e: React.MouseEvent) => void
+  /** A click on a header's empty space opens the Nav for that header's side; spread on the header. */
+  headerMenu: (side: Side) => { onMouseDown: () => void; onClick: (e: React.MouseEvent) => void }
   /** Opens a page on a side: the main page navigates; the second panel opens or moves. */
   goTo: (href: string, to: Side) => void
   /** The main page's address, without the second panel's ?pane. */
@@ -90,7 +91,7 @@ const PanelCtx = React.createContext<PanelState>({
   nav: null,
   openNav: noop,
   closeNav: noop,
-  headerMenu: () => noop,
+  headerMenu: () => ({ onMouseDown: noop, onClick: noop }),
   goTo: noop,
   mainHere: () => "/",
   closePage: null,
@@ -178,19 +179,31 @@ export function Shell({ children }: { children: React.ReactNode }) {
         return
       }
       if (to === "pane" && isPanePath(href)) openPane(href)
-      else router.push(href)
+      else {
+        const path = href.split(/[?#]/)[0]
+        if (path === "/" || path === window.location.pathname) router.push(href)
+        else chartForward(() => router.push(href))
+      }
     },
     [openPane, router],
   )
 
+  // One click on a header's empty space opens the Nav (Brendan, 2026-11-06); a click anywhere outside it closes
+  // it, the header included. The press closes it first (ShiftNav), so the click after it mustn't open it again:
+  // the press notes whether it was open, before the close lands.
+  const navOpen = React.useRef(false)
+  navOpen.current = nav !== null
+  const pressedOpen = React.useRef(false)
   const headerMenu = React.useCallback(
-    (side: Side) => (e: React.MouseEvent) => {
-      // Shift is ShiftNav's gesture, which opens the same menu here.
-      if (e.shiftKey) return
-      if ((e.target as Element).closest(NATIVE_MENU)) return
-      e.preventDefault()
-      setNav({ x: e.clientX, y: e.clientY, side, here: side === "pane" ? (pane?.href ?? "") : mainHereNow() })
-    },
+    (side: Side) => ({
+      onMouseDown: () => {
+        pressedOpen.current = navOpen.current
+      },
+      onClick: (e: React.MouseEvent) => {
+        if (pressedOpen.current || (e.target as Element).closest(NATIVE_MENU)) return
+        setNav({ x: e.clientX, y: e.clientY, side, here: side === "pane" ? (pane?.href ?? "") : mainHereNow() })
+      },
+    }),
     [pane?.href],
   )
 
@@ -222,25 +235,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("message", on)
   }, [router])
 
-  // What a click opens in the main page Shift and a right-click opens in the second panel: any of this app's
-  // links (Brendan, 2026-11-04 — a plain right-click on a link is the browser's menu again). This listener
-  // sits on the document, so it runs before ShiftNav's on the window, which leaves links alone. Inside the
-  // panel's frame the browser's menu stays.
-  React.useEffect(() => {
-    if (isEmbedded()) return
-    const on = (e: MouseEvent) => {
-      if (!e.shiftKey || e.defaultPrevented) return
-      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null
-      if (!a || a.target === "_blank" || a.hasAttribute("download") || a.getAttribute("href")?.startsWith("#")) return
-      const url = new URL(a.href, window.location.href)
-      const href = url.pathname + url.search + url.hash
-      if (url.origin !== window.location.origin || !isPanePath(href)) return
-      e.preventDefault()
-      openPane(href)
-    }
-    document.addEventListener("contextmenu", on)
-    return () => document.removeEventListener("contextmenu", on)
-  }, [openPane])
 
   // The dragged split is remembered between visits; a panel still opens at the half.
   React.useEffect(() => {
@@ -394,7 +388,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               // Closing panel 2 while panel 3 lives promotes the third into its place.
               if (pane2) { setPane(pane2); setPane2(null) } else setPane(null)
             }}
-            onMenu={headerMenu("pane")}
+            menu={headerMenu("pane")}
             frameRef={paneRef}
             paired={!slim}
           />
@@ -408,7 +402,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               nextSize={nextSize}
               onSize={() => {}}
               onClose={() => setPane2(null)}
-              onMenu={headerMenu("pane")}
+              menu={headerMenu("pane")}
               frameRef={pane2Ref}
             />
           )}

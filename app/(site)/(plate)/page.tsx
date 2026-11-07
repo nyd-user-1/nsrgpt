@@ -42,6 +42,9 @@ export default function HomePage() {
 
 /** A contents-plate cell at rest: the chart's type, its variables, and its number. */
 function VizBox({ chart, index }: { chart: VizChart; index: number }) {
+  // The source sits after the box's number, "02 • ENSDF"; the axes are the description (Brendan, 2026-11-06).
+  const source = chart.lines.find((l) => l.startsWith("Source: "))?.slice("Source: ".length);
+  const axes = chart.lines.filter((l) => !l.startsWith("Source: "));
   const body = (
     <>
       <div className="flex flex-1 flex-col">
@@ -60,13 +63,17 @@ function VizBox({ chart, index }: { chart: VizChart; index: number }) {
             <VizBoxMenu title={chart.title} anchor={chart.href.replace(/^\//, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase()} href={chart.href} />
           </span>
         </div>
-        <p className="mt-2 flex-1 text-[12px] leading-[1.5] text-[var(--paper-muted)]" style={SANS}>
-          {chart.body}
-        </p>
+        {/* The description: the axes, one a line (Brendan, 2026-11-06). */}
+        <div className="mt-2 flex-1 text-[12px] leading-[1.5] text-[var(--paper-muted)]" style={SANS}>
+          {axes.map((l) => (
+            <p key={l} className="m-0">{l}</p>
+          ))}
+        </div>
       </div>
       <div className="relative mt-4 flex items-end justify-between gap-3">
         <span className="shrink-0 text-[10px] tabular-nums tracking-[0.2em] text-[var(--paper-faint)]" style={MONO}>
           {String(index + 1).padStart(2, "0")}
+          {source && ` • ${source}`}
         </span>
         <PaneButton href={chart.href} title={chart.title} />
       </div>

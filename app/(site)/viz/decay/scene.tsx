@@ -186,7 +186,7 @@ const Chart = React.memo(function Chart({
   focus: Family | null
   /** Whether the pointer is over the canvas, for the crosshair. */
   inside: { current: boolean }
-  /** `add`: Shift, Cmd or Ctrl was held, so the nuclide joins (or leaves) the selection instead of replacing it. */
+  /** `add`: the nuclide joins (or leaves) the selection instead of replacing it. A click always adds (2026-11-06). */
   onSelect: (i: number | null, add: boolean) => void
   onHover: (i: number | null) => void
   onStats: (s: Stats) => void
@@ -459,8 +459,7 @@ const Chart = React.memo(function Chart({
         onClick={(e) => {
           if (e.delta > 4) return
           e.stopPropagation()
-          const ne = e.nativeEvent as MouseEvent
-          onSelect(pick(e), ne.shiftKey || ne.metaKey || ne.ctrlKey)
+          onSelect(pick(e), true)
         }}
         onPointerMove={(e) => {
           e.stopPropagation()

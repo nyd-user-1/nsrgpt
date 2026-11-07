@@ -593,3 +593,16 @@
 html[data-embed] [data-chrome] { display: none !important; }
 html[data-embed] [data-app-frame] { padding: 0 !important; }
 html[data-embed] [data-app-card] { border-width: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+
+/* Page transitions (lib/viz-grow.ts, 2026-11-06): on a first load Panel 1's content stays hidden until the transition's
+   cover is up (app/layout.tsx sets the attribute; components/PageMotion.tsx takes it off). If that never happens,
+   the content shows after 3 s regardless. */
+html[data-motion-first] [data-app-card] > :not([data-main-header]) {
+  visibility: hidden;
+  animation: motion-first-safety 0s linear 3s forwards;
+}
+@keyframes motion-first-safety {
+  to {
+    visibility: visible;
+  }
+}

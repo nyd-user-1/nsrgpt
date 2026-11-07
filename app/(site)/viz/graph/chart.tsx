@@ -8,7 +8,7 @@ import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { FAMILIES, FAMILY, familyColor, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
-import { additive, chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphModel, type Pin } from './model'
+import { chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphModel, type Pin } from './model'
 
 // The decay network (chart batch A, 2026-11-04): every ENSDF ground state a node, coloured by its primary decay
 // mode, and an edge from it to the daughter of each mode it decays by — so the β chains run down each isobar
@@ -22,7 +22,7 @@ import { additive, chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphMode
 //
 // 2026-11-06 (Brendan): the decays flow. A light runs along every edge from parent to daughter, crossing it at the
 // flow lines' speed for the parent's half-life (0.3 s for the shortest, 14 s for the longest). A click pins a
-// nuclide's chain, Shift-click (or Cmd, Ctrl) pins more, and the picker pins by name; with chains lit, only their
+// nuclide's chain or unpins it (2026-11-06: no Shift), and the picker pins by name; with chains lit, only their
 // edges flow. The 3D switch opens the graph into a precomputed 3D layout (graph3d.tsx).
 
 const Graph3D = dynamic(() => import('./graph3d'), { ssr: false, loading: () => <div className="min-h-0 flex-1" /> })
@@ -112,9 +112,7 @@ export function GraphChart() {
           <Switch label="3D" on={three} onToggle={() => setThree((t) => !t)} />
         </div>
         <span className="leading-snug text-[var(--paper-faint)]">
-          Click a nuclide to pin its chain.
-          <br />
-          Shift-click adds more.
+          Click a nuclide to pin or unpin its chain.
         </span>
       </VizControls>
     </div>
@@ -190,7 +188,7 @@ function Graph2D({ pinned, onPin, flow }: { pinned: number[]; onPin: Pin; flow: 
       // A click on a nuclide pins its chain rather than opening the table.
       onPick: (p: ChartClick) => {
         if (p.dataType !== 'node' || typeof p.dataIndex !== 'number') return
-        pin.current(p.dataIndex, additive((p as { event?: { event?: MouseEvent } }).event?.event))
+        pin.current(p.dataIndex, true)
       },
     },
   )

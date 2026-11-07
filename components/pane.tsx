@@ -37,7 +37,7 @@ export function PaneFrame({
   nextSize,
   onSize,
   onClose,
-  onMenu,
+  menu,
   frameRef,
   paired,
 }: {
@@ -50,7 +50,8 @@ export function PaneFrame({
   nextSize: PanelSize
   onSize: () => void
   onClose: () => void
-  onMenu: (e: React.MouseEvent) => void
+  /** The header's click opens the Nav (components/shell.tsx headerMenu). */
+  menu: { onMouseDown: () => void; onClick: (e: React.MouseEvent) => void }
   frameRef: React.RefObject<HTMLIFrameElement | null>
   /** Beside the page (not FULL, no third panel): the corner bite carries a close, as in trinity's shell. */
   paired?: boolean
@@ -73,14 +74,16 @@ export function PaneFrame({
       style={{ "--pane-w": width, "--pane-r": offsetRight ?? "18px" } as React.CSSProperties}
       className={`nysgpt-app fixed inset-0 z-40 flex flex-col overflow-hidden bg-[var(--paper)] sm:inset-y-[18px] sm:left-auto sm:right-[var(--pane-r)] sm:w-[var(--pane-w)] sm:rounded-2xl sm:border sm:border-[var(--paper-rule)] sm:shadow-header ${dragging ? "" : "transition-[width,right] duration-300 ease-in-out"}`}
     >
-      <div onContextMenu={onMenu} className="relative z-10 flex shrink-0 items-center gap-3 border-b border-[var(--paper-rule)] px-5 pt-5 pb-5 shadow-header">
+      <div {...menu} className="relative z-10 flex shrink-0 items-center gap-3 border-b border-[var(--paper-rule)] px-5 pt-5 pb-5 shadow-header">
         {/* The title as panel 1's (Brendan, 2026-11-06): the ground on hover, and the copy button beside it. */}
-        <span className="group/title flex min-w-0 flex-1 items-center gap-1">
+        <span className="group/title flex min-w-0 items-center gap-1">
           <span className={`-ml-2 flex min-w-0 rounded-lg px-2 py-1 transition-colors ${HOVER}`}>
             <TitleText text={name} className="text-[22px] leading-none text-[var(--paper-text)]" style={{ ...SERIF, letterSpacing: "-0.02em" }} />
           </span>
           <CopyTitle title={name} />
         </span>
+        {/* The empty space shows the hand: a click there opens the Nav, as on panel 1 (Brendan, 2026-11-06). */}
+        <div className="-my-5 flex-1 cursor-pointer self-stretch" />
         {/* A chart's previous and next chart, as the main header has them (Brendan, 2026-11-06): the frame moves. */}
         {(() => {
           const near = vizNeighbours(href.split(/[?#]/)[0])

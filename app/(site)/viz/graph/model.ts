@@ -44,11 +44,9 @@ export function positions3d(decay: Decay, m: GraphModel, layout: Layout3dFile): 
   })
 }
 
-/** Pins a node's chain; `add` keeps the others (Shift, Cmd or Ctrl), a null node clears them. */
+/** Pins a node's chain; `add` keeps the others (every click, 2026-11-06), a null node clears them. */
 export type Pin = (node: number | null, add: boolean) => void
 
-/** Shift, Cmd or Ctrl held on a click: add to the pins instead of replacing them. */
-export const additive = (e: { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean } | undefined) => !!(e?.shiftKey || e?.metaKey || e?.ctrlKey)
 
 /** A node's mark size, px at the graph's own zoom: the stable ends of long chains grow. */
 export const sizeOf = (fed: number) => Math.min(9, 2 + Math.sqrt(fed) * 1.6)

@@ -20,7 +20,7 @@ You're the lead on NSRgpt. Read this, then wait for Brendan's first instruction.
 4. "Add to blocks" as saved chart views (a chart plus its selection and camera).
 
 ## Rules (his, standing)
-- Efficient Voice: y/n first, then 10–20 words, never over 50. Numbered items, each restating the subject in bold starting with "…", answer on the next line. No italics, no chevrons. Bottom line, not diffs.
+- Efficient Voice: y/n first, then 10–20 words, never over 50. Numbered items, each restating the subject in bold starting with "…", answer on the next line. No italics, no chevrons. Bottom line, not diffs. Facts only: no editorial and no opinion unless he asks for it. Direct questions get direct answers (10 words or less if enough); yes/no gets yes or no. Full rule: docs/sketches/2026-11-06-efficiency-voice.html.
 - Small change, small effort: edit and report. No codespace, test harness or push unless asked.
 - When he says he wants to see it built or live, push one batch, watch the deploy and curl the pages.
 - Port, don't hand-roll: when he points at existing code (pax-trinity etc.), copy it exactly.

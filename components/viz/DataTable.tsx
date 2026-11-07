@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { VIZ_POINT, isEmbedded } from '@/lib/pane'
 import { STRUCTURE_TABLES } from '@/lib/viz-structure-tables'
@@ -24,8 +24,8 @@ function pointAt(slug: string, row: number | undefined, rows: number[]) {
 // and a file the chart already pulled comes from the browser's cache. A hundred rows to a page;
 // ?row=<i> opens on that row's page with the row marked (the clicked datum, when the chart can name it).
 //
-// Rows are selectable (brief 06, 2026-11-05): a click picks one row, Shift-click the run from the last pick, Cmd
-// or Ctrl-click adds or drops one. The chart marks every picked row: a band on its candle or bar, the hover
+// Rows are selectable (brief 06, 2026-11-05): a click picks a row or drops it (2026-11-06: no Shift, Cmd or Ctrl).
+// Shift+↑ ↓ still grows the range from the keyboard. The chart marks every picked row: a band on its candle or bar, the hover
 // outline on its dot or cell. Leaving the table clears the chart's marks.
 
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
@@ -128,23 +128,11 @@ export function DataTable({ slug }: { slug: string }) {
     }
   }, [slug])
 
-  const press = (e: MouseEvent, at: number) => {
-    const add = e.metaKey || e.ctrlKey
-    let next: Set<number>
-    if (e.shiftKey && anchor.current !== null) {
-      const lo = Math.min(anchor.current, at)
-      const hi = Math.max(anchor.current, at)
-      next = add ? new Set(picked) : new Set()
-      for (let i = lo; i <= hi; i++) next.add(i)
-    } else if (add) {
-      next = new Set(picked)
-      if (next.has(at)) next.delete(at)
-      else next.add(at)
-      anchor.current = at
-    } else {
-      next = new Set([at])
-      anchor.current = at
-    }
+  const press = (at: number) => {
+    const next = new Set(picked)
+    if (next.has(at)) next.delete(at)
+    else next.add(at)
+    anchor.current = at
     setPicked(next)
     cursor.current = at
     setCur(at)
@@ -241,11 +229,7 @@ export function DataTable({ slug }: { slug: string }) {
                   if (at === cur) curRow.current = el
                 }}
                 aria-selected={on}
-                onMouseDown={(e) => {
-                  // Shift and Cmd/Ctrl pick rows; they mustn't select the text as well.
-                  if (e.shiftKey || e.metaKey || e.ctrlKey) e.preventDefault()
-                }}
-                onClick={(e) => press(e, at)}
+                onClick={() => press(at)}
                 className={`scroll-mt-12 cursor-pointer border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
               >
                 {r.map((v, i) => (

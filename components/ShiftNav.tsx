@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { useSwitchboard } from '@/components/SwitchboardPanel'
 import { useShellPanel, type NavAt, type Side } from '@/components/shell'
-import { boxSlug, isEmbedded } from '@/lib/pane'
+import { boxSlug } from '@/lib/pane'
 
 const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
@@ -35,24 +35,15 @@ const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as cons
 
 /**
  * The Nav, ported from pax-trinity's go-to-menu (2026-10-31/11-02) in the
- * paper dress: Shift and a right-click anywhere opens a page switcher at the
- * pointer. Type to find; Recent, Pages and the Boxes otherwise. Enter or a
+ * paper dress: a page switcher at the pointer, opened by a click or right-click
+ * on a header's empty space (the shell's headerMenu). Type to find; Recent, Pages and the Boxes otherwise. Enter or a
  * click opens a page on the side the menu opened over — the main page, or the
  * second panel (components/shell.tsx) — and ⌥ Enter or a row's arrow on the
  * other; a box opens its page in the second panel (⌥: the main page), and a
- * box row's ↗ leaves for its site. A plain right-click on a header's empty run
- * opens the same card (the shell's headerMenu). Shift and a right-click on one
- * of this app's links sends the link to the second panel instead (the shell). A link, a control, a text field, or an open
- * menu or dialog keeps the browser's menu, as does a right-click a surface
- * has already taken. A second Shift right-click moves the card to its point.
- * Firefox never hands a page Shift and a right-click (it shows its own menu
- * by design), so the gesture is Chrome's and Safari's.
+ * box row's ↗ leaves for its site. Shift and a right-click on one of this
+ * app's links sends the link to the second panel (the shell). Shift and a
+ * right-click elsewhere no longer opens the Nav (Brendan, 2026-11-06).
  */
-
-/** A text field or a select, whose menu is the browser's under every gesture. */
-const FIELD = "input, textarea, select, [contenteditable]:not([contenteditable='false'])"
-/** What keeps its own menu, the browser's, even with Shift. */
-const NATIVE_MENU = `a, button, ${FIELD}, [role=button], [role=combobox], [role=menu], [role=dialog]`
 
 const WIDTH = 296
 const RECENT = 5
@@ -103,9 +94,7 @@ function rank(label: string, needle: string) {
 export function ShiftNav() {
   const path = usePathname()
   const { cards } = useSwitchboard()
-  const { nav, openNav, closeNav, goTo, paneHref, mainHere } = useShellPanel()
-  const latest = useRef({ openNav, paneHref, mainHere })
-  latest.current = { openNav, paneHref, mainHere }
+  const { nav, closeNav, goTo } = useShellPanel()
 
   // Every page seen lands at the head of Recent, kept in this browser — the main page's and the panel's.
   useEffect(() => {
@@ -116,23 +105,6 @@ export function ShiftNav() {
       /* nothing lost but the trail */
     }
   }, [path])
-
-  // The gesture: Shift and a right-click anywhere that keeps no menu of its own. Over the second panel's
-  // header the card drives the panel; inside the panel's frame, the frame's own Nav opens for the panel it is.
-  useEffect(() => {
-    const on = (e: MouseEvent) => {
-      if (!e.shiftKey || e.defaultPrevented) return
-      const target = e.target instanceof Element ? e.target : null
-      if (target?.closest(NATIVE_MENU)) return
-      e.preventDefault()
-      const { openNav, paneHref, mainHere } = latest.current
-      const side: Side = isEmbedded() || target?.closest('[data-pane-host]') ? 'pane' : 'main'
-      const here = isEmbedded() ? window.location.pathname + window.location.search : side === 'pane' ? (paneHref ?? '') : mainHere()
-      openNav({ x: e.clientX, y: e.clientY, side, here })
-    }
-    window.addEventListener('contextmenu', on)
-    return () => window.removeEventListener('contextmenu', on)
-  }, [])
 
   if (!nav) return null
   return <NavCard at={nav} cards={cards} onOpen={goTo} onClose={closeNav} />
@@ -214,9 +186,7 @@ function NavCard({
   }, [at])
 
   useEffect(() => {
-    // A second Shift right-click moves the card to its point, so its press doesn't close it.
-    const down = (e: MouseEvent) =>
-      !(e.button === 2 && e.shiftKey) && !box.current?.contains(e.target as Node) && close()
+    const down = (e: MouseEvent) => !box.current?.contains(e.target as Node) && close()
     const away = () => close()
     const key = (e: KeyboardEvent) => e.key === 'Escape' && close()
     document.addEventListener('keydown', key)
@@ -380,7 +350,7 @@ function NavCard({
                   aria-selected={on}
                   data-active={on}
                   onMouseMove={() => setActive(me)}
-                  onClick={ev => go(e, ev.altKey)}
+                  onClick={() => go(e, false)}
                   className={`group/nav flex cursor-pointer items-center gap-2.5 px-4 py-1.5 text-sm transition-colors ${
                     on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)]' : 'text-[var(--paper-text)]'
                   }`}

@@ -7,7 +7,7 @@
 //        overlapping. On: columns as tall as their adopted levels on a log scale.
 //   Select grid — off: a click picks a nuclide. On: a click picks a 10 × 10 block of N and Z, and the floor's own grid
 //        lines (every 10, between nuclides) are its edges; there is one grid, not two.
-// Shift-, Cmd- or Ctrl-click adds to the selection (or takes out) in either mode. The nuclide under the pointer wears
+// A click adds to the selection or takes out (2026-11-06), in either mode. The nuclide under the pointer wears
 // an ink outline; picked nuclides a heavier one; picked blocks a blue outline over a light blue fill.
 
 import * as React from 'react'
@@ -103,10 +103,6 @@ function ageColor(stops: THREE.Color[], t: number, out: THREE.Color) {
   return out.copy(stops[i]).lerp(stops[i + 1], u - i)
 }
 
-const additive = (e: { nativeEvent: Event }) => {
-  const ne = e.nativeEvent as MouseEvent
-  return ne.shiftKey || ne.metaKey || ne.ctrlKey
-}
 
 /** The tiles or columns, and the never-evaluated squares. Memoised on what they draw, so hover and selection above
  *  them never re-render 7,986 instances. */
@@ -210,7 +206,7 @@ const Nuclides = React.memo(function Nuclides({
     onClick: (e: { delta: number; instanceId?: number; stopPropagation: () => void; nativeEvent: Event }) => {
       if (e.delta > 4 || e.instanceId === undefined) return
       e.stopPropagation()
-      onPick(list[e.instanceId], additive(e))
+      onPick(list[e.instanceId], true)
     },
     onPointerMove: (e: { instanceId?: number; stopPropagation: () => void }) => {
       e.stopPropagation()
@@ -322,7 +318,7 @@ function Floor({
             onClick={(e) => {
               if (e.delta > 4) return
               const b = blockAt(e.point)
-              if (b) onBlock(b, additive(e))
+              if (b) onBlock(b, true)
             }}
           >
             <planeGeometry args={[GW, GD]} />
@@ -520,8 +516,6 @@ export default function KnowledgeScene() {
         </div>
         <span className="text-[10px] text-[var(--paper-faint)]">
           {grid ? 'Click a block to list its nuclides.' : 'Click a nuclide.'}
-          <br />
-          Shift-click adds more.
         </span>
       </VizControls>
 

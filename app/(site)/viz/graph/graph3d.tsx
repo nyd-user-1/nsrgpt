@@ -3,7 +3,7 @@
 // The force graph in 3D (Brendan, 2026-11-06): the same nodes and edges on a layout computed once in three dimensions
 // (scripts/viz-graph-layout-3d.mjs). The switch opens the flat graph out into it over MORPH seconds, eased, as the
 // knowledge map's tiles grow into columns, and folds it flat again on the way back. Everything the 2D graph does
-// carries over: the lights flow parent to daughter, a hover lights a chain, a click pins one, Shift-click pins more,
+// carries over: the lights flow parent to daughter, a hover lights a chain, a click pins a chain or unpins it,
 // and the legend hides decay modes. The camera is the 3D charts' (SpinControls): it turns on open, and once the
 // reader clicks into the chart the keys orbit, tilt, zoom and pan.
 
@@ -14,7 +14,7 @@ import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { FAMILIES, FAMILY, familyOf, halfLifeText, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
 import { usePaperTheme } from '@/lib/use-paper-theme'
 import { VizControls } from '@/components/viz/VizControls'
-import { additive, chainsOf, graphModel, loadGraphLayout, loadGraphLayout3d, positions3d, sizeOf, type GraphModel, type Pin } from './model'
+import { chainsOf, graphModel, loadGraphLayout, loadGraphLayout3d, positions3d, sizeOf, type GraphModel, type Pin } from './model'
 
 const MORPH = 0.6
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -255,7 +255,7 @@ const Scene = React.memo(function Scene({
         onClick={(e) => {
           if (e.delta > 4 || e.instanceId === undefined) return
           e.stopPropagation()
-          onPin(e.instanceId, additive(e.nativeEvent as MouseEvent))
+          onPin(e.instanceId, true)
         }}
       >
         <sphereGeometry args={[1, 10, 8]} />
