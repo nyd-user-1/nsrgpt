@@ -1,0 +1,7 @@
+{"title": "Level energies in 3D", "subtitle": "139,868 adopted levels over the chart of nuclides", "src": "rec/levels.webm", "segments": [
+ {"from": 6.0, "to": 20.0, "rate": 1.5, "caption": "Every adopted level stands over the chart of nuclides at its energy."},
+ {"from": 20.0, "to": 40.0, "rate": 2.5, "caption": "Lead-208 is selected when the page opens. Its levels stand in white."},
+ {"from": 41.0, "to": 58.0, "rate": 2.5, "caption": "The right panel holds the chart's controls."},
+ {"from": 58.0, "to": 73.5, "rate": 2, "caption": "It lists the selected nuclide's levels."},
+ {"from": 73.5, "to": 85.0, "rate": 1, "caption": "Type a nuclide and press Enter. The camera flies to it, here tin-120."}
+]}

@@ -34,4 +34,9 @@ export const HEADER_TITLES: Record<string, string> = {
   "/viz/level-candles": "Level Energy Distributions",
   "/viz/isotope-radar": "Isotope Property Profiles",
   "/viz/literature": "NSR Papers per Nuclide",
+  // The help center (2026-11-07); every /docs/<slug> article wears it too (AppLayout).
+  "/docs": "Docs",
+  // The old nsr app's search and workspace canvas, ported by merge-agent (2026-11-07).
+  "/search": "Search",
+  "/graph": "Graph",
 }

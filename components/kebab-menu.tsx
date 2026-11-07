@@ -6,16 +6,19 @@ import { Check, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-// The three-dot menu, after Code/hq's sidebar-row kebab (app/ui/sidebar-recents.tsx), in PAX's light
-// dress: the thing's identity leads (a mono line that copies on click), then icon rows, rows that open
+// The three-dot menu, after Code/hq's sidebar-row kebab (app/ui/sidebar-recents.tsx), in the site's dropdown
+// dress (2026-11-07: the paper tokens, as the header's chart menu and the chart-type switcher wear them): the thing's identity leads (a mono line that copies on click), then icon rows, rows that open
 // a flyout on hover (marked with a chevron), separators, and context at the foot. Portaled and fixed off
 // its trigger so no scroll container clips it; closes on an outside click, Escape, or scroll.
 
 type Ctx = { close: () => void; flyout: string | null; setFlyout: (k: string | null) => void; side: "left" | "right" }
 const MenuCtx = React.createContext<Ctx>({ close: () => {}, flyout: null, setFlyout: () => {}, side: "right" })
 
-export const ROW = "group/row flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
-export const ICON = "flex size-4 shrink-0 items-center justify-center text-slate-400 transition-colors group-hover/row:text-pax2-blue [&_svg]:size-4"
+export const ROW = "group/row flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
+export const ICON = "flex size-4 shrink-0 items-center justify-center text-[var(--paper-faint)] transition-colors group-hover/row:text-[var(--paper-strong)] [&_svg]:size-4"
+
+/** The menu's surface, the site's dropdown: `nysgpt-app` so the paper tokens resolve in the portal at <body>. */
+const SURFACE = "nysgpt-app flex flex-col whitespace-nowrap rounded-xl border border-[var(--paper-rule)] bg-[var(--paper)] p-1 text-[var(--paper-text)] shadow-e3"
 
 /** One action. It runs, then the menu closes. `checked` marks the current choice in a set. */
 export function MenuRow({ icon, label, onClick, checked, danger, hint, disabled }: { icon?: React.ReactNode; label: React.ReactNode; onClick: () => void; checked?: boolean; danger?: boolean; hint?: React.ReactNode; disabled?: boolean }) {
@@ -30,12 +33,12 @@ export function MenuRow({ icon, label, onClick, checked, danger, hint, disabled 
         onClick()
         close()
       }}
-      className={cn(ROW, danger && "text-destructive hover:text-destructive", checked && "font-medium text-slate-900", disabled && "pointer-events-none opacity-40")}
+      className={cn(ROW, danger && "text-destructive hover:text-destructive", checked && "font-medium text-[var(--paper-strong)]", disabled && "pointer-events-none opacity-40")}
     >
       {icon !== undefined && <span className={ICON}>{icon}</span>}
       <span className="min-w-0 flex-1 truncate">{label}</span>
-      {hint && <span className="shrink-0 text-[11px] text-slate-400">{hint}</span>}
-      {checked && <Check className="size-3.5 shrink-0 text-pax2-light-blue" />}
+      {hint && <span className="shrink-0 text-[11px] text-[var(--paper-faint)]">{hint}</span>}
+      {checked && <Check className="size-3.5 shrink-0 text-[var(--paper-strong)]" />}
     </button>
   )
 }
@@ -52,15 +55,15 @@ export function MenuFlyout({ id, icon, label, hint, children }: { id: string; ic
         setFlyout(id)
       }}
     >
-      <div role="menuitem" aria-haspopup="menu" aria-expanded={open} tabIndex={0} onFocus={() => setFlyout(id)} className={cn(ROW, "cursor-default", open && "bg-slate-100 text-slate-900")}>
-        {icon !== undefined && <span className={cn(ICON, open && "text-pax2-blue")}>{icon}</span>}
+      <div role="menuitem" aria-haspopup="menu" aria-expanded={open} tabIndex={0} onFocus={() => setFlyout(id)} className={cn(ROW, "cursor-default", open && "bg-[var(--paper-quiet)]")}>
+        {icon !== undefined && <span className={cn(ICON, open && "text-[var(--paper-strong)]")}>{icon}</span>}
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        {hint && <span className="shrink-0 text-[11px] text-slate-400">{hint}</span>}
-        <ChevronRight className="size-3.5 shrink-0 text-slate-400" />
+        {hint && <span className="shrink-0 text-[11px] text-[var(--paper-faint)]">{hint}</span>}
+        <ChevronRight className="size-3.5 shrink-0 text-[var(--paper-faint)]" />
       </div>
       {open && (
         <div className={cn("absolute top-0 z-50", side === "left" ? "right-full pr-1" : "left-full pl-1")}>
-          <div role="menu" className="flex min-w-44 flex-col whitespace-nowrap rounded-xl border border-slate-200 bg-pax2-surface p-1 shadow-e3">
+          <div role="menu" className={cn(SURFACE, "min-w-44")}>
             {children}
           </div>
         </div>
@@ -70,7 +73,7 @@ export function MenuFlyout({ id, icon, label, hint, children }: { id: string; ic
 }
 
 export function MenuSeparator() {
-  return <div className="my-1 h-px bg-slate-200" />
+  return <div className="my-1 h-px bg-[color-mix(in_oklab,var(--paper-text)_18%,var(--paper))]" />
 }
 
 /** The identity line that leads the menu; a click copies `copy` (a link, an id). */
@@ -87,7 +90,7 @@ export function MenuHeader({ text, copy }: { text: string; copy: string }) {
         setCopied(true)
         window.setTimeout(() => setCopied(false), 1200)
       }}
-      className="flex items-center rounded-lg px-2.5 py-1.5 text-left font-mono text-[11px] text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+      className="flex items-center rounded-lg px-2.5 py-1.5 text-left font-mono text-[11px] text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
     >
       <span className="min-w-0 truncate">{copied ? "copied ✓" : text}</span>
     </button>
@@ -98,8 +101,8 @@ export function MenuHeader({ text, copy }: { text: string; copy: string }) {
 export function MenuFoot({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="flex flex-col gap-0.5 px-2.5 pb-1.5 pt-1">
-      <span className="min-w-0 truncate text-[13px] text-slate-700">{title}</span>
-      {sub && <span className="min-w-0 truncate font-mono text-[11px] text-slate-400">{sub}</span>}
+      <span className="min-w-0 truncate text-[13px] text-[var(--paper-text)]">{title}</span>
+      {sub && <span className="min-w-0 truncate font-mono text-[11px] text-[var(--paper-faint)]">{sub}</span>}
     </div>
   )
 }
@@ -179,7 +182,7 @@ export function KebabMenu({
               onClick={(e) => e.stopPropagation()}
               onMouseOver={() => setFlyout(null)}
               style={{ top: pos.top, left: pos.left, right: pos.right }}
-              className={cn("fixed z-[70] flex flex-col whitespace-nowrap rounded-xl border border-slate-200 bg-pax2-surface p-1 shadow-e3", width)}
+              className={cn("fixed z-[70]", SURFACE, width)}
             >
               {children}
             </div>

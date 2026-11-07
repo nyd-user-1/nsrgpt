@@ -1,0 +1,13 @@
+{
+  "name": "nsrgpt-docs-media",
+  "private": true,
+  "description": "NSRgpt /docs media: screenshots, guide videos, recordings, narration (README.md). Outside the app's build and type check.",
+  "dependencies": {
+    "@remotion/cli": "4.0.524",
+    "@remotion/google-fonts": "4.0.524",
+    "playwright-core": "1.60.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "4.0.524"
+  }
+}

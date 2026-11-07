@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<title>NSRgpt Design System</title>
+<style>
+  @font-face { font-family: "DM Sans"; src: url("../../app/fonts/dm-sans-latin-wght-normal.woff2") format("woff2"); font-weight: 300 700; }
+  @font-face { font-family: "Fraunces"; src: url("../../app/fonts/fraunces-latin-wght-normal.woff2") format("woff2"); font-weight: 300 600; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../../app/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 400 600; }
+
+  :root {
+    --bg: #f9f9f9; --surface: #ffffff; --border: rgba(0,0,0,.09); --inp-bg: rgba(0,0,0,.04);
+    --paper: #ffffff; --paper-text: #16181d; --paper-muted: rgba(22,24,29,.58); --paper-faint: rgba(22,24,29,.4);
+    --paper-rule: #16181d; --paper-rule-soft: rgba(22,24,29,.06); --paper-quiet: rgba(22,24,29,.035); --paper-strong: #033882;
+    --hover: color-mix(in oklab, var(--paper-text) 14%, var(--paper));
+    --sans: "DM Sans", system-ui, sans-serif; --serif: "Fraunces", Georgia, serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+    --ease: cubic-bezier(0.25,0.4,0.25,1);
+  }
+  html.dark {
+    --bg: #0f0f13; --surface: #1a1a22; --border: rgba(255,255,255,.09); --inp-bg: rgba(255,255,255,.06);
+    --paper: #15120d; --paper-text: #f0e9d8; --paper-muted: rgba(240,233,216,.58); --paper-faint: rgba(240,233,216,.36);
+    --paper-rule: #f0e9d8; --paper-rule-soft: rgba(240,233,216,.06); --paper-quiet: rgba(240,233,216,.035); --paper-strong: #b6d0f4;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--paper-text); font: 14px/1.55 var(--sans); }
+  main { max-width: 1040px; margin: 0 auto; padding: 40px 28px 120px; }
+  header.page { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 36px; }
+  h1 { font: 400 34px/1.1 var(--serif); margin: 0 0 6px; }
+  .date { color: var(--paper-faint); font-size: 13px; }
+  section { background: var(--paper); border: 1px solid var(--paper-rule); border-radius: 16px; padding: 24px 28px 28px; margin: 0 0 20px; }
+  h2 { font: 400 24px/1.1 var(--serif); margin: 0 0 18px; }
+  h3 { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--paper-muted); margin: 26px 0 10px; }
+  h3:first-of-type { margin-top: 0; }
+  p { margin: 0 0 8px; }
+  code { font: 12px var(--mono); background: var(--paper-quiet); border: 1px solid var(--paper-rule-soft); padding: 1px 5px; border-radius: 4px; }
+  .muted { color: var(--paper-muted); }
+  .faint { color: var(--paper-faint); }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; vertical-align: middle; padding: 8px 10px; border-top: 1px solid var(--paper-rule-soft); }
+  th { border-top: 0; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--paper-faint); }
+  td.mono, .mono { font-family: var(--mono); font-size: 12px; }
+
+  .chip { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: 1px solid var(--paper-rule); background: var(--paper); color: var(--paper-text); border-radius: 999px; padding: 6px 12px; font: 500 13px/1 var(--sans); box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+  .chip:hover { border-width: 2px; padding: 5px 11px; }
+
+  /* Type */
+  .spec { display: grid; grid-template-columns: 1fr 260px; gap: 6px 20px; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--paper-rule-soft); }
+  .spec:first-child { border-top: 0; }
+
+  /* Swatches */
+  .sw { display: flex; align-items: center; gap: 10px; }
+  .dot { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--paper-rule-soft); flex-shrink: 0; }
+  .dot.sm { width: 18px; height: 18px; border-radius: 5px; }
+  .themes td { padding: 6px 4px; }
+  .themes .dot { width: 22px; height: 22px; border-radius: 6px; margin: 0 auto; }
+
+  /* Components */
+  .mock-header { display: flex; align-items: center; padding: 20px; border: 1px solid var(--paper-rule); border-radius: 16px; background: var(--paper); box-shadow: 0 4px 12px -8px rgba(15,23,42,.25); }
+  .circle { display: flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid var(--paper-rule); background: var(--paper); box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1); margin-right: 8px; cursor: pointer; transition: background-color .15s; color: var(--paper-text); }
+  .circle:hover { border-width: 2px; background: var(--hover); }
+  .circle svg { width: 16px; height: 16px; }
+  .title-wrap { display: flex; align-items: center; gap: 4px; margin-left: 20px; }
+  .title-btn { border: 0; background: none; color: var(--paper-text); font: 400 24px/1 var(--serif); padding: 6px 10px; margin-left: -8px; border-radius: 8px; cursor: pointer; }
+  .title-btn:hover { background: var(--hover); }
+  .copy { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--paper-faint); opacity: 0; transition: opacity .15s; cursor: pointer; }
+  .title-wrap:hover .copy { opacity: 1; }
+  .copy:hover { background: var(--hover); color: var(--paper-text); }
+  .copy svg { width: 14px; height: 14px; }
+
+  .menu { width: 260px; border: 1px solid var(--paper-rule); border-radius: 12px; background: var(--paper); padding: 4px; font-size: 13px; box-shadow: 0 10px 15px -3px rgba(0,0,0,.1); }
+  .menu div { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+  .menu div:hover { background: var(--paper-quiet); }
+  .menu div.on { color: var(--paper-strong); font-weight: 500; }
+  .menu svg { width: 14px; height: 14px; }
+
+  .frame { position: relative; display: flex; flex-direction: column; height: 260px; width: 100%; border: 1px solid var(--paper-rule); border-radius: 16px; background: var(--paper); padding: 8px; overflow: hidden; }
+  .frame .plot { flex: 1; position: relative; border-radius: 8px; background: repeating-linear-gradient(0deg, transparent 0 39px, var(--paper-rule-soft) 39px 40px); cursor: var(--scope); }
+  .frame .foot { padding: 6px 12px 6px 40px; font-size: 13px; }
+  .frame .foot span { padding: 4px 10px; margin-left: -10px; border-radius: 8px; cursor: pointer; }
+  .frame .foot span:hover { background: var(--hover); }
+  .frame.engaged { box-shadow: inset 0 0 0 1px var(--paper-muted); }
+  .keys { position: absolute; bottom: 52px; left: 50%; transform: translateX(-50%); border: 1px solid color-mix(in oklab, var(--paper-rule) 30%, transparent); background: color-mix(in oklab, var(--paper) 90%, transparent); border-radius: 999px; padding: 4px 12px; font: 11px var(--mono); color: var(--paper-muted); white-space: nowrap; }
+
+  .box { width: 280px; min-height: 210px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--paper-rule); border-radius: 16px; background: var(--paper); padding: 20px; cursor: pointer; }
+  .box:hover { background: var(--paper-quiet); }
+  .box h4 { margin: 0; font: 400 20px/1.1 var(--serif); min-height: 2.2em; }
+  .box .axes { margin: 6px 0 0; font-size: 11px; color: var(--paper-faint); }
+  .box .desc { margin-top: 8px; font-size: 12px; line-height: 1.5; color: var(--paper-muted); }
+  .box .foot { display: flex; justify-content: space-between; align-items: flex-end; }
+  .box .num { font: 10px var(--mono); letter-spacing: .2em; color: var(--paper-faint); }
+  .box .pane { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--paper-faint); }
+  .box .pane svg { width: 14px; height: 14px; }
+
+  .tipstage { position: relative; height: 150px; width: 300px; border: 1px solid var(--paper-rule-soft); border-radius: 8px; }
+  .tipstage .pt { position: absolute; left: 70px; top: 110px; width: 8px; height: 8px; border-radius: 99px; background: #2f6fdc; transform: translate(-50%,-50%); box-shadow: 0 0 0 2px var(--paper); }
+  .tipstage .ring { position: absolute; left: 70px; top: 110px; width: 20px; height: 20px; border-radius: 99px; border: 1px solid var(--paper-muted); transform: translate(-50%,-50%); }
+  .tipstage .lead { position: absolute; left: 70px; top: 110px; width: 37px; border-top: 1px dashed var(--paper-faint); transform-origin: 0 0; transform: rotate(-45deg); }
+  .tipstage .tip { position: absolute; left: 96px; top: 24px; background: var(--paper); border: 1px solid var(--paper-rule); border-radius: 6px; padding: 6px 9px; font-size: 12px; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+
+  .cursor-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 160px; padding: 18px 10px; border: 1px solid var(--paper-rule-soft); border-radius: 10px; font-size: 13px; }
+  .cursor-cell .try { width: 100%; height: 60px; border-radius: 8px; background: var(--paper-quiet); display: flex; align-items: center; justify-content: center; color: var(--paper-faint); font-size: 12px; }
+
+  /* Motion */
+  .stage { position: relative; height: 300px; border: 1px solid var(--paper-rule-soft); border-radius: 12px; background: var(--bg); overflow: hidden; }
+  .stage .mast { position: absolute; left: 16px; top: 16px; width: 120px; height: 60px; border: 1px solid var(--paper-rule); border-radius: 10px; background: var(--paper); font: 400 15px var(--serif); display: flex; align-items: center; justify-content: center; }
+  .stage .main { position: absolute; left: 160px; top: 16px; right: 16px; bottom: 16px; border: 1px dashed var(--paper-faint); border-radius: 12px; }
+  .stage .clone { position: absolute; border: 1px solid var(--paper-rule); background: var(--paper); border-radius: 10px; opacity: 0; }
+  .stage .lbl { position: absolute; font: 11px var(--mono); color: var(--paper-faint); }
+
+
+  /* Navigation */
+  .sb { width: 240px; border: 1px solid var(--paper-rule); border-radius: 16px; background: var(--paper); padding: 12px; font-size: 14px; }
+  .sbsearch { display: flex; align-items: center; gap: 8px; border: 1px solid color-mix(in oklab, var(--paper-text) 18%, var(--paper)); background: var(--paper-quiet); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--paper-faint); cursor: pointer; margin-bottom: 12px; }
+  .sbsearch:hover { border-color: color-mix(in oklab, var(--paper-text) 32%, var(--paper)); color: var(--paper-text); }
+  .sbsearch kbd { margin-left: auto; font: 10px var(--mono); border: 1px solid color-mix(in oklab, var(--paper-text) 18%, var(--paper)); border-radius: 4px; padding: 0 4px; }
+  .sbrow { position: relative; display: flex; align-items: center; gap: 12px; padding: 8px 64px 8px 12px; border-radius: 12px; color: var(--paper-muted); cursor: pointer; }
+  .sbrow:hover { background: color-mix(in oklab, var(--paper-text) 8%, var(--paper)); color: var(--paper-text); }
+  .sbrow.on { background: color-mix(in oklab, var(--paper-text) 8%, var(--paper)); color: var(--paper-strong); font-weight: 600; }
+  .sbrow.on::before { content: ""; position: absolute; left: 0; top: 50%; height: 16px; width: 3px; transform: translateY(-50%); border-radius: 99px; background: var(--paper-strong); }
+  .sbrow svg.ic { width: 18px; height: 18px; flex-shrink: 0; fill: var(--paper); stroke: currentColor; transition: fill .15s, color .15s; }
+  .sbrow:hover svg.ic, .sbrow.on svg.ic { fill: color-mix(in oklab, var(--paper-strong) 18%, var(--paper)); color: var(--paper-strong); }
+  .sbrow:hover svg.ic { animation: icon-pop .5s ease-in-out; }
+  @keyframes icon-pop { 0%,100% { transform: scale(1) } 50% { transform: scale(1.2) } }
+  .sbrow .acts { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: flex; opacity: 0; transition: opacity .15s; }
+  .sbrow:hover .acts { opacity: 1; }
+  .sbrow .acts span { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: var(--paper-faint); }
+  .sbrow .acts span:hover { background: var(--paper); color: var(--paper-strong); }
+  .sbrow .acts svg { width: 16px; height: 16px; }
+  .sbsub { position: relative; padding-left: 32px; }
+  .sbsub .trunk { position: absolute; left: 21px; top: 0; bottom: 0; width: 1px; background: color-mix(in oklab, var(--paper-text) 18%, var(--paper)); }
+  .sbsub .elbow { position: absolute; left: 21px; top: 0; height: 16px; width: 20px; border-left: 1.5px solid color-mix(in oklab, var(--paper-text) 18%, var(--paper)); border-bottom: 1.5px solid color-mix(in oklab, var(--paper-text) 18%, var(--paper)); border-bottom-left-radius: 10px; }
+  .sbsub .sbrow { padding-top: 6px; padding-bottom: 6px; font-size: 13px; }
+  .sblabel { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--paper-faint); padding: 0 12px; margin: 12px 0 4px; }
+
+  /* Docs */
+  .dcard { display: block; width: 260px; overflow: hidden; border: 1px solid var(--paper-rule); border-radius: 16px; background: var(--paper); box-shadow: 0 1px 2px rgba(15,23,42,.06); transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s; cursor: pointer; }
+  .dcard:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -12px rgba(15,23,42,.3); }
+  .dcard .pic { aspect-ratio: 16/10; background: var(--paper-quiet); border-bottom: 1px solid var(--paper-rule); display: flex; align-items: center; justify-content: center; color: var(--paper-faint); font-size: 12px; }
+  .dcard .bd { padding: 20px; }
+  .dcard .tt { font: 400 20px/1.15 var(--serif); }
+  .dcard:hover .tt { color: var(--paper-strong); }
+  .dcard .sm { margin-top: 6px; font-size: 14px; line-height: 1.6; color: var(--paper-muted); }
+  .tcard { display: flex; gap: 16px; padding: 20px; width: 320px; }
+  .tcard .tile { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: color-mix(in oklab, var(--paper-strong) 16%, var(--paper)); color: var(--paper-strong); }
+  .tcard .tt { font-size: 18px; }
+  .callout { display: flex; gap: 14px; border-radius: 12px; padding: 16px 20px; background: color-mix(in oklab, var(--paper-strong) 10%, var(--paper)); font-size: 15px; }
+  .toc { border-left: 1px solid color-mix(in oklab, var(--paper-text) 18%, var(--paper)); font-size: 14px; }
+  .toc a { display: block; margin-left: -1px; border-left: 2px solid transparent; padding: 6px 0 6px 16px; color: var(--paper-muted); text-decoration: none; }
+  .toc a.on { border-color: var(--paper-strong); color: var(--paper-strong); }
+  ol.rules { margin: 0; padding-left: 22px; }
+  ol.rules li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main>
+  <header class="page">
+    <div>
+      <h1>NSRgpt Design System</h1>
+      <div class="date">Draft · 2026-11-06 · read from the code on main (515b598)</div>
+    </div>
+    <button class="chip" id="mode">Light</button>
+  </header>
+
+  <!-- ───────────────────────── Type ───────────────────────── -->
+  <section>
+    <h2>Type</h2>
+    <div>
+      <div class="spec"><div style="font: 400 24px/1 var(--serif)">Binding Energy per Nucleon</div><div class="mono faint">Fraunces 400 · 24 px</div></div>
+      <div class="spec"><div style="font: 400 20px/1.1 var(--serif)">Decay Modes by Mass Number</div><div class="mono faint">Fraunces 400 · 20 px</div></div>
+      <div class="spec"><div>Charts, tables and chat over nuclear structure and decay data.</div><div class="mono faint">DM Sans · 14 px</div></div>
+      <div class="spec"><div style="font-size:13px">Scatter field · Stacked area · Heatmap</div><div class="mono faint">DM Sans · 13 px</div></div>
+      <div class="spec"><div style="font-size:12px" class="muted">3,420 nuclides, coloured by primary decay mode.</div><div class="mono faint">DM Sans · 12 px · muted</div></div>
+      <div class="spec"><div style="font-size:11px" class="faint">A · binding energy per nucleon (MeV)</div><div class="mono faint">DM Sans · 11 px · faint</div></div>
+      <div class="spec"><div class="mono" style="font-size:11px">W A S D move · Q E turn · R reset</div><div class="mono faint">JetBrains Mono · 11 px</div></div>
+      <div class="spec"><div class="mono faint" style="font-size:10px; letter-spacing:.2em">01 · AME2020</div><div class="mono faint">JetBrains Mono · 10 px · 0.2em</div></div>
+    </div>
+    <h3>Use</h3>
+    <table>
+      <tr><th>Font</th><th>Variable</th><th>For</th></tr>
+      <tr><td style="font-family:var(--serif)">Fraunces</td><td class="mono">--font-display</td><td>Header titles, index box titles, section headings. Never body text.</td></tr>
+      <tr><td>DM Sans</td><td class="mono">--font-sans</td><td>Everything else: body, controls, menus, tooltips, tables.</td></tr>
+      <tr><td class="mono">JetBrains Mono</td><td class="mono">--font-mono</td><td>Box numbers, key lists, table pagers, tabular figures.</td></tr>
+    </table>
+  </section>
+
+  <!-- ───────────────────────── Colour ───────────────────────── -->
+  <section>
+    <h2>Colour</h2>
+    <p class="muted">The charts, header and index sit on the paper tokens (<code>.nysgpt-app</code> in <code>app/globals.css</code>). Toggle Dark above to see both.</p>
+    <div class="grid2" style="margin-top:14px">
+      <div>
+        <h3>Paper</h3>
+        <table id="paper"></table>
+      </div>
+      <div>
+        <h3>Shell</h3>
+        <table id="shell"></table>
+        <h3>States</h3>
+        <table>
+          <tr><td><div class="dot sm" style="background:var(--hover)"></div></td><td>Hover</td><td class="mono">ink 14% over paper</td></tr>
+          <tr><td><div class="dot sm" style="background:var(--paper-quiet); border-color:var(--paper-rule)"></div></td><td>Menu item focus, box hover</td><td class="mono">--paper-quiet</td></tr>
+          <tr><td><div class="dot sm" style="box-shadow: inset 0 0 0 1px var(--paper-muted)"></div></td><td>Chart has the arrow keys</td><td class="mono">1 px inset ring, --paper-muted</td></tr>
+          <tr><td><div class="dot sm" style="background:var(--paper-strong)"></div></td><td>Current item in a menu</td><td class="mono">--paper-strong + ✓</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── Themes ───────────────────────── -->
+  <section>
+    <h2>Themes</h2>
+    <p class="muted">Six themes, 17 colours each, in <code>lib/theme.ts</code>. PAX Light is the default. The theme panel sets them on <code>&lt;html&gt;</code> as <code>--t-*</code>.</p>
+    <table class="themes" id="themes" style="margin-top:12px"></table>
+  </section>
+
+  <!-- ───────────────────────── Chart colours ───────────────────────── -->
+  <section>
+    <h2>Chart Colours</h2>
+
+    <h3>Decay modes · <code>lib/nuclide.ts</code> FAMILY</h3>
+    <table id="family"></table>
+    <table style="margin-top:12px">
+      <tr><th>Palette check</th><th>Light, on #ffffff</th><th>Dark, on #15120d</th></tr>
+      <tr><td>Lightness band</td><td>Pass</td><td style="color:#d42f2f">Fail: all six above L 0.69</td></tr>
+      <tr><td>Chroma floor</td><td>Pass</td><td>Pass</td></tr>
+      <tr><td>Colour-blind separation</td><td>Warn: α / β+/EC, ΔE 7.8 (deutan)</td><td>Warn: Fission / α, ΔE 6.4 (protan)</td></tr>
+      <tr><td>Normal-vision separation</td><td style="color:#d42f2f">Fail: α / β+/EC, ΔE 13.4, floor 15</td><td>Pass</td></tr>
+      <tr><td>Contrast against paper</td><td>Warn: α at 2.15:1</td><td>Pass</td></tr>
+    </table>
+    <p class="faint" style="font-size:12px; margin-top:6px">Run with the dataviz skill's <code>validate_palette.js</code> on the six colours between Stable and Unknown.</p>
+
+    <div class="grid2" style="margin-top:6px">
+      <div>
+        <h3>Parity · level energies</h3>
+        <table>
+          <tr><td><div class="dot sm" style="background:#2f6fdc"></div></td><td>+</td><td class="mono">blue</td></tr>
+          <tr><td><div class="dot sm" style="background:#e8730c"></div></td><td>−</td><td class="mono">orange</td></tr>
+          <tr><td><div class="dot sm" style="background:var(--paper-text)"></div></td><td>None, or both</td><td class="mono">ink</td></tr>
+        </table>
+        <p class="faint" style="font-size:12px; margin-top:6px">Each lightens toward the paper as the level rises to 10 MeV.</p>
+      </div>
+      <div>
+        <h3>Years since evaluation · knowledge map</h3>
+        <div style="height:18px; border-radius:5px; background:linear-gradient(90deg,#0f9d8f,#d99a00,#c2410c)"></div>
+        <div class="row" style="justify-content:space-between; font-size:11px; margin-top:4px" class="faint"><span class="faint">recent</span><span class="faint">old</span></div>
+        <table style="margin-top:8px">
+          <tr><td><div class="dot sm" style="background:#8a8a8a"></div></td><td>Studied, never evaluated</td><td class="mono">#8a8a8a</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h3>Decay series · force graph</h3>
+        <table>
+          <tr><td><div class="dot sm" style="background:#2f6fdc"></div></td><td>Uranium series</td><td class="mono">#2f6fdc</td></tr>
+          <tr><td><div class="dot sm" style="background:#e8730c"></div></td><td>Thorium series</td><td class="mono">#e8730c</td></tr>
+          <tr><td><div class="dot sm" style="background:#1f9d4c"></div></td><td>Actinium series</td><td class="mono">#1f9d4c</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Axes · <code>lib/viz-physics.ts</code> AXIS</h3>
+        <table>
+          <tr><td><div class="dot sm" style="background:#64748b"></div></td><td>Axis name</td><td class="mono">#64748b</td></tr>
+          <tr><td><div class="dot sm" style="background:#475569"></div></td><td>Tick labels, 10 px</td><td class="mono">#475569</td></tr>
+          <tr><td><div class="dot sm" style="background:#94a3b8"></div></td><td>Axis line</td><td class="mono">#94a3b8</td></tr>
+          <tr><td></td><td>Grid lines</td><td class="mono">off</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── Components ───────────────────────── -->
+  <section>
+    <h2>Components</h2>
+
+    <h3>Header · <code>components/AppLayout.tsx</code></h3>
+    <div class="mock-header">
+      <div class="circle" title="Panel 1"><svg viewBox="0 0 24 24" fill="#dbe7fa" stroke="#033882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M16 15l-3-3 3-3"/></svg></div>
+      <div class="circle" title="Previous chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+      <div class="circle" title="Next chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+      <div class="title-wrap">
+        <button class="title-btn">Binding Energy per Nucleon</button>
+        <div class="copy" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></div>
+      </div>
+    </div>
+    <table style="margin-top:12px">
+      <tr><td>Circle button</td><td>40 px, 1 px rule, 2 px on hover, hover fill, medium shadow</td></tr>
+      <tr><td>Title</td><td>Fraunces 24 px; cut at the width of "Binding Energy per Nucleon", full name on hover (<code>TitleText</code>); opens the chart menu</td></tr>
+      <tr><td>Copy</td><td>28 px, shows on the title's hover, ticks for 1.5 s after copying (<code>CopyTitle</code>)</td></tr>
+      <tr><td>Empty header space</td><td>One click opens the Nav</td></tr>
+    </table>
+
+    <div class="grid2">
+      <div>
+        <h3>Menu · <code>components/ui/dropdown-menu</code></h3>
+        <div class="menu">
+          <div>Scatter field</div>
+          <div class="on">Stacked area <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <div>Heatmap</div>
+          <div>Bar run</div>
+        </div>
+        <p class="faint" style="font-size:12px; margin-top:8px">No browser <code>&lt;select&gt;</code> anywhere; <code>MenuSelect</code> wraps this menu for form controls.</p>
+      </div>
+      <div>
+        <h3>Tooltip · <code>diagonalTip</code></h3>
+        <div class="tipstage">
+          <div class="ring"></div><div class="pt"></div><div class="lead"></div>
+          <div class="tip"><b>⁵⁶Fe</b><br><span class="muted">8.790 MeV per nucleon</span></div>
+        </div>
+        <p class="faint" style="font-size:12px; margin-top:8px">26 px off the dot at 45°; 135° at the right edge; below at the top edge. The dot nearest the pointer within 10 px takes the hover.</p>
+      </div>
+    </div>
+
+    <h3>Chart frame · <code>components/viz/FramedBox.tsx</code></h3>
+    <div class="frame" id="frame">
+      <div class="plot"></div>
+      <div class="keys" id="keys" hidden>W A S D move · Q E turn · R reset</div>
+      <div class="foot"><span>Scatter field</span></div>
+    </div>
+    <table style="margin-top:12px">
+      <tr><td>Size</td><td>Fills the main container edge to edge; 8 px padding</td></tr>
+      <tr><td>Foot</td><td>The chart type, 13 px, 40 px from the left; a switcher when more than one type fits the metric</td></tr>
+      <tr><td>Click inside</td><td>The chart takes the arrow keys and the frame shows a 1 px ring; 3D charts list their camera keys. Esc gives the arrows back. Click the frame above to try it.</td></tr>
+      <tr><td>Controls, legend</td><td>In the right panel under Viz › the chart, never inside the frame</td></tr>
+    </table>
+
+    <h3>Index box · <code>app/(site)/(plate)/page.tsx</code></h3>
+    <div class="row">
+      <div class="box">
+        <div>
+          <h4>Binding Energy per Nucleon</h4>
+          <p class="axes">Scatter Plot</p>
+          <div class="desc"><p style="margin:0">X: Mass Number A</p><p style="margin:0">Y: Binding Energy per Nucleon</p></div>
+        </div>
+        <div class="foot">
+          <span class="num">01 • AME2020</span>
+          <span class="pane"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg></span>
+        </div>
+      </div>
+      <table style="flex:1; min-width:300px">
+        <tr><td>Title</td><td>The physics name, Fraunces 20 px, always two lines tall; a longer name ends in "…"</td></tr>
+        <tr><td>Chart type</td><td>DM Sans 11 px, faint, under the title</td></tr>
+        <tr><td>Axes</td><td>One a line, DM Sans 12 px, muted</td></tr>
+        <tr><td>Number, source</td><td>Mono 10 px, 0.2em tracking, bottom left</td></tr>
+        <tr><td>Panel button</td><td>Opens the chart in Panel 2, bottom right</td></tr>
+        <tr><td>Keys</td><td>← → across rows and pages, ↑ ↓ rows, Enter opens</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── Navigation ───────────────────────── -->
+  <section>
+    <h2>Navigation</h2>
+    <div class="row" style="gap:28px">
+      <div class="sb">
+        <div class="sbsearch"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Quick search…<kbd>⌘K</kbd></div>
+        <div class="sbrow"><svg class="ic" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></svg>Chat<span class="acts"><span title="Panel 2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10M7 17 17 7"/></svg></span><span title="Kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span></span></div>
+        <div class="sbrow" style="padding-right:12px"><svg class="ic" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="fill:none"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg><span style="flex:1">Charts</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--paper-faint)"><path d="m18 15-6-6-6 6"/></svg></div>
+        <div class="sbsub"><span class="trunk"></span><span class="elbow"></span><div class="sbrow on">Binding Energy per Nucleon<span class="acts"><span title="Panel 2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10M7 17 17 7"/></svg></span><span title="Kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span></span></div></div>
+        <div class="sbsub"><span class="elbow"></span><div class="sbrow">Decay Modes by Mass Number<span class="acts"><span title="Panel 2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10M7 17 17 7"/></svg></span><span title="Kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span></span></div></div>
+        <div class="sbrow" style="padding-right:12px"><svg class="ic" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg><span style="flex:1">Data</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--paper-faint)"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div style="border-top:1px solid var(--paper-rule-soft); margin-top:12px; padding-top:4px">
+          <div class="sblabel">Today</div>
+          <div class="sbrow" style="font-size:13px; padding-top:6px; padding-bottom:6px">Half-life of ²³⁸U<span class="acts"><span title="Panel 2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10M7 17 17 7"/></svg></span><span title="Kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span></span></div>
+        </div>
+      </div>
+      <table style="flex:1; min-width:340px">
+        <tr><th>Component</th><th>File</th><th>From</th></tr>
+        <tr><td>SideBarMenu</td><td class="mono">components/sidebar/SideBarMenu.tsx</td><td>SearchBar, Chat, then A to Z, then the chats</td></tr>
+        <tr><td>SideBarMenuItem</td><td class="mono">components/sidebar/SideBarMenuItem.tsx</td><td>pax-trinity's row with hq's affordances</td></tr>
+        <tr><td>SideBarMenuGroup</td><td class="mono">components/sidebar/SideBarMenuItem.tsx</td><td>pax-trinity's fold and branch lines</td></tr>
+        <tr><td>SidebarChats</td><td class="mono">components/sidebar/SidebarChats.tsx</td><td>pax-trinity, from hq's Recents: grouped, pinned, archived</td></tr>
+        <tr><td>SearchBar</td><td class="mono">components/search/SearchBar.tsx</td><td>hq's Quick search</td></tr>
+        <tr><td>CommandPalette</td><td class="mono">components/search/CommandPalette.tsx</td><td>hq's ⌘K: scope chips, keys, ranking</td></tr>
+        <tr><td>CommandKHost</td><td class="mono">components/search/CommandKHost.tsx</td><td>pax-trinity: ⌘K anywhere, code loads on first open</td></tr>
+        <tr><td>Two-tone icon</td><td class="mono">components/animate-ui/icons/*</td><td>govblock's animate-ui icons, pax-trinity's two tones</td></tr>
+        <tr><td>UpRight Arrow</td><td class="mono">lucide ArrowUpRight</td><td>Opens the row in Panel 2 (openPane)</td></tr>
+        <tr><td>Kebab</td><td class="mono">components/kebab-menu.tsx</td><td>hq's row menu, via pax-trinity</td></tr>
+      </table>
+    </div>
+    <table style="margin-top:14px">
+      <tr><td>Row hover</td><td>Ink 8% over paper; the icon fills with --paper-strong at 18% and plays its own animation</td></tr>
+      <tr><td>Current page</td><td>Same fill, --paper-strong text, a 3 px bar at the left</td></tr>
+      <tr><td>Row actions</td><td>UpRight Arrow and Kebab, shown on hover; a star when favorited</td></tr>
+      <tr><td>Kebab, pages</td><td>Path to copy · Open in panel · Favorite · Pin to top · Rename · Copy link · Hide · Archive</td></tr>
+      <tr><td>Kebab, chats</td><td>Path to copy · Pin to top · Favorite · Rename · Copy link · Hide · Archive</td></tr>
+      <tr><td>⌘K</td><td>↑ ↓ and Tab move · ← → scope · /chart narrows · ↵ opens · esc closes</td></tr>
+    </table>
+    <p class="faint" style="font-size:12px; margin-top:8px">The icon motion here is pax-trinity's CSS stand-in; on the site each icon runs its own govblock animation.</p>
+  </section>
+
+  <!-- ───────────────────────── Docs ───────────────────────── -->
+  <section>
+    <h2>Docs</h2>
+    <div class="row" style="gap:20px; align-items:stretch">
+      <div class="dcard"><div class="pic">screenshot</div><div class="bd"><div class="tt">Welcome to NSRgpt</div><div class="sm">What I hold, what I draw from it, and where to start.</div></div></div>
+      <div class="dcard tcard"><span class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="color-mix(in oklab, var(--paper-strong) 18%, var(--paper))" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></span><span><span class="tt" style="display:block; font:400 18px/1.15 var(--serif)">Get started</span><span class="sm" style="display:block">What NSRgpt is, accounts, and finding your way around.</span><span style="display:block; margin-top:8px; font-size:13px; color:var(--paper-faint)">5 articles</span></span></div>
+    </div>
+    <div class="row" style="gap:28px; margin-top:20px; align-items:flex-start">
+      <div style="flex:1; min-width:320px">
+        <div style="font-size:15px; color:var(--paper-muted)">Help Center <span style="color:var(--paper-faint)">›</span> <span style="color:var(--paper-text)">Read charts</span></div>
+        <div style="font:400 42px/1.12 var(--serif); margin-top:16px">How a chart page works</div>
+        <div style="font-size:18px; color:var(--paper-muted); margin-top:14px">The frame, the pointer, the tooltip and the chart type.</div>
+        <div style="margin-top:14px; display:flex; gap:8px; align-items:center"><span style="background:var(--paper-quiet); border-radius:6px; padding:2px 8px; font-size:12px; color:var(--paper-muted)">Charts</span><span style="font-size:13px; color:var(--paper-faint)">2 min read</span></div>
+        <div class="callout" style="margin-top:20px"><span style="color:var(--paper-strong)">💡</span><span>New here? Open any box on the index, hover a point, then read on.</span></div>
+      </div>
+      <div style="width:230px"><div style="font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:.08em; color:var(--paper-faint); margin-bottom:12px">Contents</div><div class="toc"><a class="on">The frame</a><a>The pointer</a><a>The tooltip</a><a>Clicking</a></div></div>
+    </div>
+    <table style="margin-top:20px">
+      <tr><th>Component</th><th>File</th><th>From</th></tr>
+      <tr><td>DocsNav</td><td class="mono">components/docs/DocsNav.tsx</td><td>pax-trinity's docs nav, built from SideBarMenuGroup and SideBarMenuItem</td></tr>
+      <tr><td>DocCard · TopicCard · VideoCard</td><td class="mono">components/docs/DocCards.tsx</td><td>pax-trinity's front-page cards: paper, ink rule, lift 3 px and deeper shadow on hover</td></tr>
+      <tr><td>PrevNext</td><td class="mono">components/docs/DocCards.tsx</td><td>The article's foot</td></tr>
+      <tr><td>DocsToc</td><td class="mono">components/docs/DocsToc.tsx</td><td>Contents with scroll tracking</td></tr>
+      <tr><td>DocMarkdown</td><td class="mono">components/docs/DocMarkdown.tsx</td><td>Fraunces headings, figures, callouts, tables, server-rendered</td></tr>
+      <tr><td>NarratedVideo</td><td class="mono">components/docs/NarratedVideo.tsx</td><td>Player with the narrator menu (the site's dropdown)</td></tr>
+      <tr><td>DocImage</td><td class="mono">components/docs/DocImage.tsx</td><td>A picture that holds its place, named, until its file is up</td></tr>
+      <tr><td>RailToggle</td><td class="mono">components/rail-toggle.tsx</td><td>govblock's pinned rail tab: a chevron on a rail's edge that drags it open and shut; kept per browser in &lt;html data-rail-left&gt;; the docs nav</td></tr>
+      <tr><td>Sheet</td><td class="mono">components/ui/sheet.tsx</td><td>A side drawer on Radix Dialog, ported from the old nsr app; /search's record drawer</td></tr>
+      <tr><td>Dialog</td><td class="mono">components/animate-ui/components/base/dialog.tsx</td><td>The one dialog: Base UI with motion; the feedback form and the ported nsr dialogs</td></tr>
+    </table>
+  </section>
+
+  <!-- ───────────────────────── Pointers ───────────────────────── -->
+  <section>
+    <h2>Pointers</h2>
+    <div class="row">
+      <div class="cursor-cell"><b>Hand</b><div class="try" style="cursor:pointer">hover</div><span class="faint" style="font-size:12px">Buttons, switchers, controls</span></div>
+      <div class="cursor-cell"><b>Scope</b><div class="try" id="scopeTry">hover</div><span class="faint" style="font-size:12px">Chart plots</span></div>
+      <div class="cursor-cell"><b>Arrow</b><div class="try" style="cursor:default">hover</div><span class="faint" style="font-size:12px">Everything else</span></div>
+      <div style="flex:1; min-width:240px">
+        <p class="muted" style="font-size:13px">The scope is an open-centre cross with a 10 px ring that shows the nearest-point reach. Ink over a paper halo, so it reads on any ground. <code>lib/viz-cursor.ts</code></p>
+        <div id="scopeSvg" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── Motion ───────────────────────── -->
+  <section>
+    <h2>Motion · <code>lib/viz-grow.ts</code></h2>
+    <div class="row" style="margin-bottom:12px">
+      <button class="chip" data-play="forward">ChartForward</button>
+      <button class="chip" data-play="root">ChartRoot</button>
+      <button class="chip" data-play="back">ChartBack</button>
+    </div>
+    <div class="stage" id="stage">
+      <div class="mast">NSRgpt</div>
+      <div class="main"></div>
+      <span class="lbl" style="left:16px; top:82px">masthead box</span>
+      <span class="lbl" style="left:168px; top:22px">main container</span>
+      <div class="clone" id="clone"></div>
+    </div>
+    <table style="margin-top:12px">
+      <tr><th>Name</th><th>When</th><th>Path</th></tr>
+      <tr><td>ChartForward</td><td>Every page change and first load, the next button, <code>]</code></td><td>Grows from the masthead box to the full frame</td></tr>
+      <tr><td>ChartRoot</td><td>Arriving at /, and its first load</td><td>Shrinks from the full frame to the masthead box</td></tr>
+      <tr><td>ChartBack</td><td>The previous button, <code>[</code></td><td>Shrinks to the main container's top-left corner, then fades</td></tr>
+    </table>
+    <p class="faint" style="font-size:12px; margin-top:8px">420 ms, <code>cubic-bezier(0.25, 0.4, 0.25, 1)</code>, on left, top, width, height, radius and border colour; the fade is 160 ms ease-out. Not yet on: the browser's back button to pages other than /, the chart-type switcher, Panel 2.</p>
+    <h3>Other motion</h3>
+    <table>
+      <tr><td>Theme switch</td><td>A circle grows from the click point (view transition)</td></tr>
+      <tr><td>Link underline</td><td>Fills left to right on hover, 0.4 s (<code>.link-wipe</code>)</td></tr>
+      <tr><td>3D charts</td><td>Turn 3° a second on open; the first press, drag or scroll stops it for good</td></tr>
+      <tr><td>Reduced motion</td><td>The link underline drops its transition</td></tr>
+    </table>
+  </section>
+
+  <!-- ───────────────────────── Rules ───────────────────────── -->
+  <section>
+    <h2>Rules</h2>
+    <ol class="rules">
+      <li>Charts fill the whole container. Controls and legends go in the right panel.</li>
+      <li>No browser dropdowns. Every choice uses the site's menu.</li>
+      <li>Three pointers: hand on controls, scope on plots, arrow elsewhere.</li>
+      <li>Header titles are physics names (<code>lib/header-titles.ts</code>). Chart types sit at the frame's foot (<code>lib/viz-charts.ts</code>).</li>
+      <li>Fraunces for titles only. Body and controls are DM Sans. Figures are mono.</li>
+      <li>Copy is plain language in the first person singular. No metaphors.</li>
+      <li>No labels that repeat what the layout already shows.</li>
+      <li>Port existing code (pax-trinity and others) exactly rather than rebuilding a look-alike.</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+  const PAPER = [
+    ['--paper', 'Chart and panel ground'],
+    ['--paper-text', 'Ink'],
+    ['--paper-muted', 'Secondary text'],
+    ['--paper-faint', 'Captions, axes, numbers'],
+    ['--paper-rule', 'Borders of frames, boxes, menus'],
+    ['--paper-rule-soft', 'Hairlines inside a surface'],
+    ['--paper-quiet', 'Quiet fill'],
+    ['--paper-strong', 'Selected and current'],
+  ]
+  const SHELL = [
+    ['--bg', 'Page behind the panels'],
+    ['--surface', 'Shell surface'],
+    ['--border', 'Shell borders'],
+    ['--inp-bg', 'Input fill'],
+  ]
+  function tokenRows(id, list) {
+    const css = getComputedStyle(document.documentElement)
+    document.getElementById(id).innerHTML = list.map(([v, use]) =>
+      `<tr><td><div class="dot sm" style="background:var(${v})"></div></td><td class="mono">${v}</td><td>${use}</td><td class="mono faint">${css.getPropertyValue(v).trim()}</td></tr>`).join('')
+  }
+
+  const THEMES = [
+    ['PAX Light', { frame:'#e3e9f1', sidebar:'#f5f7fb', surface:'#f5f7fb', raised:'#ffffff', tint:'#eef2f8', rule:'#dce3ec', ink:'#0f172a', ink3:'#64748b', accent:'#1e3a8a', accent2:'#2563eb', wash:'#dbeafe', positive:'#16a34a', negative:'#dc2626' }],
+    ['PAX Dark', { frame:'#1d2638', sidebar:'#121a2b', surface:'#121a2b', raised:'#1c2638', tint:'#172033', rule:'#2a3548', ink:'#eef2f7', ink3:'#94a1b5', accent:'#3b82f6', accent2:'#60a5fa', wash:'#182c50', positive:'#4ade80', negative:'#f87171' }],
+    ['Light', { frame:'#eef1f5', sidebar:'#ffffff', surface:'#ffffff', raised:'#ffffff', tint:'#f4f6f9', rule:'#e2e8f0', ink:'#0f172a', ink3:'#64748b', accent:'#1e3a8a', accent2:'#2563eb', wash:'#dbeafe', positive:'#16a34a', negative:'#dc2626' }],
+    ['Dark', { frame:'#09090b', sidebar:'#18181b', surface:'#18181b', raised:'#27272a', tint:'#222226', rule:'#2e2e33', ink:'#fafafa', ink3:'#a1a1aa', accent:'#3b82f6', accent2:'#60a5fa', wash:'#172554', positive:'#4ade80', negative:'#f87171' }],
+    ['Vercel', { frame:'#000000', sidebar:'#0a0a0a', surface:'#0a0a0a', raised:'#1a1a1a', tint:'#111111', rule:'#262626', ink:'#ededed', ink3:'#8f8f8f', accent:'#0070f3', accent2:'#52a8ff', wash:'#0c1d33', positive:'#45a557', negative:'#ff6166' }],
+    ['VS Code', { frame:'#181818', sidebar:'#1e1e1e', surface:'#1e1e1e', raised:'#2d2d30', tint:'#252526', rule:'#3c3c3c', ink:'#d4d4d4', ink3:'#9d9d9d', accent:'#3b82f6', accent2:'#3794ff', wash:'#1a2d4d', positive:'#89d185', negative:'#f48771' }],
+  ]
+  const COLS = [['frame','Page'],['sidebar','Sidebar'],['surface','Main'],['raised','Raised'],['tint','Tint'],['rule','Rule'],['ink','Ink'],['ink3','Ink 3'],['accent','Accent'],['accent2','Accent 2'],['wash','Wash'],['positive','Positive'],['negative','Negative']]
+  document.getElementById('themes').innerHTML =
+    `<tr><th></th>${COLS.map(([, l]) => `<th style="text-align:center">${l}</th>`).join('')}</tr>` +
+    THEMES.map(([name, c]) => `<tr><td style="white-space:nowrap">${name}</td>${COLS.map(([k]) => `<td><div class="dot" title="${c[k]}" style="background:${c[k]}"></div></td>`).join('')}</tr>`).join('')
+
+  const FAMILY = [
+    ['Stable', '#16181d', '#f0e9d8'], ['β−', '#2f6fdc', '#5b9cff'], ['β+/EC', '#e8730c', '#ff8a3d'], ['α', '#d9ab00', '#ffd84d'],
+    ['Fission', '#1f9d4c', '#3ddc7a'], ['p emission', '#8b3fd9', '#b57bff'], ['n emission', '#d42f2f', '#ff5c5c'], ['Unknown', '#a3a3a3', '#6b6b6b'],
+  ]
+  document.getElementById('family').innerHTML =
+    `<tr><th>Mode</th><th>Light</th><th></th><th>Dark</th><th></th></tr>` +
+    FAMILY.map(([l, a, b]) => `<tr><td>${l}</td><td><div class="dot sm" style="background:${a}"></div></td><td class="mono faint">${a}</td><td><div class="dot sm" style="background:${b}"></div></td><td class="mono faint">${b}</td></tr>`).join('')
+
+  // The scope pointer, as lib/viz-cursor.ts builds it.
+  function scope(dark) {
+    const ink = dark ? '#f0e9d8' : '#16181d', halo = dark ? '#15120d' : '#ffffff'
+    const arms = 'M16 2v10M16 20v10M2 16h10M20 16h10'
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="${halo}" stroke-width="3" opacity="0.5"/><circle cx="16" cy="16" r="10" fill="none" stroke="${ink}" stroke-width="1" opacity="0.4"/><path d="${arms}" stroke="${halo}" stroke-width="3"/><path d="${arms}" stroke="${ink}" stroke-width="1"/></svg>`
+    return { svg, cursor: `url("data:image/svg+xml,${encodeURIComponent(svg)}") 16 16, crosshair` }
+  }
+  function applyScope() {
+    const s = scope(document.documentElement.classList.contains('dark'))
+    document.documentElement.style.setProperty('--scope', s.cursor)
+    document.getElementById('scopeTry').style.cursor = s.cursor
+    document.getElementById('scopeSvg').innerHTML = s.svg.replace('width="32" height="32"', 'width="64" height="64"')
+  }
+
+  function paint() { tokenRows('paper', PAPER); tokenRows('shell', SHELL); applyScope() }
+  document.getElementById('mode').addEventListener('click', (e) => {
+    const dark = document.documentElement.classList.toggle('dark')
+    e.currentTarget.textContent = dark ? 'Light' : 'Dark'
+    paint()
+  })
+  paint()
+
+  // The frame takes the arrows on a click inside; Esc gives them back.
+  const frame = document.getElementById('frame'), keys = document.getElementById('keys')
+  frame.addEventListener('pointerdown', () => { frame.classList.add('engaged'); keys.hidden = false })
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') { frame.classList.remove('engaged'); keys.hidden = true } })
+
+  // The three transitions on a small stage, with the site's timing.
+  const MS = 420, EASE = 'cubic-bezier(0.25,0.4,0.25,1)'
+  const stage = document.getElementById('stage'), clone = document.getElementById('clone')
+  function rect(sel) {
+    const s = stage.getBoundingClientRect(), r = stage.querySelector(sel).getBoundingClientRect()
+    return { left: r.left - s.left, top: r.top - s.top, width: r.width, height: r.height }
+  }
+  function place(r, radius) { Object.assign(clone.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: radius + 'px' }) }
+  function play(kind) {
+    const mast = rect('.mast'), main = rect('.main')
+    const corner = { left: main.left, top: main.top, width: mast.width, height: mast.height }
+    const [from, to] = kind === 'forward' ? [mast, main] : kind === 'root' ? [main, mast] : [main, corner]
+    clone.style.transition = 'none'
+    place(from, kind === 'forward' ? 10 : 12)
+    clone.style.opacity = '1'
+    clone.getBoundingClientRect()
+    clone.style.transition = ['left', 'top', 'width', 'height', 'border-radius'].map((p) => `${p} ${MS}ms ${EASE}`).concat('opacity 160ms ease-out').join(', ')
+    place(to, kind === 'forward' ? 12 : 10)
+    setTimeout(() => { clone.style.opacity = '0' }, MS + (kind === 'forward' ? 200 : 0))
+  }
+  document.querySelectorAll('[data-play]').forEach((b) => b.addEventListener('click', () => play(b.dataset.play)))
+</script>
+</body>
+</html>

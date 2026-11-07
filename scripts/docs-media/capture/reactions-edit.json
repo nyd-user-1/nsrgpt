@@ -1,0 +1,7 @@
+{"title": "Decay paths", "subtitle": "Every decay step ENSDF records, on the chart of nuclides", "src": "rec/reactions.webm", "segments": [
+ {"from": 4.5, "to": 11.0, "rate": 1, "caption": "Every decay step ENSDF records is a faint line on the chart of nuclides."},
+ {"from": 11.0, "to": 17.5, "rate": 1, "caption": "One route is lit: everything uranium-238 decays into."},
+ {"from": 17.5, "to": 22.5, "rate": 1, "caption": "The right panel holds the four natural decay series."},
+ {"from": 22.5, "to": 32.0, "rate": 1.25, "caption": "Thorium series: everything thorium-232 decays into."},
+ {"from": 32.2, "to": 40.1, "rate": 1.25, "caption": "Neptunium series: extinct in nature, made in reactors."}
+]}

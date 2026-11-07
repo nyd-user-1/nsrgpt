@@ -954,11 +954,16 @@ export type Kind = keyof typeof KINDS;
  * marks a figure measured to the unit, which a wide cell spells out.
  */
 export const LEDGER: { word: string; value: number; unit: string; exact?: boolean; color: string }[] = [
-  // NSRgpt (2026-11-05): row counts from the NSR lake, Athena database nysgpt_nsr.
-  { word: "NSR", value: 303_568, unit: "References", exact: true, color: KINDS.Data },
+  // NSRgpt (2026-11-05): row counts from the NSR lake, Athena database nysgpt_nsr. XUNDL replaces NSR in the first
+  // cell (Brendan, 2026-11-06), counted in records: sum(num_cards) FROM xundl_archive_datasets (12,072 datasets).
+  { word: "XUNDL", value: 931_258, unit: "Records", exact: true, color: KINDS.Data },
   { word: "Nuclides", value: 1_210_113, unit: "Nuclide links", exact: true, color: KINDS.Model },
-  { word: "ENSDF", value: 20_120, unit: "Datasets", exact: true, color: KINDS.Platform },
-  { word: "EXFOR", value: 27_070, unit: "Entries", exact: true, color: KINDS.Tool },
+  // ENSDF in records too (2026-11-06): sum(num_cards) FROM ensdf_datasets (20,120 datasets).
+  { word: "ENSDF", value: 3_276_986, unit: "Records", exact: true, color: KINDS.Platform },
+  // EXFOR in data points (2026-11-06): every measured cross-section value in barns at an incident energy, in the
+  // IAEA's exfor_json export, commit 36b38778 (scripts/viz-exfor-snapshot.mjs, "candidates"). The lake holds
+  // 27,070 entries and 200,465 subentries.
+  { word: "EXFOR", value: 4_344_595, unit: "Cross sections", exact: true, color: KINDS.Tool },
 ];
 
 /**

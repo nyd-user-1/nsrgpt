@@ -9,7 +9,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { VIZ_CHARTS, vizNeighbours } from "@/lib/viz-charts";
 import { DiscussionHeaderButton } from "@/components/DiscussionHeaderButton";
 import { UserPanel } from "@/components/UserPanel";
-import { VisitorLog } from "@/components/VisitorLog";
+import { SideBarMenu } from "@/components/sidebar/SideBarMenu";
+import { CommandKHost } from "@/components/search/CommandKHost";
 import { useShellPanel } from "@/components/shell";
 import { CopyTitle } from "@/components/CopyTitle";
 import { CornerClose } from "@/components/pane";
@@ -22,8 +23,8 @@ import { chartForward, markBack } from "@/lib/viz-grow";
  * sidebar, with a header (sidebar toggle · Commons) and a
  * follow-you panel root on the right. Ported from /Code/44b.
  *
- * The sidebar is the visitor log above the user panel, which holds the
- * light/dark switch and sign in or out (2026-10-07).
+ * The sidebar is the SideBarMenu above the user panel, which holds the
+ * light/dark switch and sign in or out (2026-11-06).
  */
 export function AppLayout({
   children,
@@ -37,15 +38,16 @@ export function AppLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const path = usePathname();
-  const title = headerTitle ?? HEADER_TITLES[path];
+  const title = headerTitle ?? HEADER_TITLES[path] ?? (path.startsWith("/docs/") ? HEADER_TITLES["/docs"] : undefined);
   const { headerMenu, closePage } = useShellPanel();
 
   return (
     <div data-app-frame className="nysgpt-app flex h-dvh overflow-hidden p-0 sm:p-[18px] bg-[var(--surface)] sm:bg-[var(--bg)]">
+      <CommandKHost />
       {/* Sidebar — wired in step 2; collapsed (w-0) until opened. */}
       <div
         data-chrome
-        className={`shrink-0 transition-[width,margin] duration-300 ease-in-out overflow-hidden ${
+        className={`shrink-0 transition-[width,margin] duration-[500ms] ease-in-out overflow-hidden ${
           sidebarOpen ? "w-full sm:w-[240px] sm:mr-[18px]" : "w-0"
         }`}
       >
@@ -56,7 +58,7 @@ export function AppLayout({
         >
           <div className="flex h-full flex-col">
             <div className="min-h-0 flex-1">
-              <VisitorLog />
+              <SideBarMenu />
             </div>
             <UserPanel />
           </div>
