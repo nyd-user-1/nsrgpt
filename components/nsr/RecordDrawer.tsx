@@ -30,15 +30,20 @@ interface RecordDrawerProps {
   onNavigate: (index: number) => void;
 }
 
-export function RecordDrawer({
+export function RecordDrawer(props: RecordDrawerProps) {
+  // Nothing to show until a row is picked; the body's hooks run only with a record (rules of hooks).
+  const record = props.records[props.currentIndex];
+  return record ? <RecordDrawerBody {...props} record={record} /> : null;
+}
+
+function RecordDrawerBody({
   records,
   currentIndex,
   open,
   onOpenChange,
   onNavigate,
-}: RecordDrawerProps) {
-  const record = records[currentIndex];
-  if (!record) return null;
+  record,
+}: RecordDrawerProps & { record: NsrRecord }) {
 
   // Seeded from the record we already hold → the body renders instantly; the
   // Neon fetch only fills the S2-only fields (venue, OA pdf, s2 authors …).
