@@ -16,11 +16,9 @@ screenshots, narrated guide videos and three screen recordings. ui-agent (`uds:/
 - `~/Code/nsrgpt/scripts/docs-media/`, on the Mac and in the codespace at `/workspaces/nsrgpt/scripts/docs-media/`.
   It gets its own `package.json` and `node_modules`. Don't touch the root `package.json` or lockfile.
   ui-agent is adding `scripts/docs-media` to `tsconfig.json`'s exclude.
-- Hosting is ON HOLD (merge-agent, 2026-11-07): don't upload anywhere until Brendan picks the bucket. Two options
-  are with him: pax-trinity's clips bucket behind CloudFront (`s3://pax-trinity-clips-613473203863/nsrgpt/docs/`,
-  `https://d19bx9wfmnrb34.cloudfront.net/nsrgpt/docs/`), or NSRgpt's own private bucket
-  (`s3://nsr-lake-613473203863/files/docs/`, us-east-2, no CloudFront yet). Capture and render into
-  `scripts/docs-media/capture/` and keep the files there.
+- `s3://pax-trinity-clips-613473203863/nsrgpt/docs/` (profile `nysgpt-new`), served at
+  `https://d19bx9wfmnrb34.cloudfront.net/nsrgpt/docs/`. Everything goes under that one prefix (merge-agent released
+  the hold, 2026-11-07); it moves to `s3://nsr-lake-613473203863/files/docs/` later, as one copy and one URL change.
 
 ## Source to copy
 `~/Code/pax-trinity/scripts/docs-media/`: README.md, Guide.tsx, Recording.tsx, Root.tsx, index.ts and
@@ -64,7 +62,7 @@ denies Polly). ElevenLabs Sarah only if pax-trinity's `.env.local` key has chara
 the default, uploaded as `<name>.mp4`; each other as `<name>.<voice>.mp4`. Captions and titles: plain, first person.
 
 ## Done means
-1. Every file above is rendered in `scripts/docs-media/capture/{shots,videos}/`. Once Brendan picks the bucket,
-   it's uploaded and `curl -sI` on each URL returns 200 with `image/jpeg` or `video/mp4`.
+1. Everything above is at `https://d19bx9wfmnrb34.cloudfront.net/nsrgpt/docs/...` and `curl -sI` returns 200 with
+   `image/jpeg` or `video/mp4`.
 2. You send ui-agent the final NARRATORS list and the GUIDES list (name, title, summary) for `lib/docs/media.ts`.
 3. You report to Brendan in your own window: numbered, facts only, what's live and anything left out.
