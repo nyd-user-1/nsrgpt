@@ -8,6 +8,7 @@ import {
   PieChart as PieIcon, ArrowRight, Sparkles,
 } from "lucide-react";
 import { useNsrSearch, type SearchMode } from "@/hooks/useNsrSearch";
+import { LakeHits } from "@/components/search/LakeHits";
 import { SearchBox } from "@/components/nsr/SearchInput";
 import { RecordDrawer } from "@/components/nsr/RecordDrawer";
 import { RecordDialog } from "@/components/nsr/RecordDialog";
@@ -527,6 +528,9 @@ function Search() {
               onModeChange={setMode}
               isLoading={isLoading}
             />
+
+            {/* Records across the lake (2026-11-08): the keyword index over every parsed dataset, beside the NSR meaning search. */}
+            <LakeHits q={urlQuery} />
 
             {/* Count header — one line: count on the left, "Clear filters" right-aligned when filtering */}
             <div className="mt-3 flex items-center justify-between gap-3">
