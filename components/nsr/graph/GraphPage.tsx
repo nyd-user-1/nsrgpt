@@ -51,6 +51,10 @@ export interface GNode {
   output?: string;
   fileKey?: string;
   fileText?: string;
+  /** Nuclide cards on a chart grid (decay chains, capture paths): proton and neutron numbers; levels: energy in keV. */
+  z?: number;
+  n?: number;
+  e?: number;
   /** Paper cards: the entity rows shown inside the card (op=cards). */
   rows?: CardRows;
   /** "+N more" overflow supernodes: whose overflow, which relation. */
@@ -679,6 +683,12 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
           <span>{c.label}</span>
         </button>
       ))}
+      {DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
+        <button key={d.id} onClick={() => onLoadDemo(d.id)} className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]">
+          <Atom className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
+          <span>{d.label}</span>
+        </button>
+      ))}
       {DEMO_SECTIONS.map((section) => (
         <div key={section} className="flex flex-col">
           <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">{section}</p>
@@ -728,16 +738,47 @@ const CHAINS: { id: string; label: string; head: readonly [number, number] }[] =
 
 /** Sample canvases for the design review (Brendan, 2026-11-08, 02:52): one or two per section, hand-typed values in the
  *  shape the real data will take. Real data replaces them section by section; the decay chains above are real already. */
-type Demo = { section: string; id: string; label: string; layout: "LR" | "TB"; nodes: GNode[]; edges: { s: string; t: string; label: string; kind: EdgeMeta["kind"] }[] };
-const nuc = (id: string, label: string, sub: string): GNode => ({ type: "nuclide", id, label, sub });
+/** The grids the reference figures use (Brendan, 2026-11-08): "ZA" is the decay-series drawing (columns Z, rows A down the page,
+ *  α steps down-left, β− steps right); "NZ" the chart of nuclides (x N, y Z: (n,γ) right, β− up-left); "AZ" the actinide
+ *  build-up (x A, y Z: capture right, β− up, α down-left); "levels" a level scheme (the parent top-left, levels a ladder by energy). */
+type Grid = "ZA" | "NZ" | "AZ" | "levels";
+type Demo = { section: string; id: string; label: string; layout: "LR" | "TB"; grid?: Grid; nodes: GNode[]; edges: { s: string; t: string; label: string; kind: EdgeMeta["kind"] }[] };
+const ZS: Record<string, number> = { CO: 27, NI: 28, SR: 38, Y: 39, ZR: 40, NB: 41, MO: 42, TC: 43, RU: 44, AG: 47, CD: 48, IN: 49, SN: 50, SB: 51, TE: 52, I: 53, XE: 54, CS: 55, BA: 56, LA: 57, CE: 58, PR: 59, ND: 60, YB: 70, LU: 71, HF: 72, HG: 80, TL: 81, PB: 82, BI: 83, PO: 84, AT: 85, RN: 86, FR: 87, RA: 88, AC: 89, TH: 90, PA: 91, U: 92, NP: 93, PU: 94, AM: 95, CM: 96 };
+/** "107AG" → Z 47, N 60; "137BAM" (an isomer) the same as 137BA; "60NI-2505" → Z 28, N 32, level 2505 keV. */
+const nuc = (id: string, label: string, sub: string): GNode => {
+  const m = /^(\d+)([A-Z]+?)(M)?(?:-(\d+))?$/.exec(id);
+  const g: GNode = { type: "nuclide", id, label, sub };
+  if (m && ZS[m[2]] !== undefined) { g.z = ZS[m[2]]; g.n = Number(m[1]) - g.z; }
+  if (m && m[4] !== undefined) g.e = Number(m[4]);
+  else if (m && /\s0 keV$/.test(label)) g.e = 0;
+  return g;
+};
+/** Positions for a grid; a node without the numbers it needs lands at the origin and the layout leaves it there. */
+function gridPositions(nodes: GNode[], grid: Grid): Map<string, { x: number; y: number }> {
+  const pos = new Map<string, { x: number; y: number }>();
+  if (grid === "levels") {
+    const maxE = Math.max(0, ...nodes.map((g) => g.e ?? 0));
+    nodes.forEach((g, i) => pos.set(keyOf(g), g.e === undefined ? { x: 0, y: -(maxE * 0.28) - 160 - i * 10 } : { x: 520, y: -g.e * 0.28 }));
+    return pos;
+  }
+  for (const g of nodes) {
+    if (g.z === undefined || g.n === undefined) { pos.set(keyOf(g), { x: 0, y: 0 }); continue; }
+    const a = g.z + g.n;
+    pos.set(keyOf(g), grid === "ZA" ? { x: g.z * 200, y: -a * 46 } : grid === "NZ" ? { x: g.n * 175, y: -g.z * 110 } : { x: a * 175, y: -g.z * 110 });
+  }
+  return pos;
+}
 const DEMOS: Demo[] = [
-  { section: "Neutron capture paths", id: "s-ag-sb", label: "s-process, Ag to Sb (sample)", layout: "LR",
+  { section: "Decay chains", id: "pu241", label: "241Pu chain (sample)", layout: "TB", grid: "ZA",
+    nodes: [nuc("241PU", "241Pu", "Z=94 N=147 · 14.3 y"), nuc("241AM", "241Am", "Z=95 N=146 · 432.6 y"), nuc("237NP", "237Np", "Z=93 N=144 · 2.1×10⁶ y"), nuc("233PA", "233Pa", "Z=91 N=142 · 27.0 d"), nuc("233U", "233U", "Z=92 N=141 · 1.6×10⁵ y"), nuc("229TH", "229Th", "Z=90 N=139 · 7,880 y"), nuc("225RA", "225Ra", "Z=88 N=137 · 14.9 d"), nuc("225AC", "225Ac", "Z=89 N=136 · 10.0 d"), nuc("221FR", "221Fr", "Z=87 N=134 · 4.8 min"), nuc("217AT", "217At", "Z=85 N=132 · 32 ms"), nuc("213BI", "213Bi", "Z=83 N=130 · 45.6 min"), nuc("213PO", "213Po", "Z=84 N=129 · 3.7 μs"), nuc("209TL", "209Tl", "Z=81 N=128 · 2.2 min"), nuc("209PB", "209Pb", "Z=82 N=127 · 3.25 h"), nuc("209BI", "209Bi", "Z=83 N=126 · 2.0×10¹⁹ y"), nuc("205TL", "205Tl", "Z=81 N=124 · stable")],
+    edges: [["241PU", "241AM", "β− 99.998%"], ["241AM", "237NP", "α 100%"], ["237NP", "233PA", "α 100%"], ["233PA", "233U", "β− 100%"], ["233U", "229TH", "α 100%"], ["229TH", "225RA", "α 100%"], ["225RA", "225AC", "β− 100%"], ["225AC", "221FR", "α 100%"], ["221FR", "217AT", "α 100%"], ["217AT", "213BI", "α 99.99%"], ["213BI", "213PO", "β− 97.8%"], ["213BI", "209TL", "α 2.2%"], ["213PO", "209PB", "α 100%"], ["209TL", "209PB", "β− 100%"], ["209PB", "209BI", "β− 100%"], ["209BI", "205TL", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: "decay" as const })) },
+  { section: "Neutron capture paths", id: "s-ag-sb", label: "s-process, Ag to Sb (sample)", layout: "LR", grid: "NZ",
     nodes: [nuc("107AG", "107Ag", "Z=47 N=60 · stable"), nuc("108AG", "108Ag", "Z=47 N=61 · 2.4 min"), nuc("108CD", "108Cd", "Z=48 N=60 · stable"), nuc("109CD", "109Cd", "Z=48 N=61 · 462 d"), nuc("109AG", "109Ag", "Z=47 N=62 · stable"), nuc("110AG", "110Ag", "Z=47 N=63 · 24.6 s"), nuc("110CD", "110Cd", "Z=48 N=62 · stable"), nuc("111CD", "111Cd", "Z=48 N=63 · stable"), nuc("112CD", "112Cd", "Z=48 N=64 · stable"), nuc("113CD", "113Cd", "Z=48 N=65 · 8×10¹⁵ y"), nuc("114CD", "114Cd", "Z=48 N=66 · stable"), nuc("115CD", "115Cd", "Z=48 N=67 · 53.5 h"), nuc("115IN", "115In", "Z=49 N=66 · 4.4×10¹⁴ y"), nuc("116IN", "116In", "Z=49 N=67 · 14.1 s"), nuc("116SN", "116Sn", "Z=50 N=66 · stable"), nuc("120SN", "120Sn", "Z=50 N=70 · stable"), nuc("121SN", "121Sn", "Z=50 N=71 · 27.0 h"), nuc("121SB", "121Sb", "Z=51 N=70 · stable"), nuc("122SB", "122Sb", "Z=51 N=71 · 2.72 d"), nuc("122TE", "122Te", "Z=52 N=70 · stable")],
     edges: [["107AG", "108AG", "(n,γ) 38 b"], ["108AG", "108CD", "β− 97%"], ["108CD", "109CD", "(n,γ) 1.1 b"], ["109CD", "109AG", "EC 100%"], ["109AG", "110AG", "(n,γ) 91 b"], ["110AG", "110CD", "β− 99.7%"], ["110CD", "111CD", "(n,γ) 11 b"], ["111CD", "112CD", "(n,γ) 24 b"], ["112CD", "113CD", "(n,γ) 2.2 b"], ["113CD", "114CD", "(n,γ) 20,600 b"], ["114CD", "115CD", "(n,γ) 0.3 b"], ["115CD", "115IN", "β− 100%"], ["115IN", "116IN", "(n,γ) 202 b"], ["116IN", "116SN", "β− 99.98%"], ["116SN", "120SN", "(n,γ) × 4"], ["120SN", "121SN", "(n,γ) 0.14 b"], ["121SN", "121SB", "β− 100%"], ["121SB", "122SB", "(n,γ) 5.8 b"], ["122SB", "122TE", "β− 97.6%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
-  { section: "Neutron capture paths", id: "mass-201-210", label: "Mass 201 to 210, s and r (sample)", layout: "LR",
+  { section: "Neutron capture paths", id: "mass-201-210", label: "Mass 201 to 210, s and r (sample)", layout: "LR", grid: "NZ",
     nodes: [nuc("201HG", "201Hg", "Z=80 N=121 · stable"), nuc("202HG", "202Hg", "Z=80 N=122 · stable"), nuc("203HG", "203Hg", "Z=80 N=123 · 46.6 d"), nuc("203TL", "203Tl", "Z=81 N=122 · stable"), nuc("204TL", "204Tl", "Z=81 N=123 · 3.78 y"), nuc("204PB", "204Pb", "Z=82 N=122 · stable"), nuc("205TL", "205Tl", "Z=81 N=124 · stable"), nuc("205PB", "205Pb", "Z=82 N=123 · 1.7×10⁷ y"), nuc("206PB", "206Pb", "Z=82 N=124 · stable"), nuc("207PB", "207Pb", "Z=82 N=125 · stable"), nuc("208PB", "208Pb", "Z=82 N=126 · stable"), nuc("209PB", "209Pb", "Z=82 N=127 · 3.25 h"), nuc("209BI", "209Bi", "Z=83 N=126 · 2×10¹⁹ y"), nuc("210BI", "210Bi", "Z=83 N=127 · 5.01 d"), nuc("210PO", "210Po", "Z=84 N=126 · 138 d")],
     edges: [["201HG", "202HG", "(n,γ)"], ["202HG", "203HG", "(n,γ)"], ["203HG", "203TL", "β− 100%"], ["203TL", "204TL", "(n,γ)"], ["204TL", "204PB", "β− 97%"], ["204PB", "205PB", "(n,γ)"], ["205PB", "205TL", "EC 100%"], ["205TL", "206PB", "r-process β−"], ["206PB", "207PB", "(n,γ)"], ["207PB", "208PB", "(n,γ)"], ["208PB", "209PB", "(n,γ)"], ["209PB", "209BI", "β− 100%"], ["209BI", "210BI", "(n,γ)"], ["210BI", "210PO", "β− 100%"], ["210PO", "206PB", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : label.startsWith("r-") ? "sample" as const : "decay" as const })) },
-  { section: "Actinide build-up", id: "sasahara", label: "U-238 to Cm-244 in a reactor (sample)", layout: "LR",
+  { section: "Actinide build-up", id: "sasahara", label: "U-238 to Cm-244 in a reactor (sample)", layout: "LR", grid: "AZ",
     nodes: [nuc("235U", "235U", "Z=92 N=143 · 7.0×10⁸ y"), nuc("236U", "236U", "Z=92 N=144 · 2.3×10⁷ y"), nuc("237U", "237U", "Z=92 N=145 · 6.75 d"), nuc("237NP", "237Np", "Z=93 N=144 · 2.1×10⁶ y"), nuc("238NP", "238Np", "Z=93 N=145 · 2.1 d"), nuc("238PU", "238Pu", "Z=94 N=144 · 87.7 y"), nuc("238U", "238U", "Z=92 N=146 · 4.5×10⁹ y"), nuc("239U", "239U", "Z=92 N=147 · 23.5 min"), nuc("239NP", "239Np", "Z=93 N=146 · 2.36 d"), nuc("239PU", "239Pu", "Z=94 N=145 · 24,110 y"), nuc("240PU", "240Pu", "Z=94 N=146 · 6,561 y"), nuc("241PU", "241Pu", "Z=94 N=147 · 14.3 y"), nuc("241AM", "241Am", "Z=95 N=146 · 432.6 y"), nuc("242AM", "242Am", "Z=95 N=147 · 16.0 h"), nuc("242CM", "242Cm", "Z=96 N=146 · 163 d"), nuc("242PU", "242Pu", "Z=94 N=148 · 3.7×10⁵ y"), nuc("243PU", "243Pu", "Z=94 N=149 · 4.96 h"), nuc("243AM", "243Am", "Z=95 N=148 · 7,370 y"), nuc("244AM", "244Am", "Z=95 N=149 · 10.1 h"), nuc("244CM", "244Cm", "Z=96 N=148 · 18.1 y")],
     edges: [["235U", "236U", "(n,γ) 99 b"], ["236U", "237U", "(n,γ) 5.1 b"], ["237U", "237NP", "β− 100%"], ["237NP", "238NP", "(n,γ) 176 b"], ["238NP", "238PU", "β− 100%"], ["238U", "239U", "(n,γ) 2.7 b"], ["239U", "239NP", "β− 100%"], ["239NP", "239PU", "β− 100%"], ["239PU", "240PU", "(n,γ) 271 b"], ["240PU", "241PU", "(n,γ) 290 b"], ["241PU", "241AM", "β− 99.998%"], ["241AM", "242AM", "(n,γ) 684 b"], ["242AM", "242CM", "β− 82.7%"], ["242CM", "238PU", "α 100%"], ["241PU", "242PU", "(n,γ) 363 b"], ["242PU", "243PU", "(n,γ) 19 b"], ["243PU", "243AM", "β− 100%"], ["243AM", "244AM", "(n,γ) 75 b"], ["244AM", "244CM", "β− 100%"], ["244CM", "240PU", "α 100%"], ["241AM", "237NP", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
   { section: "Production routes", id: "mo99", label: "Mo-99 and Tc-99m (sample)", layout: "LR",
@@ -749,14 +790,14 @@ const DEMOS: Demo[] = [
   { section: "Fission fans", id: "u235-fan", label: "U-235 thermal fission, top products (sample)", layout: "LR",
     nodes: [nuc("235U", "235U", "Z=92 N=143 · thermal fission"), nuc("137CS", "137Cs", "30.08 y · 6.2%"), nuc("137BAM", "137mBa", "2.55 min"), nuc("137BA", "137Ba", "stable"), nuc("90SR", "90Sr", "28.9 y · 5.8%"), nuc("90Y", "90Y", "64.0 h"), nuc("90ZR", "90Zr", "stable"), nuc("131I", "131I", "8.02 d · 2.9%"), nuc("131XE", "131Xe", "stable"), nuc("133XE", "133Xe", "5.25 d · 6.7%"), nuc("133CS", "133Cs", "stable"), nuc("140BA", "140Ba", "12.8 d · 6.2%"), nuc("140LA", "140La", "1.68 d"), nuc("140CE", "140Ce", "stable"), nuc("95ZR", "95Zr", "64.0 d · 6.5%"), nuc("95NB", "95Nb", "35.0 d"), nuc("95MO", "95Mo", "stable"), nuc("99MO", "99Mo", "65.9 h · 6.1%"), nuc("99TC", "99Tc", "2.1×10⁵ y"), nuc("144CE", "144Ce", "285 d · 5.5%"), nuc("144PR", "144Pr", "17.3 min"), nuc("144ND", "144Nd", "2.3×10¹⁵ y")],
     edges: [["235U", "137CS", "(n,f) 6.2%"], ["137CS", "137BAM", "β− 94.7%"], ["137BAM", "137BA", "IT 100%"], ["235U", "90SR", "(n,f) 5.8%"], ["90SR", "90Y", "β− 100%"], ["90Y", "90ZR", "β− 100%"], ["235U", "131I", "(n,f) 2.9%"], ["131I", "131XE", "β− 100%"], ["235U", "133XE", "(n,f) 6.7%"], ["133XE", "133CS", "β− 100%"], ["235U", "140BA", "(n,f) 6.2%"], ["140BA", "140LA", "β− 100%"], ["140LA", "140CE", "β− 100%"], ["235U", "95ZR", "(n,f) 6.5%"], ["95ZR", "95NB", "β− 100%"], ["95NB", "95MO", "β− 100%"], ["235U", "99MO", "(n,f) 6.1%"], ["99MO", "99TC", "β− 100%"], ["235U", "144CE", "(n,f) 5.5%"], ["144CE", "144PR", "β− 100%"], ["144PR", "144ND", "β− 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
-  { section: "Level schemes", id: "co60", label: "60Co decay into 60Ni levels (sample)", layout: "TB",
+  { section: "Level schemes", id: "co60", label: "60Co decay into 60Ni levels (sample)", layout: "TB", grid: "levels",
     nodes: [nuc("60CO", "60Co", "5+ · 5.27 y · ground state"), nuc("60NI-2505", "60Ni 2505.8 keV", "4+ · 0.59 ps"), nuc("60NI-2158", "60Ni 2158.6 keV", "2+ · 0.6 ps"), nuc("60NI-1332", "60Ni 1332.5 keV", "2+ · 0.73 ps"), nuc("60NI", "60Ni 0 keV", "0+ · stable")],
     edges: [["60CO", "60NI-2505", "β− 99.88% · 317 keV"], ["60CO", "60NI-2158", "β− 0.12% · 664 keV"], ["60NI-2505", "60NI-1332", "γ 1173.2 keV · E2 · 99.85"], ["60NI-2158", "60NI-1332", "γ 826.1 keV · 0.008"], ["60NI-2158", "60NI", "γ 2158.6 keV · 0.0012"], ["60NI-1332", "60NI", "γ 1332.5 keV · E2 · 99.98"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
-  { section: "Level schemes", id: "cs137", label: "137Cs decay into 137Ba levels (sample)", layout: "TB",
+  { section: "Level schemes", id: "cs137", label: "137Cs decay into 137Ba levels (sample)", layout: "TB", grid: "levels",
     nodes: [nuc("137CS", "137Cs", "7/2+ · 30.08 y · ground state"), nuc("137BA-661", "137Ba 661.7 keV", "11/2− · 2.55 min · 137mBa"), nuc("137BA", "137Ba 0 keV", "3/2+ · stable")],
     edges: [["137CS", "137BA-661", "β− 94.7% · 514 keV"], ["137CS", "137BA", "β− 5.3% · 1176 keV"], ["137BA-661", "137BA", "γ 661.7 keV · M4 · 85.1"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
 ];
-const DEMO_SECTIONS = [...new Set(DEMOS.map((d) => d.section))];
+const DEMO_SECTIONS = [...new Set(DEMOS.map((d) => d.section))].filter((s) => s !== "Decay chains");
 
 /** Seed canvases for the props panel — each one centers a real entity. */
 const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
@@ -1357,18 +1398,19 @@ function GraphPageInner() {
   }, [setEdges, setNodes, expand, fetchCards, snapshot]);
 
   /** A whole graph onto a fresh canvas: the nodes, the edges, laid out left-to-right or top-to-bottom. */
-  const loadGraph = useCallback((gnodes: GNode[], edges: Edge[], layoutDir: "LR" | "TB" = "LR") => {
+  const loadGraph = useCallback((gnodes: GNode[], edges: Edge[], layoutDir: "LR" | "TB" = "LR", positions?: Map<string, { x: number; y: number }>) => {
     snapshot();
     store.current = new Map();
     expandState.current = new Map();
     setSelectedKey(null);
     setEdgeInfo(null);
     for (const g of gnodes) store.current.set(keyOf(g), g);
-    const mode: LayoutMode = layoutDir === "TB" ? "dagre-tb" : "dagre-lr";
+    // A grid (the reference figure's own arrangement) pins every node; otherwise dagre lays the graph out.
+    const mode: LayoutMode = positions ? "none" : layoutDir === "TB" ? "dagre-tb" : "dagre-lr";
     setLayoutMode(mode);
     layoutModeRef.current = mode;
-    setNodes([]);
-    setEdges(() => { syncNodes(edges, true); setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60); return edges; });
+    setNodes(positions ? gnodes.map((g) => ({ id: keyOf(g), type: "entity", position: positions.get(keyOf(g)) ?? { x: 0, y: 0 }, data: { ...g } })) : []);
+    setEdges(() => { syncNodes(edges, !positions); setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60); return edges; });
   }, [setEdges, setNodes, syncNodes, fitView, snapshot]);
 
   /** A decay series: nuclide nodes, decay edges labelled with mode and branching, from ENSDF's decay modes. */
@@ -1382,7 +1424,7 @@ function GraphPageInner() {
     const gnode = (i: number): GNode => {
       const x = d.nuclides[i];
       const a = x.z + x.n;
-      return { type: "nuclide", id: `${a}${x.el.toUpperCase()}`, label: `${a}${x.el}`, sub: `Z=${x.z} N=${x.n} · ${halfLifeText(x)}` };
+      return { type: "nuclide", id: `${a}${x.el.toUpperCase()}`, label: `${a}${x.el}`, sub: `Z=${x.z} N=${x.n} · ${halfLifeText(x)}`, z: x.z, n: x.n };
     };
     const pct = (p: number | null) => (p == null ? "" : ` ${p >= 10 ? p.toFixed(0) : p >= 1 ? p.toFixed(1) : p.toPrecision(2)}%`);
     const gnodes = new Map<string, GNode>();
@@ -1391,7 +1433,8 @@ function GraphPageInner() {
       const from = keyOf(gnode(s.from)), to = keyOf(gnode(s.to));
       return { id: `${from}->${to}:${s.mode}`, source: from, target: to, label: `${s.mode}${pct(s.pct)}`, data: { kind: "decay", mode: s.mode, pct: s.pct } as EdgeMeta };
     });
-    loadGraph([...gnodes.values()], edges, "TB");
+    const all = [...gnodes.values()];
+    loadGraph(all, edges, "TB", gridPositions(all, "ZA"));
   }, [loadGraph]);
 
   /** A sample canvas (DEMOS): the layout review's hand-typed graphs. */
@@ -1399,7 +1442,7 @@ function GraphPageInner() {
     const d = DEMOS.find((x) => x.id === id);
     if (!d) return;
     const edges: Edge[] = d.edges.map((e) => ({ id: `nuclide:${e.s}->nuclide:${e.t}`, source: `nuclide:${e.s}`, target: `nuclide:${e.t}`, label: e.label, data: { kind: e.kind, mode: e.label } as EdgeMeta }));
-    loadGraph(d.nodes, edges, d.layout);
+    loadGraph(d.nodes, edges, d.layout, d.grid ? gridPositions(d.nodes, d.grid) : undefined);
   }, [loadGraph]);
 
   const applyDataset = useCallback((id: string) => {
