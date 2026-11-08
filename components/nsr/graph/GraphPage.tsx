@@ -33,7 +33,7 @@ import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
-import { SideBarMenuItem } from "@/components/sidebar/SideBarMenuItem";
+import { SideBarMenuItem, SideBarSection } from "@/components/sidebar/SideBarMenuItem";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
@@ -706,36 +706,40 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
   }
 
   // The main view. Every row is a sidebar row (SideBarMenuItem: its hover, the open-in-panel arrow, the kebab menu),
-  // acting instead of navigating; its count rides in the tooltip beneath the name (Brendan, 2026-11-08).
+  // acting instead of navigating; its count rides in the tooltip beneath the name (Brendan, 2026-11-08). Each section's
+  // header is a sidebar group header that folds its rows, remembered per section (SideBarSection).
   return (
     <InsetBody>
-      <p className={cn(INSET.section, "pt-3")}>Corpus</p>
+      <SideBarSection label="Corpus" storageKey="graph:section:corpus">
       {CATALOG_TYPES.map(({ key, label, icon }) => (
         <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Corpus" onSelect={() => setBrowse(key)} tip={{ name: label, sub: data ? data.counts[key]?.toLocaleString() : undefined, side: "left" }} />
       ))}
-      <p className={INSET.section}>Workspace</p>
+      </SideBarSection>
+      <SideBarSection label="Workspace" storageKey="graph:section:workspace">
       <SideBarMenuItem href="/graph?browse=files" label="Library" icon={FileText} on={false} group="Workspace" onSelect={() => setBrowse("files")} tip={{ name: "Library", side: "left" }} />
       {([["views", "Views", Layers], ["recipes", "Recipes", BookOpen]] as const).map(([key, label, icon]) => (
         <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Workspace" onSelect={() => setBrowse(key)} tip={{ name: label, sub: views.data ? String(views.data.views.filter((v) => isRecipe(v) === (key === "recipes")).length) : undefined, side: "left" }} />
       ))}
-      <p className={INSET.section}>Datasets</p>
+      </SideBarSection>
+      <SideBarSection label="Datasets" storageKey="graph:section:datasets">
       {CATALOG_LINKS.map(({ key, label, icon, href }) => (
         <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, sub: data ? data.counts[key]?.toLocaleString() : undefined, side: "left" }} />
       ))}
-      <p className={INSET.section}>Decay chains</p>
+      </SideBarSection>
+      <SideBarSection label="Decay chains" storageKey="graph:section:decay-chains">
       {CHAINS.map((c) => (
         <SideBarMenuItem key={c.id} href={`/graph?chain=${c.id}`} label={c.label} icon={Atom} on={false} group="Decay chains" onSelect={() => onLoadChain(c.id)} tip={{ name: c.label, side: "left" }} />
       ))}
       {ALL_DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
         <SideBarMenuItem key={d.id} href={`/graph?demo=${d.id}`} label={d.label} icon={Atom} on={false} group="Decay chains" onSelect={() => onLoadDemo(d.id)} tip={{ name: d.label, side: "left" }} />
       ))}
+      </SideBarSection>
       {DEMO_SECTIONS.map((section) => (
-        <div key={section}>
-          <p className={INSET.section}>{section}</p>
+        <SideBarSection key={section} label={section} storageKey={`graph:section:${section}`}>
           {ALL_DEMOS.filter((d) => d.section === section).map((d) => (
             <SideBarMenuItem key={d.id} href={`/graph?demo=${d.id}`} label={d.label} icon={Atom} on={false} group={section} onSelect={() => onLoadDemo(d.id)} tip={{ name: d.label, side: "left" }} />
           ))}
-        </div>
+        </SideBarSection>
       ))}
     </InsetBody>
   );

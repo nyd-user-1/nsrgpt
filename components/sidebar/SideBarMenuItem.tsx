@@ -129,6 +129,63 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
   )
 }
 
+/** A group's header row: the sidebar's hover and type, its icon if it has one, and the chevron (up when open, down when
+ *  shut). SideBarMenuGroup and SideBarSection share it, so a section header in an inset rail is a sidebar group header. */
+export function SideBarGroupHeader({ label, icon: Icon, open, onToggle, holds = false }: { label: string; icon?: SideBarIcon; open: boolean; onToggle: () => void; holds?: boolean }) {
+  const Chevron = open ? ChevronUp : ChevronDown
+  return (
+    <AnimateIcon asChild animateOnHover>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className={cn(
+          "group/item flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm outline-none transition-[color,background-color,box-shadow]",
+          ROW_HOVER,
+          holds ? "font-semibold text-[var(--paper-strong)]" : "text-[var(--paper-muted)]",
+        )}
+      >
+        {Icon && <Icon size={18} className={cn("shrink-0 transition-colors", holds ? ICON_ON : ICON_REST)} strokeWidth={holds ? 2.25 : 1.75} />}
+        <span className="flex-1">{label}</span>
+        <Chevron className="size-4 shrink-0 text-[var(--paper-faint)] transition-colors group-hover/item:text-[var(--paper-strong)]" />
+      </button>
+    </AnimateIcon>
+  )
+}
+
+/** Open or shut, remembered in this browser under `key`; `initial` until something is stored. */
+export function useRememberedOpen(key: string, initial = true): [boolean, (open: boolean) => void] {
+  const [open, setOpen] = React.useState(initial)
+  React.useEffect(() => {
+    try {
+      const v = localStorage.getItem(key)
+      if (v === "open" || v === "shut") setOpen(v === "open")
+    } catch {}
+  }, [key])
+  const set = React.useCallback(
+    (v: boolean) => {
+      setOpen(v)
+      try {
+        localStorage.setItem(key, v ? "open" : "shut")
+      } catch {}
+    },
+    [key],
+  )
+  return [open, set]
+}
+
+/** A section of rows under a group header that folds them open and shut, remembered per section under `storageKey`; open
+ *  until folded (Brendan, 2026-11-08: the left inset rail's sections on /graph). */
+export function SideBarSection({ label, storageKey, children }: { label: string; storageKey: string; children: React.ReactNode }) {
+  const [open, setOpen] = useRememberedOpen(storageKey)
+  return (
+    <>
+      <SideBarGroupHeader label={label} open={open} onToggle={() => setOpen(!open)} />
+      {open && <div className="flex flex-col">{children}</div>}
+    </>
+  )
+}
+
 /** A group row folds its pages open and shut; open, they hang off it on tree lines: the trunk down from the
  *  group's icon, a rounded elbow turning into each page. Every load starts shut, unless `openWhenHolding` and the
  *  page in view is one of its own (the docs' nav opens the article's category itself). */
@@ -142,25 +199,9 @@ export function SideBarMenuGroup({ label, icon: Icon, items: all, isOn, openWhen
   }, [openWhenHolding, inside])
   // Shut, the row still says the page in view lives under it.
   const holds = !open && inside
-  const Chevron = open ? ChevronUp : ChevronDown
   return (
     <>
-      <AnimateIcon asChild animateOnHover>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          className={cn(
-            "group/item flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm outline-none transition-[color,background-color,box-shadow]",
-            ROW_HOVER,
-            holds ? "font-semibold text-[var(--paper-strong)]" : "text-[var(--paper-muted)]",
-          )}
-        >
-          {Icon && <Icon size={18} className={cn("shrink-0 transition-colors", holds ? ICON_ON : ICON_REST)} strokeWidth={holds ? 2.25 : 1.75} />}
-          <span className="flex-1">{label}</span>
-          <Chevron className="size-4 shrink-0 text-[var(--paper-faint)] transition-colors group-hover/item:text-[var(--paper-strong)]" />
-        </button>
-      </AnimateIcon>
+      <SideBarGroupHeader label={label} icon={Icon} open={open} onToggle={() => setOpen((v) => !v)} holds={holds} />
       {open && (
         <div className="flex flex-col">
           {items.map((c, k) => (
