@@ -1,0 +1,28 @@
+{
+  "name": "iaea-tendl",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/public/download-endf/",
+  "depth": 2,
+  "seeds": [
+    "https://nds.iaea.org/public/download-endf/TENDL-2025/backup/",
+    "https://nds.iaea.org/public/download-endf/TENDL-2023/backup/",
+    "https://nds.iaea.org/public/download-endf/TENDL-2021/backup/",
+    "https://nds.iaea.org/public/download-endf/TENDL-2019/backup/"
+  ],
+  "scope": [
+    "https://nds.iaea.org/public/download-endf/TENDL-2025/backup/",
+    "https://nds.iaea.org/public/download-endf/TENDL-2023/backup/",
+    "https://nds.iaea.org/public/download-endf/TENDL-2021/backup/",
+    "https://nds.iaea.org/public/download-endf/TENDL-2019/backup/"
+  ],
+  "skip": "\\?|/cdn-cgi/",
+  "hosts": [
+    "nds.iaea.org"
+  ],
+  "files": "\\.(zip|lst|htm|txt|pdf)$",
+  "lines": [
+    5
+  ],
+  "rate": 0.2,
+  "minutes": 210
+}

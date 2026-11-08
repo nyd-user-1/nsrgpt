@@ -1,0 +1,10 @@
+{
+  "probe": {
+    "urls": [
+      "http://web.archive.org/web/2026id_/https://www-nds.iaea.org/exfor/e4libs2.js"
+    ],
+    "method": "GET",
+    "show": 400000,
+    "limit": 500000
+  }
+}

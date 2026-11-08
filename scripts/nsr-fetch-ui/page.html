@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>nsr-fetch</title>
+<style>
+  body { margin: 0; background: #f6f5f1; color: #1f2328; font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
+  main { max-width: 1120px; margin: 48px auto 96px; padding: 0 24px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .date { color: #6b7280; font-size: 13px; }
+  h2 { font-size: 13px; margin: 44px 0 14px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+  code { background: #efede7; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  pre { margin: 0; background: #1f2328; color: #e6e1d6; padding: 12px 14px; border-radius: 6px; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; white-space: pre; }
+
+  .flow { display: grid; grid-template-columns: 1fr 36px 1fr 36px 1fr; align-items: center; }
+  .step { background: #fff; border: 1px solid #e5e2da; border-left: 4px solid #0f766e; border-radius: 6px; padding: 12px 14px; min-height: 92px; }
+  .step b { display: block; margin-bottom: 2px; }
+  .step span { color: #6b7280; font-size: 13px; }
+  .arrow { text-align: center; color: #9ca3af; font-size: 20px; }
+  .back { margin: 8px 0 0; color: #6b7280; font-size: 13px; text-align: center; }
+
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e2da; border-radius: 8px; overflow: hidden; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; padding: 8px 12px; border-bottom: 1px solid #e5e2da; background: #fbfaf7; }
+  td { padding: 7px 12px; font-size: 13px; vertical-align: top; border-top: 1px solid #f0eee8; }
+
+  .part { display: grid; grid-template-columns: 330px 1fr; gap: 16px; background: #fff; border: 1px solid #e5e2da; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+  .part h3 { margin: 0 0 4px; font-size: 14px; }
+  .part .lines { color: #6b7280; font-size: 12px; margin-bottom: 6px; }
+  .part p { margin: 0 0 6px; font-size: 13px; }
+
+  .form { display: grid; grid-template-columns: 1fr 260px; gap: 16px; background: #fff; border: 1px solid #e5e2da; border-radius: 8px; padding: 14px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin: 10px 0 4px; }
+  label:first-child { margin-top: 0; }
+  textarea, input, select { width: 100%; box-sizing: border-box; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid #d6d3cb; border-radius: 6px; padding: 8px 10px; background: #fff; color: #1f2328; }
+  textarea { height: 168px; resize: vertical; }
+  .go { margin-top: 14px; width: 100%; font: 600 14px/1 -apple-system, BlinkMacSystemFont, "Inter", sans-serif; border: 0; background: #0f766e; color: #fff; border-radius: 8px; padding: 11px 14px; cursor: pointer; }
+  .go:disabled { background: #9ca3af; cursor: default; }
+  .note { margin-top: 10px; color: #6b7280; font-size: 12.5px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; margin-top: 16px; }
+  .card { background: #fff; border: 1px solid #e5e2da; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+  .card .top { padding: 12px 14px; }
+  .card .name { font-weight: 600; word-break: break-all; }
+  .card .meta { color: #6b7280; font-size: 12.5px; margin-top: 2px; }
+  .card .key { font: 11.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #374151; word-break: break-all; margin-top: 6px; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 600; color: #fff; border-radius: 999px; padding: 1px 8px; margin-right: 6px; vertical-align: 1px; }
+  .chip.done { background: #0f766e; } .chip.skipped { background: #6b7280; } .chip.error { background: #b42318; } .chip.working { background: #b45309; }
+  .card iframe, .card img { width: 100%; height: 360px; border: 0; border-top: 1px solid #f0eee8; background: #fbfaf7; object-fit: contain; }
+  .card pre { border-radius: 0; max-height: 240px; white-space: pre-wrap; word-break: break-all; }
+  .card .err { padding: 0 14px 12px; color: #b42318; font-size: 12.5px; }
+  .card a { color: #0f766e; font-size: 12.5px; }
+  .muted { color: #6b7280; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>nsr-fetch</h1>
+  <div class="date">Lambda function · New account (nysgpt-cli) · us-east-2 · <code>services/nsr-fetch/lambda_function.py</code>, 128 lines</div>
+
+  <h2>What it does</h2>
+  <div class="flow">
+    <div class="step"><b>1. A list of files</b><span>Each file is a web address plus the place in the lake it should go, for example <code>raw/nndc/…/ENDF-B-VIII.1.tar.gz</code>.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2. nsr-fetch downloads them</b><span>It runs on an AWS computer in Ohio, the same region as the lake, and downloads each file from the website.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3. Into the lake</b><span>Each file is written to <code>s3://nsr-lake-613473203863/</code> at its place in the list.</span></div>
+  </div>
+  <p class="back">It answers with one line per file: done, skipped (already in the lake, same size) or error.</p>
+
+  <table style="margin-top:14px">
+    <tr><th>Route</th><th>Path of the bytes</th><th>Speed</th><th>NNDC's 59 GB</th></tr>
+    <tr><td>Through the Mac</td><td>website → Mac → S3</td><td>2.3 MB/s, the Mac's upload</td><td>about 7 hours</td></tr>
+    <tr><td>nsr-fetch</td><td>website → AWS → S3</td><td>about 65 MB/s</td><td>5 minutes</td></tr>
+  </table>
+  <p class="muted">Downloads into AWS are free and its run time stays inside the Lambda free tier. Storing the files in S3 is billed as usual.</p>
+
+  <h2>The code</h2>
+  <div class="part">
+    <div><h3>lambda_handler</h3><div class="lines">lines 116–127</div>
+      <p>Runs once per request. It takes the list and handles the files one at a time. A file that fails is marked error and the next one starts.</p></div>
+    <pre>def lambda_handler(event, context):
+    out = []
+    for item in event["items"]:
+        try:
+            out.append(fetch(item, bucket))
+        except Exception as e:
+            out.append({..., "status": "error", "error": str(e)})
+    return out</pre>
+  </div>
+  <div class="part">
+    <div><h3>fetch</h3><div class="lines">lines 56–76</div>
+      <p>Opens the web address. If the lake already holds a file of the same size at that place, it skips it.</p>
+      <p>Otherwise it streams the bytes into S3 as they arrive, counts them, and checks the count against the size the website reported.</p></div>
+    <pre>r = op.open(req, timeout=120)
+size = int(r.headers.get("Content-Length") or 0) or None
+if size and head_size(key, bucket) == size:
+    return {..., "status": "skipped"}
+if size and size > BIG and ranges_ok:
+    return multipart(...)          # over 100 MB
+s3.upload_fileobj(Hashing(r), bucket, key, ...)
+if size and h.n != size:
+    raise IOError("short read")</pre>
+  </div>
+  <div class="part">
+    <div><h3>multipart, upload_parts</h3><div class="lines">lines 79–113</div>
+      <p>A file over 100 MB is cut into 64 MB pieces. It downloads 8 pieces at a time and retries each up to 4 times. S3 joins the pieces into one file.</p>
+      <p>If any piece fails, the half-made file is deleted.</p></div>
+    <pre>ranges = [(n, start, end) for each 64 MB piece]
+with ThreadPoolExecutor(8) as ex:
+    ex.map(one, ranges)            # GET bytes=start-end → upload_part
+s3.complete_multipart_upload(...)
+# on any failure: s3.abort_multipart_upload(...)</pre>
+  </div>
+  <div class="part">
+    <div><h3>opener</h3><div class="lines">lines 26–35</div>
+      <p>Optional. It sends the download through one line of the proxy army, read from SSM <code>/nsrgpt/webshare/proxies</code>. With no line given, it connects directly.</p></div>
+    <pre>v = ssm.get_parameter(Name="/nsrgpt/webshare/proxies", WithDecryption=True)
+ip, port, user, pw, country = lines[line].split(":")
+ProxyHandler({"https": f"http://{user}:{pw}@{ip}:{port}"})</pre>
+  </div>
+  <div class="part">
+    <div><h3>Settings</h3><div class="lines">lines 17–22 and the function's configuration</div>
+      <p>2 GB of memory and up to 15 minutes per run. Files are stored in Intelligent-Tiering.</p>
+      <p>Its role, <code>nsr-fetch-lambda</code>, can write only under <code>raw/</code> in the lake and read the proxy parameter.</p></div>
+    <pre>BUCKET = "nsr-lake-613473203863"
+PART   = 64 MB      # piece size
+BIG    = 100 MB     # pieces above this size
+CLASS  = "INTELLIGENT_TIERING"</pre>
+  </div>
+  <div class="part">
+    <div><h3>scripts/nndc/pull.py</h3><div class="lines">on the Mac, for big jobs</div>
+      <p>Sends 40 files per run, 24 runs at once. A file over 2 GB won't finish in one 15-minute run, so the script opens the upload itself, gives each run 16 pieces (1 GB), and joins them at the end.</p></div>
+    <pre>python3 -I scripts/nndc/pull.py &lt;workdir&gt; raw/nndc/2026-11-07</pre>
+  </div>
+
+  <h2>Use it</h2>
+  <div class="form">
+    <div>
+      <label for="urls">Web addresses, one per line</label>
+      <textarea id="urls" spellcheck="false">https://www.nndc.bnl.gov/usndp/docs/USNDP-FY2025-Report.pdf
+https://www.nndc.bnl.gov/walletcardsarchivals/editions/walletcards2023.pdf</textarea>
+    </div>
+    <div>
+      <label for="folder">Lake folder</label>
+      <input id="folder" value="raw/manual/2026-11-07" spellcheck="false">
+      <label for="proxy">Connection</label>
+      <select id="proxy">
+        <option value="">Direct</option>
+        <option value="0">Proxy line 0 · US</option><option value="1">Proxy line 1 · US</option>
+        <option value="2">Proxy line 2 · US</option><option value="3">Proxy line 3 · US</option>
+        <option value="4">Proxy line 4 · US</option><option value="5">Proxy line 5 · US</option>
+        <option value="6">Proxy line 6 · US</option><option value="7">Proxy line 7 · US</option>
+        <option value="8">Proxy line 8 · RO</option><option value="9">Proxy line 9 · IT</option>
+        <option value="12">Proxy line 12 · RO</option><option value="13">Proxy line 13 · CA</option>
+      </select>
+      <button class="go" id="go" type="button">Put in the lake</button>
+      <div class="note" id="note"></div>
+    </div>
+  </div>
+  <div class="cards" id="cards"></div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id)
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+  const mb = (n) => n >= 1e9 ? (n / 1e9).toFixed(2) + ' GB' : n >= 1e6 ? (n / 1e6).toFixed(1) + ' MB' : (n / 1e3).toFixed(1) + ' KB'
+  const served = location.protocol.startsWith('http')
+  if (!served) {
+    $('go').disabled = true
+    $('note').innerHTML = 'Start it on the Mac, then open <code>http://localhost:4317</code>:<br><code>node scripts/nsr-fetch-ui/server.mjs</code>'
+  }
+
+  function preview(c) {
+    if (!c) return ''
+    if (/pdf/.test(c.type)) return `<iframe src="${esc(c.link)}#view=FitH"></iframe>`
+    if (/^image\//.test(c.type)) return `<img src="${esc(c.link)}" alt="">`
+    if (/html/.test(c.type)) return `<iframe sandbox src="${esc(c.link)}"></iframe>`
+    if (c.text != null) return `<pre>${esc(c.text)}</pre>`
+    return ''
+  }
+
+  function cardHtml(r) {
+    const name = r.key ? r.key.split('/').pop() : r.url
+    const c = r.card
+    const meta = c ? `${esc(c.type || 'unknown type')} · ${mb(c.size)} · stored ${new Date(c.stored).toLocaleString()}` : ''
+    return `<div class="card"><div class="top">
+      <div class="name"><span class="chip ${r.status}">${r.status}</span>${esc(name)}</div>
+      ${meta ? `<div class="meta">${meta}</div>` : ''}
+      ${r.key ? `<div class="key">s3://nsr-lake-613473203863/${esc(r.key)}</div>` : ''}
+      <div class="meta"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></div>
+    </div>${r.error ? `<div class="err">${esc(r.error)}</div>` : ''}${preview(c)}</div>`
+  }
+
+  $('go').addEventListener('click', async () => {
+    const urls = $('urls').value.split('\n').map((s) => s.trim()).filter(Boolean)
+    if (!urls.length) return
+    $('go').disabled = true; $('go').textContent = 'Working…'; $('note').textContent = ''
+    $('cards').innerHTML = urls.map((u) => `<div class="card"><div class="top"><div class="name"><span class="chip working">working</span>${esc(u.split('/').pop() || u)}</div><div class="meta">${esc(u)}</div></div></div>`).join('')
+    try {
+      const res = await fetch('/api/fetch', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: urls.join('\n'), folder: $('folder').value, proxy: $('proxy').value }) })
+      const out = await res.json()
+      if (!res.ok) throw new Error(out.error || res.status)
+      $('cards').innerHTML = out.map(cardHtml).join('')
+      const n = (s) => out.filter((r) => r.status === s).length
+      $('note').textContent = `${n('done')} done, ${n('skipped')} already in the lake, ${n('error')} errors`
+    } catch (e) {
+      $('cards').innerHTML = ''; $('note').textContent = String(e.message || e)
+    } finally {
+      $('go').disabled = false; $('go').textContent = 'Put in the lake'
+    }
+  })
+</script>
+</body>
+</html>

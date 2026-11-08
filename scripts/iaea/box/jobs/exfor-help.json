@@ -1,0 +1,170 @@
+{
+  "name": "exfor-help",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/exfor/",
+  "depth": 2,
+  "max": 2000,
+  "items": [
+    {
+      "url": "https://nds.iaea.org/exfor/help/index.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_textsearch.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_title.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_target.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_suppl-inf.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_status.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf9.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf8.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf7.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf6.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf58.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf5.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf4.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf3.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf2.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_sf1.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_result.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_reference.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_ref.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_reaction.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_reacode.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_quantity.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_publicationyear.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_projectile.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_product.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_outparticle.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_method.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_lastupdated.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_institute.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_inc-source.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_facility.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_energy.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_detector.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_debutdate.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_dataunits.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_datapoints.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_dataheader.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_country.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_center.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_category.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_c5MT.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_c5MF.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_author1.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_author.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_area.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_analysis.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_addres.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/help/help_accnum.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/x4guide/x4plot/x4exfor01.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/x4guide/x4help/index.htm"
+    }
+  ],
+  "scope": [
+    "https://nds.iaea.org/exfor/help/"
+  ],
+  "hosts": [],
+  "skip": "\\?|/cdn-cgi/",
+  "files": "\\.(htm|html|png|gif|jpg|jpeg|css|js|pdf|txt|xls|xlsx|csv)$",
+  "lines": [
+    0
+  ],
+  "rate": 0.5,
+  "minutes": 30
+}

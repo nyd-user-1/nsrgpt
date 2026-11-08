@@ -1,0 +1,19 @@
+{
+  "name": "iaea-endf",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/public/download-endf/",
+  "lists": [
+    "raw/iaea/2026-11-07/_work/wb-jeff-4.0.json",
+    "raw/iaea/2026-11-07/_work/wb-cendl-3.2.json",
+    "raw/iaea/2026-11-07/_work/wb-rosfond-2010.json",
+    "raw/iaea/2026-11-07/_work/wb-brond-3.1.json",
+    "raw/iaea/2026-11-07/_work/wb-box-a2.json",
+    "raw/iaea/2026-11-07/_work/wb-box-a3.json"
+  ],
+  "lines": [
+    0,
+    1
+  ],
+  "rate": 1.4,
+  "minutes": 225
+}

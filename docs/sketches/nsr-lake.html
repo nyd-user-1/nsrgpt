@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NSR Lake</title>
+<style>
+  body { margin: 0; background: #f6f5f1; color: #1f2328; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
+  main { max-width: 1180px; margin: 48px auto 96px; padding: 0 24px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .date { color: #6b7280; font-size: 13px; }
+  h2 { font-size: 13px; margin: 44px 0 14px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+  code { background: #efede7; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e2da; border-radius: 0 8px 8px 8px; overflow: hidden; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; padding: 8px 12px; border-bottom: 1px solid #e5e2da; background: #fbfaf7; }
+  td { padding: 7px 12px; font-size: 13px; vertical-align: top; border-top: 1px solid #f0eee8; }
+  td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  th.n { text-align: right; }
+  a { color: inherit; }
+  .yes { color: #067647; }
+  .no { color: #b42318; }
+  ol { margin: 0; padding-left: 20px; }
+  ol li { margin: 4px 0; }
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+  .tools { display: flex; gap: 8px; flex-shrink: 0; }
+  .chip { flex-shrink: 0; cursor: pointer; border: 1px solid #d6d3cb; background: #fff; color: #1f2328; border-radius: 999px; padding: 6px 12px; font: 500 13px/1 -apple-system, BlinkMacSystemFont, "Inter", sans-serif; box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+  .chip:hover { border-width: 2px; padding: 5px 11px; }
+  .rail { display: flex; gap: 4px; }
+  .rail button { cursor: pointer; border: 1px solid #e5e2da; border-bottom: 0; background: #efede7; color: #6b7280; border-radius: 8px 8px 0 0; padding: 8px 16px; font: 600 13px -apple-system, BlinkMacSystemFont, "Inter", sans-serif; }
+  .rail button[aria-selected="true"] { background: #fff; color: #1f2328; }
+  td.mk, th.mk { width: 22px; padding-right: 0; }
+  td.nt, th.nt { width: 52px; text-align: right; }
+  button.toggle { cursor: pointer; border: 1px solid #d6d3cb; background: #fff; color: #6b7280; border-radius: 4px; padding: 2px 7px; font: 500 11.5px -apple-system, BlinkMacSystemFont, "Inter", sans-serif; }
+  button.toggle.open, button.toggle.has { color: #1f2328; border-color: #9ca3af; }
+  tr.noterow td { border-top: 0; padding-top: 0; }
+  textarea.note { display: block; width: 100%; min-width: 360px; box-sizing: border-box; resize: vertical; overflow: hidden; white-space: pre-wrap; border: 1px solid #e5e2da; border-radius: 6px; padding: 6px 8px; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Inter", sans-serif; }
+  .stats { margin-top: 16px; }
+  .stats h2 { font-size: 13px; margin: 44px 0 14px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+  .stats .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stats .tile { background: #fff; border: 1px solid #e5e2da; border-radius: 8px; padding: 12px 14px; }
+  .stats .tile b { display: block; font-size: 22px; font-weight: 650; }
+  .stats .tile span { color: #6b7280; font-size: 12.5px; }
+  .stats table { border-radius: 8px; }
+  .stats th { padding: 8px 10px; vertical-align: bottom; }
+  .stats td { padding: 8px 10px; }
+  .stats td.k { font-weight: 600; white-space: nowrap; }
+  .stats td .sub { display: block; color: #6b7280; font-size: 12px; }
+  .stats tr.total td { font-weight: 600; background: #fbfaf7; }
+  .stats .erd { background: #fff; border: 1px solid #e5e2da; border-radius: 8px; padding: 8px; }
+  .stats .erd svg { width: 100%; height: auto; display: block; }
+  .stats .legend { color: #6b7280; font-size: 12.5px; margin-top: 8px; }
+  .iaea-api {
+    --paper: #ffffff;
+    --paper-text: #16181d;
+    --paper-muted: rgba(22, 24, 29, 0.6);
+    --paper-faint: rgba(22, 24, 29, 0.42);
+    --paper-rule: rgba(22, 24, 29, 0.14);
+    --paper-quiet: rgba(22, 24, 29, 0.04);
+    --pick: #2f6fdc;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "DM Sans", sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  }
+  .iaea-api * { box-sizing: border-box; }
+  .iaea-api { margin: 0; background: transparent; color: var(--paper-text); font-family: var(--sans); font-size: 14px; line-height: 1.5; padding: 20px 0 0; -webkit-font-smoothing: antialiased; }
+  .iaea-api h1 { font-family: var(--serif); font-weight: 400; font-size: 34px; margin: 0 0 6px; }
+  .iaea-api .sub { color: var(--paper-muted); margin: 0 0 36px; max-width: 760px; }
+  .iaea-api h2 { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 44px 0 4px; }
+  .iaea-api .src { font-family: var(--mono); font-size: 11px; color: var(--paper-faint); margin: 0 0 14px; }
+  .iaea-api .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .iaea-api .card { border: 1px solid var(--paper-rule); border-radius: 14px; padding: 14px 16px 16px; position: relative; }
+  .iaea-api .card.top { border-color: var(--pick); box-shadow: inset 0 0 0 1px var(--pick); }
+  .iaea-api .card h3 { font-size: 15px; font-weight: 500; margin: 0 0 6px; padding-right: 56px; }
+  .iaea-api .card p { margin: 0 0 10px; color: var(--paper-muted); }
+  .iaea-api .rank { position: absolute; top: 12px; right: 12px; font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--pick); color: var(--paper); }
+  .iaea-api .meta { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); font-size: 11px; }
+  .iaea-api .meta span { border: 1px solid var(--paper-rule); border-radius: 999px; padding: 1px 8px; color: var(--paper-muted); }
+  .iaea-api table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  .iaea-api th { text-align: left; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--paper-faint); padding: 8px 10px; border-bottom: 1px solid var(--paper-rule); }
+  .iaea-api td { padding: 8px 10px; border-bottom: 1px solid var(--paper-rule); vertical-align: top; }
+  .iaea-api td.mono { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  .iaea-api .tablewrap { border: 1px solid var(--paper-rule); border-radius: 14px; overflow: hidden; }
+  .iaea-api ol.plan { padding-left: 20px; max-width: 820px; }
+  .iaea-api ol.plan li { margin: 0 0 8px; }
+  .iaea-api code { font-family: var(--mono); font-size: 12px; background: var(--paper-quiet); padding: 1px 5px; border-radius: 5px; }
+  .legacy { color:#16181d; font:15px/1.55 Georgia, serif; margin-top:16px; }
+  .legacy h1 { font-size:26px; font-weight:normal; margin:0 0 4px; }
+  .legacy .sub { color:#6b7280; font-size:13.5px; margin-bottom:22px; }
+  .legacy nav { display:flex; gap:4px; border-bottom:1px solid #16181d; margin-bottom:22px; }
+  .legacy nav button { font:600 13px Georgia, serif; background:none; border:1px solid #d7d3c8; border-bottom:none; border-radius:8px 8px 0 0; padding:8px 16px; cursor:pointer; color:#6b7280; }
+  .legacy nav button.on { color:#16181d; background:#fff; border-color:#16181d; }
+  .legacy section { display:none; } .legacy section.on { display:block; }
+  .legacy table { border-collapse:collapse; width:100%; font-size:13.5px; margin:10px 0 26px; border:0; border-radius:0; background:transparent; }
+  .legacy th { text-align:left; border-bottom:1px solid #16181d; font-weight:600; padding:6px 10px 4px 0; background:transparent; color:#16181d; font-size:13.5px; text-transform:none; letter-spacing:0; }
+  .legacy td { border-bottom:1px solid #e4e0d5; border-top:0; padding:5px 10px 5px 0; vertical-align:top; font-size:13.5px; }
+  .legacy .n { font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right; }
+  .legacy .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
+  .legacy .readme { background:#fff; border:1px solid #d7d3c8; border-radius:10px; padding:26px 30px; }
+  .legacy .readme h2 { font-size:20px; margin:0 0 10px; font-weight:normal; text-transform:none; letter-spacing:0; color:#16181d; }
+  .legacy .readme h3 { font-size:14px; margin:20px 0 6px; }
+  .legacy .readme p, .legacy .readme li { font-size:13.5px; color:#333842; }
+  .legacy .cut { color:#b91c1c; font-weight:600; } .legacy .keep { color:#15803d; font-weight:600; } .legacy .port { color:#b45309; font-weight:600; }
+  .legacy h2.t { font-size:17px; font-weight:600; margin:18px 0 4px; text-transform:none; letter-spacing:0; color:#16181d; }
+  .legacy tr.g td { border-bottom:1px solid #16181d; font-weight:600; padding-top:16px; }
+  .legacy td.i { padding-left:18px; }
+  .legacy .dim { color:#6b7280; }
+  .pages { margin-top: 16px; }
+  .pages .date { color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+  .pages h2 { font-size: 13px; margin: 32px 0 10px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+  .pages table { border-radius: 8px; }
+  .pages th, .pages td { padding: 9px 14px; font-size: 14px; }
+  .pages td:first-child { white-space: nowrap; font-weight: 600; }
+  .pages code { white-space: nowrap; }
+  .pages .muted { color: #6b7280; }
+  .pages .live { color: #b42318; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>NSR Lake</h1>
+      <div class="date"><code>s3://nsr-lake-613473203863</code> AWS: nysgpt-cli · 76,293 files · 283.8 GB · $0.88 spend · 59 GB arriving from the Wayback lane</div>
+    </div>
+    <div class="tools"><button class="chip" id="copy" type="button"><span id="copy-label">Copy notes</span></button><button class="chip" id="save" type="button"><span id="save-label">Save notes</span></button></div>
+  </header>
+
+  <div class="rail" role="tablist">
+    <button type="button" role="tab" data-tab="holdings" aria-selected="true">Saved (S3)</button>
+    <button type="button" role="tab" data-tab="pending" aria-selected="false">Pending</button>
+    <button type="button" role="tab" data-tab="stats" aria-selected="false">Stats</button>
+    <button type="button" role="tab" data-tab="diagram" aria-selected="false">Diagram</button>
+    <button type="button" role="tab" data-tab="scripts" aria-selected="false">Scripts</button>
+    <button type="button" role="tab" data-tab="pages" aria-selected="false">Pages</button>
+    <button type="button" role="tab" data-tab="iaea-api" aria-selected="false">IAEA API</button>
+    <button type="button" role="tab" data-tab="legacy" aria-selected="false">Legacy</button>
+  </div>
+  <section data-panel="holdings">
+<table data-mark data-tab="holdings"><tr><th>Item</th><th>Kind</th><th class="n">Files</th><th class="n">Size</th><th>Where in the lake</th><th>Commit</th></tr>
+<tr data-group="folder"><td data-item>NNDC Sigma: JEFF-3.1, JENDL-4.0, JENDL-3.3, ROSFOND, CENDL-3.1 (ENDF-6 text per material)</td><td>folder</td><td class="n">7,346</td><td class="n">2.7 GB</td><td><code>raw/nndc-sigma/2026-11-07/</code></td><td>n/a</td></tr>
+<tr data-group="folder"><td data-item>OpenMC libraries, depletion chains, openmc-dev/data</td><td>folder</td><td class="n">26</td><td class="n">47.5 GB</td><td><code>raw/openmc/2026-11-07/</code></td><td>n/a</td></tr>
+<tr data-group="folder"><td data-item>IAEA ENDF archive and IAEA-NDS subsites, at site paths</td><td>folder</td><td class="n">5,807</td><td class="n">70.2 GB</td><td><code>raw/iaea/2026-11-07/</code></td><td>n/a</td></tr>
+<tr data-group="folder"><td data-item>JAEA JENDL tarballs (Wayback copies)</td><td>folder</td><td class="n">147</td><td class="n">5.6 GB</td><td><code>raw/jaea/2026-11-07/</code></td><td>n/a</td></tr>
+<tr data-group="folder"><td data-item>NEA JEFF archives and tapes (Wayback copies)</td><td>folder</td><td class="n">51</td><td class="n">967 MB</td><td><code>raw/nea/2026-11-07/</code></td><td>n/a</td></tr>
+<tr data-group="folder"><td data-item>GitHub source archives added tonight</td><td>folder</td><td class="n">78</td><td class="n">4.6 GB</td><td><code>raw/github/</code></td><td>n/a</td></tr>
+<tr data-group="folder"><td data-item>PyPI source packages: endf, endf-parserpy, x4i3, sandy, fudge</td><td>folder</td><td class="n">5</td><td class="n">59 MB</td><td><code>raw/pypi/2026-11-07/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>Newer general-purpose: JEFF-4.0, JEFF-3.3, JENDL-5 (Aug 2023), CENDL-3.2, ROSFOND-2010, BROND-3.1</td><td>library</td><td class="n">661</td><td class="n">11.3 GB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>FENDL 3.2c, 3.2b, 3.2, 3.1c, 2.1</td><td>library</td><td class="n">724</td><td class="n">2.6 GB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>Dosimetry: IRDFF-II (aux, b1), IRDFF v0 to v1.05, IRDF-2002, 90, 85, 82</td><td>library</td><td class="n">379</td><td class="n">412 MB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>Photonuclear and medical: IAEA-PD-2019, IAEA-PD-1999, Medical, IAEA-Medical, IAEA-Therapeutic</td><td>library</td><td class="n">294</td><td class="n">319 MB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>Charged particles, high energy, ion beams: ADS-2.0, ADS-HE, INDEN, IBA-Eval, ENDF-HE-VI, MINKS-ACT, JEFF-3.3-DPA</td><td>library</td><td class="n">224</td><td class="n">755 MB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>Activation and decay: EAF-2010, UKDD-12, UKPADD-2, PADF-2007, JEF-2.2, LLCRP</td><td>library</td><td class="n">1,692</td><td class="n">882 MB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>TENDL-2023 and TENDL-2021 (Wayback copies of IAEA backup/)</td><td>library</td><td class="n">3</td><td class="n">185 KB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>Older and specialized: BROND-2-2, CENDL-2, ENDL-84, Fond22, Mendl2, Mendl2P, Adl3t, Activ87, Biserm2, Rnal, RRDF-98, Wind1, Wind2, ASIYAD, PRONDOS, DXS, W3000, Yavshits, INDL-TSL, SigmaCalcData-2013</td><td>library</td><td class="n">325</td><td class="n">305 MB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="library"><td data-item>Archive pages, Tools, ENDF-Manual, zv_VMS_Archive, xtool</td><td>library</td><td class="n">42</td><td class="n">3.4 GB</td><td><code>raw/iaea/2026-11-07/public/download-endf/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>cdroms</td><td>subsite</td><td class="n">52</td><td class="n">31 GB</td><td><code>raw/iaea/2026-11-07/cdroms/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>talys</td><td>subsite</td><td class="n">38</td><td class="n">8.2 GB</td><td><code>raw/iaea/2026-11-07/talys/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>Tendl2019</td><td>subsite</td><td class="n">27</td><td class="n">3.2 GB</td><td><code>raw/iaea/2026-11-07/Tendl2019/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>fendl</td><td>subsite</td><td class="n">21</td><td class="n">2.5 GB</td><td><code>raw/iaea/2026-11-07/fendl/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>gandr</td><td>subsite</td><td class="n">22</td><td class="n">1.6 GB</td><td><code>raw/iaea/2026-11-07/gandr/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>INDEN</td><td>subsite</td><td class="n">157</td><td class="n">1.5 GB</td><td><code>raw/iaea/2026-11-07/INDEN/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>photonuclear</td><td>subsite</td><td class="n">12</td><td class="n">803 MB</td><td><code>raw/iaea/2026-11-07/photonuclear/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>epics</td><td>subsite</td><td class="n">28</td><td class="n">354 MB</td><td><code>raw/iaea/2026-11-07/epics/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>minskact</td><td>subsite</td><td class="n">72</td><td class="n">227 MB</td><td><code>raw/iaea/2026-11-07/minskact/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>geant4</td><td>subsite</td><td class="n">25</td><td class="n">144 MB</td><td><code>raw/iaea/2026-11-07/geant4/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>indltsl</td><td>subsite</td><td class="n">17</td><td class="n">121 MB</td><td><code>raw/iaea/2026-11-07/indltsl/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>padf</td><td>subsite</td><td class="n">5</td><td class="n">114 MB</td><td><code>raw/iaea/2026-11-07/padf/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>IRDFF</td><td>subsite</td><td class="n">48</td><td class="n">103 MB</td><td><code>raw/iaea/2026-11-07/IRDFF/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>amdc</td><td>subsite</td><td class="n">33</td><td class="n">82 MB</td><td><code>raw/iaea/2026-11-07/amdc/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>public</td><td>subsite</td><td class="n">101</td><td class="n">74 MB</td><td><code>raw/iaea/2026-11-07/public/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>irdf2002</td><td>subsite</td><td class="n">10</td><td class="n">44 MB</td><td><code>raw/iaea/2026-11-07/irdf2002/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>grucon</td><td>subsite</td><td class="n">12</td><td class="n">17 MB</td><td><code>raw/iaea/2026-11-07/grucon/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>ads</td><td>subsite</td><td class="n">13</td><td class="n">16 MB</td><td><code>raw/iaea/2026-11-07/ads/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>standards</td><td>subsite</td><td class="n">52</td><td class="n">14 MB</td><td><code>raw/iaea/2026-11-07/standards/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>act_ddl</td><td>subsite</td><td class="n">7</td><td class="n">14 MB</td><td><code>raw/iaea/2026-11-07/act_ddl/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>fendl21</td><td>subsite</td><td class="n">12</td><td class="n">10 MB</td><td><code>raw/iaea/2026-11-07/fendl21/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>tla</td><td>subsite</td><td class="n">92</td><td class="n">9 MB</td><td><code>raw/iaea/2026-11-07/tla/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>exfor</td><td>subsite</td><td class="n">54</td><td class="n">8 MB</td><td><code>raw/iaea/2026-11-07/exfor/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>padf2</td><td>subsite</td><td class="n">3</td><td class="n">7 MB</td><td><code>raw/iaea/2026-11-07/padf2/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>conderc</td><td>subsite</td><td class="n">25</td><td class="n">5 MB</td><td><code>raw/iaea/2026-11-07/conderc/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>stopping</td><td>subsite</td><td class="n">14</td><td class="n">5 MB</td><td><code>raw/iaea/2026-11-07/stopping/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>RIPL-3</td><td>subsite</td><td class="n">22</td><td class="n">5 MB</td><td><code>raw/iaea/2026-11-07/RIPL-3/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>spallations</td><td>subsite</td><td class="n">16</td><td class="n">4 MB</td><td><code>raw/iaea/2026-11-07/spallations/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>ndspub</td><td>subsite</td><td class="n">13</td><td class="n">3 MB</td><td><code>raw/iaea/2026-11-07/ndspub/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>dicebox</td><td>subsite</td><td class="n">5</td><td class="n">3 MB</td><td><code>raw/iaea/2026-11-07/dicebox/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>sgnucdat</td><td>subsite</td><td class="n">25</td><td class="n">3 MB</td><td><code>raw/iaea/2026-11-07/sgnucdat/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>PSFdatabase</td><td>subsite</td><td class="n">9</td><td class="n">2 MB</td><td><code>raw/iaea/2026-11-07/PSFdatabase/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>missing-levels</td><td>subsite</td><td class="n">9</td><td class="n">2 MB</td><td><code>raw/iaea/2026-11-07/missing-levels/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>TSL_LibGen</td><td>subsite</td><td class="n">3</td><td class="n">2 MB</td><td><code>raw/iaea/2026-11-07/TSL_LibGen/</code></td><td>n/a</td></tr>
+<tr data-group="subsite"><td data-item>78 smaller folders and pages: xgamma_standards, beta-delayed-neutron, ibandl, index-meeting-crp, idb, medical, wimsd, phsp, th-u, nrdc, pages, radii, mytool, CIELO, empire, RIPL, nsdd, ngatlas2, pgaa, exfor-master, index_nds_meetings.htm, RIPL-2, pg1_news.js, fendl_library, index.html, fycrp, IRDFFv105, CRP-photonuclear, pg1_events.js, pg1_pg.js, various1.htm, dxs-2, nuclearmoments, adsV1, broch.html, naa, IRDFFv104, fendl31d, images, IRDFFv102, point, stoppinggraphs, pg1_tb.js, fendl31, pige, Th-U, plottab, fendl30, tagscm, fendl20, 50years_NDS, PSFdatabase-legacy, cd-catalog.html, pg2_links.js, capgam, projects, fendl2, manread, epdl97, stopping-legacy, pg2_mirrors.js, epics2014, pg2_nds.js, legacy, pg1_vi.js, ngatlas, pg2_partn.js, RIPL-1, mib, static-conderc, stopping-static, icons, medportal, endf, cinda, www_ensdfpgm, ensdf_base_files, pg1_update_auto.js</td><td>subsite</td><td class="n">409</td><td class="n">7 MB</td><td><code>raw/iaea/2026-11-07/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENDF/B-VIII.1: ENDF-6 and GNDS libraries, ACE (12.4 GB thermal scattering, 9.5 GB neutron), POINT2025 pointwise files, errata</td><td>NNDC folder</td><td class="n">28</td><td class="n">28.8 GB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf-library/B-VIII.1/</code>, <code>endf-releases/releases/B-VIII.1/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENDF/B-VIII.0: ENDF-6 library, GNDS 1.9 and 2.0, POINT2018, EPICS2017 data, processing, errata</td><td>NNDC folder</td><td class="n">678</td><td class="n">14.3 GB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf-library/B-VIII.0/</code>, <code>endf-releases/releases/B-VIII.0/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENDF/B-VII.1: library, ACE, GNDS, processing, covariances</td><td>NNDC folder</td><td class="n">29</td><td class="n">1.6 GB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf-library/B-VII.1/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENDF/B-VII.0: library, ACE, benchmarking, processing</td><td>NNDC folder</td><td class="n">29</td><td class="n">196 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf-library/B-VII.0/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENDF/B-VI.8: library and its 108 tapes</td><td>NNDC folder</td><td class="n">128</td><td class="n">625 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf-b6.8/</code>, <code>endf-library/B-VI.8/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENDF/B-II, B-III, B-IV, B-V</td><td>NNDC folder</td><td class="n">17</td><td class="n">22 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf-b2/</code> … <code>endf-b5/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENDF reports (ENDF-102, ENDF-201 and the numbered series)</td><td>NNDC folder</td><td class="n">238</td><td class="n">2.1 GB</td><td><code>raw/nndc/2026-11-07/</code> <code>endfdocs/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>EPICS2017 electron and photon data and its documents</td><td>NNDC folder</td><td class="n">19</td><td class="n">355 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf/epics/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>Covariance plots: ENDF/B-VII.1, VI.8, JEFF-3.1, JENDL-3.3, ERRORJ</td><td>NNDC folder</td><td class="n">615</td><td class="n">42 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>endf-library/covariance-plots/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENSDF releases, 2004 to 2026-11-05. NNDC's ENSDF folder also holds 39 XUNDL releases</td><td>NNDC folder</td><td class="n">361</td><td class="n">5.5 GB</td><td><code>raw/nndc/2026-11-07/</code> <code>ensdfarchivals/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>NSR monthly exports, exchange and JSON formats, 2022-03 to 2026-08</td><td>NNDC folder</td><td class="n">20</td><td class="n">4.7 GB</td><td><code>raw/nndc/2026-11-07/</code> <code>nsrarchivals/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>XUNDL releases not in the ENSDF folder, to 2026-10-01</td><td>NNDC folder</td><td class="n">15</td><td class="n">66 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>xundlarchivals/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>USNDP: 26 annual reports (FY2000–FY2025), 28 work plans (FY2000–FY2027), data-needs papers</td><td>NNDC folder</td><td class="n">58</td><td class="n">57 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>usndp/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>Meeting and workshop presentations: CSEWG/USNDP 2005, 2006, 2010, 2011, covariance workshops</td><td>NNDC folder</td><td class="n">416</td><td class="n">621 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>meetings/</code>, <code>proceedings/</code>, <code>cw2008/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>CSEWG, NDWG, Nuclear Data Sheets and history documents</td><td>NNDC folder</td><td class="n">36</td><td class="n">55 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>csewg/</code>, <code>ndwg/</code>, <code>nds/</code>, <code>history/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>ENSDF manual, evaluator guidelines, procedures, schema</td><td>NNDC folder</td><td class="n">18</td><td class="n">12 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>ensdf/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>CapGam: all 287 thermal-capture gamma datasets, from its API</td><td>NNDC folder</td><td class="n">293</td><td class="n">39 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>capgam/api/json/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>Low-fidelity covariances</td><td>NNDC folder</td><td class="n">393</td><td class="n">20 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>lowfi/data-files/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>NuDat 3 chart data</td><td>NNDC folder</td><td class="n">1</td><td class="n">12 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>nudat3/data/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>Wallet Cards, editions 1995–2023</td><td>NNDC folder</td><td class="n">12</td><td class="n">8 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>walletcardsarchivals/</code>, <code>walletcards/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>MACS (astrophysical rates), B(E2), double-beta decay, NSR dictionaries</td><td>NNDC folder</td><td class="n">18</td><td class="n">13 MB</td><td><code>raw/nndc/2026-11-07/</code> <code>astro/</code>, <code>be2/</code>, <code>bbdecay/</code>, <code>nsr/dictionary/</code></td><td>n/a</td></tr>
+<tr data-group="NNDC folder"><td data-item>The site's other HTML pages and the ENDF releases app's metadata</td><td>NNDC folder</td><td class="n">86</td><td class="n">5 MB</td><td><code>raw/nndc/2026-11-07/</code> site paths</td><td>n/a</td></tr>
+<tr data-group="scope page"><td data-item><a href="https://nds.iaea.org/legacy">nds.iaea.org/legacy</a></td><td>scope page</td><td class="n">2</td><td class="n">n/a</td><td>Read through Chrome; its Quick Links list set the subsite crawl. Saved as legacy and legacy.rendered.html</td><td>n/a</td></tr>
+<tr data-group="scope page"><td data-item><a href="https://nds.iaea.org/cdroms/">nds.iaea.org/cdroms</a></td><td>scope page</td><td class="n">51</td><td class="n">31 GB</td><td>raw/iaea/2026-11-07/cdroms/dwn/, through the direct path the page script links to (Brendan approved). 10 catalog files answer 404</td><td>n/a</td></tr>
+<tr data-group="scope page"><td data-item><a href="https://nds.iaea.org/exfor/endf.htm">nds.iaea.org/exfor/endf.htm</a></td><td>scope page</td><td class="n">4,344</td><td class="n">20 GB</td><td>raw/iaea/2026-11-07/public/download-endf/: all 107 library folders taken, held, or listed with a reason (Holdings tab)</td><td>n/a</td></tr>
+<tr data-group="scope page"><td data-item><a href="https://nds.iaea.org/exfor/">nds.iaea.org/exfor</a></td><td>scope page</td><td class="n">n/a</td><td class="n">n/a</td><td>EXFOR as X4, C4, CX4 and JSON, the master files and dictionary (raw/github/IAEA-NDS/); J4 already held; X4Pro SQLite, x5json and C5 in cdroms/dwn/. The search pages are a front end</td><td>n/a</td></tr>
+<tr data-group="scope page"><td data-item><a href="https://openmc.org/data/">openmc.org/data</a></td><td>scope page</td><td class="n">26</td><td class="n">47.5 GB</td><td>raw/openmc/2026-11-07/: all 24 downloads plus openmc-dev/data, 0 errors</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ads/">ADS-Lib</a></td><td>Quick Link</td><td class="n">10</td><td class="n">115 MB</td><td>raw/iaea/2026-11-07/ads/, raw/iaea/2026-11-07/public/download-endf/ADS-2.0/, raw/iaea/2026-11-07/public/download-endf/ADS-HE/: codes (ADSPRG, ADSNJI, SIGACE) and the ADS-2.0 and ADS-HE libraries</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/amdc/">Atomic Mass Data Centre</a></td><td>Quick Link</td><td class="n">30</td><td class="n">82 MB</td><td>raw/iaea/2026-11-07/amdc/: AME2003 to AME2020 tables, covariances, papers</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/dicebox/">DICEBOX</a></td><td>Quick Link</td><td class="n">3</td><td class="n">3 MB</td><td>raw/iaea/2026-11-07/dicebox/: code (zip and Fortran) and manual</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/libraries/drosg2000/">DROSG-2000</a></td><td>Quick Link</td><td class="n">2</td><td class="n">3 MB</td><td>raw/iaea/2026-11-07/public/libraries/drosg2000/: DROSG2000-v12.01.zip and its report</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/act_ddl/">Decay Data Library for Actinides</a></td><td>Quick Link</td><td class="n">4</td><td class="n">14 MB</td><td>raw/iaea/2026-11-07/act_ddl/: the library in ENDF and ENSDF, annexes</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/download-endf/">ENDF Archive</a></td><td>Quick Link</td><td class="n">4,070</td><td class="n">20 GB</td><td>raw/iaea/2026-11-07/public/download-endf/: every library folder taken, held or listed (Holdings tab)</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/endf/endf-manual.pdf">ENDF-6 Format</a></td><td>Quick Link</td><td class="n">1</td><td class="n">3 MB</td><td>raw/iaea/2026-11-07/public/endf/endf-manual.pdf: the ENDF-6 formats manual</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/www_ensdfpgm/www_ensdfpgm.html">ENSDF programs</a></td><td>Quick Link</td><td class="n">31</td><td class="n">290 MB</td><td>raw/github/IAEA-NSDDNetwork/: the 31 IAEA-NSDDNetwork repositories the page links to (FMTCHK, LOGFT, PANDORA, GTOL, RADLIST, BrIcc, RULER and the rest)</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/epics/">EPICS Electron &amp; photon interaction data</a></td><td>Quick Link</td><td class="n">21</td><td class="n">354 MB</td><td>raw/iaea/2026-11-07/epics/: EPICS2023 (EADL, EEDL, EPDL in ENDF and ENDL) and documents; EPICS2017 also held from NNDC</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/exfor/">EXFOR</a></td><td>Quick Link</td><td class="n">11</td><td class="n">3.5 GB</td><td>raw/github/IAEA-NDS/EXFOR-, raw/github/IAEA-NDS/exfor: X4, C4, CX4, JSON and the master files from IAEA-NDS GitHub; X4Pro, C5 and x5json in cdroms/dwn/</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/fendl/">FENDL</a></td><td>Quick Link</td><td class="n">700</td><td class="n">5.1 GB</td><td>raw/iaea/2026-11-07/fendl/, raw/iaea/2026-11-07/public/download-endf/FENDL-: FENDL-3.2c ENDF, ACE, GENDF and MATXS packages, and FENDL-3.2b, 3.2, 3.1c and 2.1</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/gandr/">GANDR</a></td><td>Quick Link</td><td class="n">18</td><td class="n">1.6 GB</td><td>raw/iaea/2026-11-07/gandr/: GANDR 4.6 to 5.3 code packages</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/grucon/">GRUCON</a></td><td>Quick Link</td><td class="n">11</td><td class="n">393 MB</td><td>raw/iaea/2026-11-07/grucon/, raw/iaea/2026-11-07/cdroms/dwn/grucon, raw/iaea/2026-11-07/cdroms/dwn/GRUCON, raw/iaea/2026-11-07/cdroms/dwn/Grucon: manuals here; code packages 2016 to 2021 in cdroms/dwn/</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ibandl/">IBANDL</a></td><td>Quick Link</td><td class="n">58</td><td class="n">49 MB</td><td>raw/iaea/2026-11-07/ibandl/, raw/iaea/2026-11-07/cdroms/dwn/IBANDL: R33 files and the IBANDL-CD package</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/indltsl/">INDL/TSL</a></td><td>Quick Link</td><td class="n">16</td><td class="n">137 MB</td><td>raw/iaea/2026-11-07/indltsl/, raw/iaea/2026-11-07/public/download-endf/INDL-TSL/: the library (ENDF and ACE) and its files</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/IRDFF/">IRDFF-II</a></td><td>Quick Link</td><td class="n">53</td><td class="n">205 MB</td><td>raw/iaea/2026-11-07/IRDFF/, raw/iaea/2026-11-07/public/download-endf/IRDFF-II: IRDFF-II ENDF, ACE and tables</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/libraries/larelkin/">LARELKIN</a></td><td>Quick Link</td><td class="n">2</td><td class="n">1 MB</td><td>raw/iaea/2026-11-07/public/libraries/larelkin/: LARELKIN.zip and its report</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/minskact/">Minsk Actinides Library</a></td><td>Quick Link</td><td class="n">88</td><td class="n">235 MB</td><td>raw/iaea/2026-11-07/minskact/, raw/iaea/2026-11-07/public/download-endf/MINKS-ACT/: the library files</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/missing-levels/">Missing-levels</a></td><td>Quick Link</td><td class="n">6</td><td class="n">2 MB</td><td>raw/iaea/2026-11-07/missing-levels/: TWO-SPIN code, Fortran and reports</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/radii/">Nuclear Charge Radii</a></td><td>Quick Link</td><td class="n">1</td><td class="n">29 KB</td><td>raw/iaea/2026-11-07/radii/: charge_radii.csv</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/padf2/">PADF-2</a></td><td>Quick Link</td><td class="n">4</td><td class="n">115 MB</td><td>raw/iaea/2026-11-07/padf2/, raw/iaea/2026-11-07/public/download-endf/PADF-2007/: files.zip and the PADF-2007 library</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/photonuclear/">Photonuclear</a></td><td>Quick Link</td><td class="n">177</td><td class="n">1.1 GB</td><td>raw/iaea/2026-11-07/photonuclear/, raw/iaea/2026-11-07/public/download-endf/IAEA-PD-: IAEA-PD2019 ENDF archive, activation and application libraries, IAEA-PD-1999</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/rnal/www/">RNAL</a></td><td>Quick Link</td><td class="n">3</td><td class="n">24 MB</td><td>raw/iaea/2026-11-07/public/rnal/: rnal_dat.gz and its report</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/fendl21/downloads/">SIGACE</a></td><td>Quick Link</td><td class="n">4</td><td class="n">10 MB</td><td>raw/iaea/2026-11-07/fendl21/: sigace.zip and the FENDL-2.1 programs</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/sgnucdat/">Safeguards Data</a></td><td>Quick Link</td><td class="n">2</td><td class="n">1 MB</td><td>raw/iaea/2026-11-07/sgnucdat/: the data tables (as pages) and reports; 43 more files in the Wayback lane</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/spallations/">Spallation models</a></td><td>Quick Link</td><td class="n">1</td><td class="n">4 MB</td><td>raw/iaea/2026-11-07/spallations/: 4,381 benchmark files in the Wayback lane (large tier)</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/standards/">Standards</a></td><td>Quick Link</td><td class="n">48</td><td class="n">18 MB</td><td>raw/iaea/2026-11-07/standards/, raw/github/IAEA-NDS/neutron-standards-: standards files and the neutron-standards repositories</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/talys/">TALYS</a></td><td>Quick Link</td><td class="n">32</td><td class="n">8.2 GB</td><td>raw/iaea/2026-11-07/talys/: TALYS 1.6 to 1.9 and its libraries; 13 more archives on the proxy list</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/Tendl2019/">Tendl2019</a></td><td>Quick Link</td><td class="n">15</td><td class="n">3.2 GB</td><td>raw/iaea/2026-11-07/Tendl2019/: TENDL-2019 data at several temperatures; the full per-material library is on the proxy list</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/Th-U/">Th-U</a></td><td>Quick Link</td><td class="n">2</td><td class="n">129 KB</td><td>raw/iaea/2026-11-07/th-u/: 308 files in the Wayback lane</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/TSL_LibGen/">Thermal Scattering Law Library Generator</a></td><td>Quick Link</td><td class="n">1</td><td class="n">2 MB</td><td>raw/iaea/2026-11-07/TSL_LibGen/: the interpolator code</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/tla/">Thin Layer Activation</a></td><td>Quick Link</td><td class="n">2</td><td class="n">6 MB</td><td>raw/iaea/2026-11-07/tla/: TLA2017 code and manual</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/public/endf/urrpack/">URRPACK</a></td><td>Quick Link</td><td class="n">1</td><td class="n">10 MB</td><td>raw/iaea/2026-11-07/public/endf/urrpack/: URR-PACK-2016-2.tar.gz</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/xgamma_standards/">X and Gamma-rays standards</a></td><td>Quick Link</td><td class="n">3</td><td class="n">172 KB</td><td>raw/iaea/2026-11-07/xgamma_standards/: the standards tables (xls)</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/zvview/">ZVVIEW</a></td><td>Quick Link</td><td class="n">33</td><td class="n">31 MB</td><td>raw/iaea/2026-11-07/public/zvview/: ZVView builds 1997 to 2023 for Windows and Linux, examples</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/exfor/eeview.htm">EE-View</a></td><td>Quick Link</td><td class="n">4,071</td><td class="n">20.3 GB</td><td>raw/github/IAEA-NDS/EXFOR-Entry-File/, raw/iaea/2026-11-07/public/download-endf/: a viewer over EXFOR and the ENDF archive, both held</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/empire/index.html">EMPIRE-3.2</a></td><td>Quick Link</td><td class="n">10</td><td class="n">5.9 GB</td><td>raw/iaea/2026-11-07/cdroms/dwn/EMPIRE, raw/iaea/2026-11-07/cdroms/dwn/Empire: the EMPIRE 3.2.2 and 3.2.3 source and builds are in cdroms/dwn/; 10 documents in the Wayback lane</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/endf/">ENDF-6 Codes</a></td><td>Quick Link</td><td class="n">3</td><td class="n">7 MB</td><td>raw/github/IAEA-NDS/ENDF-utility-codes/, raw/github/IAEA-NDS/PREPRO/, raw/iaea/2026-11-07/public/endf/utility/: the utility codes and PREPRO from IAEA-NDS GitHub, their manual</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/endf/endver">ENDVER</a></td><td>Quick Link</td><td class="n">6</td><td class="n">2 GB</td><td>raw/iaea/2026-11-07/public/download-endf/Tools/EndverGUI/, raw/iaea/2026-11-07/cdroms/dwn/x4apps: ENDVER/GUI in the ENDF archive Tools folder and in the x4apps packages</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ensdf/">ENSDF</a></td><td>Quick Link</td><td class="n">360</td><td class="n">5.5 GB</td><td>raw/nndc/2026-11-07/ensdfarchivals/: ENSDF releases 2004 to 2026 from NNDC</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ensdf_base_files/">ENSDF ASCII Files</a></td><td>Quick Link</td><td class="n">360</td><td class="n">5.5 GB</td><td>raw/nndc/2026-11-07/ensdfarchivals/: the same ENSDF files, held from NNDC</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://www.nndc.bnl.gov/logft/">LOGFT</a></td><td>Quick Link</td><td class="n">1</td><td class="n">1 MB</td><td>raw/github/IAEA-NSDDNetwork/LOGFT/: NNDC's web calculator; the LOGFT code is held from IAEA-NSDDNetwork</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/livechart/">LiveChart of Nuclides</a></td><td>Quick Link</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea-livechart/2026-11-06/: the LiveChart API, 360,475 rows</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="http://www.nndc.bnl.gov/mird/">MIRD</a></td><td>Quick Link</td><td class="n">3,365</td><td class="n">59.1 GB</td><td>raw/nndc/2026-11-07/: NNDC's front end over ENSDF, which is held</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/mib/">Medical isotope browser (Isotopia)</a></td><td>Quick Link</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea-livechart/2026-11-06/: an interactive app over the decay and production data (LiveChart API held)</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ngatlas2/">NGATLAS</a></td><td>Quick Link</td><td class="n">1</td><td class="n">28 MB</td><td>raw/iaea/2026-11-07/cdroms/dwn/NGATLAS.zip: the NGATLAS package in cdroms/dwn/; the web atlas files are a database app</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://www.nndc.bnl.gov/nsr/">NSR</a></td><td>Quick Link</td><td class="n">19</td><td class="n">4.7 GB</td><td>raw/nndc/2026-11-07/nsrarchivals/: NSR exports from NNDC</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/nudat2/">NuDat-3</a></td><td>Quick Link</td><td class="n">15</td><td class="n">13 MB</td><td>raw/nndc/2026-11-07/nudat3/: NuDat 3 chart data from NNDC</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/pgaa/">PGAA</a></td><td>Quick Link</td><td class="n">1</td><td class="n">152 MB</td><td>raw/iaea/2026-11-07/cdroms/dwn/PGAA_2006.zip: the PGAA package in cdroms/dwn/; 3,131 per-isotope files in the Wayback lane (large tier)</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/ndspub/endf/prepro/">PREPRO</a></td><td>Quick Link</td><td class="n">1</td><td class="n">3 MB</td><td>raw/github/IAEA-NDS/PREPRO/: the current PREPRO from IAEA-NDS GitHub; 762 files of older releases are in the Wayback Machine, not queued</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/RIPL/">RIPL</a></td><td>Quick Link</td><td class="n">2</td><td class="n">768 MB</td><td>raw/github/IAEA-NDS/RIPL-4/, raw/github/IAEA-NDS/ripl3_json/: RIPL-4 (data files and codes) and RIPL-3 in JSON from IAEA-NDS GitHub; 2,579 RIPL-3 files are in the Wayback Machine, not queued</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="http://sigmacalc.iate.obninsk.ru/">SigmaCalc</a></td><td>Quick Link</td><td class="n">2</td><td class="n">127 MB</td><td>raw/iaea/2026-11-07/public/download-endf/SigmaCalcData-2013/: an external site (IATE Obninsk); its 2013 data set is in the ENDF archive</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/various1.htm">Specialized Evaluated Libraries</a></td><td>Quick Link</td><td class="n">4,070</td><td class="n">20 GB</td><td>raw/iaea/2026-11-07/public/download-endf/: the libraries it lists are in the ENDF archive</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/capgam/index.htmlx">Thermal neutron capture gamma rays</a></td><td>Quick Link</td><td class="n">289</td><td class="n">39 MB</td><td>raw/nndc/2026-11-07/capgam/: CapGam, 287 datasets, from NNDC</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/wimsd/">WIMSD-IAEA Library</a></td><td>Quick Link</td><td class="n">1</td><td class="n">175 MB</td><td>raw/iaea/2026-11-07/cdroms/dwn/WIMSD.zip: the WIMSD package in cdroms/dwn/; the per-library processed files on the site are listed (phase 3)</td><td>n/a</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="http://www.nndc.bnl.gov/wallet/">Wallet cards</a></td><td>Quick Link</td><td class="n">6</td><td class="n">6 MB</td><td>raw/nndc/2026-11-07/walletcardsarchivals/: Wallet Cards 1995 to 2023 from NNDC</td><td>n/a</td></tr>
+<tr data-group="other"><td data-item>ENDF/B-IV to VIII.1, JEFF-3.1, JENDL-3.3, JENDL-4.0, ROSFOND, CENDL-3.1 from IAEA</td><td>other</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/nndc/2026-11-07/ and raw/nndc-sigma/2026-11-07/</td><td>n/a</td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/ACEMAKER</td><td>repository</td><td class="n">1</td><td class="n">10 MB</td><td><code>raw/github/IAEA-NDS/ACEMAKER/adbb00dbf4ff500c66eee384bf4b532a76b2a244.tar.gz</code></td><td><code>adbb00d</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/DATP-Fortran</td><td>repository</td><td class="n">1</td><td class="n">7 KB</td><td><code>raw/github/IAEA-NDS/DATP-Fortran/3166b1f8dec0da1e56bb6912644a6d188a03e542.tar.gz</code></td><td><code>3166b1f</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/DATP-Python</td><td>repository</td><td class="n">1</td><td class="n">275 KB</td><td><code>raw/github/IAEA-NDS/DATP-Python/02eee3e2058c2bb8421a58d183c55c502d530f5c.tar.gz</code></td><td><code>02eee3e</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/ENDF-utility-codes</td><td>repository</td><td class="n">1</td><td class="n">4 MB</td><td><code>raw/github/IAEA-NDS/ENDF-utility-codes/ea2638b2d5f3f18b8c5d1fa70c6a240a3b614694.tar.gz</code></td><td><code>ea2638b</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/EXFOR-C4-File</td><td>repository</td><td class="n">1</td><td class="n">105 MB</td><td><code>raw/github/IAEA-NDS/EXFOR-C4-File/52554b8cf61cd81eff11ef69aa33e754f952c239.tar.gz</code></td><td><code>52554b8</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/EXFOR-Entry-File</td><td>repository</td><td class="n">1</td><td class="n">371 MB</td><td><code>raw/github/IAEA-NDS/EXFOR-Entry-File/dd96a7ea167cbe54c700c13ada8dbd4e18548ce8.tar.gz</code></td><td><code>dd96a7e</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/EXFOR-Plot-File</td><td>repository</td><td class="n">1</td><td class="n">2 GB</td><td><code>raw/github/IAEA-NDS/EXFOR-Plot-File/8b80fbb93f4f63360686702e7a1db23d0b40f051.tar.gz</code></td><td><code>8b80fbb</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/FENDL-Code</td><td>repository</td><td class="n">1</td><td class="n">25 KB</td><td><code>raw/github/IAEA-NDS/FENDL-Code/7e2a03150ca872d4f46a297b7f71ada2231b9b31.tar.gz</code></td><td><code>7e2a031</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/FENDL-Processed</td><td>repository</td><td class="n">1</td><td class="n">693 KB</td><td><code>raw/github/IAEA-NDS/FENDL-Processed/a430320bafb6fe194807fa423b7415360e235365.tar.gz</code></td><td><code>a430320</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/ForEXy</td><td>repository</td><td class="n">1</td><td class="n">1 MB</td><td><code>raw/github/IAEA-NDS/ForEXy/51186f560edd9332931ddc81a26948b9bb4dc069.tar.gz</code></td><td><code>51186f5</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/GMAP-Fortran</td><td>repository</td><td class="n">1</td><td class="n">138 KB</td><td><code>raw/github/IAEA-NDS/GMAP-Fortran/6659931b87e4c2d3be8bdd861630346367597690.tar.gz</code></td><td><code>6659931</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/IAEA-RMACPR</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NDS/IAEA-RMACPR/bb617ae4c50471fee6a869b9f6d23936546d2ffd.tar.gz</code></td><td><code>bb617ae</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/NJOY2016</td><td>repository</td><td class="n">1</td><td class="n">259 MB</td><td><code>raw/github/IAEA-NDS/NJOY2016/3835cffb25a1e923f79bea926937357feb767731.tar.gz</code></td><td><code>3835cff</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/NJOY21</td><td>repository</td><td class="n">1</td><td class="n">128 MB</td><td><code>raw/github/IAEA-NDS/NJOY21/a3d5815985df1e5864017265792566dd036288b5.tar.gz</code></td><td><code>a3d5815</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/OPTMAN</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NDS/OPTMAN/519cd26e6fc012e7ad74b351e59d6ade6e50c550.tar.gz</code></td><td><code>519cd26</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/Oktavian-dataset</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NDS/Oktavian-dataset/ab989216b9ed49965867f0c2d2e4fd05dbc17239.tar.gz</code></td><td><code>ab98921</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/PIGECodes</td><td>repository</td><td class="n">1</td><td class="n">11 MB</td><td><code>raw/github/IAEA-NDS/PIGECodes/ae6eb643114dd688a950c731b715357e6f639eb4.tar.gz</code></td><td><code>ae6eb64</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/PREPRO</td><td>repository</td><td class="n">1</td><td class="n">3 MB</td><td><code>raw/github/IAEA-NDS/PREPRO/cc5fd087ab40debcf77d1448232c9e1a3e802b91.tar.gz</code></td><td><code>cc5fd08</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/SHEMMAN</td><td>repository</td><td class="n">1</td><td class="n">30 KB</td><td><code>raw/github/IAEA-NDS/SHEMMAN/faaafb88887e233de57c01bb861162a7eb3d2c85.tar.gz</code></td><td><code>faaafb8</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/endf-userpy</td><td>repository</td><td class="n">1</td><td class="n">1 MB</td><td><code>raw/github/IAEA-NDS/endf-userpy/c6de145da4a516d5dc67b4381d3694af073e24d3.tar.gz</code></td><td><code>c6de145</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/exfor-couchdb-docker</td><td>repository</td><td class="n">1</td><td class="n">6 KB</td><td><code>raw/github/IAEA-NDS/exfor-couchdb-docker/ca184d8e91e8253d67061dfd81e20dcb0c3465b8.tar.gz</code></td><td><code>ca184d8</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/exfor-parserpy</td><td>repository</td><td class="n">1</td><td class="n">55 KB</td><td><code>raw/github/IAEA-NDS/exfor-parserpy/8586c1ff62d3bf80f199fbcb5f54066132c0806a.tar.gz</code></td><td><code>8586c1f</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/exfor_dictionary</td><td>repository</td><td class="n">1</td><td class="n">4 MB</td><td><code>raw/github/IAEA-NDS/exfor_dictionary/3e06256f61d935dc737acd082b4590684c853ce8.tar.gz</code></td><td><code>3e06256</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/exfor_json</td><td>repository</td><td class="n">1</td><td class="n">252 MB</td><td><code>raw/github/IAEA-NDS/exfor_json/36b38778d9feb27d0142cd052f078ad2452c2e31.tar.gz</code></td><td><code>36b3877</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/exfor_master</td><td>repository</td><td class="n">1</td><td class="n">275 MB</td><td><code>raw/github/IAEA-NDS/exfor_master/2efecedd83bd22133350a3e1b15bf74839a1c0c7.tar.gz</code></td><td><code>2efeced</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/exfortables_py</td><td>repository</td><td class="n">1</td><td class="n">123 MB</td><td><code>raw/github/IAEA-NDS/exfortables_py/f9c2d73f780b576cf1276b8e4018fddd1430fee8.tar.gz</code></td><td><code>f9c2d73</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/gandr-gui</td><td>repository</td><td class="n">1</td><td class="n">57 KB</td><td><code>raw/github/IAEA-NDS/gandr-gui/e81e266b47f88cf30cedda6921517f24c4c18255.tar.gz</code></td><td><code>e81e266</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/gmapy</td><td>repository</td><td class="n">1</td><td class="n">9 MB</td><td><code>raw/github/IAEA-NDS/gmapy/ddf8f320abcb75a8aaf37b9ecb5c6d5db8bc9c3c.tar.gz</code></td><td><code>ddf8f32</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/gmapy-examples</td><td>repository</td><td class="n">1</td><td class="n">10 MB</td><td><code>raw/github/IAEA-NDS/gmapy-examples/202e95b520c81c8b1f00b94a400a75d6a611b304.tar.gz</code></td><td><code>202e95b</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/gndson</td><td>repository</td><td class="n">1</td><td class="n">79 KB</td><td><code>raw/github/IAEA-NDS/gndson/8a497b14c42d18078df8dc91ad6981b47bcf62d1.tar.gz</code></td><td><code>8a497b1</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/inst-finder</td><td>repository</td><td class="n">1</td><td class="n">556 KB</td><td><code>raw/github/IAEA-NDS/inst-finder/4b500a5e0ac922e890673c7ad99387a2d1469bc2.tar.gz</code></td><td><code>4b500a5</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/neutron-standards-database</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NDS/neutron-standards-database/574e1dfb148c4c04bd7026f0c1707af1a91d9c2a.tar.gz</code></td><td><code>574e1df</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/neutron-standards-evaluation</td><td>repository</td><td class="n">1</td><td class="n">1 MB</td><td><code>raw/github/IAEA-NDS/neutron-standards-evaluation/ea40e403a22b21aa4bb5a876ed27c10354cfb311.tar.gz</code></td><td><code>ea40e40</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/neutron-standards-pipeline</td><td>repository</td><td class="n">1</td><td class="n">1 MB</td><td><code>raw/github/IAEA-NDS/neutron-standards-pipeline/0ea6673d488aed0febe2a682cf46c21b8953381c.tar.gz</code></td><td><code>0ea6673</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/nucdataBaynet</td><td>repository</td><td class="n">1</td><td class="n">7 MB</td><td><code>raw/github/IAEA-NDS/nucdataBaynet/b209af629c8df7302c0744a6d9182b4963dc5fab.tar.gz</code></td><td><code>b209af6</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/open-benchmarks</td><td>repository</td><td class="n">1</td><td class="n">674 KB</td><td><code>raw/github/IAEA-NDS/open-benchmarks/998852ecbe0aa3c9e5c957ffa6d5256d5325ed41.tar.gz</code></td><td><code>998852e</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/pycollisiondb</td><td>repository</td><td class="n">1</td><td class="n">485 KB</td><td><code>raw/github/IAEA-NDS/pycollisiondb/528fc1a50eaa23145a73c5dce97070e473d52012.tar.gz</code></td><td><code>528fc1a</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/thermal-neutron-constants-evaluation</td><td>repository</td><td class="n">1</td><td class="n">23 KB</td><td><code>raw/github/IAEA-NDS/thermal-neutron-constants-evaluation/17b55bb6ef78dbaa38bc4d6d7d89763773ccbaa4.tar.gz</code></td><td><code>17b55bb</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/web-endfy</td><td>repository</td><td class="n">1</td><td class="n">15 KB</td><td><code>raw/github/IAEA-NDS/web-endfy/a0a6697335f8b9cc0bfbcc64e203683c1e5c5f7f.tar.gz</code></td><td><code>a0a6697</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NDS/wims-library-update</td><td>repository</td><td class="n">1</td><td class="n">182 KB</td><td><code>raw/github/IAEA-NDS/wims-library-update/1b07c875538b0d52c97aebcac642a59831fa4d6c.tar.gz</code></td><td><code>1b07c87</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/ADDGAM</td><td>repository</td><td class="n">1</td><td class="n">559 KB</td><td><code>raw/github/IAEA-NSDDNetwork/ADDGAM/7051df9d9def66ced9a6c79dfe6c91f9a65066d9.tar.gz</code></td><td><code>7051df9</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/ALPHAD</td><td>repository</td><td class="n">1</td><td class="n">1 MB</td><td><code>raw/github/IAEA-NSDDNetwork/ALPHAD/76b4a05c3102a7f2745cd1c8c009655572cbdcf5.tar.gz</code></td><td><code>76b4a05</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/ALPHAD-RadD</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NSDDNetwork/ALPHAD-RadD/54fbfffa3eb7b003742ebd9eb01427b905b1f5f0.tar.gz</code></td><td><code>54fbfff</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/AME-NUBASE-viewer</td><td>repository</td><td class="n">1</td><td class="n">9 MB</td><td><code>raw/github/IAEA-NSDDNetwork/AME-NUBASE-viewer/74386ffc83739042b203444924325daabcec3a81.tar.gz</code></td><td><code>74386ff</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/AVETOOLS</td><td>repository</td><td class="n">1</td><td class="n">6 MB</td><td><code>raw/github/IAEA-NSDDNetwork/AVETOOLS/f28d7fa9119b94e7dad057f2a5f4d1a396daf377.tar.gz</code></td><td><code>f28d7fa</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/AlphaHF</td><td>repository</td><td class="n">1</td><td class="n">6 MB</td><td><code>raw/github/IAEA-NSDDNetwork/AlphaHF/5648998c062c34e959de0875e680a58447e25d68.tar.gz</code></td><td><code>5648998</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/BetaShape</td><td>repository</td><td class="n">1</td><td class="n">1 MB</td><td><code>raw/github/IAEA-NSDDNetwork/BetaShape/119e7b3e95b0dd0f767e3b1a4954ce7afd59e380.tar.gz</code></td><td><code>119e7b3</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/BrIcc</td><td>repository</td><td class="n">1</td><td class="n">49 MB</td><td><code>raw/github/IAEA-NSDDNetwork/BrIcc/c6ec5a84597005cca1637c4c023b88f6c27814c3.tar.gz</code></td><td><code>c6ec5a8</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/BrIccMixing</td><td>repository</td><td class="n">1</td><td class="n">4 MB</td><td><code>raw/github/IAEA-NSDDNetwork/BrIccMixing/ce2b9e5599f2676c25be9b6d6347faa4a2cda524.tar.gz</code></td><td><code>ce2b9e5</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/ConsistencyCheck</td><td>repository</td><td class="n">1</td><td class="n">8 MB</td><td><code>raw/github/IAEA-NSDDNetwork/ConsistencyCheck/46db232543b6e879b9ba73a359e1ed6c93f2d724.tar.gz</code></td><td><code>46db232</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/DELTA</td><td>repository</td><td class="n">1</td><td class="n">320 KB</td><td><code>raw/github/IAEA-NSDDNetwork/DELTA/91fd0a8d61bea87f191b2172fd4fabdd304b6339.tar.gz</code></td><td><code>91fd0a8</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/EvaluationToolkit</td><td>repository</td><td class="n">1</td><td class="n">74 MB</td><td><code>raw/github/IAEA-NSDDNetwork/EvaluationToolkit/833ec96b203cc7be8c4e2e5fce5905f4c5a08e69.tar.gz</code></td><td><code>833ec96</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/Excel2ENSDF</td><td>repository</td><td class="n">1</td><td class="n">18 MB</td><td><code>raw/github/IAEA-NSDDNetwork/Excel2ENSDF/130ac3628e46adc98a06adfcb972403b044ef44c.tar.gz</code></td><td><code>130ac36</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/FMTCHK</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NSDDNetwork/FMTCHK/6b8aacf4d4718bc76aff55ddfc50a3e925b2b553.tar.gz</code></td><td><code>6b8aacf</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/FormatCheck</td><td>repository</td><td class="n">1</td><td class="n">4 MB</td><td><code>raw/github/IAEA-NSDDNetwork/FormatCheck/a3ed6f52cbf6ad670f095da2891181f9afe3ed00.tar.gz</code></td><td><code>a3ed6f5</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/GABS</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NSDDNetwork/GABS/2186e3279b2ef522473939f4e60819d655b9b9df.tar.gz</code></td><td><code>2186e32</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/GLSC</td><td>repository</td><td class="n">1</td><td class="n">4 MB</td><td><code>raw/github/IAEA-NSDDNetwork/GLSC/7e8d3ce4ef6892ed2dc2c1156526cf97d8c5e21f.tar.gz</code></td><td><code>7e8d3ce</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/GTOL</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NSDDNetwork/GTOL/a0458592237c17d60139115fe834cfb3228afd74.tar.gz</code></td><td><code>a045859</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/JGAMUT</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NSDDNetwork/JGAMUT/37232b24b39884185b904773b69bd07a492bbc60.tar.gz</code></td><td><code>37232b2</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/Java-RULER</td><td>repository</td><td class="n">1</td><td class="n">16 MB</td><td><code>raw/github/IAEA-NSDDNetwork/Java-RULER/d4ea33dbfe57c88df8c859dfe82e649f83fa8e59.tar.gz</code></td><td><code>d4ea33d</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/KeynumberCheck</td><td>repository</td><td class="n">1</td><td class="n">6 MB</td><td><code>raw/github/IAEA-NSDDNetwork/KeynumberCheck/f8d0099f644a17fd357a6911f7a11ec157624f62.tar.gz</code></td><td><code>f8d0099</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/LOGFT</td><td>repository</td><td class="n">1</td><td class="n">1 MB</td><td><code>raw/github/IAEA-NSDDNetwork/LOGFT/74dffaa38543381fe51ba16e69739f8f00fcc3df.tar.gz</code></td><td><code>74dffaa</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/McMaster-MSU-Java-NDS</td><td>repository</td><td class="n">1</td><td class="n">12 MB</td><td><code>raw/github/IAEA-NSDDNetwork/McMaster-MSU-Java-NDS/3674c12a6ebdae1ce63cde2cbf3348a7b5764cdf.tar.gz</code></td><td><code>3674c12</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/NSDFLIB</td><td>repository</td><td class="n">1</td><td class="n">325 KB</td><td><code>raw/github/IAEA-NSDDNetwork/NSDFLIB/828b8496ae0c37476a7055554c1da626504f6f04.tar.gz</code></td><td><code>828b849</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/PANDORA</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/IAEA-NSDDNetwork/PANDORA/b87cafbd973c04646779c415f41a242d674f4cae.tar.gz</code></td><td><code>b87cafb</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/RADD</td><td>repository</td><td class="n">1</td><td class="n">439 KB</td><td><code>raw/github/IAEA-NSDDNetwork/RADD/52e49a78b7e3f1b65ec40d1367058ca564bd819f.tar.gz</code></td><td><code>52e49a7</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/RADLIST</td><td>repository</td><td class="n">1</td><td class="n">4 MB</td><td><code>raw/github/IAEA-NSDDNetwork/RADLIST/2c362de5ed6e87286472b4178c5af99484e487c0.tar.gz</code></td><td><code>2c362de</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/RadiationReport</td><td>repository</td><td class="n">1</td><td class="n">40 MB</td><td><code>raw/github/IAEA-NSDDNetwork/RadiationReport/312fd2a7f9b43d90851f9b26084e92363e53fdd2.tar.gz</code></td><td><code>312fd2a</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/SETMDC</td><td>repository</td><td class="n">1</td><td class="n">144 KB</td><td><code>raw/github/IAEA-NSDDNetwork/SETMDC/e8b0c9e7b280759757c91a5393c19c9a7d5d152f.tar.gz</code></td><td><code>e8b0c9e</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/TREND</td><td>repository</td><td class="n">1</td><td class="n">551 KB</td><td><code>raw/github/IAEA-NSDDNetwork/TREND/0fc1a0324b155b5ed1e7fe89aa10f9b86af603d1.tar.gz</code></td><td><code>0fc1a03</code></td></tr>
+<tr data-group="repository"><td data-item>IAEA-NSDDNetwork/V.AveLib</td><td>repository</td><td class="n">1</td><td class="n">10 MB</td><td><code>raw/github/IAEA-NSDDNetwork/V.AveLib/f6c47533ffbb5798acc52cc2c2430e967afd16dd.tar.gz</code></td><td><code>f6c4753</code></td></tr>
+<tr data-group="repository"><td data-item>LLNL/fudge</td><td>repository</td><td class="n">1</td><td class="n">45 MB</td><td><code>raw/github/LLNL/fudge/5e66a75e892da7a59c693fe087d2e821df839264.tar.gz</code></td><td><code>5e66a75</code></td></tr>
+<tr data-group="repository"><td data-item>afedynitch/x4i3</td><td>repository</td><td class="n">1</td><td class="n">2 MB</td><td><code>raw/github/afedynitch/x4i3/c56e09a8115834c7c2df89158fa7ad53b88ee345.tar.gz</code></td><td><code>c56e09a</code></td></tr>
+<tr data-group="repository"><td data-item>luca-fiorito-11/sandy</td><td>repository</td><td class="n">1</td><td class="n">138 MB</td><td><code>raw/github/luca-fiorito-11/sandy/2bb1da40b436c8d88ba83e5a11a1aae0d7a78d2c.tar.gz</code></td><td><code>2bb1da4</code></td></tr>
+<tr data-group="repository"><td data-item>njoy/NJOY2016</td><td>repository</td><td class="n">1</td><td class="n">269 MB</td><td><code>raw/github/njoy/NJOY2016/ab27c6414a0f25b173f2b637e6dc7e428fdaff00.tar.gz</code></td><td><code>ab27c64</code></td></tr>
+<tr data-group="repository"><td data-item>njoy/NJOY21</td><td>repository</td><td class="n">1</td><td class="n">251 MB</td><td><code>raw/github/njoy/NJOY21/3b2651fd024b1c20e14f71c2d2ac59ee9b9a8fce.tar.gz</code></td><td><code>3b2651f</code></td></tr>
+<tr data-group="repository"><td data-item>openmc-dev/openmc</td><td>repository</td><td class="n">1</td><td class="n">9 MB</td><td><code>raw/github/openmc-dev/openmc/93b147fa49d15e13c9d3cef7a7b0430a9b2ab86a.tar.gz</code></td><td><code>93b147f</code></td></tr>
+<tr data-group="repository"><td data-item>paulromano/endf-python</td><td>repository</td><td class="n">1</td><td class="n">81 KB</td><td><code>raw/github/paulromano/endf-python/3ace536513f1532aa83f8072b1b28a9f806c2c02.tar.gz</code></td><td><code>3ace536</code></td></tr>
+</table>
+  </section>
+  <section data-panel="pending" hidden>
+<table data-mark data-tab="pending"><tr><th>Item</th><th>Type</th><th>Status</th><th class="n">Files</th><th class="n">Size</th><th>Why, or what it waits for</th></tr>
+<tr data-group="scope page"><td data-item><a href="https://nds.iaea.org/exfor/cinda.htm">nds.iaea.org/exfor/cinda.htm</a></td><td>scope page</td><td data-status class="no">pending</td><td class="n">n/a</td><td class="n">n/a</td><td>CINDA backup and dated snapshots (exfor-master/cinda/): folder pages in; the data files wait for the proxy window. The CINDA search is a front end</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/beta-delayed-neutron/database.html">Beta-delayed neutrons</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/beta-delayed-neutron/: the database files (databases/*.csv and data/) are in the Wayback lane (71 files)</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/cinda/">CINDA</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/exfor-master/cinda/: the CINDA backup files (441) are in the Wayback lane; cinda/ is a search front end</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/medical/monitor_reactions.html">Charged particle reference cross section</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/medical/: the monitor-reaction data files (357 under medical/) are in the Wayback lane</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/conderc/">CoNDERC</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/conderc/: 8 data files in the Wayback lane; the rest is a database app whose records need the proxy</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/dxs-2/">DXS-2</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/dxs-2/: 827 .dxs files in the Wayback lane; the DXS library files (download-endf/DXS) are on the proxy list</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/endf/">ENDF Retrieval</a></td><td>Quick Link</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>a search front end over the ENDF archive, which is held as files</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/fycrp/">Fission Yields</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/fycrp/: the CRP's 24 reports are in the Wayback lane</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/geant4/">Geant4 Libraries</a></td><td>Quick Link</td><td data-status class="">listed</td><td class="n">n/a</td><td class="n">n/a</td><td>phase 3: processed Geant4 data files listed with their URLs, not pulled</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/idb/">IDB</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/idb/spectra/: the reference spectra are database records (idb/spectra/&lt;n&gt;); the Wayback Machine holds none; they need the proxy</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/naa/portal.htmlx">NAA</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/naa/: 56 data files in the Wayback lane</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/nuclearmoments/">Nuclear Electromagnetic Moments</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/nuclearmoments/: 3 data files in the Wayback lane; ground-state moments are also in the LiveChart API (held)</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/phsp/">PHSP</a></td><td>Quick Link</td><td data-status class="">listed</td><td class="n">n/a</td><td class="n">n/a</td><td>phase 4: phase-space files listed with their URLs, not pulled</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/plottab/">PLOTTAB</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/plottab/: 5 files (code and manual) in the Wayback lane</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/point/">POINT</a></td><td>Quick Link</td><td data-status class="">listed</td><td class="n">n/a</td><td class="n">n/a</td><td>phase 3: pointwise libraries listed with their URLs, not pulled (POINT2025 held from NNDC)</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/PSFdatabase/">Photon Strength Function database</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/PSFdatabase/atlas/: the atlas data (arc, drc, gdr, thc) is served by an app; the Wayback Machine holds none; it needs the proxy</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/irdf2002/codes/index.htmlx">SPECOMP</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/irdf2002/codes/: the IRDF-2002 codes (21 files) are in the Wayback lane</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/irdf2002/codes/index.htmlx">SPECTER</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/irdf2002/codes/: the IRDF-2002 codes (21 files) are in the Wayback lane</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/irdf2002/codes/index.htmlx">STAYSL PNNL</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/irdf2002/codes/: the IRDF-2002 codes (21 files) are in the Wayback lane</td></tr>
+<tr data-group="Quick Link"><td data-item><a href="https://nds.iaea.org/stoppinggraphs/">Stopping Power Data</a></td><td>Quick Link</td><td data-status class="no">page only, data pending</td><td class="n">n/a</td><td class="n">n/a</td><td>raw/iaea/2026-11-07/stopping, raw/iaea/2026-11-07/stoppinggraphs/: 6,373 data files (current and monthly archives) in the Wayback lane (large tier)</td></tr>
+<tr data-group="other"><td data-item>IAEA ENDF archive and subsite files beyond the proxy allowance</td><td>other</td><td data-status class="no">pending</td><td class="n">11,289</td><td class="n">7.4 GB</td><td>raw/iaea/2026-11-07/_work/pending-proxy-window.json, by subsite with estimated size, for the 6 p.m. proxy window</td></tr>
+<tr data-group="other"><td data-item>TENDL-2025, TENDL-2019, TENDL-2008 to 2017</td><td>other</td><td data-status class="no">pending</td><td class="n">n/a</td><td class="n">n/a</td><td>IAEA serves them per material only (about 20,000 files each); PSI no longer resolves. Need the proxy. TENDL-2015 backup zips are in the Wayback Machine (19.8 GB)</td></tr>
+<tr data-group="other"><td data-item>TENDL-2023 and TENDL-2021, JENDL special-purpose tarballs, JEFF-3.3 charged-particle sublibraries, ACE under 1 GB</td><td>other</td><td data-status class="no">pending</td><td class="n">n/a</td><td class="n">n/a</td><td>Wayback lane running on the box (about 2.9 GB an hour, 3 streams); manifests update as files land</td></tr>
+<tr data-group="other"><td data-item>Processed forms over 1 GB: JENDL-5 pointwise 0 K and 300 K, JEFF-3.3 ACE at six temperatures; POINT, Pointwise2020, PHSP, Geant4 and WIMSD files</td><td>other</td><td data-status class="">listed</td><td class="n">n/a</td><td class="n">n/a</td><td>Phase 3 and 4: URLs in the manifests</td></tr>
+<tr data-group="other"><td data-item>Search front ends: ENDF Retrieval, EXFOR and CINDA search, Data Explorer, LiveChart, NuDat, Isotopia queries</td><td>other</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>Query services over data that are in as files</td></tr>
+<tr data-group="other"><td data-item>IAEA-NDS mirrors in China, Russia and India</td><td>other</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>Do not answer AWS (timed out or refused)</td></tr>
+<tr data-group="other"><td data-item>JAEA file URLs (wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/)</td><td>other</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>Incapsula: Chrome through a proxy passes pages, files never arrive. JENDL taken from Wayback copies and IAEA instead</td></tr>
+<tr data-group="other"><td data-item>All not-taken entries</td><td>other</td><td data-status class="">listed</td><td class="n">n/a</td><td class="n">n/a</td><td>not_taken in each manifest.json: IAEA 4,088, JAEA 3, NEA 10; IAEA dead links 382</td></tr>
+<tr data-group="NNDC"><td data-item>ENDF/B-I</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>NNDC has no copy. Its page says it is still looking for the data and its summary.</td></tr>
+<tr data-group="NNDC"><td data-item>EXFOR and CINDA</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>NNDC's <code>/exfor/</code> and <code>/cinda/</code> answer 403. EXFOR is in from IAEA-NDS (EXFOR-JSON-File, below).</td></tr>
+<tr data-group="NNDC"><td data-item>Atlas of Neutron Resonances</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>An Elsevier book. NNDC hosts its description page only.</td></tr>
+<tr data-group="NNDC"><td data-item>Nuclear Data Sheets</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>An Elsevier journal on ScienceDirect. NNDC links out.</td></tr>
+<tr data-group="NNDC"><td data-item>NuDat 3, Sigma, NSR, ENSDF and XUNDL search, MIRD, QCalc, LogFT, BrIcc, Wallet Cards search</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>Search and calculator front ends over ENSDF, ENDF and NSR. Those are in as full files.</td></tr>
+<tr data-group="NNDC"><td data-item>68 linked files</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>NNDC's pages link them; its server answers 404. Mostly 2009 and 2011 workshop talks and NNDC preprints. Listed in <code>manifest.json</code>.</td></tr>
+<tr data-group="NNDC"><td data-item>216 repeats</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>140 files NNDC serves at a second URL (the 39 XUNDL releases among them), 73 sublibrary archives that the full-library archives contain, 3 .zip copies of .tgz archives. Listed in <code>manifest.json</code>.</td></tr>
+<tr data-group="NNDC"><td data-item>Images</td><td>NNDC</td><td data-status class="">not taken</td><td class="n">n/a</td><td class="n">n/a</td><td>Logos, photos and plot images inside pages.</td></tr>
+</table>
+  </section>
+  <section data-panel="stats" hidden>
+  <div class="stats">
+  <div class="tiles">
+    <div class="tile"><b>283.8 GB</b><span>76,293 files · 59 GB more arriving from the Wayback lane</span></div>
+    <div class="tile"><b>385,663</b><span>core records: references, datasets, entries, materials</span></div>
+    <div class="tile"><b>34.3 million</b><span>rows inside them: links, levels, gammas, measured points, cross-section points</span></div>
+    <div class="tile"><b>about 35 million</b><span>records in all</span></div>
+  </div>
+
+  <h2>Core datasets</h2>
+  <table>
+    <tr><th>Dataset</th><th>What it is</th><th class="n">Records</th><th class="n">Rows inside</th><th>Lake</th></tr>
+    <tr><td class="k">NSR</td><td>Bibliography of nuclear science papers, 1857 to now</td><td class="n">303,568</td><td class="n">3,744,954</td><td><code>lake/nsr-database/</code></td></tr>
+    <tr><td class="k">ENSDF</td><td>Evaluated nuclear structure and decay data</td><td class="n">20,117</td><td class="n">1,491,058</td><td><code>raw/nndc/…/ensdfarchivals/</code></td></tr>
+    <tr><td class="k">XUNDL</td><td>Experimental structure data not yet evaluated; feeds ENSDF</td><td class="n">12,547</td><td class="n">471,934</td><td><code>raw/nndc/…/xundlarchivals/</code></td></tr>
+    <tr><td class="k">EXFOR</td><td>Experimental nuclear reaction measurements</td><td class="n">27,116</td><td class="n">19,439,354</td><td><code>raw/github/IAEA-NDS/EXFOR-JSON-File/</code></td></tr>
+    <tr><td class="k">ENDF/B</td><td>Evaluated nuclear reaction libraries, B-II to B-VIII.1</td><td class="n">22,315</td><td class="n">9,127,277</td><td><code>raw/nndc/…/endf-releases/</code>, <code>endf-library/</code></td></tr>
+    <tr class="total"><td>Total</td><td></td><td class="n">385,663</td><td class="n">34,274,577</td><td></td></tr>
+  </table>
+
+
+  <h2>Built from or beside the core</h2>
+  <table>
+    <tr><th>Dataset</th><th>Relation to the core</th><th>Records</th><th class="n">Count</th><th>Lake</th></tr>
+    <tr><td class="k">IAEA Live Chart</td><td>IAEA's tables of nuclide and decay data</td><td>rows: ground states 3,386 · decay radiation 338,969 · fission yields 18,120</td><td class="n">360,475</td><td><code>raw/iaea-livechart/</code></td></tr>
+    <tr><td class="k">CapGam</td><td>ENSDF thermal neutron capture datasets</td><td>datasets 287 · gammas</td><td class="n">79,029</td><td><code>raw/nndc/…/capgam/</code></td></tr>
+    <tr><td class="k">B(E2)</td><td>Compiled from the literature</td><td>entries: adopted 983 · experimental 2,638 · predicted 559</td><td class="n">4,180</td><td><code>raw/nndc/…/be2/</code></td></tr>
+    <tr><td class="k">Wallet Cards</td><td>Summary of ENSDF ground and isomeric states</td><td>states, 3,371 nuclides (2023 edition)</td><td class="n">4,119</td><td><code>raw/nndc/…/walletcardsarchivals/</code></td></tr>
+    <tr><td class="k">NuDat 3 chart</td><td>Built from ENSDF</td><td>nuclides</td><td class="n">3,614</td><td><code>raw/nndc/…/nudat3/</code></td></tr>
+    <tr><td class="k">Double-beta decay</td><td>Compiled from the literature</td><td>entries: adopted 45 · experimental 793</td><td class="n">838</td><td><code>raw/nndc/…/bbdecay/</code></td></tr>
+    <tr><td class="k">Low-fidelity covariances</td><td>Uncertainties for ENDF cross sections</td><td>files</td><td class="n">387</td><td><code>raw/nndc/…/lowfi/</code></td></tr>
+    <tr><td class="k">ACE, POINT, GNDS</td><td>ENDF/B converted for transport codes and a newer format; same evaluations</td><td>files</td><td class="n">78</td><td><code>raw/nndc/…/endf-library/</code></td></tr>
+    <tr><td class="k">EPICS2017</td><td>Electron, photon and atomic data in ENDF/B-VIII</td><td>files</td><td class="n">19</td><td><code>raw/nndc/…/endf/epics/</code></td></tr>
+    <tr><td class="k">MACS</td><td>Astrophysical reaction rates from ENDF/B-VII.1 and EAF-2010</td><td>archives</td><td class="n">2</td><td><code>raw/nndc/…/astro/</code></td></tr>
+    <tr><td class="k">RIPL-3, RIPL-4</td><td>Parameters for nuclear reaction models</td><td>not counted</td><td class="n"></td><td><code>raw/github/IAEA-NDS/</code></td></tr>
+    <tr><td class="k">PD2019</td><td>Photonuclear library; 196 of its evaluations are in ENDF/B-VIII.1</td><td>ENDF files, plots and documents</td><td class="n"></td><td><code>raw/iaea/…/download-endf/IAEA-PD-2019/</code>, <code>raw/github/IAEA-NDS/IAEA-PD2019/</code></td></tr>
+    <tr><td class="k">NSR paper PDFs</td><td>Full text for NSR references</td><td>PDFs</td><td class="n">37,417</td><td><code>files/pdfs/arxiv/</code></td></tr>
+    <tr><td class="k">NSR embeddings</td><td>Search vectors for NSR references, two models</td><td>vectors</td><td class="n">554,136</td><td><code>work/embed-v2/</code>, <code>work/search/</code></td></tr>
+  </table>
+
+  <h2>Evaluated libraries and archives beyond ENDF/B</h2>
+  <table>
+    <tr><th>Dataset</th><th>What it is</th><th>Format</th><th class="n">Files</th><th class="n">Size</th><th>Lake</th></tr>
+    <tr><td class="k">IAEA ENDF archive</td><td>107 library folders: JEFF-4.0, JEFF-3.3, JENDL-5, CENDL-3.2, ROSFOND-2010, BROND-3.1, FENDL, IRDFF-II, IAEA-PD-2019, INDEN, ADS, EAF-2010, UKDD-12, PADF-2007, JEF-2.2 and more</td><td>ENDF-6</td><td class="n">4,358</td><td class="n">20.0 GB</td><td><code>raw/iaea/…/public/download-endf/</code></td></tr>
+    <tr><td class="k">IAEA CD-ROM packages</td><td>50 packages: X4Pro EXFOR SQLite, C5, x5json, EMPIRE, GRUCON, IBANDL and more</td><td>mixed</td><td class="n">51</td><td class="n">31.0 GB</td><td><code>raw/iaea/…/cdroms/dwn/</code></td></tr>
+    <tr><td class="k">IAEA subsites and Quick Links</td><td>TALYS, TENDL-2019, FENDL, DXS-2, CINDA backups, INDEN, photonuclear, GANDR, Minsk actinides, IBANDL, INDL/TSL and more; TENDL-2023 and 2021 arriving</td><td>mixed</td><td class="n">4,269</td><td class="n">25.2 GB</td><td><code>raw/iaea/</code></td></tr>
+    <tr><td class="k">OpenMC data libraries</td><td>ENDF/B-VII.1 to VIII.1, JEFF-3.2 to 4.0, JENDL-5, FENDL-3.2 converted for the OpenMC code; 12 depletion chains</td><td>HDF5</td><td class="n">27</td><td class="n">47.5 GB</td><td><code>raw/openmc/</code></td></tr>
+    <tr><td class="k">JEFF-3.1</td><td>NNDC Sigma copy, one file per material</td><td>ENDF-6</td><td class="n">4,290</td><td class="n">0.35 GB</td><td><code>raw/nndc-sigma/…/jeff-3.1/</code></td></tr>
+    <tr><td class="k">JENDL-4.0</td><td>NNDC Sigma copy, one file per material</td><td>ENDF-6</td><td class="n">406</td><td class="n">0.59 GB</td><td><code>raw/nndc-sigma/…/jendl-4.0/</code></td></tr>
+    <tr><td class="k">JENDL-3.3</td><td>NNDC Sigma copy, one file per material, with photonuclear, proton, alpha and decay</td><td>ENDF-6</td><td class="n">1,727</td><td class="n">1.31 GB</td><td><code>raw/nndc-sigma/…/jendl-3.3/</code></td></tr>
+    <tr><td class="k">ROSFOND</td><td>NNDC Sigma copy, one file per material</td><td>ENDF-6</td><td class="n">683</td><td class="n">0.31 GB</td><td><code>raw/nndc-sigma/…/rosfond/</code></td></tr>
+    <tr><td class="k">CENDL-3.1</td><td>NNDC Sigma copy, one file per material</td><td>ENDF-6</td><td class="n">240</td><td class="n">0.16 GB</td><td><code>raw/nndc-sigma/…/cendl-3.1/</code></td></tr>
+    <tr><td class="k">JAEA JENDL</td><td>JENDL-5 sublibraries, JENDL-4.0 and 4.0u, special-purpose files, documents; Wayback copies</td><td>ENDF-6</td><td class="n">162</td><td class="n">6.6 GB</td><td><code>raw/jaea/</code></td></tr>
+    <tr><td class="k">NEA JEFF</td><td>JEFF-3.3 sublibrary archives, JEFF-3.0 to 3.2 tapes, EAF-2007, PADF; Wayback copies; JEFF-3.3 charged particles arriving</td><td>ENDF-6</td><td class="n">52</td><td class="n">1.0 GB</td><td><code>raw/nea/</code></td></tr>
+    <tr><td class="k">Source archives</td><td>58 repositories at a pinned commit: njoy, all 50 IAEA-NDS, openmc, fudge, endf-python, x4i3, sandy</td><td>tar.gz</td><td class="n">93</td><td class="n">6.3 GB</td><td><code>raw/github/</code></td></tr>
+    <tr><td class="k">Python packages</td><td>endf, endf-parserpy, x4i3, sandy, fudge</td><td>tar.gz</td><td class="n">6</td><td class="n">59 MB</td><td><code>raw/pypi/</code></td></tr>
+  </table>
+
+  <h2>Documents</h2>
+  <table>
+    <tr><th>Set</th><th class="n">Files</th><th>Lake</th></tr>
+    <tr><td>Meeting and workshop presentations</td><td class="n">416</td><td><code>raw/nndc/…/meetings/</code>, <code>proceedings/</code></td></tr>
+    <tr><td>ENDF reports and format manuals</td><td class="n">238</td><td><code>raw/nndc/…/endfdocs/</code></td></tr>
+    <tr><td>USNDP annual reports (26) and work plans (28)</td><td class="n">54</td><td><code>raw/nndc/…/usndp/docs/</code></td></tr>
+    <tr><td>CSEWG, NDWG, Nuclear Data Sheets, history</td><td class="n">36</td><td><code>raw/nndc/…/csewg/</code> and others</td></tr>
+    <tr><td>ENSDF manual and evaluator guidelines</td><td class="n">18</td><td><code>raw/nndc/…/ensdf/</code></td></tr>
+  </table>
+
+  <h2>Not held</h2>
+  <table>
+    <tr><th>Dataset</th><th>What it is</th><th>Why</th></tr>
+    <tr><td class="k">TENDL-2023, TENDL-2021, JEFF-3.3 charged particles, JENDL special files</td><td>Evaluated libraries, 59 GB</td><td>Arriving from the Wayback lane, about 20 hours</td></tr>
+    <tr><td class="k">11,289 IAEA files</td><td>Database records and data files behind IAEA's bot check, 7.4 GB</td><td>Wait for a residential proxy window</td></tr>
+    <tr><td class="k">Processed forms</td><td>Geant4 data, PHSP phase-space files, TENDL random files, extra temperature ACE sets</td><td>Phases 3 and 4: listed with URL and size, not pulled</td></tr>
+    <tr><td class="k">ENDF/B-I</td><td>The first ENDF/B library</td><td>NNDC has no copy</td></tr>
+  </table>
+
+  </div>
+  </section>
+
+  <section data-panel="diagram" hidden>
+  <div class="stats">
+  <h2>Databases</h2>
+  <div class="erd">
+    <svg viewBox="0 0 1250 500" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="13">
+      <style>
+        .box { fill: #fff; stroke: #0f766e; stroke-width: 2; }
+        .hub { fill: #f0fdfa; stroke: #0f766e; stroke-width: 2; }
+        .t { font-weight: 650; font-size: 15px; fill: #1f2328; }
+        .s { font-size: 12px; fill: #6b7280; }
+        .stored { stroke: #0f766e; stroke-width: 2; fill: none; }
+        .join { stroke: #9ca3af; stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
+        .lab { font-size: 11.5px; fill: #374151; }
+        .bg { fill: #fff; }
+      </style>
+      <!-- stored links -->
+      <path class="stored" d="M300 75 L800 75"/>
+      <path class="stored" d="M300 100 L800 245"/>
+      <path class="stored" d="M250 110 L480 240"/>
+      <path class="stored" d="M180 110 L180 410"/>
+      <!-- joinable on a shared key -->
+      <path class="join" d="M860 110 L620 228"/>
+      <path class="join" d="M800 260 L635 260"/>
+      <path class="join" d="M250 410 L490 292"/>
+      <path class="join" d="M860 410 L610 292"/>
+      <path class="join" d="M300 445 L800 445"/>
+      <path class="join" d="M1040 75 H1075 V445 H1040"/>
+      <!-- labels -->
+      <rect class="bg" x="400" y="58" width="300" height="16"/><text class="lab" x="550" y="70" text-anchor="middle">NSR key number · 198,295 stored links (ensdf_refs)</text>
+      <rect class="bg" x="505" y="181" width="270" height="16"/><text class="lab" x="640" y="193" text-anchor="middle">NSR key number · 20,917 stored links (xundl_refs)</text>
+      <rect class="bg" x="215" y="176" width="220" height="16"/><text class="lab" x="325" y="188" text-anchor="middle">1,210,113 stored links (nsr_nuclides)</text>
+      <rect class="bg" x="70" y="243" width="220" height="34"/><text class="lab" x="180" y="256" text-anchor="middle">NSR key number ↔ EXFOR entry</text><text class="lab" x="180" y="272" text-anchor="middle">23,515 stored links (nsr_exfor)</text>
+      <rect class="bg" x="715" y="150" width="90" height="16"/><text class="lab" x="760" y="162" text-anchor="middle">NUCID (Z, A)</text>
+      <rect class="bg" x="672" y="240" width="90" height="16"/><text class="lab" x="717" y="252" text-anchor="middle">NUCID (Z, A)</text>
+      <rect class="bg" x="260" y="338" width="160" height="16"/><text class="lab" x="340" y="350" text-anchor="middle">target in the reaction code</text>
+      <rect class="bg" x="715" y="338" width="80" height="16"/><text class="lab" x="755" y="350" text-anchor="middle">MAT ↔ ZA</text>
+      <rect class="bg" x="420" y="428" width="260" height="16"/><text class="lab" x="550" y="440" text-anchor="middle">same target and reaction: measured vs evaluated</text>
+      <text class="lab" x="1085" y="252">ENDF decay sublibrary</text><text class="lab" x="1085" y="268">is built from ENSDF</text>
+      <!-- datasets -->
+      <rect class="box" x="60" y="40" width="240" height="70" rx="8"/><text class="t" x="80" y="68">NSR</text><text class="s" x="80" y="88">303,568 references</text>
+      <rect class="box" x="800" y="40" width="240" height="70" rx="8"/><text class="t" x="820" y="68">ENSDF</text><text class="s" x="820" y="88">20,117 datasets</text>
+      <rect class="box" x="800" y="225" width="240" height="70" rx="8"/><text class="t" x="820" y="253">XUNDL</text><text class="s" x="820" y="273">12,547 datasets</text>
+      <rect class="box" x="60" y="410" width="240" height="70" rx="8"/><text class="t" x="80" y="438">EXFOR</text><text class="s" x="80" y="458">27,116 entries</text>
+      <rect class="box" x="800" y="410" width="240" height="70" rx="8"/><text class="t" x="820" y="438">ENDF/B</text><text class="s" x="820" y="458">22,315 materials</text>
+      <rect class="hub" x="465" y="225" width="170" height="70" rx="35"/><text class="t" x="550" y="255" text-anchor="middle">Nuclide</text><text class="s" x="550" y="275" text-anchor="middle">10,043</text>
+    </svg>
+  </div>
+  <div class="legend">Solid lines: links stored in the lake's tables. Dashed lines: joinable on a shared key, with no stored link table.</div>
+
+  <h2>By type and subtype</h2>
+  <table>
+    <tr><th>Type</th><th>Subtype</th><th class="n">Count</th><th>Detail</th></tr>
+    <tr><td class="k">NSR</td><td>references</td><td class="n">303,568</td><td>255,315 NSR · 48,253 arXiv/APS · key 2011CH57</td></tr>
+    <tr><td></td><td>links</td><td class="n">3,744,954</td><td>authors, nuclides, reactions, subjects, topics</td></tr>
+    <tr><td class="k">ENSDF</td><td>datasets</td><td class="n">20,117</td><td>release 2026-11-05 · NUCID + DSID</td></tr>
+    <tr><td></td><td>levels</td><td class="n">568,228</td><td></td></tr>
+    <tr><td></td><td>gammas</td><td class="n">793,431</td><td></td></tr>
+    <tr><td></td><td>other records</td><td class="n">129,399</td><td>beta, EC, alpha, delayed-particle, reference</td></tr>
+    <tr><td class="k">XUNDL</td><td>datasets</td><td class="n">12,547</td><td>release 2026-10-01 · NUCID</td></tr>
+    <tr><td></td><td>levels</td><td class="n">194,604</td><td></td></tr>
+    <tr><td></td><td>gammas</td><td class="n">257,154</td><td></td></tr>
+    <tr><td></td><td>other records</td><td class="n">20,176</td><td></td></tr>
+    <tr><td class="k">EXFOR</td><td>entries</td><td class="n">27,116</td><td>entry 10001</td></tr>
+    <tr><td></td><td>subentries</td><td class="n">223,615</td><td></td></tr>
+    <tr><td></td><td>reaction codes</td><td class="n">88,813</td><td></td></tr>
+    <tr><td></td><td>data rows</td><td class="n">19,439,354</td><td>76.5 million values</td></tr>
+    <tr><td class="k">ENDF/B</td><td>materials</td><td class="n">22,315</td><td>9 releases · MAT 9228 (U-235)</td></tr>
+    <tr><td></td><td>cross sections (MF3)</td><td class="n">114,363</td><td></td></tr>
+    <tr><td></td><td>points</td><td class="n">9,127,277</td><td></td></tr>
+  </table>
+
+  <h2>ENDF/B releases</h2>
+  <table>
+    <tr><th>Release</th><th class="n">Materials</th><th class="n">Cross sections (MF3)</th><th class="n">Points</th><th>Materials by sublibrary</th></tr>
+    <tr><td class="k">B-VIII.1 (2024)</td><td class="n">5,135</td><td class="n">32,347</td><td class="n">2,587,259</td><td>decay 3,821 · neutrons 558 · photonuclear 222 · thermal scattering 114 · atomic relaxation, electrons, photo-atomic 100 each · protons 49 · fission yields 40 · standards 11 · deuterons 6 · tritons, alphas 5 each · helium-3 4</td></tr>
+    <tr><td class="k">B-VIII.0 (2018)</td><td class="n">4,989</td><td class="n">27,849</td><td class="n">2,026,737</td><td>decay 3,821 · neutrons 557 · photonuclear 163 · thermal scattering 34</td></tr>
+    <tr><td class="k">B-VII.1 (2011)</td><td class="n">4,834</td><td class="n">17,280</td><td class="n">1,101,659</td><td>decay 3,821 · neutrons 423 · photonuclear 163</td></tr>
+    <tr><td class="k">B-VII.0 (2006)</td><td class="n">4,820</td><td class="n">15,269</td><td class="n">1,107,315</td><td>decay 3,838 · neutrons 393 · photonuclear 163</td></tr>
+    <tr><td class="k">B-VI.8 (2001)</td><td class="n">2,114</td><td class="n">13,388</td><td class="n">1,441,831</td><td>108 tapes</td></tr>
+    <tr><td class="k">B-V, B-IV, B-III, B-II</td><td class="n">423</td><td class="n">8,230</td><td class="n">862,476</td><td>130 · 90 · 135 · 68</td></tr>
+  </table>
+  </div>
+  </section>
+
+  <section data-panel="scripts" hidden>
+  <h2>Proxy army</h2>
+  <table>
+    <tr><td>Plan</td><td>Webshare, $6 a month, bought 2026-10-19; the paid month ends 2026-11-19, not renewing. About 140 GB of the 250 GB cycle left, reserved for the evening evaluation.</td></tr>
+    <tr><td>Lines</td><td>14 of the 20 bought (pax2 pruned 6 walled lines), 8 in the US. 12 answer NNDC; line 10 (GB) and line 11 (IT) do not.</td></tr>
+    <tr><td>Credentials</td><td>SSM <code>/nsrgpt/webshare/proxies</code>, New account, us-east-2. Copied from the Old account's <code>/pax2/webshare/proxies</code>.</td></tr>
+    <tr><td>Code</td><td><code>scripts/proxy/proxies.sh</code>, from pax2's <code>fleet.sh</code>: <code>proxy_url N</code>, <code>proxy_count</code>, <code>probe</code>.</td></tr>
+    <tr><td>Used so far</td><td>NNDC answers AWS directly, so that pull needed no proxy. IAEA's Cloudflare check refused all 12 working lines to curl; real Chrome on the box through one line cleared it. Pending list: <code>raw/iaea/2026-11-07/_work/pending-proxy-window.json</code>, 11,289 URLs, about 7.4 GB.</td></tr>
+  </table>
+  </section>
+
+  <section data-panel="pages" hidden>
+  <div class="pages">
+  <div class="date">2026-11-06 · /Users/brendanstanton/Code/nsr</div>
+
+  <h2>Pages</h2>
+  <table>
+    <tr><th>Page</th><th>Route</th><th>Data</th></tr>
+    <tr><td>Chat</td><td><code>/</code> <code>/new-chat</code> <code>/c/:id</code></td><td><code>/api/chat</code> nsr + Bedrock + Semantic Scholar · <code>/api/feed</code> research_feed · <code>/api/chat-sessions</code> chat_sessions · <code>/api/graph</code> · <code>/api/paper</code> Semantic Scholar</td></tr>
+    <tr><td>NSR references</td><td><code>/nsr</code></td><td><code>/api/records</code> nsr · <code>/api/search</code> nsr, nsr_embeddings · <code>/api/dict</code> nsr, authors, nsr_authors · <code>/api/record</code> nsr · <code>/api/feed</code> research_feed</td></tr>
+    <tr><td>Search</td><td><code>/search</code></td><td><code>/api/search</code> nsr, nsr_embeddings, query encoder · <code>/api/record</code> nsr · <code>/api/chat</code></td></tr>
+    <tr><td>ENSDF index</td><td><code>/ensdf</code></td><td><code>/api/nuclide</code> ensdf_datasets, ensdf_refs, nsr, nsr_nuclides, nuclide_dict</td></tr>
+    <tr><td>XUNDL index</td><td><code>/xundl</code></td><td><code>/api/nuclide</code> xundl_archive_datasets, xundl_refs, nsr, nsr_nuclides, nuclide_dict</td></tr>
+    <tr><td>Chart of nuclides</td><td><code>/ensdf/chart</code> <code>/xundl/chart</code></td><td><code>/data/structure/</code></td></tr>
+    <tr><td>Mass chain, nuclide, element</td><td><code>/ensdf/:a</code> <code>/xundl/:a</code></td><td><code>/api/nuclide</code> (tables as ENSDF and XUNDL index) · <code>/api/ensnds</code> PDFs in nsr-pdfs/ensnds · <code>/data/ensnds-map.json</code></td></tr>
+    <tr><td>Dataset references</td><td><code>/ensdf/:a/refs</code> <code>/xundl/:a/refs</code></td><td><code>/api/nuclide</code></td></tr>
+    <tr><td>Graph</td><td><code>/graph</code> <code>/graph/:a</code></td><td><code>/api/graph</code> nsr, authors, nsr_authors, exfor_entries, nsr_exfor, nsr_nuclides, nsr_reactions, nuclide_dict, reaction_dict · <code>/api/community</code> workspace_views · <code>/api/upload</code> nsr-pdfs/workspace · <code>/api/chat</code> · <code>/data/catalog.json</code> <span class="muted">· 4 uncommitted lines (prompt-chain TODO)</span></td></tr>
+    <tr><td>Tools</td><td><code>/tools</code></td><td><code>/data/ame2020.json</code> <code>/data/bbdecay.json</code> <code>/data/be2/</code> <code>/data/capgam/</code> · <code>/api/bricc</code> BrIcc at ANU · <code>/api/logft</code> NNDC LogFT</td></tr>
+    <tr><td>ENDF reports</td><td><code>/endf</code></td><td><code>/data/endf.json</code></td></tr>
+    <tr><td>ENSDF archive</td><td><code>/ensdf/archive</code></td><td><code>/data/ensdf-archivals.json</code> · files in nsr-pdfs/archivals</td></tr>
+    <tr><td>XUNDL archive</td><td><code>/xundl/archive</code></td><td><code>/data/xundl-archivals.json</code></td></tr>
+    <tr><td>NSR archive</td><td><code>/nsr/archive</code></td><td><code>/data/nsr-archivals.json</code></td></tr>
+    <tr><td>Community</td><td><code>/community</code></td><td><code>/api/community</code> community_issues, community_posts, community_threads, workspace_views</td></tr>
+    <tr><td>Code</td><td><code>/code</code></td><td><code>/data/nsdd-repos.json</code></td></tr>
+    <tr><td>ENSDF about, help, evaluation, docs</td><td><code>/ensdf/about</code> <code>/ensdf/help</code> <code>/ensdf/evaluation</code> <code>/ensdf/docs</code></td><td class="muted">Text only</td></tr>
+    <tr><td>XUNDL about</td><td><code>/xundl/about</code></td><td class="muted">Text only</td></tr>
+    <tr><td>Resources, Features, Announcing</td><td><code>/resources</code> <code>/features</code> <code>/announcing</code></td><td class="muted">Text only</td></tr>
+    <tr><td>Sidebar</td><td class="muted">every page</td><td><code>/api/chat-sessions</code> chat_sessions · <code>/data/structure/index.json</code> <code>/data/endf.json</code> <code>/data/*-archivals.json</code> <code>/data/nsdd-repos.json</code></td></tr>
+  </table>
+
+  <h2>Port to nsrgpt</h2>
+  <table>
+    <tr><th>Page</th><th>nsrgpt route</th><th>Served as</th><th>Notes</th></tr>
+    <tr><td>Chat</td><td><code>/chat</code></td><td><span class="live">Live</span></td><td>nsrgpt already has <code>/chat</code> on Bedrock. nsr's retrieval, research feed and saved sessions merge into it.</td></tr>
+    <tr><td>NSR references</td><td><code>/nsr</code></td><td><span class="live">Live</span></td><td>Filters and pages over 303,568 records</td></tr>
+    <tr><td>Search</td><td><code>/search</code></td><td><span class="live">Live</span></td><td>Needs the NSR-CPT encoder and the vectors in nsr_embeddings</td></tr>
+    <tr><td>Graph</td><td><code>/graph</code></td><td><span class="live">Live</span></td><td>Queries, saved workspaces and file uploads. Carries the uncommitted TODO. nsrgpt's <code>/viz/graph</code> is a different chart.</td></tr>
+    <tr><td>Community</td><td><code>/community</code></td><td><span class="live">Live</span></td><td>Readers write posts and threads</td></tr>
+    <tr><td>Tools</td><td><code>/tools</code></td><td>Static + outside services</td><td>BrIcc and LogFT are called at request time</td></tr>
+    <tr><td>Mass chain, nuclide, element</td><td><code>/ensdf/:a</code> <code>/xundl/:a</code></td><td>Static + PDFs</td><td>One JSON file per nuclide. PDFs from nsr-pdfs.</td></tr>
+    <tr><td>ENSDF archive</td><td><code>/ensdf/archive</code></td><td>Static + PDFs</td><td>PDFs from nsr-pdfs/archivals</td></tr>
+    <tr><td>ENSDF index</td><td><code>/ensdf</code></td><td>Static</td><td></td></tr>
+    <tr><td>XUNDL index</td><td><code>/xundl</code></td><td>Static</td><td></td></tr>
+    <tr><td>Chart of nuclides</td><td><code>/ensdf/chart</code> <code>/xundl/chart</code></td><td>Static</td><td></td></tr>
+    <tr><td>Dataset references</td><td><code>/ensdf/:a/refs</code> <code>/xundl/:a/refs</code></td><td>Static</td><td></td></tr>
+    <tr><td>ENDF reports</td><td><code>/endf</code></td><td>Static</td><td></td></tr>
+    <tr><td>XUNDL archive</td><td><code>/xundl/archive</code></td><td>Static</td><td></td></tr>
+    <tr><td>NSR archive</td><td><code>/nsr/archive</code></td><td>Static</td><td></td></tr>
+    <tr><td>Code</td><td><code>/code</code></td><td>Static</td><td></td></tr>
+    <tr><td>ENSDF about, help, evaluation, docs</td><td><code>/ensdf/about</code> <code>/ensdf/help</code> <code>/ensdf/evaluation</code> <code>/ensdf/docs</code></td><td>Static</td><td></td></tr>
+    <tr><td>XUNDL about</td><td><code>/xundl/about</code></td><td>Static</td><td></td></tr>
+    <tr><td>Resources, Features, Announcing</td><td><code>/resources</code> <code>/features</code> <code>/announcing</code></td><td>Static</td><td></td></tr>
+    <tr><td>Sidebar</td><td class="muted">every page</td><td>—</td><td>Its entries go into the SideBarMenu ui-agent is building</td></tr>
+  </table>
+
+  <h2>Where the data is now</h2>
+  <table>
+    <tr><th>Source</th><th>Location</th></tr>
+    <tr><td>Database tables</td><td>All 42, exported Nov 4 as parquet from Aurora snapshot <code>nsr-final-2026-10-15</code>. New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/lake/nsr-database/2026-10-15/</code>. Old account (2525-cli): <code>s3://govblock-lake-638175140432/lake/v1/nsr/nsr-to-lake-2026-11-04/</code> and <code>s3://nsr-lake-638175140432/lake/v1/nsr/nsr-to-lake-2026-11-04/</code></td></tr>
+    <tr><td>IAEA pull</td><td>New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/raw/iaea-livechart/2026-11-06/</code>. Old account (2525-cli): <code>s3://govblock-lake-638175140432/lake/v1/nsr/iaea-livechart/2026-11-06/</code></td></tr>
+    <tr><td>Athena</td><td>Database <code>nysgpt_nsr</code>, 30 tables, reading the govblock-lake copy. Not in Athena: chat_sessions, research_feed, community_issues, community_posts, community_threads, workspace_views, nsr_embeddings</td></tr>
+    <tr><td>Static files</td><td><code>nsr/public/data/</code>: ame2020, bbdecay, be2, capgam, catalog, endf, ensdf-archivals, ensnds-map, nsdd-repos, nsr-archivals, structure, xundl-archivals</td></tr>
+    <tr><td>PDFs</td><td>New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/files/pdfs/</code>. Old account (2525-cli): <code>s3://nsr-pdfs/</code>. Folders: arxiv/, archivals/, ensnds/, workspace/</td></tr>
+    <tr><td>NSR-CPT training</td><td>New account (nysgpt-cli): <code>s3://nsr-lake-613473203863/work/embed-v2/</code>. Old account (2525-cli): <code>s3://nsr-embed-v2/</code></td></tr>
+    <tr><td>Outside services</td><td>Bedrock (chat) · Semantic Scholar · BrIcc (ANU) · NNDC LogFT · query encoder on the nsr-serve EC2 box or Cloudflare Workers AI</td></tr>
+  </table>
+  </div>
+  </section>
+
+  <section data-panel="iaea-api" hidden>
+  <div class="iaea-api">
+
+<p class="sub">Everything NSRgpt can build on <code>nds.iaea.org/relnsd/v1/data</code>: CSV over plain HTTP, no key, one nuclide or one fission parent per request. Sources: ENSDF, AME2020, NUBASE2020, the IAEA moments tables, Betashape 2.2 spectra, JEFF-3.1.1 fission yields. My top five are marked; all five are built: /viz/fission-yields, /viz/explorer, the measured heat in /viz/particles, /viz/radiation and /viz/gamma-lines.</p>
+
+<h2>What the API serves</h2>
+<p class="src">nds.iaea.org/relnsd/v1/data?fields=…</p>
+<div class="tablewrap">
+<table>
+  <tr><th>Field group</th><th>Per request</th><th>What it holds</th><th>Coverage</th></tr>
+  <tr><td class="mono">ground_states</td><td class="mono">all at once</td><td>Half-life, three decay modes with branchings, Qα, Qβ−, Qβ−n, Q(EC), Sₙ, Sₚ, binding, atomic mass, mass excess, Jπ, isospin, magnetic dipole and electric quadrupole moments, charge radius, natural abundance</td><td class="mono">3,386 nuclides · 900 KB</td></tr>
+  <tr><td class="mono">levels</td><td class="mono">one nuclide</td><td>Every level: energy, Jπ and its order, half-life, decay modes, moments</td><td class="mono">Xe-135: 40 levels</td></tr>
+  <tr><td class="mono">gammas</td><td class="mono">one nuclide</td><td>Every transition: start and end level, energy, relative intensity, multipolarity, mixing ratio, B(E1), B(E2), B(M1), B(M2) in Weisskopf units, conversion coefficient</td><td class="mono">Xe-135: 98 transitions</td></tr>
+  <tr><td class="mono">decay_rads</td><td class="mono">one nuclide, one type</td><td>Radiation emitted in decay: α (energy, intensity, hindrance), β− and β+ (mean and endpoint energy, intensity, log ft, neutrino mean energy), EC, γ (energy, intensity, multipolarity), Auger and conversion electrons, X-rays</td><td class="mono">6 types × 2,960 radioactive</td></tr>
+  <tr><td class="mono">bin_beta</td><td class="mono">one nuclide, β− or β+</td><td>The β and (anti)neutrino energy spectra, binned, from Betashape</td><td class="mono">Xe-135: 806 bins · 75 KB</td></tr>
+  <tr><td class="mono">cumulative_fy, independent_fy</td><td class="mono">one parent or one product</td><td>Fission yields, thermal, fast and 14 MeV, with uncertainties</td><td class="mono">8 parents · ~1,200 products each</td></tr>
+</table>
+</div>
+
+<h2>From ground states</h2>
+<p class="src">1 request · 900 KB raw · about 100 KB gzipped as a compact JSON</p>
+<div class="grid">
+  <div class="card top"><span class="rank">Top 2</span><h3>3D explorer</h3><p>Live Chart 3D's choice of axes, on our 3D camera: any property on X, Y, Z, colour and size, each with log and limits, colour by value or percentile, a Z and N filter. Fission yields are variables too, as in their ²³⁹Pu example.</p><div class="meta"><span>1 request</span><span>new chart</span></div></div>
+  <div class="card"><h3>Nuclear shapes</h3><p>Electric quadrupole moments on the N–Z plane: prolate and oblate regions, the deformed rare earths and actinides, near zero at the magic numbers.</p><div class="meta"><span>764 nuclides</span><span>also an explorer axis</span></div></div>
+  <div class="card"><h3>Magnetic moments and the Schmidt lines</h3><p>Odd-A moments against the single-particle limits.</p><div class="meta"><span>1,147 nuclides</span></div></div>
+  <div class="card"><h3>Charge radii along isotope chains</h3><p>The kinks at N = 82 and 126.</p><div class="meta"><span>909 nuclides</span></div></div>
+  <div class="card"><h3>Natural abundance by element</h3><p>Each element's stable isotopes as shares.</p><div class="meta"><span>288 isotopes</span></div></div>
+  <div class="card"><h3>Q(EC) and Qβ−n in the existing charts</h3><p>The two Q-values our AME snapshot lacks, added to the radar, the matrix and the decay heat.</p><div class="meta"><span>extends 3 charts</span></div></div>
+</div>
+
+<h2>From decay radiation</h2>
+<p class="src">6 types × 2,960 nuclides ≈ 17,800 requests, pulled once · a few MB raw · served as small per-element files</p>
+<div class="grid">
+  <div class="card top"><span class="rank">Top 3</span><h3>Measured decay heat</h3><p>The particle view's heat from measured energies in place of my one-third-of-Q rule: α, mean β, electrons and recoil stay in the sample; γ, X-rays, annihilation and neutrinos leave. Co-60 drops from 6.3 W/g to its measured 0.6 W/g kept.</p><div class="meta"><span>upgrades /viz/particles</span></div></div>
+  <div class="card top"><span class="rank">Top 4</span><h3>Decay radiation card</h3><p>Pick a nuclide and see everything its decay emits: α, β mean and endpoint, γ, X-rays, electrons, as lines of energy against intensity, by type, with the energy budget.</p><div class="meta"><span>new chart</span></div></div>
+  <div class="card top"><span class="rank">Top 5</span><h3>γ-line finder</h3><p>Every decay γ line by energy and intensity. Type an energy from a detector peak and see which nuclides emit near it, strongest first.</p><div class="meta"><span>new chart</span></div></div>
+  <div class="card"><h3>Antineutrino mean energies</h3><p>Mean ν̄ energy per β− emitter across the chart.</p><div class="meta"><span>from the β− pull</span></div></div>
+</div>
+
+<h2>From fission yields</h2>
+<p class="src">16 requests · about 1 MB raw · one small file per parent</p>
+<div class="grid">
+  <div class="card top"><span class="rank">Top 1</span><h3>Fission yields</h3><p>The two-humped mass-yield curve for all eight parents at thermal, fast and 14 MeV, and the yields on the N–Z plane in 3D, Live Chart 3D's own example.</p><div class="meta"><span>16 requests</span><span>new chart</span></div></div>
+  <div class="card"><h3>Decay heat after shutdown</h3><p>Fission products from the yields, decayed with the Bateman solver, heat from the measured energies: the curve after a reactor stops.</p><div class="meta"><span>combines top 1 and 3</span></div></div>
+  <div class="card"><h3>Delayed neutrons</h3><p>Yields times each product's β−n branch: where a reactor's delayed neutrons come from.</p><div class="meta"><span>yields + ground states</span></div></div>
+</div>
+
+<h2>Per nuclide, on demand</h2>
+<p class="src">large per nuclide · I'd pull these for a chosen set, not all</p>
+<div class="grid">
+  <div class="card"><h3>β and antineutrino spectra</h3><p>Betashape's spectra for one emitter at a time.</p><div class="meta"><span>75 KB per nuclide</span></div></div>
+  <div class="card"><h3>Reactor antineutrino spectrum</h3><p>Every fission product's ν̄ spectrum weighted by its yield.</p><div class="meta"><span>~800 spectra · ~60 MB</span></div></div>
+  <div class="card"><h3>Level scheme with transitions</h3><p>Levels and their γ arrows with multipolarity and B(E2).</p><div class="meta"><span>levels + gammas</span></div></div>
+  <div class="card"><h3>Collectivity map</h3><p>B(E2; 2⁺ → 0⁺) in Weisskopf units on the N–Z plane.</p><div class="meta"><span>gammas for even-even</span></div></div>
+</div>
+
+<h2>How it's stored and served</h2>
+<ol class="plan">
+  <li>Raw pulls, as served, in the lake: <code>s3://govblock-lake-638175140432/lake/v1/nsr/iaea-livechart/2026-11-06/</code>, beside the NSR export.</li>
+  <li>Each chart gets a compact JSON built from the raw files, served from the worker's static assets and loaded only by its own page; large sets split per parent or per element.</li>
+  <li>The live site never calls the IAEA: no added latency, nothing breaks if their server is down.</li>
+</ol>
+
+  </div>
+  </section>
+
+  <section data-panel="legacy" hidden>
+  <div class="legacy">
+
+<h1>nsr codebase audit</h1>
+<div class="sub">Measured 2026-11-04 from /Code/nsr. ~30,500 lines of TS/MJS · 56 components · 26 pages · 63 scripts · 26 SQL files · 18 Vercel functions · 48MB of public data.</div>
+
+<nav>
+  <button class="on" data-t="t1">README (rewritten)</button>
+  <button data-t="t2">File Paths</button>
+  <button data-t="t5">Pages</button>
+  <button data-t="t6">nysgpt.com Pages</button>
+  <button data-t="t3">File Sizes</button>
+  <button data-t="t4">Recommendations</button>
+</nav>
+
+<section id="t1" class="on">
+<div class="readme">
+<h2>BNLgpt</h2>
+<p>Search, chat, and browsing over the Nuclear Science References corpus and the related NNDC databases (ENSDF, XUNDL, EXFOR), using a fine-tuned retrieval stack (<b>NSR-CPT</b>). React 19 + Vite + TypeScript SPA.</p>
+<h3>Data, as of 2026-11-04</h3>
+<ul>
+<li><b>Primary store: S3 + Athena.</b> Full export at <span class="mono">s3://nsr-lake-638175140432/lake/v1/nsr/nsr-to-lake-2026-11-04/</span> — 42 parquet tables; 29 queryable in Athena (<span class="mono">nysgpt_nsr</span>). 303,568 references (255,315 NSR + 49.5k arXiv/APS), 1.21M typed nuclide links, 20,121 ENSDF datasets for 3,445 nuclides, XUNDL listings, full EXFOR entries, S2/OpenAlex enrichment.</li>
+<li><b>Neon is being shut off.</b> <span class="mono">sparkling-moon-06542876</span> has no deployed readers; this repo's <span class="mono">api/*</span> functions are the last code that queries it, and they stop working when it goes.</li>
+<li><b>NSR-CPT</b> — bge-m3 fine-tuned on 206k expert keyword abstracts + EXFOR links, with a cross-encoder reranker and a frozen benchmark. Four private HF repos under NYSgpt. Details: <span class="mono">docs/NSR-CPT-REPORT.md</span>.</li>
+</ul>
+<h3>Current status</h3>
+<p>The Vercel deployment (nsr.nysgpt.com) is disabled (402) and the CLI token is dead. The app runs locally with <span class="mono">npm run dev</span>; the API layer still queries Neon. To revive: pick a hosting platform, repoint <span class="mono">api/*</span> at Athena, build the particle view (<span class="mono">docs/sketches/2026-11-04-particle-view.html</span>).</p>
+<h3>Known constraints</h3>
+<ul>
+<li>Vercel functions use the classic <span class="mono">(req,res)</span> signature — web-standard handlers hang here. Unbundled ESM: local imports need <span class="mono">.js</span> extensions.</li>
+<li>Vector queries bind the vector as <span class="mono">$1::vector</span> (a join-sourced probe defeats HNSW); <span class="mono">SET LOCAL hnsw.ef_search</span> needs <span class="mono">sql.transaction</span>.</li>
+<li>Bulk loads go through <span class="mono">psql \copy</span>, never the HTTP driver.</li>
+</ul>
+</div>
+</section>
+
+<section id="t2">
+<table>
+<tr><th>Path</th><th class="n">Files</th><th>What it is</th></tr>
+<tr><td class="mono">src/pages</td><td class="n">26</td><td>The routes: Home, Search (hybrid/semantic/keyword), Chat, References, GraphPage (React Flow), Community, Tools (NNDC calculator ports), Features, Announcing, Resources, DatasetIndex, Endf, Structure/StructureMass, CodePage — plus section dirs <span class="mono">ensdf/ nsr/ structure/ xundl/</span></td></tr>
+<tr><td class="mono">src/components</td><td class="n">56</td><td>The kit: Sidebar, PlusMenu, ChartOfNuclides, the physics dialogs (Logft, BBDecay, Be2), search widgets, chat blocks</td></tr>
+<tr><td class="mono">src/hooks</td><td class="n">14</td><td>Data access — useNsrSearch (kNN/FTS via /api/search) and friends</td></tr>
+<tr><td class="mono">src/lib</td><td class="n">7</td><td>qcalc (445-line Q-value calculator) and utilities</td></tr>
+<tr><td class="mono">api/</td><td class="n">18</td><td>Vercel functions, classic (req,res): search, chat, graph, records, nuclide, logft, bricc, feed, community, upload — <b>all read Neon</b></td></tr>
+<tr><td class="mono">scripts/</td><td class="n">63</td><td>The pipeline: load-nsr-dump, ingest-arxiv/scoap3/ensdf/exfor, enrich-openalex, train/ (NSR-CPT triplets), eval/ (benchmark + scoring)</td></tr>
+<tr><td class="mono">sql/</td><td class="n">26</td><td>Numbered schema files 01–25: full-corpus schema, indexes, EXFOR, ENSDF/XUNDL, workspace, candidates</td></tr>
+<tr><td class="mono">docs/</td><td class="n">26</td><td>data-accounting (ground truth), NSR-CPT-REPORT, architecture-report, LANE-* mission briefs, sketches/</td></tr>
+<tr><td class="mono">public/</td><td class="n">—</td><td><b>48MB</b>, nearly all <span class="mono">public/data/</span> — see the next tab</td></tr>
+<tr><td class="mono">supabase/</td><td class="n">8</td><td>7 retired edge functions + 1 migration — the pre-Neon era, nothing reads them</td></tr>
+<tr><td class="mono">dist/</td><td class="n">—</td><td>A committed Vite build artifact</td></tr>
+<tr><td class="mono">prompts/</td><td class="n">1</td><td>nsr-classifier.md</td></tr>
+<tr><td class="mono">vercel.json · vite.config.ts · tsconfig*</td><td class="n">—</td><td>Platform + build config (deployment itself disabled)</td></tr>
+</table>
+</section>
+
+<section id="t5">
+<p>30 routes across 25 page files, plus 5 redirects. The 14 routes marked <span class="cut">Neon</span> read it through <span class="mono">api/*</span> and stop working when it shuts off.</p>
+<table>
+<tr><th>Path</th><th>File</th><th class="n">Lines</th><th>Source</th><th>Reads</th></tr>
+
+<tr class="g"><td colspan="5">Chat</td></tr>
+<tr><td class="mono i">/ · /new-chat · /c/:sessionId</td><td class="mono">Chat.tsx</td><td class="n">194</td><td class="cut">Neon</td><td class="mono">/api/chat, /api/chat-sessions, /api/feed, /api/graph</td></tr>
+
+<tr class="g"><td colspan="5">New Search</td></tr>
+<tr><td class="mono i">/search</td><td class="mono">Search.tsx</td><td class="n">930</td><td class="cut">Neon</td><td class="mono">/api/search, /api/record</td></tr>
+
+<tr class="g"><td colspan="5">ENDF</td></tr>
+<tr><td class="mono i">/endf</td><td class="mono">Endf.tsx</td><td class="n">293</td><td class="keep">Static</td><td class="mono">/data/endf.json</td></tr>
+
+<tr class="g"><td colspan="5">ENSDF</td></tr>
+<tr><td class="mono i">/ensdf</td><td class="mono">DatasetIndex.tsx</td><td class="n">248</td><td class="cut">Neon</td><td class="mono">/api/nuclide</td></tr>
+<tr><td class="mono i">/ensdf/chart</td><td class="mono">Structure.tsx</td><td class="n">574</td><td class="keep">Static</td><td class="mono">/data/structure/</td></tr>
+<tr><td class="mono i">/ensdf/about</td><td class="mono">ensdf/About.tsx</td><td class="n">132</td><td></td><td></td></tr>
+<tr><td class="mono i">/ensdf/help</td><td class="mono">ensdf/Help.tsx</td><td class="n">174</td><td></td><td></td></tr>
+<tr><td class="mono i">/ensdf/evaluation <span class="dim">Evaluation index</span></td><td class="mono">ensdf/Evaluation.tsx</td><td class="n">202</td><td class="keep">Static</td><td class="mono">/data/structure/index.json</td></tr>
+<tr><td class="mono i">/ensdf/docs <span class="dim">Policies</span></td><td class="mono">ensdf/Docs.tsx</td><td class="n">671</td><td></td><td></td></tr>
+<tr><td class="mono i">/ensdf/archive</td><td class="mono">ensdf/Archive.tsx</td><td class="n">223</td><td class="keep">Static</td><td class="mono">/data/ensdf-archivals.json</td></tr>
+<tr><td class="mono i">/ensdf/148 <span class="dim">mass chain</span></td><td class="mono">StructureMass.tsx</td><td class="n">290</td><td class="cut">Neon</td><td class="mono">/api/nuclide</td></tr>
+<tr><td class="mono i">/ensdf/Gd <span class="dim">element</span></td><td class="mono">structure/Element.tsx</td><td class="n">138</td><td class="cut">Neon</td><td class="mono">/api/nuclide</td></tr>
+<tr><td class="mono i">/ensdf/148Gd <span class="dim">nuclide</span></td><td class="mono">structure/Nuclide.tsx</td><td class="n">300</td><td class="cut">Neon</td><td class="mono">/api/nuclide, /api/ensnds, /data/ensnds-map.json</td></tr>
+<tr><td class="mono i">/ensdf/:a/refs</td><td class="mono">structure/DatasetRefs.tsx</td><td class="n">99</td><td class="cut">Neon</td><td class="mono">/api/nuclide</td></tr>
+
+<tr class="g"><td colspan="5">NSR</td></tr>
+<tr><td class="mono i">/nsr</td><td class="mono">References.tsx</td><td class="n">706</td><td class="cut">Neon</td><td class="mono">/api/search, /api/records, /api/feed</td></tr>
+<tr><td class="mono i">/nsr/archive</td><td class="mono">nsr/Archive.tsx</td><td class="n">227</td><td class="keep">Static</td><td class="mono">/data/nsr-archivals.json</td></tr>
+
+<tr class="g"><td colspan="5">XUNDL <span class="dim">— same files as ENSDF except About and Archive</span></td></tr>
+<tr><td class="mono i">/xundl</td><td class="mono">DatasetIndex.tsx</td><td class="n"></td><td class="cut">Neon</td><td class="mono">/api/nuclide</td></tr>
+<tr><td class="mono i">/xundl/chart</td><td class="mono">Structure.tsx</td><td class="n"></td><td class="keep">Static</td><td class="mono">/data/structure/</td></tr>
+<tr><td class="mono i">/xundl/about</td><td class="mono">xundl/About.tsx</td><td class="n">139</td><td></td><td></td></tr>
+<tr><td class="mono i">/xundl/archive</td><td class="mono">xundl/Archive.tsx</td><td class="n">215</td><td class="keep">Static</td><td class="mono">/data/xundl-archivals.json</td></tr>
+<tr><td class="mono i">/xundl/:a</td><td class="mono">StructureMass · Element · Nuclide</td><td class="n"></td><td class="cut">Neon</td><td class="mono">/api/nuclide</td></tr>
+<tr><td class="mono i">/xundl/:a/refs</td><td class="mono">structure/DatasetRefs.tsx</td><td class="n"></td><td class="cut">Neon</td><td class="mono">/api/nuclide</td></tr>
+
+<tr class="g"><td colspan="5">Workspace</td></tr>
+<tr><td class="mono i">/code</td><td class="mono">CodePage.tsx</td><td class="n">116</td><td class="keep">Static</td><td class="mono">/data/nsdd-repos.json</td></tr>
+<tr><td class="mono i">/community</td><td class="mono">Community.tsx</td><td class="n">252</td><td class="cut">Neon</td><td class="mono">/api/community</td></tr>
+<tr><td class="mono i">/graph · /graph/:a</td><td class="mono">GraphPage.tsx</td><td class="n">1,731</td><td class="cut">Neon</td><td class="mono">/api/graph, /api/chat, /api/community, /api/upload, /data/catalog.json</td></tr>
+<tr><td class="mono i">/tools</td><td class="mono">Tools.tsx</td><td class="n">238</td><td class="keep">Static</td><td class="mono">/data/ame2020.json, /data/bbdecay.json, /data/be2/, /data/capgam/</td></tr>
+
+<tr class="g"><td colspan="5">Sidebar footer</td></tr>
+<tr><td class="mono i">/announcing</td><td class="mono">Announcing.tsx</td><td class="n">787</td><td></td><td></td></tr>
+
+<tr class="g"><td colspan="5">Not in the sidebar</td></tr>
+<tr><td class="mono i">/features</td><td class="mono">Features.tsx</td><td class="n">403</td><td></td><td>Linked from the user menu only</td></tr>
+<tr><td class="mono i">/resources</td><td class="mono">Resources.tsx</td><td class="n">123</td><td></td><td>No link anywhere</td></tr>
+<tr><td class="mono i">—</td><td class="mono">Home.tsx</td><td class="n">82</td><td></td><td>No route; imported nowhere</td></tr>
+</table>
+
+<h2 class="t">Redirects</h2>
+<table>
+<tr><th>From</th><th>To</th></tr>
+<tr><td class="mono">/references</td><td class="mono">/nsr</td></tr>
+<tr><td class="mono">/structure</td><td class="mono">/ensdf/chart</td></tr>
+<tr><td class="mono">/structure/:a</td><td class="mono">/ensdf/:a</td></tr>
+<tr><td class="mono">/ensdf/datasets</td><td class="mono">/ensdf/archive</td></tr>
+<tr><td class="mono">/nsr/datasets</td><td class="mono">/nsr/archive</td></tr>
+</table>
+</section>
+
+<section id="t6">
+<p>From <span class="mono">/Code/NYSgpt</span> at 50c9f8e. 32 page files: 28 fixed routes and 4 dynamic ones (33 box pages, 12 data tables, 12 blog posts, invite links) — 85 addresses plus invites. No page reads Neon.</p>
+<table>
+<tr><th>Path</th><th>File</th><th class="n">Lines</th><th>Source</th><th>Linked from</th></tr>
+
+<tr class="g"><td colspan="5">Home</td></tr>
+<tr><td class="mono i">/</td><td class="mono">page.tsx</td><td class="n">59</td><td>Static <span class="mono dim">lib/home-data</span></td><td>Shift menu</td></tr>
+
+<tr class="g"><td colspan="5">Chat</td></tr>
+<tr><td class="mono i">/chat</td><td class="mono">chat/page.tsx</td><td class="n">54</td><td>Athena + Bedrock <span class="mono dim">/api/chat</span></td><td>Shell; Science box chat corner <span class="mono dim">/chat?nsr=1</span></td></tr>
+
+<tr class="g"><td colspan="5">Boxes</td></tr>
+<tr><td class="mono i">/box/:slug <span class="dim">33 pages</span></td><td class="mono">box/[slug]/page.tsx</td><td class="n">28</td><td>Static <span class="mono dim">lib/home-data</span></td><td>Home topic boxes; Shift menu</td></tr>
+
+<tr class="g"><td colspan="5">Charts</td></tr>
+<tr><td class="mono i">/viz</td><td class="mono">viz/page.tsx</td><td class="n">140</td><td>Static</td><td>Each chart's close button only — nothing else on the site links here</td></tr>
+<tr><td class="mono i">/viz/bar-large · graph · heatmap · matrix · nebula · rainfall · reactions · scatter3d · scatter3d-dataset · simplex · surface · weight</td><td class="mono">viz/*/page.tsx</td><td class="n">14–18 each</td><td>Static <span class="mono dim">data/viz/*.json</span></td><td class="mono">/viz</td></tr>
+<tr><td class="mono i">/viz/data/:slug <span class="dim">12 tables</span></td><td class="mono">viz/data/[slug]/page.tsx</td><td class="n">37</td><td>Static</td><td>Chart pages</td></tr>
+
+<tr class="g"><td colspan="5">Legislative API docs</td></tr>
+<tr><td class="mono i">/legislative-api/dictionary</td><td class="mono">legislative-api/dictionary/page.tsx</td><td class="n">73</td><td>Static JSON</td><td>Shift menu; docs tabs</td></tr>
+<tr><td class="mono i">/legislative-api/coverage</td><td class="mono">legislative-api/coverage/page.tsx</td><td class="n">83</td><td>Static JSON</td><td>Shift menu; docs tabs</td></tr>
+
+<tr class="g"><td colspan="5">API purchase</td></tr>
+<tr><td class="mono i">/api-access</td><td class="mono">api-access/page.tsx</td><td class="n">40</td><td>Stripe</td><td>Stripe checkout return; free-key form</td></tr>
+<tr><td class="mono i">/account/api</td><td class="mono">account/api/page.tsx</td><td class="n">31</td><td>Cognito + AWS Marketplace</td><td>Shift menu (API console); sign-in required</td></tr>
+<tr><td class="mono i">/aws/register</td><td class="mono">aws/register/page.tsx</td><td class="n">38</td><td>AWS Marketplace</td><td>AWS Marketplace subscribe hand-off <span class="mono dim">/aws/subscribe</span></td></tr>
+
+<tr class="g"><td colspan="5">Account <span class="dim">— sign-in required</span></td></tr>
+<tr><td class="mono i">/profile</td><td class="mono">profile/page.tsx</td><td class="n">30</td><td>Cognito</td><td>User menu; Shift menu</td></tr>
+<tr><td class="mono i">/account</td><td class="mono">account/page.tsx</td><td class="n">20</td><td>Cognito</td><td>User menu</td></tr>
+<tr><td class="mono i">/notifications</td><td class="mono">notifications/page.tsx</td><td class="n">15</td><td>Cognito</td><td>User menu; Shift menu</td></tr>
+<tr><td class="mono i">/settings</td><td class="mono">settings/page.tsx</td><td class="n">17</td><td>Cognito</td><td>User menu; Shift menu</td></tr>
+
+<tr class="g"><td colspan="5">Sign-in</td></tr>
+<tr><td class="mono i">/signin</td><td class="mono">signin/page.tsx</td><td class="n">25</td><td>Cognito</td><td>User menu (signed out); every sign-in redirect</td></tr>
+<tr><td class="mono i">/signup</td><td class="mono">signup/page.tsx</td><td class="n">25</td><td>Cognito</td><td>No link anywhere</td></tr>
+<tr><td class="mono i">/welcome</td><td class="mono">welcome/page.tsx</td><td class="n">10</td><td>Cognito</td><td>After sign-in, sign-up, invite</td></tr>
+<tr><td class="mono i">/invite/:id</td><td class="mono">invite/[id]/page.tsx</td><td class="n">34</td><td>SSM Parameter Store</td><td>Invite links sent by hand</td></tr>
+<tr><td class="mono i">/go?to=</td><td class="mono">go/page.tsx</td><td class="n">17</td><td>Redirect only</td><td>Every link out to a product site</td></tr>
+
+<tr class="g"><td colspan="5">Blog</td></tr>
+<tr><td class="mono i">/blog/:slug <span class="dim">44b · childcaregpt · games · insurancegpt · liminal · policygpt · portfolio · sciencegpt · solargpt · sportsgpt · tariffsgpt · terminalgpt</span></td><td class="mono">blog/[slug]/page.tsx</td><td class="n">139</td><td>MDX <span class="mono dim">blog/content</span></td><td>Other posts' Read more only — there is no /blog index</td></tr>
+
+<tr class="g"><td colspan="5">Other</td></tr>
+<tr><td class="mono i">any unknown path</td><td class="mono">not-found.tsx</td><td class="n">32</td><td></td><td></td></tr>
+</table>
+</section>
+
+<section id="t3">
+<h2 class="t">Largest files and directories</h2>
+<table>
+<tr><th>What</th><th class="n">Size</th><th>Note</th></tr>
+<tr><td class="mono">public/data/capgam/</td><td class="n">38M</td><td>Capture-gamma payloads shipped with every deploy</td></tr>
+<tr><td class="mono">public/data/structure/</td><td class="n">5.9M</td><td>Pre-rendered structure JSON (built from ensdf tables)</td></tr>
+<tr><td class="mono">public/data/be2/</td><td class="n">2.1M</td><td>B(E2) tables</td></tr>
+<tr><td class="mono">public/data/ame2020.json</td><td class="n">1.5M</td><td>Atomic mass evaluation</td></tr>
+<tr><td class="mono">public/data/bbdecay.json</td><td class="n">656K</td><td>Double-beta decay tables</td></tr>
+</table>
+<h2 class="t">Longest source files</h2>
+<table>
+<tr><th>File</th><th class="n">Lines</th></tr>
+<tr><td class="mono">src/pages/GraphPage.tsx</td><td class="n">1,731</td></tr>
+<tr><td class="mono">src/pages/Search.tsx</td><td class="n">930</td></tr>
+<tr><td class="mono">scripts/train/build-nsr-triplets.mjs</td><td class="n">847</td></tr>
+<tr><td class="mono">src/pages/Announcing.tsx</td><td class="n">787</td></tr>
+<tr><td class="mono">scripts/ingest-arxiv.mjs</td><td class="n">762</td></tr>
+<tr><td class="mono">src/pages/References.tsx</td><td class="n">706</td></tr>
+<tr><td class="mono">src/pages/ensdf/Docs.tsx</td><td class="n">671</td></tr>
+<tr><td class="mono">scripts/enrich-openalex-batch.mjs</td><td class="n">618</td></tr>
+<tr><td class="mono">src/pages/Structure.tsx</td><td class="n">574</td></tr>
+<tr><td class="mono">scripts/load-nsr-dump.mjs</td><td class="n">470</td></tr>
+<tr><td class="mono">src/components/PlusMenu.tsx</td><td class="n">469</td></tr>
+<tr><td class="mono">src/lib/qcalc.ts</td><td class="n">445</td></tr>
+</table>
+</section>
+
+<section id="t4">
+<table>
+<tr><th></th><th>What</th><th>Why</th></tr>
+<tr><td class="cut">CUT</td><td class="mono">supabase/ (8 files)</td><td>Retired 2026-08 when the client moved to Neon routes; both Supabase projects are recorded dead in docs/data-accounting.md. Nothing imports it.</td></tr>
+<tr><td class="cut">CUT</td><td class="mono">dist/</td><td>A build artifact in git — delete and gitignore.</td></tr>
+<tr><td class="cut">CUT</td><td class="mono">src/pages/Announcing.tsx (787 ln)</td><td>A dated launch page; the route can go or redirect home.</td></tr>
+<tr><td class="port">MOVE</td><td class="mono">public/data/capgam/ (38M)</td><td>80% of the repo's shipped weight. Belongs in S3 behind fetch-on-demand (the lake already holds the substrate); the repo keeps a pointer.</td></tr>
+<tr><td class="port">PORT or FREEZE</td><td class="mono">api/* (18 functions)</td><td>The last code-level Neon dependents anywhere. Reviving as BNLgpt = repoint at Athena/the lake (the NYSgpt chat tools are the worked recipe); otherwise they die with sparkling-moon.</td></tr>
+<tr><td class="port">MOVE</td><td class="mono">prompts/nsr-classifier.md</td><td>One orphan file; fold into docs/.</td></tr>
+<tr><td class="keep">KEEP</td><td class="mono">scripts/train/ · scripts/eval/</td><td>NSR-CPT training and benchmark scripts. Keep.</td></tr>
+<tr><td class="keep">KEEP</td><td class="mono">sql/ · docs/LANE-*</td><td>Schema history and operational docs; still referenced.</td></tr>
+<tr><td class="keep">KEEP</td><td class="mono">src/lib/qcalc.ts + physics dialogs</td><td>Working NNDC calculator ports.</td></tr>
+</table>
+</section>
+
+  </div>
+  </section>
+
+  <h2>How</h2>
+  <ol>
+    <li>Lambda <code>iaea-pull</code> (<code>services/iaea-pull/</code>): probe, crawl, Wayback index, select and pull modes. Pulls fan out to <code>nsr-fetch</code> and chain past 15 minutes. Deployed by <code>scripts/iaea/deploy.sh</code>, called by <code>scripts/iaea/run.sh</code>.</li>
+    <li>The boxes (<code>scripts/iaea/box/</code>): EC2 m7i-flex.large for Chrome, t3.small for the Wayback lane, reached through SSM, each ends itself after 4 hours. <code>mirror.py</code> runs real Chrome under Xvfb, one browser per proxy line, one queue and one rate limit per site. <code>wbget.py</code> streams Wayback copies straight to S3.</li>
+    <li>Manifests: <code>scripts/iaea/manifest.sh</code> merges each folder's Lambda and box records into one <code>manifest.json</code>: every file with its source URL, bytes, sha256 when known, and for Wayback copies the snapshot date; not taken with reasons; dead links; spend. This page: <code>scripts/iaea/inventory.sh</code>.</li>
+    <li>NNDC: <code>scripts/nndc/crawl.py</code> walked the site, <code>list.py</code> added the archive and data-app file lists, <code>pull.py</code> sent 3,508 files through Lambda <code>nsr-fetch</code>: 59 GB in 5 minutes, no errors.</li>
+  </ol>
+</main>
+<script>
+  // Tabs: plain show and hide.
+  document.querySelectorAll('.rail button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.rail button').forEach(function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false') })
+      document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== b.dataset.tab })
+    })
+  })
+  // Each row: a checkbox and a "Note" toggle that opens a full-width note row under it. Nothing is saved in the page.
+  document.querySelectorAll('table[data-mark]').forEach(function (t) {
+    t.querySelectorAll('tr').forEach(function (tr, i) {
+      var head = i === 0
+      var first = document.createElement(head ? 'th' : 'td'), last = document.createElement(head ? 'th' : 'td')
+      first.className = 'mk'; last.className = 'nt'
+      tr.insertBefore(first, tr.firstChild); tr.appendChild(last)
+      if (head) return
+      first.innerHTML = '<input type="checkbox">'
+      last.innerHTML = '<button type="button" class="toggle">Note</button>'
+      var nr = document.createElement('tr'), td = document.createElement('td')
+      nr.className = 'noterow'; nr.hidden = true
+      td.colSpan = tr.children.length
+      td.innerHTML = '<textarea class="note" rows="3"></textarea>'
+      nr.appendChild(td); tr.parentNode.insertBefore(nr, tr.nextSibling)
+      var ta = td.firstChild, btn = last.firstChild
+      btn.addEventListener('click', function () {
+        nr.hidden = !nr.hidden
+        btn.classList.toggle('open', !nr.hidden)
+        if (!nr.hidden) ta.focus()
+      })
+      ta.addEventListener('input', function () {
+        ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'
+        btn.classList.toggle('has', ta.value.trim() !== '')
+      })
+    })
+  })
+  // [{tab, groups: [{group, rows: [{checked, item, status, note}]}]}] for the rows with a check or a note
+  function marked() {
+    var out = []
+    document.querySelectorAll('table[data-mark]').forEach(function (t) {
+      var tab = document.querySelector('.rail button[data-tab="' + t.dataset.tab + '"]').textContent.trim()
+      var groups = [], byName = {}
+      t.querySelectorAll('tr').forEach(function (tr, i) {
+        if (i === 0 || tr.className === 'noterow') return
+        var cb = tr.querySelector('input[type=checkbox]')
+        var note = tr.nextElementSibling.querySelector('textarea').value.replace(/\s+$/, '')
+        if (!cb.checked && !note.trim()) return
+        var status = tr.querySelector('[data-status]')
+        status = status ? status.textContent.trim() : (tr.children[3].textContent.trim() + ' files, ' + tr.children[4].textContent.trim())
+        status = status.split(/\.\s|: /)[0]
+        if (status.length > 80) status = status.slice(0, 77) + '…'
+        var g = tr.dataset.group || ''
+        if (!byName[g]) { byName[g] = {group: g, rows: []}; groups.push(byName[g]) }
+        byName[g].rows.push({checked: cb.checked, item: tr.querySelector('[data-item]').textContent.trim(), status: status, note: note})
+      })
+      if (groups.length) out.push({tab: tab, groups: groups})
+    })
+    return out
+  }
+  function box(r) { return '- [' + (r.checked ? 'x' : ' ') + '] ' + r.item + ' (' + r.status + ')' }
+  function copyText() {
+    var out = []
+    marked().forEach(function (t) {
+      out.push('## ' + t.tab, '')
+      t.groups.forEach(function (g) {
+        if (g.group) out.push('### ' + g.group, '')
+        g.rows.forEach(function (r) { out.push(box(r) + (r.note.trim() ? ' — ' + r.note.trim().replace(/\s*\n\s*/g, ' ') : '')) })
+        out.push('')
+      })
+    })
+    return out.join('\n')
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n }
+  function saveText(d) {
+    var stamp = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds())
+    var out = ['Notes on the IAEA inventory sketch, saved ' + stamp, '']
+    marked().forEach(function (t) {
+      out.push('## ' + t.tab, '')
+      t.groups.forEach(function (g) {
+        if (g.group) out.push('### ' + g.group, '')
+        g.rows.forEach(function (r) {
+          out.push(box(r))
+          if (r.note.trim()) out.push('', r.note.split('\n').map(function (l) { return '  ' + l }).join('\n'))
+          out.push('')
+        })
+      })
+    })
+    return out.join('\n')
+  }
+  function flash(id, text, back) {
+    var el = document.getElementById(id)
+    el.textContent = text
+    setTimeout(function () { el.textContent = back }, 1500)
+  }
+  document.getElementById('copy').addEventListener('click', function () {
+    navigator.clipboard.writeText(copyText()).then(function () { flash('copy-label', 'Copied', 'Copy notes') },
+                                                    function () { flash('copy-label', 'Copy failed', 'Copy notes') })
+  })
+  document.getElementById('save').addEventListener('click', function () {
+    var d = new Date()
+    var name = 'iaea-inventory-notes-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + '.md'
+    var a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([saveText(d)], {type: 'text/markdown'}))
+    a.download = name
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(function () { URL.revokeObjectURL(a.href) }, 1000)
+    flash('save-label', 'Saved', 'Save notes')
+  })
+</script>
+<script>
+  // Legacy tab: the old audit page's own tabs.
+  document.querySelectorAll('.legacy nav button').forEach(function (b) { b.onclick = function () {
+    document.querySelectorAll('.legacy nav button, .legacy section').forEach(function (e) { e.classList.remove('on') })
+    b.classList.add('on'); document.getElementById(b.dataset.t).classList.add('on')
+  } })
+</script>
+</body>
+</html>

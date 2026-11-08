@@ -1,0 +1,14 @@
+{
+  "name": "iaea-permat",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/public/download-endf/",
+  "lists": [
+    "raw/iaea/2026-11-07/_work/wb-permat-3.json"
+  ],
+  "lines": [
+    0,
+    3
+  ],
+  "rate": 1.2,
+  "minutes": 210
+}

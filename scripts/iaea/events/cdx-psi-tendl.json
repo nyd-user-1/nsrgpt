@@ -1,0 +1,6 @@
+{
+  "cdx": {
+    "url": "tendl.web.psi.ch/*",
+    "out": "raw/iaea/2026-11-07/_work/cdx-psi-tendl.json"
+  }
+}

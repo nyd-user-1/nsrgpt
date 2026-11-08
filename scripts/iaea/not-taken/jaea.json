@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/",
+    "reason": "route test (2026-11-07): Incapsula. File URLs answer a ~960-byte JavaScript challenge page to curl from the Mac, AWS Lambda and proxy lines 0 and 3. Real Chrome through proxy line 4 clears Incapsula on HTML pages, but a file URL never delivers (no download in 180 s). Files here are Wayback Machine copies of JAEA's own URLs (snapshot dates in each entry)."
+  },
+  {
+    "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl5-n-0K.tar.gz",
+    "size": 4833000000,
+    "phase": 3,
+    "reason": "processed (pointwise at 0 K), over 1 GB"
+  },
+  {
+    "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl5-n-300K.tar.gz",
+    "size": 4466500000,
+    "phase": 3,
+    "reason": "processed (pointwise at 300 K), over 1 GB"
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "cdx": {
+    "url": "www.oecd-nea.org/dbdata/jeff/*",
+    "out": "raw/iaea/2026-11-07/_work/cdx-nea-jeff.json"
+  }
+}

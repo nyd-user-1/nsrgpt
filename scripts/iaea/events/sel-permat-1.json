@@ -1,0 +1,10 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-www-nds-download-endf.json",
+    "strip": "/public/download-endf/",
+    "depth": 1,
+    "include": "^/public/download-endf/(BROND-3\\.1|INDL-TSL|FENDL-3\\.1c|FENDL-2\\.1|IRDFF|IRDFF-v0|IRDFF-v1\\.01|IRDFF-v1\\.03|IRDFF-v1\\.05|IRDF-2002-G|IRDF-90|IRDF-85|IRDF-82|IAEA-PD-1999|IAEA-Medical|IAEA-Therapeutic|Medical|IBA-Eval|IBA-Eval-2007|INDEN-Feb2022|JEFF-3\\.3-DPA|MINKS-ACT|SigmaCalcData-2013|Tools|ENDF-Manual|LLCRP|Yavshits|zv_VMS_Archive|EAF-2010|CENDL-2|BROND-2-2|ENDF-HE-VI)/",
+    "out": "raw/iaea/2026-11-07/_work/wb-permat-1.json",
+    "show": 50
+  }
+}

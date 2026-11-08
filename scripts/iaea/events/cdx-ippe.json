@@ -1,0 +1,6 @@
+{
+  "cdx": {
+    "url": "www.ippe.ru/*",
+    "out": "raw/iaea/2026-11-07/_work/cdx-ippe.json"
+  }
+}

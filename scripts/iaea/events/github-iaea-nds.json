@@ -1,0 +1,372 @@
+{
+  "pull": {
+    "prefix": "raw/github",
+    "manifest": "raw/github/_work/iaea-nds-2026-11-07.json",
+    "source": "GitHub source archives (codeload tar.gz) at the pinned commit, IAEA-NDS org, 2026-11-07",
+    "workers": 6,
+    "retry": 2,
+    "big": 40000000000,
+    "items": [
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/ACEMAKER/tar.gz/adbb00dbf4ff500c66eee384bf4b532a76b2a244",
+        "key": "raw/github/IAEA-NDS/ACEMAKER/adbb00dbf4ff500c66eee384bf4b532a76b2a244.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/ACEMAKER",
+        "branch": "master",
+        "commit": "adbb00dbf4ff500c66eee384bf4b532a76b2a244",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/DATP-Fortran/tar.gz/3166b1f8dec0da1e56bb6912644a6d188a03e542",
+        "key": "raw/github/IAEA-NDS/DATP-Fortran/3166b1f8dec0da1e56bb6912644a6d188a03e542.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/DATP-Fortran",
+        "branch": "master",
+        "commit": "3166b1f8dec0da1e56bb6912644a6d188a03e542",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/DATP-Python/tar.gz/02eee3e2058c2bb8421a58d183c55c502d530f5c",
+        "key": "raw/github/IAEA-NDS/DATP-Python/02eee3e2058c2bb8421a58d183c55c502d530f5c.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/DATP-Python",
+        "branch": "master",
+        "commit": "02eee3e2058c2bb8421a58d183c55c502d530f5c",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/ENDF-utility-codes/tar.gz/ea2638b2d5f3f18b8c5d1fa70c6a240a3b614694",
+        "key": "raw/github/IAEA-NDS/ENDF-utility-codes/ea2638b2d5f3f18b8c5d1fa70c6a240a3b614694.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/ENDF-utility-codes",
+        "branch": "master",
+        "commit": "ea2638b2d5f3f18b8c5d1fa70c6a240a3b614694",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/EXFOR-C4-File/tar.gz/52554b8cf61cd81eff11ef69aa33e754f952c239",
+        "key": "raw/github/IAEA-NDS/EXFOR-C4-File/52554b8cf61cd81eff11ef69aa33e754f952c239.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/EXFOR-C4-File",
+        "branch": "main",
+        "commit": "52554b8cf61cd81eff11ef69aa33e754f952c239",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/EXFOR-Entry-File/tar.gz/dd96a7ea167cbe54c700c13ada8dbd4e18548ce8",
+        "key": "raw/github/IAEA-NDS/EXFOR-Entry-File/dd96a7ea167cbe54c700c13ada8dbd4e18548ce8.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/EXFOR-Entry-File",
+        "branch": "main",
+        "commit": "dd96a7ea167cbe54c700c13ada8dbd4e18548ce8",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/EXFOR-Plot-File/tar.gz/8b80fbb93f4f63360686702e7a1db23d0b40f051",
+        "key": "raw/github/IAEA-NDS/EXFOR-Plot-File/8b80fbb93f4f63360686702e7a1db23d0b40f051.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/EXFOR-Plot-File",
+        "branch": "main",
+        "commit": "8b80fbb93f4f63360686702e7a1db23d0b40f051",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/FENDL-Code/tar.gz/7e2a03150ca872d4f46a297b7f71ada2231b9b31",
+        "key": "raw/github/IAEA-NDS/FENDL-Code/7e2a03150ca872d4f46a297b7f71ada2231b9b31.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/FENDL-Code",
+        "branch": "main",
+        "commit": "7e2a03150ca872d4f46a297b7f71ada2231b9b31",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/FENDL-Processed/tar.gz/a430320bafb6fe194807fa423b7415360e235365",
+        "key": "raw/github/IAEA-NDS/FENDL-Processed/a430320bafb6fe194807fa423b7415360e235365.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/FENDL-Processed",
+        "branch": "main",
+        "commit": "a430320bafb6fe194807fa423b7415360e235365",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/ForEXy/tar.gz/51186f560edd9332931ddc81a26948b9bb4dc069",
+        "key": "raw/github/IAEA-NDS/ForEXy/51186f560edd9332931ddc81a26948b9bb4dc069.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/ForEXy",
+        "branch": "main",
+        "commit": "51186f560edd9332931ddc81a26948b9bb4dc069",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/GMAP-Fortran/tar.gz/6659931b87e4c2d3be8bdd861630346367597690",
+        "key": "raw/github/IAEA-NDS/GMAP-Fortran/6659931b87e4c2d3be8bdd861630346367597690.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/GMAP-Fortran",
+        "branch": "master",
+        "commit": "6659931b87e4c2d3be8bdd861630346367597690",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/IAEA-RMACPR/tar.gz/bb617ae4c50471fee6a869b9f6d23936546d2ffd",
+        "key": "raw/github/IAEA-NDS/IAEA-RMACPR/bb617ae4c50471fee6a869b9f6d23936546d2ffd.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/IAEA-RMACPR",
+        "branch": "main",
+        "commit": "bb617ae4c50471fee6a869b9f6d23936546d2ffd",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/NJOY2016/tar.gz/3835cffb25a1e923f79bea926937357feb767731",
+        "key": "raw/github/IAEA-NDS/NJOY2016/3835cffb25a1e923f79bea926937357feb767731.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/NJOY2016",
+        "branch": "nds-iaea-njoy2016",
+        "commit": "3835cffb25a1e923f79bea926937357feb767731",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/NJOY21/tar.gz/a3d5815985df1e5864017265792566dd036288b5",
+        "key": "raw/github/IAEA-NDS/NJOY21/a3d5815985df1e5864017265792566dd036288b5.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/NJOY21",
+        "branch": "master",
+        "commit": "a3d5815985df1e5864017265792566dd036288b5",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/OPTMAN/tar.gz/519cd26e6fc012e7ad74b351e59d6ade6e50c550",
+        "key": "raw/github/IAEA-NDS/OPTMAN/519cd26e6fc012e7ad74b351e59d6ade6e50c550.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/OPTMAN",
+        "branch": "main",
+        "commit": "519cd26e6fc012e7ad74b351e59d6ade6e50c550",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/Oktavian-dataset/tar.gz/ab989216b9ed49965867f0c2d2e4fd05dbc17239",
+        "key": "raw/github/IAEA-NDS/Oktavian-dataset/ab989216b9ed49965867f0c2d2e4fd05dbc17239.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/Oktavian-dataset",
+        "branch": "main",
+        "commit": "ab989216b9ed49965867f0c2d2e4fd05dbc17239",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/PIGECodes/tar.gz/ae6eb643114dd688a950c731b715357e6f639eb4",
+        "key": "raw/github/IAEA-NDS/PIGECodes/ae6eb643114dd688a950c731b715357e6f639eb4.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/PIGECodes",
+        "branch": "main",
+        "commit": "ae6eb643114dd688a950c731b715357e6f639eb4",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/PREPRO/tar.gz/cc5fd087ab40debcf77d1448232c9e1a3e802b91",
+        "key": "raw/github/IAEA-NDS/PREPRO/cc5fd087ab40debcf77d1448232c9e1a3e802b91.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/PREPRO",
+        "branch": "master",
+        "commit": "cc5fd087ab40debcf77d1448232c9e1a3e802b91",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/SHEMMAN/tar.gz/faaafb88887e233de57c01bb861162a7eb3d2c85",
+        "key": "raw/github/IAEA-NDS/SHEMMAN/faaafb88887e233de57c01bb861162a7eb3d2c85.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/SHEMMAN",
+        "branch": "main",
+        "commit": "faaafb88887e233de57c01bb861162a7eb3d2c85",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/endf-userpy/tar.gz/c6de145da4a516d5dc67b4381d3694af073e24d3",
+        "key": "raw/github/IAEA-NDS/endf-userpy/c6de145da4a516d5dc67b4381d3694af073e24d3.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/endf-userpy",
+        "branch": "main",
+        "commit": "c6de145da4a516d5dc67b4381d3694af073e24d3",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/exfor-couchdb-docker/tar.gz/ca184d8e91e8253d67061dfd81e20dcb0c3465b8",
+        "key": "raw/github/IAEA-NDS/exfor-couchdb-docker/ca184d8e91e8253d67061dfd81e20dcb0c3465b8.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/exfor-couchdb-docker",
+        "branch": "master",
+        "commit": "ca184d8e91e8253d67061dfd81e20dcb0c3465b8",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/exfor-parserpy/tar.gz/8586c1ff62d3bf80f199fbcb5f54066132c0806a",
+        "key": "raw/github/IAEA-NDS/exfor-parserpy/8586c1ff62d3bf80f199fbcb5f54066132c0806a.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/exfor-parserpy",
+        "branch": "main",
+        "commit": "8586c1ff62d3bf80f199fbcb5f54066132c0806a",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/exfor_dictionary/tar.gz/3e06256f61d935dc737acd082b4590684c853ce8",
+        "key": "raw/github/IAEA-NDS/exfor_dictionary/3e06256f61d935dc737acd082b4590684c853ce8.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/exfor_dictionary",
+        "branch": "main",
+        "commit": "3e06256f61d935dc737acd082b4590684c853ce8",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/exfor_json/tar.gz/36b38778d9feb27d0142cd052f078ad2452c2e31",
+        "key": "raw/github/IAEA-NDS/exfor_json/36b38778d9feb27d0142cd052f078ad2452c2e31.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/exfor_json",
+        "branch": "main",
+        "commit": "36b38778d9feb27d0142cd052f078ad2452c2e31",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/exfor_master/tar.gz/2efecedd83bd22133350a3e1b15bf74839a1c0c7",
+        "key": "raw/github/IAEA-NDS/exfor_master/2efecedd83bd22133350a3e1b15bf74839a1c0c7.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/exfor_master",
+        "branch": "main",
+        "commit": "2efecedd83bd22133350a3e1b15bf74839a1c0c7",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/exfortables_py/tar.gz/f9c2d73f780b576cf1276b8e4018fddd1430fee8",
+        "key": "raw/github/IAEA-NDS/exfortables_py/f9c2d73f780b576cf1276b8e4018fddd1430fee8.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/exfortables_py",
+        "branch": "main",
+        "commit": "f9c2d73f780b576cf1276b8e4018fddd1430fee8",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/gandr-gui/tar.gz/e81e266b47f88cf30cedda6921517f24c4c18255",
+        "key": "raw/github/IAEA-NDS/gandr-gui/e81e266b47f88cf30cedda6921517f24c4c18255.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/gandr-gui",
+        "branch": "master",
+        "commit": "e81e266b47f88cf30cedda6921517f24c4c18255",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/gmapy/tar.gz/ddf8f320abcb75a8aaf37b9ecb5c6d5db8bc9c3c",
+        "key": "raw/github/IAEA-NDS/gmapy/ddf8f320abcb75a8aaf37b9ecb5c6d5db8bc9c3c.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/gmapy",
+        "branch": "master",
+        "commit": "ddf8f320abcb75a8aaf37b9ecb5c6d5db8bc9c3c",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/gmapy-examples/tar.gz/202e95b520c81c8b1f00b94a400a75d6a611b304",
+        "key": "raw/github/IAEA-NDS/gmapy-examples/202e95b520c81c8b1f00b94a400a75d6a611b304.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/gmapy-examples",
+        "branch": "main",
+        "commit": "202e95b520c81c8b1f00b94a400a75d6a611b304",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/gndson/tar.gz/8a497b14c42d18078df8dc91ad6981b47bcf62d1",
+        "key": "raw/github/IAEA-NDS/gndson/8a497b14c42d18078df8dc91ad6981b47bcf62d1.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/gndson",
+        "branch": "main",
+        "commit": "8a497b14c42d18078df8dc91ad6981b47bcf62d1",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/inst-finder/tar.gz/4b500a5e0ac922e890673c7ad99387a2d1469bc2",
+        "key": "raw/github/IAEA-NDS/inst-finder/4b500a5e0ac922e890673c7ad99387a2d1469bc2.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/inst-finder",
+        "branch": "main",
+        "commit": "4b500a5e0ac922e890673c7ad99387a2d1469bc2",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/neutron-standards-database/tar.gz/574e1dfb148c4c04bd7026f0c1707af1a91d9c2a",
+        "key": "raw/github/IAEA-NDS/neutron-standards-database/574e1dfb148c4c04bd7026f0c1707af1a91d9c2a.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/neutron-standards-database",
+        "branch": "main",
+        "commit": "574e1dfb148c4c04bd7026f0c1707af1a91d9c2a",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/neutron-standards-evaluation/tar.gz/ea40e403a22b21aa4bb5a876ed27c10354cfb311",
+        "key": "raw/github/IAEA-NDS/neutron-standards-evaluation/ea40e403a22b21aa4bb5a876ed27c10354cfb311.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/neutron-standards-evaluation",
+        "branch": "main",
+        "commit": "ea40e403a22b21aa4bb5a876ed27c10354cfb311",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/neutron-standards-pipeline/tar.gz/0ea6673d488aed0febe2a682cf46c21b8953381c",
+        "key": "raw/github/IAEA-NDS/neutron-standards-pipeline/0ea6673d488aed0febe2a682cf46c21b8953381c.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/neutron-standards-pipeline",
+        "branch": "main",
+        "commit": "0ea6673d488aed0febe2a682cf46c21b8953381c",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/nucdataBaynet/tar.gz/b209af629c8df7302c0744a6d9182b4963dc5fab",
+        "key": "raw/github/IAEA-NDS/nucdataBaynet/b209af629c8df7302c0744a6d9182b4963dc5fab.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/nucdataBaynet",
+        "branch": "main",
+        "commit": "b209af629c8df7302c0744a6d9182b4963dc5fab",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/open-benchmarks/tar.gz/998852ecbe0aa3c9e5c957ffa6d5256d5325ed41",
+        "key": "raw/github/IAEA-NDS/open-benchmarks/998852ecbe0aa3c9e5c957ffa6d5256d5325ed41.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/open-benchmarks",
+        "branch": "main",
+        "commit": "998852ecbe0aa3c9e5c957ffa6d5256d5325ed41",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/pycollisiondb/tar.gz/528fc1a50eaa23145a73c5dce97070e473d52012",
+        "key": "raw/github/IAEA-NDS/pycollisiondb/528fc1a50eaa23145a73c5dce97070e473d52012.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/pycollisiondb",
+        "branch": "master",
+        "commit": "528fc1a50eaa23145a73c5dce97070e473d52012",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/thermal-neutron-constants-evaluation/tar.gz/17b55bb6ef78dbaa38bc4d6d7d89763773ccbaa4",
+        "key": "raw/github/IAEA-NDS/thermal-neutron-constants-evaluation/17b55bb6ef78dbaa38bc4d6d7d89763773ccbaa4.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/thermal-neutron-constants-evaluation",
+        "branch": "master",
+        "commit": "17b55bb6ef78dbaa38bc4d6d7d89763773ccbaa4",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/web-endfy/tar.gz/a0a6697335f8b9cc0bfbcc64e203683c1e5c5f7f",
+        "key": "raw/github/IAEA-NDS/web-endfy/a0a6697335f8b9cc0bfbcc64e203683c1e5c5f7f.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/web-endfy",
+        "branch": "main",
+        "commit": "a0a6697335f8b9cc0bfbcc64e203683c1e5c5f7f",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NDS/wims-library-update/tar.gz/1b07c875538b0d52c97aebcac642a59831fa4d6c",
+        "key": "raw/github/IAEA-NDS/wims-library-update/1b07c875538b0d52c97aebcac642a59831fa4d6c.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NDS/wims-library-update",
+        "branch": "main",
+        "commit": "1b07c875538b0d52c97aebcac642a59831fa4d6c",
+        "phase": 2
+      }
+    ]
+  }
+}

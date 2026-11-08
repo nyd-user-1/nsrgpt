@@ -1,0 +1,10 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-nea-eva.json",
+    "depth": 7,
+    "include": "^/dbforms/data/eva/evatapes/.*(\\.(zip|tgz|gz|pdf|doc|txt)$|/index\\.html$|/jef_22/tape[12]\\.asc$|/endfb_7/.*\\.endf$)",
+    "out": "raw/iaea/2026-11-07/_work/wb-nea-eva.json",
+    "prefix": "raw/nea/2026-11-07",
+    "show": 40
+  }
+}

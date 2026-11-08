@@ -1,0 +1,130 @@
+{
+  "pull": {
+    "prefix": "raw/jaea/2026-11-07",
+    "list": "raw/iaea/2026-11-07/_work/wb-jaea.json",
+    "workers": 3,
+    "chunk": 25,
+    "retry": 3,
+    "big": 40000000000,
+    "source": "https://wwwndc.jaea.go.jp/ (JAEA Nuclear Data Center: JENDL). File URLs answer an Incapsula JavaScript challenge to the Mac, AWS Lambda us-east-2 and proxy lines 0 and 3 (tested 2026-11-07: 200 text/html, about 960 bytes, instead of the file). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date.",
+    "not_taken": [
+      {
+        "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl5-n-0K.tar.gz",
+        "size": 4833000000,
+        "phase": 3,
+        "reason": "processed (pointwise at 0 K), over 1 GB"
+      },
+      {
+        "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl5-n-300K.tar.gz",
+        "size": 4466500000,
+        "phase": 3,
+        "reason": "processed (pointwise at 300 K), over 1 GB"
+      }
+    ],
+    "then": [
+      {
+        "prefix": "raw/nea/2026-11-07",
+        "list": "raw/iaea/2026-11-07/_work/wb-nea-jeff33.json",
+        "workers": 3,
+        "chunk": 10,
+        "retry": 3,
+        "big": 40000000000,
+        "source": "https://www.oecd-nea.org/dbdata/jeff/ (OECD NEA Data Bank: JEFF). Cloudflare managed challenge: 403 from AWS Lambda us-east-2, the Mac and proxy lines 0 and 3 (tested 2026-11-07). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date.",
+        "not_taken": [
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/ace_293.tar.gz",
+            "phase": 3,
+            "reason": "processed (ACE at this temperature), over 1 GB (about 1.2 GB)"
+          },
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/ace_600.tar.gz",
+            "phase": 3,
+            "reason": "processed (ACE at this temperature), over 1 GB (about 1.2 GB)"
+          },
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/ace_900.tar.gz",
+            "phase": 3,
+            "reason": "processed (ACE at this temperature), over 1 GB (about 1.2 GB)"
+          },
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/ace_1200.tar.gz",
+            "phase": 3,
+            "reason": "processed (ACE at this temperature), over 1 GB (about 1.2 GB)"
+          },
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/ace_1500.tar.gz",
+            "phase": 3,
+            "reason": "processed (ACE at this temperature), over 1 GB (about 1.2 GB)"
+          },
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/ace_1800.tar.gz",
+            "phase": 3,
+            "reason": "processed (ACE at this temperature), over 1 GB (about 1.2 GB)"
+          },
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/files/",
+            "reason": "one file per material (5,851 captures): the same evaluations as the downloads archives taken"
+          },
+          {
+            "url": "https://www.oecd-nea.org/dbdata/jeff/jeff33/view/",
+            "reason": "HTML viewer pages (1,657) and maps (561), generated from the same data"
+          }
+        ]
+      },
+      {
+        "prefix": "raw/nea/2026-11-07",
+        "list": "raw/iaea/2026-11-07/_work/wb-nea-eva.json",
+        "workers": 3,
+        "chunk": 10,
+        "retry": 3,
+        "big": 40000000000,
+        "source": "https://www.oecd-nea.org/dbforms/data/eva/evatapes/ (OECD NEA Data Bank evaluated tapes). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date."
+      },
+      {
+        "prefix": "raw/iaea/2026-11-07",
+        "list": "raw/iaea/2026-11-07/_work/wb-cendl-3.2.json",
+        "workers": 3,
+        "chunk": 600,
+        "retry": 3,
+        "big": 40000000000,
+        "source": "https://nds.iaea.org/ (IAEA Nuclear Data Section). Cloudflare managed challenge: 403 from the Mac, AWS Lambda us-east-2 and all 12 working proxy lines (tested 2026-11-07). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date."
+      },
+      {
+        "prefix": "raw/iaea/2026-11-07",
+        "list": "raw/iaea/2026-11-07/_work/wb-rosfond-2010.json",
+        "workers": 3,
+        "chunk": 600,
+        "retry": 3,
+        "big": 40000000000,
+        "source": "https://nds.iaea.org/ (IAEA Nuclear Data Section). Cloudflare managed challenge: 403 from the Mac, AWS Lambda us-east-2 and all 12 working proxy lines (tested 2026-11-07). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date."
+      },
+      {
+        "prefix": "raw/iaea/2026-11-07",
+        "list": "raw/iaea/2026-11-07/_work/wb-brond-3.1.json",
+        "workers": 3,
+        "chunk": 600,
+        "retry": 3,
+        "big": 40000000000,
+        "source": "https://nds.iaea.org/ (IAEA Nuclear Data Section). Cloudflare managed challenge: 403 from the Mac, AWS Lambda us-east-2 and all 12 working proxy lines (tested 2026-11-07). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date."
+      },
+      {
+        "prefix": "raw/iaea/2026-11-07",
+        "list": "raw/iaea/2026-11-07/_work/wb-jeff-4.0.json",
+        "workers": 3,
+        "chunk": 600,
+        "retry": 3,
+        "big": 40000000000,
+        "source": "https://nds.iaea.org/ (IAEA Nuclear Data Section). Cloudflare managed challenge: 403 from the Mac, AWS Lambda us-east-2 and all 12 working proxy lines (tested 2026-11-07). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date."
+      },
+      {
+        "prefix": "raw/jaea/2026-11-07",
+        "list": "raw/iaea/2026-11-07/_work/wb-jaea-tabs.json",
+        "workers": 3,
+        "chunk": 800,
+        "retry": 3,
+        "big": 40000000000,
+        "source": "https://wwwndc.jaea.go.jp/ (JAEA Nuclear Data Center: JENDL). Files come from the Wayback Machine (web.archive.org id_ raw captures) because the origin blocks scripts; each file keeps its original URL and snapshot date."
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "test2",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/",
+  "items": [
+    {
+      "url": "https://nds.iaea.org/exfor/endf.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/FENDL-3.2b/n/n_001-H-1_0125.zip"
+    }
+  ],
+  "lines": [
+    0
+  ],
+  "rate": 0.5,
+  "minutes": 3
+}

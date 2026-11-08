@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://pypi.org/project/ENDFtk/",
+    "reason": "no source package on PyPI; source held from GitHub (raw/github/njoy/ENDFtk/)"
+  },
+  {
+    "url": "https://pypi.org/project/openmc/",
+    "reason": "not on PyPI (conda-forge only); source taken from GitHub (raw/github/openmc-dev/openmc/)"
+  },
+  {
+    "url": "https://anaconda.org/conda-forge (openmc, njoy2016, pyne)",
+    "reason": "binary builds of codes whose sources are in raw/github/; not taken"
+  }
+]

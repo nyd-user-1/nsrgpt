@@ -1,0 +1,55 @@
+{
+  "pull": {
+    "prefix": "raw/pypi/2026-11-07",
+    "source": "PyPI source distributions (files.pythonhosted.org), latest release of each package on 2026-11-07",
+    "workers": 4,
+    "retry": 2,
+    "items": [
+      {
+        "url": "https://files.pythonhosted.org/packages/22/43/7da8dc0f1b9301f156e0e5cb7fe9901bf4c21c15748ed14a875ca6a613d7/endf-0.1.12.tar.gz",
+        "key": "raw/pypi/2026-11-07/endf/endf-0.1.12.tar.gz",
+        "size": 79947,
+        "package": "endf",
+        "version": "0.1.12",
+        "sha256": "97ca1b7a248fcc26c58a9f6a825e48b6643c8a6e111733440ada0ae425d45a68",
+        "phase": 2
+      },
+      {
+        "url": "https://files.pythonhosted.org/packages/1b/47/d442f5d0886f39363c47ef8e7c86d870afa53479ae38b8aad4abd3a5283c/endf_parserpy-0.18.0.tar.gz",
+        "key": "raw/pypi/2026-11-07/endf-parserpy/endf_parserpy-0.18.0.tar.gz",
+        "size": 472378,
+        "package": "endf-parserpy",
+        "version": "0.18.0",
+        "sha256": "81cd091892d36804924d709fd4ab47f1bd053e063ec56a1d226710416d64599c",
+        "phase": 2
+      },
+      {
+        "url": "https://files.pythonhosted.org/packages/04/98/290f423615798f1f25ce73928f1d3070f2bd589280689d6b5ba0ade4d2fe/x4i3-1.2.4.tar.gz",
+        "key": "raw/pypi/2026-11-07/x4i3/x4i3-1.2.4.tar.gz",
+        "size": 245755,
+        "package": "x4i3",
+        "version": "1.2.4",
+        "sha256": "3ec5dca1d1c810b06a3ec53dcaf68ffcdd7498d903fa7a53cb09c30749357a33",
+        "phase": 2
+      },
+      {
+        "url": "https://files.pythonhosted.org/packages/3e/cf/0f16cf11ff48bf1119040ff7b36aa1b0e32f44b26d8eda190940b551e6cf/sandy-1.2.0.tar.gz",
+        "key": "raw/pypi/2026-11-07/sandy/sandy-1.2.0.tar.gz",
+        "size": 57842198,
+        "package": "sandy",
+        "version": "1.2.0",
+        "sha256": "7e61b2467a46880a2f499446f7aa351ce00e4f650e6d58af3020bbda7811a211",
+        "phase": 2
+      },
+      {
+        "url": "https://files.pythonhosted.org/packages/65/71/f44731d536a9b146c5d9a4eb9d3bacd8aae7dbb3597382f3f9bd3d015577/fudge-1.1.1.tar.gz",
+        "key": "raw/pypi/2026-11-07/fudge/fudge-1.1.1.tar.gz",
+        "size": 87604,
+        "package": "fudge",
+        "version": "1.1.1",
+        "sha256": "d9929d87bb38711112734d99a2c7ada5dc39ef67b758b1e55f4c779c3634efdc",
+        "phase": 2
+      }
+    ]
+  }
+}

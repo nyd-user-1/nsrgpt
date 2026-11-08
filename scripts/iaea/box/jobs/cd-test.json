@@ -1,0 +1,16 @@
+{
+  "name": "cd-test",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/cdroms/",
+  "items": [
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Yavshits.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Yavshits.zip"
+    }
+  ],
+  "lines": [
+    9
+  ],
+  "rate": 0.2,
+  "minutes": 3
+}

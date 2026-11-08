@@ -1,0 +1,16 @@
+{
+  "probe": {
+    "urls": [
+      "http://www-nds.ciae.ac.cn/",
+      "http://www-nds.ciae.ac.cn/public/download-endf/",
+      "https://www-nds.ciae.ac.cn/public/download-endf/JENDL-5-Aug2023/backup/",
+      "http://www-nds.atomstandard.ru/",
+      "http://www-nds.atomstandard.ru/public/download-endf/",
+      "http://www-nds.org.in/",
+      "http://www-nds.org.in/public/download-endf/",
+      "https://www-nds.org.in/public/download-endf/"
+    ],
+    "method": "GET",
+    "show": 200
+  }
+}

@@ -39,4 +39,6 @@ export const HEADER_TITLES: Record<string, string> = {
   // The old nsr app's search and workspace canvas, ported by merge-agent (2026-11-07).
   "/search": "Search",
   "/graph": "Graph",
+  // pax2's production map, ported as NSRgpt's sources, lake and roadmap (2026-11-07).
+  "/pipeline": "Pipeline",
 }

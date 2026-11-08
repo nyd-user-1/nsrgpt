@@ -1,0 +1,10 @@
+{
+  "probe": {
+    "urls": [
+      "http://web.archive.org/web/2026id_/https://www-nds.iaea.org/cdroms/x4download4.js"
+    ],
+    "method": "GET",
+    "show": 60000,
+    "limit": 100000
+  }
+}

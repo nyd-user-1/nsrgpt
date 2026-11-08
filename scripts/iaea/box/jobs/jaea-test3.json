@@ -1,0 +1,17 @@
+{
+  "name": "jaea-test3",
+  "prefix": "raw/jaea/2026-11-07",
+  "warm": "https://wwwndc.jaea.go.jp/jendl/jendl.html",
+  "items": [
+    {
+      "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl-a96.tar.gz",
+      "key": "raw/jaea/2026-11-07/_work/test/jendl-a96.tar.gz"
+    }
+  ],
+  "lines": [
+    4
+  ],
+  "rate": 0.5,
+  "minutes": 3,
+  "nav_files": true
+}

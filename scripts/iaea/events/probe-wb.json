@@ -1,0 +1,6 @@
+{"probe": {"urls": [
+ "http://web.archive.org/cdx/search/cdx?url=www-nds.iaea.org/public/download-endf/*&fl=original,timestamp,length,statuscode,mimetype&collapse=urlkey&filter=statuscode:200&limit=20",
+ "http://web.archive.org/cdx/search/cdx?url=wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/*&fl=original,timestamp,length,statuscode,mimetype&collapse=urlkey&filter=statuscode:200&limit=20",
+ "http://web.archive.org/cdx/search/cdx?url=www.oecd-nea.org/dbdata/jeff/*&fl=original,timestamp,length,statuscode,mimetype&collapse=urlkey&filter=statuscode:200&limit=20",
+ "http://web.archive.org/cdx/search/cdx?url=nds.iaea.org/*&fl=original,timestamp,length,statuscode,mimetype&collapse=urlkey&filter=statuscode:200&limit=20"
+], "method": "GET", "show": 3000, "limit": 20000}}

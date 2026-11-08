@@ -1,0 +1,317 @@
+{
+  "name": "iaea-cdroms",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/cdroms/",
+  "items": [
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4sqlite-20251105-c.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4sqlite-20251105-c.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v4-20230828.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v4-20230828.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-x5json-20230828.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-x5json-20230828.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4pro1-20230630-mini.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4pro1-20230630-mini.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4apps-2021-12-15.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4apps-2021-12-15.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4sqlite-20231008-a.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4sqlite-20231008-a.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EMPIRE-3.2.3src-2023-06-21.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EMPIRE-3.2.3src-2023-06-21.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2win64-2023-06-21.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2win64-2023-06-21.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/IBANDL-CD-2014-03-13.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/IBANDL-CD-2014-03-13.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/grucon2021_12_21-cd_new.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/grucon2021_12_21-cd_new.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/SABA_DISTRIB.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/SABA_DISTRIB.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/PcNudat.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/PcNudat.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EMPIRE-3.2.3-2018-12-27.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EMPIRE-3.2.3-2018-12-27.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EMPIRE-3.2.3src-2021-11-09.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EMPIRE-3.2.3src-2021-11-09.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EMPIRE-3.2.3src-2021-11-12.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EMPIRE-3.2.3src-2021-11-12.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EMPIRE-3.2.3srcLin-2018-05-15.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EMPIRE-3.2.3srcLin-2018-05-15.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/ENDF_Libraries-2.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/ENDF_Libraries-2.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/ENDF_Libraries.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/ENDF_Libraries.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EPICS2014.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EPICS2014.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-2023-09-20.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-2023-09-20.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v0-20230808.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v0-20230808.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v0-20230828.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v0-20230828.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v1-20230828.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v1-20230828.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v2-20230808.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v2-20230808.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v2-20230828.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v2-20230828.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v3-20230808.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v3-20230808.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v3-20230828.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v3-20230828.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/EXFOR-C5v4-20230808.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/EXFOR-C5v4-20230808.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire322zv2win.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire322zv2win.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2lin-2018-11-08.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2lin-2018-11-08.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2mac.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2mac.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2src-2018-11-14.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2src-2018-11-14.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2win.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2win.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2win64-2018-05-15.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2win64-2018-05-15.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2win64-2021-11-12.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2win64-2021-11-12.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Empire323zv2win64.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Empire323zv2win64.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Epdl97_CD.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Epdl97_CD.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/FOND-2.2.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/FOND-2.2.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/INDL_TSL_2005.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/INDL_TSL_2005.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/IRDF-2002.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/IRDF-2002.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/MINSKACT_2005.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/MINSKACT_2005.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/NGATLAS.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/NGATLAS.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/PADF_2007.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/PADF_2007.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/PGAA_2006.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/PGAA_2006.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/RNAL.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/RNAL.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/TclTk4Mac2Empire202305ZV.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/TclTk4Mac2Empire202305ZV.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/WIMSD.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/WIMSD.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/Yavshits.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/Yavshits.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/grucon2020.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/grucon2020.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4app-2019-11-26.tar.gz",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4app-2019-11-26.tar.gz",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4apps-2020-07-17.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4apps-2020-07-17.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4apps-2020-09-01.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4apps-2020-09-01.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4cdrom-2019-11-29.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4cdrom-2019-11-29.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4lite-2020-07-14.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4lite-2020-07-14.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4pro1-trial-2022-07-22.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4pro1-trial-2022-07-22.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4pro1-trial-2022-08-09.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4pro1-trial-2022-08-09.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4pro1-trial-20221222-mini.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4pro1-trial-20221222-mini.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4pro1-trial-20221222.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4pro1-trial-20221222.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4pro1-trial-20230329-mini.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4pro1-trial-20230329-mini.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4sqlite-20230516-c.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4sqlite-20230516-c.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    },
+    {
+      "url": "https://nds.iaea.org/cdroms/dwn/x4sqlite-20230714-c.zip",
+      "key": "raw/iaea/2026-11-07/cdroms/dwn/x4sqlite-20230714-c.zip",
+      "group": "CD-ROM package (direct path cdroms/dwn/ used by the page script; Brendan approved 2026-11-07)"
+    }
+  ],
+  "lines": [
+    0
+  ],
+  "rate": 0.2,
+  "minutes": 170
+}

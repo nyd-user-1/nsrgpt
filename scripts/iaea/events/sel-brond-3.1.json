@@ -1,0 +1,10 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-www-nds-download-endf.json",
+    "strip": "/public/download-endf/",
+    "depth": 1,
+    "include": "^/public/download-endf/BROND-3\\.1/",
+    "out": "raw/iaea/2026-11-07/_work/wb-brond-3.1.json",
+    "show": 50
+  }
+}

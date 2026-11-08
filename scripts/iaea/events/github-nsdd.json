@@ -1,0 +1,291 @@
+{
+  "pull": {
+    "prefix": "raw/github",
+    "manifest": "raw/github/_work/nsdd-2026-11-08.json",
+    "source": "GitHub source archives (codeload tar.gz) at the pinned commit: IAEA-NSDDNetwork, the ENSDF programs (linked from nds.iaea.org/public/ensdf_pgm/)",
+    "workers": 4,
+    "retry": 2,
+    "big": 40000000000,
+    "items": [
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/GABS/tar.gz/2186e3279b2ef522473939f4e60819d655b9b9df",
+        "key": "raw/github/IAEA-NSDDNetwork/GABS/2186e3279b2ef522473939f4e60819d655b9b9df.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/GABS",
+        "branch": "main",
+        "commit": "2186e3279b2ef522473939f4e60819d655b9b9df",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/ALPHAD-RadD/tar.gz/54fbfffa3eb7b003742ebd9eb01427b905b1f5f0",
+        "key": "raw/github/IAEA-NSDDNetwork/ALPHAD-RadD/54fbfffa3eb7b003742ebd9eb01427b905b1f5f0.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/ALPHAD-RadD",
+        "branch": "main",
+        "commit": "54fbfffa3eb7b003742ebd9eb01427b905b1f5f0",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/ALPHAD/tar.gz/76b4a05c3102a7f2745cd1c8c009655572cbdcf5",
+        "key": "raw/github/IAEA-NSDDNetwork/ALPHAD/76b4a05c3102a7f2745cd1c8c009655572cbdcf5.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/ALPHAD",
+        "branch": "main",
+        "commit": "76b4a05c3102a7f2745cd1c8c009655572cbdcf5",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/BrIcc/tar.gz/c6ec5a84597005cca1637c4c023b88f6c27814c3",
+        "key": "raw/github/IAEA-NSDDNetwork/BrIcc/c6ec5a84597005cca1637c4c023b88f6c27814c3.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/BrIcc",
+        "branch": "main",
+        "commit": "c6ec5a84597005cca1637c4c023b88f6c27814c3",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/BrIccMixing/tar.gz/ce2b9e5599f2676c25be9b6d6347faa4a2cda524",
+        "key": "raw/github/IAEA-NSDDNetwork/BrIccMixing/ce2b9e5599f2676c25be9b6d6347faa4a2cda524.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/BrIccMixing",
+        "branch": "main",
+        "commit": "ce2b9e5599f2676c25be9b6d6347faa4a2cda524",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/DELTA/tar.gz/91fd0a8d61bea87f191b2172fd4fabdd304b6339",
+        "key": "raw/github/IAEA-NSDDNetwork/DELTA/91fd0a8d61bea87f191b2172fd4fabdd304b6339.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/DELTA",
+        "branch": "main",
+        "commit": "91fd0a8d61bea87f191b2172fd4fabdd304b6339",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/GTOL/tar.gz/a0458592237c17d60139115fe834cfb3228afd74",
+        "key": "raw/github/IAEA-NSDDNetwork/GTOL/a0458592237c17d60139115fe834cfb3228afd74.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/GTOL",
+        "branch": "main",
+        "commit": "a0458592237c17d60139115fe834cfb3228afd74",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/JGAMUT/tar.gz/37232b24b39884185b904773b69bd07a492bbc60",
+        "key": "raw/github/IAEA-NSDDNetwork/JGAMUT/37232b24b39884185b904773b69bd07a492bbc60.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/JGAMUT",
+        "branch": "main",
+        "commit": "37232b24b39884185b904773b69bd07a492bbc60",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/Java-RULER/tar.gz/d4ea33dbfe57c88df8c859dfe82e649f83fa8e59",
+        "key": "raw/github/IAEA-NSDDNetwork/Java-RULER/d4ea33dbfe57c88df8c859dfe82e649f83fa8e59.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/Java-RULER",
+        "branch": "main",
+        "commit": "d4ea33dbfe57c88df8c859dfe82e649f83fa8e59",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/LOGFT/tar.gz/74dffaa38543381fe51ba16e69739f8f00fcc3df",
+        "key": "raw/github/IAEA-NSDDNetwork/LOGFT/74dffaa38543381fe51ba16e69739f8f00fcc3df.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/LOGFT",
+        "branch": "main",
+        "commit": "74dffaa38543381fe51ba16e69739f8f00fcc3df",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/PANDORA/tar.gz/b87cafbd973c04646779c415f41a242d674f4cae",
+        "key": "raw/github/IAEA-NSDDNetwork/PANDORA/b87cafbd973c04646779c415f41a242d674f4cae.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/PANDORA",
+        "branch": "main",
+        "commit": "b87cafbd973c04646779c415f41a242d674f4cae",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/RADD/tar.gz/52e49a78b7e3f1b65ec40d1367058ca564bd819f",
+        "key": "raw/github/IAEA-NSDDNetwork/RADD/52e49a78b7e3f1b65ec40d1367058ca564bd819f.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/RADD",
+        "branch": "main",
+        "commit": "52e49a78b7e3f1b65ec40d1367058ca564bd819f",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/ADDGAM/tar.gz/7051df9d9def66ced9a6c79dfe6c91f9a65066d9",
+        "key": "raw/github/IAEA-NSDDNetwork/ADDGAM/7051df9d9def66ced9a6c79dfe6c91f9a65066d9.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/ADDGAM",
+        "branch": "main",
+        "commit": "7051df9d9def66ced9a6c79dfe6c91f9a65066d9",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/AME-NUBASE-viewer/tar.gz/74386ffc83739042b203444924325daabcec3a81",
+        "key": "raw/github/IAEA-NSDDNetwork/AME-NUBASE-viewer/74386ffc83739042b203444924325daabcec3a81.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/AME-NUBASE-viewer",
+        "branch": "main",
+        "commit": "74386ffc83739042b203444924325daabcec3a81",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/KeynumberCheck/tar.gz/f8d0099f644a17fd357a6911f7a11ec157624f62",
+        "key": "raw/github/IAEA-NSDDNetwork/KeynumberCheck/f8d0099f644a17fd357a6911f7a11ec157624f62.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/KeynumberCheck",
+        "branch": "main",
+        "commit": "f8d0099f644a17fd357a6911f7a11ec157624f62",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/ConsistencyCheck/tar.gz/46db232543b6e879b9ba73a359e1ed6c93f2d724",
+        "key": "raw/github/IAEA-NSDDNetwork/ConsistencyCheck/46db232543b6e879b9ba73a359e1ed6c93f2d724.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/ConsistencyCheck",
+        "branch": "main",
+        "commit": "46db232543b6e879b9ba73a359e1ed6c93f2d724",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/FMTCHK/tar.gz/6b8aacf4d4718bc76aff55ddfc50a3e925b2b553",
+        "key": "raw/github/IAEA-NSDDNetwork/FMTCHK/6b8aacf4d4718bc76aff55ddfc50a3e925b2b553.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/FMTCHK",
+        "branch": "main",
+        "commit": "6b8aacf4d4718bc76aff55ddfc50a3e925b2b553",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/McMaster-MSU-Java-NDS/tar.gz/3674c12a6ebdae1ce63cde2cbf3348a7b5764cdf",
+        "key": "raw/github/IAEA-NSDDNetwork/McMaster-MSU-Java-NDS/3674c12a6ebdae1ce63cde2cbf3348a7b5764cdf.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/McMaster-MSU-Java-NDS",
+        "branch": "main",
+        "commit": "3674c12a6ebdae1ce63cde2cbf3348a7b5764cdf",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/TREND/tar.gz/0fc1a0324b155b5ed1e7fe89aa10f9b86af603d1",
+        "key": "raw/github/IAEA-NSDDNetwork/TREND/0fc1a0324b155b5ed1e7fe89aa10f9b86af603d1.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/TREND",
+        "branch": "main",
+        "commit": "0fc1a0324b155b5ed1e7fe89aa10f9b86af603d1",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/V.AveLib/tar.gz/f6c47533ffbb5798acc52cc2c2430e967afd16dd",
+        "key": "raw/github/IAEA-NSDDNetwork/V.AveLib/f6c47533ffbb5798acc52cc2c2430e967afd16dd.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/V.AveLib",
+        "branch": "main",
+        "commit": "f6c47533ffbb5798acc52cc2c2430e967afd16dd",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/Excel2ENSDF/tar.gz/130ac3628e46adc98a06adfcb972403b044ef44c",
+        "key": "raw/github/IAEA-NSDDNetwork/Excel2ENSDF/130ac3628e46adc98a06adfcb972403b044ef44c.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/Excel2ENSDF",
+        "branch": "main",
+        "commit": "130ac3628e46adc98a06adfcb972403b044ef44c",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/NSDFLIB/tar.gz/828b8496ae0c37476a7055554c1da626504f6f04",
+        "key": "raw/github/IAEA-NSDDNetwork/NSDFLIB/828b8496ae0c37476a7055554c1da626504f6f04.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/NSDFLIB",
+        "branch": "main",
+        "commit": "828b8496ae0c37476a7055554c1da626504f6f04",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/SETMDC/tar.gz/e8b0c9e7b280759757c91a5393c19c9a7d5d152f",
+        "key": "raw/github/IAEA-NSDDNetwork/SETMDC/e8b0c9e7b280759757c91a5393c19c9a7d5d152f.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/SETMDC",
+        "branch": "main",
+        "commit": "e8b0c9e7b280759757c91a5393c19c9a7d5d152f",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/AVETOOLS/tar.gz/f28d7fa9119b94e7dad057f2a5f4d1a396daf377",
+        "key": "raw/github/IAEA-NSDDNetwork/AVETOOLS/f28d7fa9119b94e7dad057f2a5f4d1a396daf377.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/AVETOOLS",
+        "branch": "main",
+        "commit": "f28d7fa9119b94e7dad057f2a5f4d1a396daf377",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/RADLIST/tar.gz/2c362de5ed6e87286472b4178c5af99484e487c0",
+        "key": "raw/github/IAEA-NSDDNetwork/RADLIST/2c362de5ed6e87286472b4178c5af99484e487c0.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/RADLIST",
+        "branch": "main",
+        "commit": "2c362de5ed6e87286472b4178c5af99484e487c0",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/GLSC/tar.gz/7e8d3ce4ef6892ed2dc2c1156526cf97d8c5e21f",
+        "key": "raw/github/IAEA-NSDDNetwork/GLSC/7e8d3ce4ef6892ed2dc2c1156526cf97d8c5e21f.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/GLSC",
+        "branch": "main",
+        "commit": "7e8d3ce4ef6892ed2dc2c1156526cf97d8c5e21f",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/AlphaHF/tar.gz/5648998c062c34e959de0875e680a58447e25d68",
+        "key": "raw/github/IAEA-NSDDNetwork/AlphaHF/5648998c062c34e959de0875e680a58447e25d68.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/AlphaHF",
+        "branch": "main",
+        "commit": "5648998c062c34e959de0875e680a58447e25d68",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/RadiationReport/tar.gz/312fd2a7f9b43d90851f9b26084e92363e53fdd2",
+        "key": "raw/github/IAEA-NSDDNetwork/RadiationReport/312fd2a7f9b43d90851f9b26084e92363e53fdd2.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/RadiationReport",
+        "branch": "main",
+        "commit": "312fd2a7f9b43d90851f9b26084e92363e53fdd2",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/FormatCheck/tar.gz/a3ed6f52cbf6ad670f095da2891181f9afe3ed00",
+        "key": "raw/github/IAEA-NSDDNetwork/FormatCheck/a3ed6f52cbf6ad670f095da2891181f9afe3ed00.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/FormatCheck",
+        "branch": "main",
+        "commit": "a3ed6f52cbf6ad670f095da2891181f9afe3ed00",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/BetaShape/tar.gz/119e7b3e95b0dd0f767e3b1a4954ce7afd59e380",
+        "key": "raw/github/IAEA-NSDDNetwork/BetaShape/119e7b3e95b0dd0f767e3b1a4954ce7afd59e380.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/BetaShape",
+        "branch": "main",
+        "commit": "119e7b3e95b0dd0f767e3b1a4954ce7afd59e380",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/IAEA-NSDDNetwork/EvaluationToolkit/tar.gz/833ec96b203cc7be8c4e2e5fce5905f4c5a08e69",
+        "key": "raw/github/IAEA-NSDDNetwork/EvaluationToolkit/833ec96b203cc7be8c4e2e5fce5905f4c5a08e69.tar.gz",
+        "size": 0,
+        "repo": "IAEA-NSDDNetwork/EvaluationToolkit",
+        "branch": "main",
+        "commit": "833ec96b203cc7be8c4e2e5fce5905f4c5a08e69",
+        "phase": 2
+      }
+    ]
+  }
+}

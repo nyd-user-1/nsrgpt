@@ -1,0 +1,10 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-www-nds-download-endf.json",
+    "strip": "/public/download-endf/",
+    "depth": 1,
+    "include": "^/public/download-endf/(FENDL-|IRDFF|IRDF-|INDL-TSL|INDEN|IAEA-PD-|ADS-|Medical|IAEA-Medical|IAEA-Therapeutic|IBA-Eval|SigmaCalcData|Tools|ENDF-Manual|JEFF-3\\.3-DPA|MINKS-ACT|LLCRP|Yavshits|zv_VMS_Archive|xtool|contents\\.htm|index\\.html)",
+    "out": "raw/iaea/2026-11-07/_work/wb-box-a2.json",
+    "show": 50
+  }
+}

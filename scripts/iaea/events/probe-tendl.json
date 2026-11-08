@@ -1,0 +1,11 @@
+{
+  "probe": {
+    "urls": [
+      "https://www.talys.eu/",
+      "http://www.talys.eu/",
+      "https://tendl.web.psi.ch/"
+    ],
+    "method": "GET",
+    "show": 150
+  }
+}

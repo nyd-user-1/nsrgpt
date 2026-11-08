@@ -1,0 +1,10 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-ibandl.json",
+    "depth": 3,
+    "include": "^/ibandl/",
+    "exclude": "/temp/",
+    "show": 30,
+    "files": 10
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-www-nds-download-endf.json",
+    "strip": "/public/download-endf/",
+    "depth": 1,
+    "include": "^/public/download-endf/JEFF-4\\.0/",
+    "out": "raw/iaea/2026-11-07/_work/wb-jeff-4.0.json",
+    "show": 50
+  }
+}

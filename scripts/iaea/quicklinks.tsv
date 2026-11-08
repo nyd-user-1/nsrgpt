@@ -1,0 +1,76 @@
+name	url	class	paths	note
+ADS-Lib	https://nds.iaea.org/ads/	taken	iaea/2026-11-07/ads/ iaea/2026-11-07/public/download-endf/ADS-2.0/ iaea/2026-11-07/public/download-endf/ADS-HE/	codes (ADSPRG, ADSNJI, SIGACE) and the ADS-2.0 and ADS-HE libraries
+Atomic Mass Data Centre	https://nds.iaea.org/amdc/	taken	iaea/2026-11-07/amdc/	AME2003 to AME2020 tables, covariances, papers
+Beta-delayed neutrons	https://nds.iaea.org/beta-delayed-neutron/database.html	pending	iaea/2026-11-07/beta-delayed-neutron/	the database files (databases/*.csv and data/) are in the Wayback lane (71 files)
+CINDA	https://nds.iaea.org/cinda/	pending	iaea/2026-11-07/exfor-master/cinda/	the CINDA backup files (441) are in the Wayback lane; cinda/ is a search front end
+Charged particle reference cross section	https://nds.iaea.org/medical/monitor_reactions.html	pending	iaea/2026-11-07/medical/	the monitor-reaction data files (357 under medical/) are in the Wayback lane
+CoNDERC	https://nds.iaea.org/conderc/	pending	iaea/2026-11-07/conderc/	8 data files in the Wayback lane; the rest is a database app whose records need the proxy
+DICEBOX	https://nds.iaea.org/dicebox/	taken	iaea/2026-11-07/dicebox/	code (zip and Fortran) and manual
+DROSG-2000	https://nds.iaea.org/ndspub/libraries/drosg2000/	taken	iaea/2026-11-07/public/libraries/drosg2000/	DROSG2000-v12.01.zip and its report
+DXS-2	https://nds.iaea.org/dxs-2/	pending	iaea/2026-11-07/dxs-2/	827 .dxs files in the Wayback lane; the DXS library files (download-endf/DXS) are on the proxy list
+Decay Data Library for Actinides	https://nds.iaea.org/act_ddl/	taken	iaea/2026-11-07/act_ddl/	the library in ENDF and ENSDF, annexes
+EE-View	https://nds.iaea.org/exfor/eeview.htm	elsewhere	github/IAEA-NDS/EXFOR-Entry-File/ iaea/2026-11-07/public/download-endf/	a viewer over EXFOR and the ENDF archive, both held
+EMPIRE-3.2	https://nds.iaea.org/empire/index.html	elsewhere	iaea/2026-11-07/cdroms/dwn/EMPIRE iaea/2026-11-07/cdroms/dwn/Empire	the EMPIRE 3.2.2 and 3.2.3 source and builds are in cdroms/dwn/; 10 documents in the Wayback lane
+ENDF Archive	https://nds.iaea.org/ndspub/download-endf/	taken	iaea/2026-11-07/public/download-endf/	every library folder taken, held or listed (Holdings tab)
+ENDF Retrieval	https://nds.iaea.org/endf/	not-taken		a search front end over the ENDF archive, which is held as files
+ENDF-6 Codes	https://nds.iaea.org/ndspub/endf/	elsewhere	github/IAEA-NDS/ENDF-utility-codes/ github/IAEA-NDS/PREPRO/ iaea/2026-11-07/public/endf/utility/	the utility codes and PREPRO from IAEA-NDS GitHub, their manual
+ENDF-6 Format	https://nds.iaea.org/ndspub/endf/endf-manual.pdf	taken	iaea/2026-11-07/public/endf/endf-manual.pdf	the ENDF-6 formats manual
+ENDVER	https://nds.iaea.org/ndspub/endf/endver	elsewhere	iaea/2026-11-07/public/download-endf/Tools/EndverGUI/ iaea/2026-11-07/cdroms/dwn/x4apps	ENDVER/GUI in the ENDF archive Tools folder and in the x4apps packages
+ENSDF	https://nds.iaea.org/ensdf/	held	nndc/2026-11-07/ensdfarchivals/	ENSDF releases 2004 to 2026 from NNDC
+ENSDF ASCII Files	https://nds.iaea.org/ensdf_base_files/	elsewhere	nndc/2026-11-07/ensdfarchivals/	the same ENSDF files, held from NNDC
+ENSDF programs	https://nds.iaea.org/www_ensdfpgm/www_ensdfpgm.html	taken	github/IAEA-NSDDNetwork/	the 31 IAEA-NSDDNetwork repositories the page links to (FMTCHK, LOGFT, PANDORA, GTOL, RADLIST, BrIcc, RULER and the rest)
+EPICS Electron & photon interaction data	https://nds.iaea.org/epics/	taken	iaea/2026-11-07/epics/	EPICS2023 (EADL, EEDL, EPDL in ENDF and ENDL) and documents; EPICS2017 also held from NNDC
+EXFOR	https://nds.iaea.org/exfor/	taken	github/IAEA-NDS/EXFOR- github/IAEA-NDS/exfor	X4, C4, CX4, JSON and the master files from IAEA-NDS GitHub; X4Pro, C5 and x5json in cdroms/dwn/
+FENDL	https://nds.iaea.org/fendl/	taken	iaea/2026-11-07/fendl/ iaea/2026-11-07/public/download-endf/FENDL-	FENDL-3.2c ENDF, ACE, GENDF and MATXS packages, and FENDL-3.2b, 3.2, 3.1c and 2.1
+Fission Yields	https://nds.iaea.org/fycrp/	pending	iaea/2026-11-07/fycrp/	the CRP's 24 reports are in the Wayback lane
+GANDR	https://nds.iaea.org/gandr/	taken	iaea/2026-11-07/gandr/	GANDR 4.6 to 5.3 code packages
+GRUCON	https://nds.iaea.org/grucon/	taken	iaea/2026-11-07/grucon/ iaea/2026-11-07/cdroms/dwn/grucon iaea/2026-11-07/cdroms/dwn/GRUCON iaea/2026-11-07/cdroms/dwn/Grucon	manuals here; code packages 2016 to 2021 in cdroms/dwn/
+Geant4 Libraries	https://nds.iaea.org/geant4/	listed		phase 3: processed Geant4 data files listed with their URLs, not pulled
+IBANDL	https://nds.iaea.org/ibandl/	taken	iaea/2026-11-07/ibandl/ iaea/2026-11-07/cdroms/dwn/IBANDL	R33 files and the IBANDL-CD package
+IDB	https://nds.iaea.org/idb/	pending	iaea/2026-11-07/idb/spectra/	the reference spectra are database records (idb/spectra/<n>); the Wayback Machine holds none; they need the proxy
+INDL/TSL	https://nds.iaea.org/indltsl/	taken	iaea/2026-11-07/indltsl/ iaea/2026-11-07/public/download-endf/INDL-TSL/	the library (ENDF and ACE) and its files
+IRDFF-II	https://nds.iaea.org/IRDFF/	taken	iaea/2026-11-07/IRDFF/ iaea/2026-11-07/public/download-endf/IRDFF-II	IRDFF-II ENDF, ACE and tables
+LARELKIN	https://nds.iaea.org/ndspub/libraries/larelkin/	taken	iaea/2026-11-07/public/libraries/larelkin/	LARELKIN.zip and its report
+LOGFT	https://www.nndc.bnl.gov/logft/	elsewhere	github/IAEA-NSDDNetwork/LOGFT/	NNDC's web calculator; the LOGFT code is held from IAEA-NSDDNetwork
+LiveChart of Nuclides	https://nds.iaea.org/livechart/	held	iaea-livechart/2026-11-06/	the LiveChart API, 360,475 rows
+MIRD	http://www.nndc.bnl.gov/mird/	held	nndc/2026-11-07/	NNDC's front end over ENSDF, which is held
+Medical isotope browser (Isotopia)	https://nds.iaea.org/mib/	elsewhere	iaea-livechart/2026-11-06/	an interactive app over the decay and production data (LiveChart API held)
+Minsk Actinides Library	https://nds.iaea.org/minskact/	taken	iaea/2026-11-07/minskact/ iaea/2026-11-07/public/download-endf/MINKS-ACT/	the library files
+Missing-levels	https://nds.iaea.org/missing-levels/	taken	iaea/2026-11-07/missing-levels/	TWO-SPIN code, Fortran and reports
+NAA	https://nds.iaea.org/naa/portal.htmlx	pending	iaea/2026-11-07/naa/	56 data files in the Wayback lane
+NGATLAS	https://nds.iaea.org/ngatlas2/	elsewhere	iaea/2026-11-07/cdroms/dwn/NGATLAS.zip	the NGATLAS package in cdroms/dwn/; the web atlas files are a database app
+NSR	https://www.nndc.bnl.gov/nsr/	held	nndc/2026-11-07/nsrarchivals/	NSR exports from NNDC
+NuDat-3	https://nds.iaea.org/nudat2/	held	nndc/2026-11-07/nudat3/	NuDat 3 chart data from NNDC
+Nuclear Charge Radii	https://nds.iaea.org/radii/	taken	iaea/2026-11-07/radii/	charge_radii.csv
+Nuclear Electromagnetic Moments	https://nds.iaea.org/nuclearmoments/	pending	iaea/2026-11-07/nuclearmoments/	3 data files in the Wayback lane; ground-state moments are also in the LiveChart API (held)
+PADF-2	https://nds.iaea.org/padf2/	taken	iaea/2026-11-07/padf2/ iaea/2026-11-07/public/download-endf/PADF-2007/	files.zip and the PADF-2007 library
+PGAA	https://nds.iaea.org/pgaa/	elsewhere	iaea/2026-11-07/cdroms/dwn/PGAA_2006.zip	the PGAA package in cdroms/dwn/; 3,131 per-isotope files in the Wayback lane (large tier)
+PHSP	https://nds.iaea.org/phsp/	listed		phase 4: phase-space files listed with their URLs, not pulled
+PLOTTAB	https://nds.iaea.org/plottab/	pending	iaea/2026-11-07/plottab/	5 files (code and manual) in the Wayback lane
+POINT	https://nds.iaea.org/point/	listed		phase 3: pointwise libraries listed with their URLs, not pulled (POINT2025 held from NNDC)
+PREPRO	https://nds.iaea.org/ndspub/endf/prepro/	elsewhere	github/IAEA-NDS/PREPRO/	the current PREPRO from IAEA-NDS GitHub; 762 files of older releases are in the Wayback Machine, not queued
+Photon Strength Function database	https://nds.iaea.org/PSFdatabase/	pending	iaea/2026-11-07/PSFdatabase/atlas/	the atlas data (arc, drc, gdr, thc) is served by an app; the Wayback Machine holds none; it needs the proxy
+Photonuclear	https://nds.iaea.org/photonuclear/	taken	iaea/2026-11-07/photonuclear/ iaea/2026-11-07/public/download-endf/IAEA-PD-	IAEA-PD2019 ENDF archive, activation and application libraries, IAEA-PD-1999
+RIPL	https://nds.iaea.org/RIPL/	elsewhere	github/IAEA-NDS/RIPL-4/ github/IAEA-NDS/ripl3_json/	RIPL-4 (data files and codes) and RIPL-3 in JSON from IAEA-NDS GitHub; 2,579 RIPL-3 files are in the Wayback Machine, not queued
+RNAL	https://nds.iaea.org/ndspub/rnal/www/	taken	iaea/2026-11-07/public/rnal/	rnal_dat.gz and its report
+SIGACE	https://nds.iaea.org/fendl21/downloads/	taken	iaea/2026-11-07/fendl21/	sigace.zip and the FENDL-2.1 programs
+SPECOMP	https://nds.iaea.org/irdf2002/codes/index.htmlx	pending	iaea/2026-11-07/irdf2002/codes/	the IRDF-2002 codes (21 files) are in the Wayback lane
+SPECTER	https://nds.iaea.org/irdf2002/codes/index.htmlx	pending	iaea/2026-11-07/irdf2002/codes/	the IRDF-2002 codes (21 files) are in the Wayback lane
+STAYSL PNNL	https://nds.iaea.org/irdf2002/codes/index.htmlx	pending	iaea/2026-11-07/irdf2002/codes/	the IRDF-2002 codes (21 files) are in the Wayback lane
+Safeguards Data	https://nds.iaea.org/sgnucdat/	taken	iaea/2026-11-07/sgnucdat/	the data tables (as pages) and reports; 43 more files in the Wayback lane
+SigmaCalc	http://sigmacalc.iate.obninsk.ru/	elsewhere	iaea/2026-11-07/public/download-endf/SigmaCalcData-2013/	an external site (IATE Obninsk); its 2013 data set is in the ENDF archive
+Spallation models	https://nds.iaea.org/spallations/	pending	iaea/2026-11-07/spallations/	4,381 benchmark files in the Wayback lane (large tier)
+Specialized Evaluated Libraries	https://nds.iaea.org/various1.htm	elsewhere	iaea/2026-11-07/public/download-endf/	the libraries it lists are in the ENDF archive
+Standards	https://nds.iaea.org/standards/	taken	iaea/2026-11-07/standards/ github/IAEA-NDS/neutron-standards-	standards files and the neutron-standards repositories
+Stopping Power Data	https://nds.iaea.org/stoppinggraphs/	pending	iaea/2026-11-07/stopping iaea/2026-11-07/stoppinggraphs/	6,373 data files (current and monthly archives) in the Wayback lane (large tier)
+TALYS	https://nds.iaea.org/talys/	taken	iaea/2026-11-07/talys/	TALYS 1.6 to 1.9 and its libraries; 13 more archives on the proxy list
+Tendl2019	https://nds.iaea.org/Tendl2019/	taken	iaea/2026-11-07/Tendl2019/	TENDL-2019 data at several temperatures; the full per-material library is on the proxy list
+Th-U	https://nds.iaea.org/Th-U/	pending	iaea/2026-11-07/th-u/	308 files in the Wayback lane
+Thermal Scattering Law Library Generator	https://nds.iaea.org/TSL_LibGen/	taken	iaea/2026-11-07/TSL_LibGen/	the interpolator code
+Thermal neutron capture gamma rays	https://nds.iaea.org/capgam/index.htmlx	held	nndc/2026-11-07/capgam/	CapGam, 287 datasets, from NNDC
+Thin Layer Activation	https://nds.iaea.org/tla/	taken	iaea/2026-11-07/tla/	TLA2017 code and manual
+URRPACK	https://nds.iaea.org/public/endf/urrpack/	taken	iaea/2026-11-07/public/endf/urrpack/	URR-PACK-2016-2.tar.gz
+WIMSD-IAEA Library	https://nds.iaea.org/wimsd/	elsewhere	iaea/2026-11-07/cdroms/dwn/WIMSD.zip	the WIMSD package in cdroms/dwn/; the per-library processed files on the site are listed (phase 3)
+Wallet cards	http://www.nndc.bnl.gov/wallet/	held	nndc/2026-11-07/walletcardsarchivals/	Wallet Cards 1995 to 2023 from NNDC
+X and Gamma-rays standards	https://nds.iaea.org/xgamma_standards/	taken	iaea/2026-11-07/xgamma_standards/	the standards tables (xls)
+ZVVIEW	https://nds.iaea.org/ndspub/zvview/	taken	iaea/2026-11-07/public/zvview/	ZVView builds 1997 to 2023 for Windows and Linux, examples

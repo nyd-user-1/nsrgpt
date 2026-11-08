@@ -1,0 +1,23 @@
+{
+  "name": "exfor-help-2",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/exfor/",
+  "depth": 2,
+  "max": 2000,
+  "items": [
+    {
+      "url": "https://nds.iaea.org/exfor/help/index.htm"
+    }
+  ],
+  "scope": [
+    "https://nds.iaea.org/exfor/help/"
+  ],
+  "hosts": [],
+  "skip": "\\?|/cdn-cgi/",
+  "files": "\\.(htm|html|png|gif|jpg|jpeg|css|js|pdf|txt|xls|xlsx|csv)$",
+  "lines": [
+    3
+  ],
+  "rate": 0.5,
+  "minutes": 30
+}

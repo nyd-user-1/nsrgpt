@@ -1,0 +1,186 @@
+[
+  {
+    "url": "https://nds.iaea.org/",
+    "reason": "route test (2026-11-07): Cloudflare managed challenge. curl and Python get 403 from the Mac, AWS Lambda us-east-2 and the 12 working proxy lines. Real Chrome (Playwright) from the box's own AWS address: not cleared in 90 s (22:15 UTC). Real Chrome through a residential proxy line, automation flags off: cleared in 5 s. Files here came that way or from the Wayback Machine."
+  },
+  {
+    "url": "http://www-nds.ciae.ac.cn/",
+    "reason": "IAEA-NDS mirror (China): connection timed out from AWS Lambda us-east-2 (2026-11-07)"
+  },
+  {
+    "url": "http://www-nds.atomstandard.ru/",
+    "reason": "IAEA-NDS mirror (Russia): connection timed out from AWS Lambda us-east-2 (2026-11-07)"
+  },
+  {
+    "url": "http://www-nds.org.in/",
+    "reason": "IAEA-NDS mirror (India): connection refused from AWS Lambda us-east-2 (2026-11-07)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ENDF-B-IV/",
+    "reason": "already held: raw/nndc/2026-11-07/ (the same library from NNDC)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ENDF-B-V/",
+    "reason": "already held: raw/nndc/2026-11-07/ (the same library from NNDC)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ENDF-B-VI-8/",
+    "reason": "already held: raw/nndc/2026-11-07/ (the same library from NNDC)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ENDF-B-VII.0/",
+    "reason": "already held: raw/nndc/2026-11-07/ (the same library from NNDC)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ENDF-B-VII.1/",
+    "reason": "already held: raw/nndc/2026-11-07/ (the same library from NNDC)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ENDF-B-VIII.0/",
+    "reason": "already held: raw/nndc/2026-11-07/ (the same library from NNDC)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ENDF-B-VIII.1/",
+    "reason": "already held: raw/nndc/2026-11-07/ (the same library from NNDC)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JEFF-3.1/",
+    "reason": "already held: raw/nndc-sigma/2026-11-07/ (the same evaluations from NNDC Sigma)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-3.3/",
+    "reason": "already held: raw/nndc-sigma/2026-11-07/ (the same evaluations from NNDC Sigma)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-4.0/",
+    "reason": "already held: raw/nndc-sigma/2026-11-07/ (the same evaluations from NNDC Sigma)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/ROSFOND/",
+    "reason": "already held: raw/nndc-sigma/2026-11-07/ (the same evaluations from NNDC Sigma)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/CENDL-3.1/",
+    "reason": "already held: raw/nndc-sigma/2026-11-07/ (the same evaluations from NNDC Sigma)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-5/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-PD-2016/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-PD-2016.1/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-AD-2017/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-4.0-HE/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-HE-2007/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-ImPACT-18/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-DEU-2020/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-3.2/",
+    "reason": "held from JAEA: raw/jaea/2026-11-07/ftpnd/ftp/JENDL/ (JAEA's own tarballs, Wayback copies); JENDL-5 also as IAEA's JENDL-5-Aug2023 backup zips"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JENDL-5-Apr2022/",
+    "reason": "earlier IAEA release of JENDL-5; JENDL-5-Aug2023 taken"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JEFF-3.1.2/",
+    "reason": "held from NEA: raw/nea/2026-11-07/ (JEFF312N tape)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/JEFF-3.2/",
+    "reason": "held from NEA: raw/nea/2026-11-07/ (JEFF32N tape)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2025/",
+    "size": 18016000000,
+    "phase": 1,
+    "reason": "deferred: proxy cap. IAEA serves it per material only (20,027 files); no backup zips; no archive in the Wayback Machine"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2019/",
+    "size": 15421000000,
+    "phase": 1,
+    "reason": "deferred: proxy cap. IAEA serves it per material only (19,744 files); PSI (tendl.web.psi.ch) does not answer AWS or the Mac"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2015/backup/",
+    "size": 19810000000,
+    "phase": 1,
+    "reason": "older TENDL; TENDL-2023 and 2021 taken. The Wayback Machine holds its backup zips (19.8 GB)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2008/",
+    "size": 2422000000,
+    "phase": 1,
+    "reason": "older TENDL; deferred: proxy cap (per material only)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2009/",
+    "size": 4215000000,
+    "phase": 1,
+    "reason": "older TENDL; deferred: proxy cap (per material only)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2010/",
+    "size": 5758000000,
+    "phase": 1,
+    "reason": "older TENDL; deferred: proxy cap (per material only)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2011/",
+    "size": 9396000000,
+    "phase": 1,
+    "reason": "older TENDL; deferred: proxy cap (per material only)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2012/",
+    "size": 8841000000,
+    "phase": 1,
+    "reason": "older TENDL; deferred: proxy cap (per material only)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2014/",
+    "size": 18695000000,
+    "phase": 1,
+    "reason": "older TENDL; deferred: proxy cap (per material only)"
+  },
+  {
+    "url": "https://nds.iaea.org/public/download-endf/TENDL-2017/",
+    "size": 37751000000,
+    "phase": 1,
+    "reason": "older TENDL; deferred: proxy cap (per material only)"
+  },
+  {
+    "url": "https://nds.iaea.org/ (subsite crawl)",
+    "reason": "deferred: proxy cap. The crawl of the IAEA-NDS subsites (Quick Links, cdroms, legacy, EXFOR pages) stopped at the 75 GB proxy allowance with about 26,000 discovered URLs not fetched (mostly more TALYS and TENDL-2019 files, stopping-power and medical data, and the subsites marked Pending in the inventory). Resume with scripts/iaea/box/mirror.py when proxy traffic is available."
+  },
+  {
+    "url": "https://nds.iaea.org/cdroms/ (download-code form)",
+    "reason": "route: the CD-ROM packages were taken through the direct path cdroms/dwn/<file> that the page script itself links to (Brendan approved, 2026-11-07), one file at a time through the cleared Chrome session; no code was solved. 10 catalog files answer 404 there (dead links)."
+  }
+]

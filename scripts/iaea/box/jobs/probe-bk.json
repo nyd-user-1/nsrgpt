@@ -1,0 +1,40 @@
+{
+  "name": "probe-bk",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/public/download-endf/",
+  "items": [
+    {
+      "url": "https://nds.iaea.org/public/download-endf/JENDL-5/backup/",
+      "key": "raw/iaea/2026-11-07/_work/test/probe-JENDL-5_backup_.html"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/JENDL-5/",
+      "key": "raw/iaea/2026-11-07/_work/test/probe-JENDL-5_.html"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/JEFF-3.3/backup/",
+      "key": "raw/iaea/2026-11-07/_work/test/probe-JEFF-3.3_backup_.html"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/JEFF-3.3/",
+      "key": "raw/iaea/2026-11-07/_work/test/probe-JEFF-3.3_.html"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/BROND-3.1/",
+      "key": "raw/iaea/2026-11-07/_work/test/probe-BROND-3.1_.html"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/TENDL-2019/backup/",
+      "key": "raw/iaea/2026-11-07/_work/test/probe-TENDL-2019_backup_.html"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/TENDL-2025/backup/",
+      "key": "raw/iaea/2026-11-07/_work/test/probe-TENDL-2025_backup_.html"
+    }
+  ],
+  "lines": [
+    7
+  ],
+  "rate": 0.5,
+  "minutes": 3
+}

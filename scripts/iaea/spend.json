@@ -1,0 +1,10 @@
+{
+ "all": [
+  {"item": "Lambda nsr-fetch and iaea-pull, 2026-11-07 21:00 to 2026-11-08 06:00 UTC", "amount_usd": 0, "note": "21,200 GB-seconds (nsr-fetch 8,120 s at 2 GB, iaea-pull 4,960 s at 1 GB), 404 invocations, from CloudWatch; inside the monthly free tier (list price $0.35)"},
+  {"item": "EC2 Chrome box i-002756e918db51233 (m7i-flex.large, 100 GB gp3), 21:53 to 00:26 UTC", "amount_usd": 0.27, "note": "2.55 hours at about $0.107 an hour with its volume; Free Tier type, covered by the account's credits; terminated"},
+  {"item": "EC2 Wayback box (t3.small, 20 GB gp3) from 00:20 UTC, and its successors", "amount_usd": 0.46, "note": "about $0.023 an hour; about 20 hours to finish the Wayback lane (projected)"},
+  {"item": "S3 requests (PUT, multipart parts, HEAD, LIST)", "amount_usd": 0.15, "note": "about 30,000 writes and 40,000 reads"},
+  {"item": "Webshare proxy traffic", "amount_usd": 0, "note": "prepaid plan (expires about 2026-11-19); this job used about 75 GB, its allowance"},
+  {"item": "Inbound transfer (Wayback, codeload, box.com, NNDC, IAEA, PyPI)", "amount_usd": 0, "note": "free"}
+ ]
+}

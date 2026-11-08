@@ -1,0 +1,75 @@
+{
+  "pull": {
+    "prefix": "raw/github",
+    "manifest": "raw/github/_work/upstream-2026-11-07.json",
+    "source": "GitHub source archives (codeload tar.gz) at the pinned commit: upstream nuclear data codes, 2026-11-07",
+    "workers": 4,
+    "retry": 2,
+    "big": 40000000000,
+    "items": [
+      {
+        "url": "https://codeload.github.com/openmc-dev/openmc/tar.gz/93b147fa49d15e13c9d3cef7a7b0430a9b2ab86a",
+        "key": "raw/github/openmc-dev/openmc/93b147fa49d15e13c9d3cef7a7b0430a9b2ab86a.tar.gz",
+        "size": 0,
+        "repo": "openmc-dev/openmc",
+        "branch": "develop",
+        "commit": "93b147fa49d15e13c9d3cef7a7b0430a9b2ab86a",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/njoy/NJOY2016/tar.gz/ab27c6414a0f25b173f2b637e6dc7e428fdaff00",
+        "key": "raw/github/njoy/NJOY2016/ab27c6414a0f25b173f2b637e6dc7e428fdaff00.tar.gz",
+        "size": 0,
+        "repo": "njoy/NJOY2016",
+        "branch": "main",
+        "commit": "ab27c6414a0f25b173f2b637e6dc7e428fdaff00",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/njoy/NJOY21/tar.gz/3b2651fd024b1c20e14f71c2d2ac59ee9b9a8fce",
+        "key": "raw/github/njoy/NJOY21/3b2651fd024b1c20e14f71c2d2ac59ee9b9a8fce.tar.gz",
+        "size": 0,
+        "repo": "njoy/NJOY21",
+        "branch": "master",
+        "commit": "3b2651fd024b1c20e14f71c2d2ac59ee9b9a8fce",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/LLNL/fudge/tar.gz/5e66a75e892da7a59c693fe087d2e821df839264",
+        "key": "raw/github/LLNL/fudge/5e66a75e892da7a59c693fe087d2e821df839264.tar.gz",
+        "size": 0,
+        "repo": "LLNL/fudge",
+        "branch": "master",
+        "commit": "5e66a75e892da7a59c693fe087d2e821df839264",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/paulromano/endf-python/tar.gz/3ace536513f1532aa83f8072b1b28a9f806c2c02",
+        "key": "raw/github/paulromano/endf-python/3ace536513f1532aa83f8072b1b28a9f806c2c02.tar.gz",
+        "size": 0,
+        "repo": "paulromano/endf-python",
+        "branch": "main",
+        "commit": "3ace536513f1532aa83f8072b1b28a9f806c2c02",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/afedynitch/x4i3/tar.gz/c56e09a8115834c7c2df89158fa7ad53b88ee345",
+        "key": "raw/github/afedynitch/x4i3/c56e09a8115834c7c2df89158fa7ad53b88ee345.tar.gz",
+        "size": 0,
+        "repo": "afedynitch/x4i3",
+        "branch": "master",
+        "commit": "c56e09a8115834c7c2df89158fa7ad53b88ee345",
+        "phase": 2
+      },
+      {
+        "url": "https://codeload.github.com/luca-fiorito-11/sandy/tar.gz/2bb1da40b436c8d88ba83e5a11a1aae0d7a78d2c",
+        "key": "raw/github/luca-fiorito-11/sandy/2bb1da40b436c8d88ba83e5a11a1aae0d7a78d2c.tar.gz",
+        "size": 0,
+        "repo": "luca-fiorito-11/sandy",
+        "branch": "develop",
+        "commit": "2bb1da40b436c8d88ba83e5a11a1aae0d7a78d2c",
+        "phase": 2
+      }
+    ]
+  }
+}

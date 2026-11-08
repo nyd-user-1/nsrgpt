@@ -1,0 +1,10 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-www-nds-download-endf.json",
+    "strip": "/public/download-endf/",
+    "depth": 1,
+    "include": "^/public/download-endf/(Activ87|Adl3t|ASIYAD|Biserm2|DXS|ENDL-84|Fond22|Mendl2|Mendl2P|PRONDOS|RRDF-98|Rnal|UKPADD-2|Wind1|Wind2|W3000)/",
+    "out": "raw/iaea/2026-11-07/_work/wb-permat-2.json",
+    "show": 50
+  }
+}

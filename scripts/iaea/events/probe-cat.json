@@ -1,0 +1,10 @@
+{
+  "probe": {
+    "urls": [
+      "http://web.archive.org/web/2026id_/https://www-nds.iaea.org/cdroms/cd-catalog.js"
+    ],
+    "method": "GET",
+    "show": 200000,
+    "limit": 300000
+  }
+}

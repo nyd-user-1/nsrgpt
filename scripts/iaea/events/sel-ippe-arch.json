@@ -1,0 +1,9 @@
+{
+  "select": {
+    "list": "raw/iaea/2026-11-07/_work/cdx-ippe.json",
+    "depth": 3,
+    "include": "\\.(tgz|tar|gz|zip|xz|bz2|7z|rar)$",
+    "show": 0,
+    "files": 60
+  }
+}

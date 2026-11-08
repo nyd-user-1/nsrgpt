@@ -1,0 +1,30 @@
+{
+  "name": "pages1",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/",
+  "items": [
+    {
+      "url": "https://nds.iaea.org/"
+    },
+    {
+      "url": "https://nds.iaea.org/legacy/"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/"
+    },
+    {
+      "url": "https://nds.iaea.org/exfor/cinda.htm"
+    },
+    {
+      "url": "https://nds.iaea.org/index-meeting-crp/"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/"
+    }
+  ],
+  "lines": [
+    0
+  ],
+  "rate": 0.5,
+  "minutes": 3
+}

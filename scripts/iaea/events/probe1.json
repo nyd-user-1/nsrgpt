@@ -1,0 +1,15 @@
+{"probe": {"urls": [
+ "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl40-or-up_20160106.tar.gz",
+ "https://wwwndc.jaea.go.jp/jendl/jendl.html",
+ "https://www.oecd-nea.org/dbdata/jeff/",
+ "https://www-nds.iaea.org/public/download-endf/",
+ "https://nds.iaea.org/public/download-endf/",
+ "https://www.nuclear.csdb.cn/",
+ "http://www.nuclear.csdb.cn/",
+ "https://www.ippe.ru/",
+ "https://tendl.web.psi.ch/tendl_2023/tendl2023.html",
+ "https://openmc.org/",
+ "https://www.nndc.bnl.gov/sigma/",
+ "https://www-nds.indcentre.org.in/",
+ "http://www-nds.ipen.br/"
+], "method": "GET", "show": 120}}

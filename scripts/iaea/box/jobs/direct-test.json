@@ -1,0 +1,20 @@
+{
+  "name": "direct-test",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/public/download-endf/",
+  "items": [
+    {
+      "url": "https://nds.iaea.org/public/download-endf/IRDFF-II/backup/",
+      "key": "raw/iaea/2026-11-07/_work/test/direct-irdff-backup.html"
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/IAEA-PD-2019/backup/",
+      "key": "raw/iaea/2026-11-07/_work/test/direct-pd2019-backup.html"
+    }
+  ],
+  "lines": [
+    "direct"
+  ],
+  "rate": 0.5,
+  "minutes": 3
+}

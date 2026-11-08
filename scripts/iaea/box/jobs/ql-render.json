@@ -1,0 +1,20 @@
+{
+  "name": "ql-render",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/",
+  "render": true,
+  "depth": 1,
+  "seeds": [
+    "https://nds.iaea.org/legacy"
+  ],
+  "scope": [
+    "https://nds.iaea.org/legacy"
+  ],
+  "files": "\\.(zzz)$",
+  "hosts": [],
+  "lines": [
+    6
+  ],
+  "rate": 0.3,
+  "minutes": 4
+}

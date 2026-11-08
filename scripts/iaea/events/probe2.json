@@ -1,0 +1,1 @@
+{"probe": {"urls": ["https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl40-or-up_20160106.tar.gz","https://www.oecd-nea.org/dbdata/jeff/","https://tendl.web.psi.ch/tendl_2023/tendl2023.html","https://www.ippe.ru/"], "method": "HEAD", "proxy": 3}}
