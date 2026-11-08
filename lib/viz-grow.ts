@@ -24,12 +24,10 @@ export function noteOrigin(from: Rect, to: Rect) {
   } catch {}
 }
 
-/** The main container: a chart's frame, or else Panel 1's card below its header, inside the card's border. A cover
- *  sized to the card's outer edge hid its border and corners below the header on every page without a chart frame
- *  (2026-11-08). */
+/** The main container: Panel 1's card below its header, inside the card's border, which a chart's frame fills edge to
+ *  edge. Measured from the card, not the page (2026-11-08): the card's outer edge put the cover over its border and
+ *  corners, and a chart frame measured as its page arrives sits 4 px low, mid-reveal (app/(site)/template.tsx). */
 function mainRect(): Rect | null {
-  const frame = document.querySelector('[data-viz-frame]')
-  if (frame) return frame.getBoundingClientRect()
   const card = document.querySelector<HTMLElement>('[data-app-card]')
   const head = document.querySelector('[data-main-header]')?.getBoundingClientRect()
   if (!card || !head) return null
