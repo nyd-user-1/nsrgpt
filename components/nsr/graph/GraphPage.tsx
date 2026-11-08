@@ -24,7 +24,7 @@ import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
-import { INSET, InsetBody, InsetTip } from "@/components/nsr/graph/InsetPanel";
+import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RightInsetPanel, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
@@ -546,6 +546,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
     staleTime: 60_000,
   });
 
+  const layer = (() => {
   if (browse === "views" || browse === "recipes") {
     const wantRecipes = browse === "recipes";
     const items = (views.data?.views ?? [])
@@ -768,6 +769,9 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       ))}
     </InsetBody>
   );
+  })();
+  // The views push in from the right and slide back on the back arrow, in the sidebar's 500 ms (InsetPanel.tsx InsetLayers).
+  return <InsetLayers layerKey={browse ?? "main"} depth={browse ? 1 : 0}>{layer}</InsetLayers>;
 }
 
 /** Preloaded combo-box suggestions — the most-studied entities in the corpus,
