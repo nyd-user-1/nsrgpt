@@ -93,12 +93,14 @@ function IconComponent({ size, ...props }: LayersProps) {
         animate={controls}
       />
       <motion.path
+        className="fill-none"
         d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"
         variants={variants.path2}
         initial="initial"
         animate={controls}
       />
       <motion.path
+        className="fill-none"
         d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"
         variants={variants.path3}
         initial="initial"

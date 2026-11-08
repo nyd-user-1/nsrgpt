@@ -21,7 +21,7 @@ export type SideBarIcon = React.ComponentType<{ size?: number; className?: strin
 // The paper's two tones and the row states, in one place for the menu's rows, groups and the chats below.
 export const ROW_ON = "bg-[color-mix(in_oklab,var(--paper-text)_8%,var(--paper))] font-semibold text-[var(--paper-strong)] shadow-e1"
 export const ROW_HOVER = "hover:bg-[color-mix(in_oklab,var(--paper-text)_8%,var(--paper))] hover:text-[var(--paper-text)] hover:shadow-e1"
-export const ICON_ON = "fill-[color-mix(in_oklab,var(--paper-strong)_18%,var(--paper))] text-[var(--paper-strong)]"
+export const ICON_ON = "fill-[#dbe7fa] text-[#033882]"
 export const ICON_REST =
   "fill-[var(--paper)] group-hover/item:fill-[color-mix(in_oklab,var(--paper-strong)_18%,var(--paper))] group-hover/item:text-[var(--paper-strong)]"
 /** On hover a menu row's icon takes the header discussion button's two blues: light blue fill, dark blue stroke (Brendan, 2026-11-08). */
