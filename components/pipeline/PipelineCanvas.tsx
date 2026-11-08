@@ -67,8 +67,14 @@ type Port = { type: "source" | "target"; position: Position; id: string }
 function Card({ nodeId, title, soon, port, width, children }: { nodeId: string; title: string; soon?: boolean; port?: Port; width?: number; children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
   const update = useUpdateNodeInternals()
-  // The ports below this card move when it opens or closes; React Flow re-measures them on request.
-  React.useEffect(() => { update(nodeId) }, [open, nodeId, update])
+  // The ports below this card move when it opens or closes; React Flow re-measures them on request. Not on mount: a
+  // request then ran the first fitView with only the sources measured, and the lake and surfaces sat off the view.
+  const opened = React.useRef(open)
+  React.useEffect(() => {
+    if (opened.current === open) return
+    opened.current = open
+    update(nodeId)
+  }, [open, nodeId, update])
   return (
     <div className={cn(CARD, soon && SOON)} style={width ? { width } : undefined}>
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="relative flex h-11 w-full items-center gap-2 px-3.5 text-left text-[15px] font-medium">
