@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import dynamic from 'next/dynamic'
+import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 import { X } from 'lucide-react'
 import { useEChart, type ChartClick } from '@/components/viz/use-echart'
 import { EChartLegend } from '@/components/viz/EChartLegend'
@@ -25,7 +26,7 @@ import { chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphModel, type Pi
 // nuclide's chain or unpins it (2026-11-06: no Shift), and the picker pins by name; with chains lit, only their
 // edges flow. The 3D switch opens the graph into a precomputed 3D layout (graph3d.tsx).
 
-const Graph3D = dynamic(() => import('./graph3d'), { ssr: false, loading: () => <div className="min-h-0 flex-1" /> })
+const Graph3D = dynamic(() => import('./graph3d'), { ssr: false, loading: () => <ChartSkeleton /> })
 
 const load = () => Promise.all([loadDecay(), loadGraphLayout()])
 type Loaded = Awaited<ReturnType<typeof load>>

@@ -25,7 +25,7 @@
   // in "vars" to answer without a session again.
   // NEXT_PUBLIC_DATA_BASE: the chart data's CloudFront distribution (EDQ9A6XJBYEH5, New account), read by
   // lib/data-url.ts. Next.js writes NEXT_PUBLIC_ values into the browser code at build time, so the same value
-  // must also be a Workers Builds build variable; "vars" alone reaches only the running worker.
+  // is set in the build step of .github/workflows/cloudflare.yml; "vars" alone reaches only the running worker.
   "vars": {
     "NEXT_PUBLIC_DATA_BASE": "https://dcl3kyt3ynmb2.cloudfront.net"
   },

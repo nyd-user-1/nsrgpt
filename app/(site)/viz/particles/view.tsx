@@ -1,11 +1,12 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 
 // The scene is WebGPU three.js — browser only, and loaded with the page rather than in the shared bundle.
 const ParticleScene = dynamic(() => import('./scene'), {
   ssr: false,
-  loading: () => <div className="min-h-0 flex-1" />,
+  loading: () => <ChartSkeleton />,
 })
 
 export function ParticleView() {

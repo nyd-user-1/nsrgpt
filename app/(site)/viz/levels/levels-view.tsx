@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { VizControls } from '@/components/viz/VizControls'
 import dynamic from 'next/dynamic'
+import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 import { X } from 'lucide-react'
 import { THEME_EVENT } from '@/lib/theme'
 import { loadLevels } from '@/lib/viz-data'
@@ -14,7 +15,7 @@ import type { Palette } from './scene'
 // panel over the scene's right edge, under the frame's close button — energy, Jπ, half-life, as NNDC's adopted-levels listing gives them —
 // and a row under the pointer marks that level on the stack. ²⁰⁸Pb is selected on arrival.
 
-const Scene = dynamic(() => import('./scene').then((m) => m.Scene), { ssr: false })
+const Scene = dynamic(() => import('./scene').then((m) => m.Scene), { ssr: false, loading: () => <ChartSkeleton /> })
 
 const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
