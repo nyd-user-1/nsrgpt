@@ -75,8 +75,10 @@ function Card({ nodeId, title, soon, port, width, children }: { nodeId: string; 
     opened.current = open
     update(nodeId)
   }, [open, nodeId, update])
+  // pointer-events-auto: React Flow turns pointer events off on a node that is neither selectable nor draggable, which
+  // left every card's header unpressable; the card takes them back, and the gaps between cards still pan the canvas.
   return (
-    <div className={cn(CARD, soon && SOON)} style={width ? { width } : undefined}>
+    <div className={cn(CARD, soon && SOON, "pointer-events-auto")} style={width ? { width } : undefined}>
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="relative flex h-11 w-full items-center gap-2 px-3.5 text-left text-[15px] font-medium">
         <span className="truncate">{title}</span>
         {soon && <span className="shrink-0 rounded-full border border-dashed border-[var(--paper-muted)] px-2 py-px text-[11px] font-normal">Coming Soon</span>}
