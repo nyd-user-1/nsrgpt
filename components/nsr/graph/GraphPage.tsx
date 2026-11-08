@@ -814,6 +814,16 @@ const CHAINS: { id: string; label: string; head: readonly [number, number] }[] =
 type Grid = "ZA" | "NZ" | "AZ" | "levels" | "figure";
 type DemoEdge = { s: string; t: string; label: string; kind: EdgeMeta["kind"]; curve?: boolean; arrow?: keyof typeof ARROW_COLOR | "ink" };
 type Demo = { section: string; id: string; label: string; layout: "LR" | "TB"; grid?: Grid; cell?: [number, number]; nodes: GNode[]; edges: DemoEdge[] };
+const ZS: Record<string, number> = { CO: 27, NI: 28, SR: 38, Y: 39, ZR: 40, NB: 41, MO: 42, TC: 43, RU: 44, AG: 47, CD: 48, IN: 49, SN: 50, SB: 51, TE: 52, I: 53, XE: 54, CS: 55, BA: 56, LA: 57, CE: 58, PR: 59, ND: 60, YB: 70, LU: 71, HF: 72, HG: 80, TL: 81, PB: 82, BI: 83, PO: 84, AT: 85, RN: 86, FR: 87, RA: 88, AC: 89, TH: 90, PA: 91, U: 92, NP: 93, PU: 94, AM: 95, CM: 96 };
+/** "107AG" → Z 47, N 60; "137BAM" (an isomer) the same as 137BA; "60NI-2505" → Z 28, N 32, level 2505 keV. */
+const nuc = (id: string, label: string, sub: string): GNode => {
+  const m = /^(\d+)([A-Z]+?)(M)?(?:-(\d+))?$/.exec(id);
+  const g: GNode = { type: "nuclide", id, label, sub };
+  if (m && ZS[m[2]] !== undefined) { g.z = ZS[m[2]]; g.n = Number(m[1]) - g.z; }
+  if (m && m[4] !== undefined) g.e = Number(m[4]);
+  else if (m && /\s0 keV$/.test(label)) g.e = 0;
+  return g;
+};
 /** A glyph of the actinide figure: "239Pu" at column c, row r, in a class, with its fission share. */
 const glyph = (id: string, label: string, cls: GNode["cls"], c: number, r: number, fission?: number, sub = ""): GNode => ({ ...nuc(id, label, sub), style: "glyph", cls, fission, pos: [c, r] });
 /** A bubble of the decay-series figure: half-life as "value|unit". */
@@ -832,16 +842,6 @@ const FIGURES: Demo[] = [
       { s: "242CM", t: "243CM", label: "3%", kind: "reaction", arrow: "capture" }, { s: "243CM", t: "244CM", label: "13%", kind: "reaction", arrow: "capture" }, { s: "244CM", t: "245CM", label: "81%", kind: "reaction", arrow: "capture" },
     ] },
 ];
-const ZS: Record<string, number> = { CO: 27, NI: 28, SR: 38, Y: 39, ZR: 40, NB: 41, MO: 42, TC: 43, RU: 44, AG: 47, CD: 48, IN: 49, SN: 50, SB: 51, TE: 52, I: 53, XE: 54, CS: 55, BA: 56, LA: 57, CE: 58, PR: 59, ND: 60, YB: 70, LU: 71, HF: 72, HG: 80, TL: 81, PB: 82, BI: 83, PO: 84, AT: 85, RN: 86, FR: 87, RA: 88, AC: 89, TH: 90, PA: 91, U: 92, NP: 93, PU: 94, AM: 95, CM: 96 };
-/** "107AG" → Z 47, N 60; "137BAM" (an isomer) the same as 137BA; "60NI-2505" → Z 28, N 32, level 2505 keV. */
-const nuc = (id: string, label: string, sub: string): GNode => {
-  const m = /^(\d+)([A-Z]+?)(M)?(?:-(\d+))?$/.exec(id);
-  const g: GNode = { type: "nuclide", id, label, sub };
-  if (m && ZS[m[2]] !== undefined) { g.z = ZS[m[2]]; g.n = Number(m[1]) - g.z; }
-  if (m && m[4] !== undefined) g.e = Number(m[4]);
-  else if (m && /\s0 keV$/.test(label)) g.e = 0;
-  return g;
-};
 /** Positions for a grid; a node without the numbers it needs lands at the origin and the layout leaves it there. */
 function gridPositions(nodes: GNode[], grid: Grid): Map<string, { x: number; y: number }> {
   const pos = new Map<string, { x: number; y: number }>();
