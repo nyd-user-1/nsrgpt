@@ -131,7 +131,7 @@ function LakeNode({ id }: NodeProps) {
               <Card key={d.id} nodeId={id} title={d.name}>
                 <div className="px-3 py-2.5 text-[13px]">
                   <p>{d.what}</p>
-                  <p className="mt-0.5 text-[12px] text-[var(--paper-muted)]">{d.count} {d.record} · {d.keys}</p>
+                  <p className="mt-0.5 text-[12px] text-[var(--paper-muted)]">{d.count} · {d.keys}</p>
                 </div>
                 <section className={cn("border-t px-3 py-2.5", RULE)}>
                   <Title>Inside</Title>
