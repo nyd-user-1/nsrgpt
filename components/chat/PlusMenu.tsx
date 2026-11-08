@@ -5,7 +5,7 @@ import {
   Plus, ChevronRight, ArrowLeft,
   Lightbulb, Atom, Zap, Users, X, BarChart3, Paperclip,
 } from "lucide-react";
-import { dataUrl } from "@/lib/data-url";
+import { fetchData } from "@/lib/use-data";
 import { VIZ_CHARTS } from "@/lib/viz-charts";
 import { HEADER_TITLES } from "@/lib/header-titles";
 
@@ -117,6 +117,8 @@ interface DbItem {
 /* ------------------------------------------------------------------ */
 
 const PAGE_SIZE = 30;
+/** A picker list in alphabetical order, sorted once per file. */
+const byValue = (rows: DbItem[]) => [...rows].sort((a, b) => a.value.localeCompare(b.value));
 const SCROLL_THRESHOLD = 60;
 const SEARCH_DEBOUNCE = 300;
 const MIN_SEARCH_LEN = 2;
@@ -178,17 +180,12 @@ export function PlusMenu({ onSelect, mode, onAttach }: PlusMenuProps) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
 
-  // ---- fetch functions (static lists in public/viz-data/dict/, from scripts/chat-dict-snapshot.mjs;
-  //      the whole list is one cached call, paged client-side to keep the popover's infinite scroll) ----
-  const dictCache = useRef<Record<string, DbItem[]>>({});
-  const loadDict = useCallback(async (type: "nuclides" | "reactions" | "authors"): Promise<DbItem[]> => {
-    if (dictCache.current[type]) return dictCache.current[type];
-    const res = await fetch(dataUrl(`dict/${type}.json`));
-    const rows = res.ok ? ((await res.json()) as DbItem[]) : [];
-    rows.sort((a, b) => a.value.localeCompare(b.value));
-    dictCache.current[type] = rows;
-    return rows;
-  }, []);
+  // ---- fetch functions (static lists in the chart data, dict/<type>.json, from scripts/chat-dict-snapshot.mjs;
+  //      the whole list is one cached call (lib/use-data.ts), paged client-side to keep the popover's infinite scroll) ----
+  const loadDict = useCallback(
+    (type: "nuclides" | "reactions" | "authors"): Promise<DbItem[]> => fetchData<DbItem[]>(`dict/${type}.json`, byValue).catch((): DbItem[] => []),
+    [],
+  );
 
   const fetchNuclidesForSelection = useCallback(async (offset: number) => {
     setNuclidesLoading(true);

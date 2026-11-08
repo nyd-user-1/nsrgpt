@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Section } from "@/components/AccountShell";
-import { useProductStatus } from "@/components/ProductStatus";
+import { useProductStatus } from "@/components/ProductStatusContext";
 import { Skeleton } from "@/components/ui/nova/skeleton";
 
 /**

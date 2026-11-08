@@ -8,6 +8,7 @@
 import * as React from 'react'
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
 import { E_MAX_KEV, I_FLOOR, allLines, loadCapgam, logI, openWindow, setLabel, setName, type Capgam, type GammaLine } from '@/lib/viz-gamma'
+import { useData } from '@/lib/use-data'
 
 const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -107,11 +108,8 @@ function Spectrum({ index }: { index: number }) {
 }
 
 export function SpectraChart() {
-  const [data, setData] = React.useState<Capgam | null>(null)
+  const { data = null } = useData<Capgam>('capgam.json')
   const [pick, setPick] = React.useState<number | null>(null)
-  React.useEffect(() => {
-    loadCapgam().then(setData, () => {})
-  }, [])
   // Opens on ¹⁵⁸Gd: ¹⁵⁷Gd's 254,000 b capture, the largest in the set.
   const index = pick ?? (data ? Math.max(0, data.sets.findIndex((s) => s.el === 'Gd' && s.z + s.n === 158)) : null)
   const set = data && index !== null ? data.sets[index] : null

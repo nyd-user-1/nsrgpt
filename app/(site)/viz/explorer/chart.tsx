@@ -8,6 +8,7 @@ import { GL_VIEW } from '@/lib/viz-3d'
 import { FAMILY, familyOfMode, isDark } from '@/lib/viz-physics'
 import type { FissionFile } from '../fission-yields/data'
 import { fissionOf, loadFor, loadGround, valuesOf, variables, type Ground } from './data'
+import { useData } from '@/lib/use-data'
 
 // The 3D explorer (Brendan, 2026-11-06): Live Chart 3D's choice of axes (nds.iaea.org/relnsd/vcharthtml/lc3d.html) on
 // the site's 3D camera. Any ground-state property — or any of the 46 fission-yield series — goes on X, Y and Z, each
@@ -68,12 +69,9 @@ function plotted(g: Ground, s: Settings, fy: Map<string, FissionFile>) {
 }
 
 export function ExplorerChart() {
-  const [g, setG] = React.useState<Ground | null>(null)
+  const { data: g = null } = useData<Ground>('livechart-ground.json')
   const [s, setS] = React.useState<Settings>(PRESETS[0].s)
   const [fy, setFy] = React.useState<Map<string, FissionFile>>(new Map())
-  React.useEffect(() => {
-    void loadGround().then(setG)
-  }, [])
   // Fetch the fission file an axis asks for, once.
   React.useEffect(() => {
     for (const k of ['x', 'y', 'z'] as const) {

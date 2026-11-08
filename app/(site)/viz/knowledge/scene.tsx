@@ -18,7 +18,8 @@ import { Html, Line } from '@react-three/drei'
 import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { X } from 'lucide-react'
-import { AGE_MAX, AGE_STOPS, NEVER, SNAPSHOT_YEAR, knowledgeName, loadKnowledge, type KnowledgeRow } from '@/lib/viz-knowledge'
+import { AGE_MAX, AGE_STOPS, NEVER, SNAPSHOT_YEAR, knowledgeName, parseKnowledge, type KnowledgeRow } from '@/lib/viz-knowledge'
+import { useData } from '@/lib/use-data'
 
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -402,11 +403,8 @@ function NuclideTable({ list, fmt }: { list: KnowledgeRow[]; fmt: (v: number) =>
 export default function KnowledgeScene() {
   const box = React.useRef<HTMLDivElement>(null)
   const theme = useTheme(box)
-  const [rows, setRows] = React.useState<KnowledgeRow[] | null>(null)
-  const [failed, setFailed] = React.useState(false)
-  React.useEffect(() => {
-    loadKnowledge().then(setRows, () => setFailed(true))
-  }, [])
+  const { data: rows = null, error } = useData('knowledge.json', { select: parseKnowledge })
+  const failed = error !== null
   const split = React.useMemo(() => {
     if (!rows) return null
     const evaluated: number[] = []

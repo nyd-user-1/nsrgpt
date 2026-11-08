@@ -3,7 +3,7 @@
 // browser fetches each file from there: no page carries the data in its HTML, nothing bundles it, and
 // the worker never touches it. Rerun the snapshot and publish a new version when the corpus ever moves.
 
-import { dataUrl } from '@/lib/data-url'
+import { fetchData } from '@/lib/use-data'
 
 /** The nuclide field: every (N, Z) the literature touches, with its paper count. 7,799 rows. */
 export type Field = { n: number; z: number; c: number }[]
@@ -34,22 +34,10 @@ export type Levels = {
   nuclides: { z: number; n: number; el: string; L: (number | string)[]; G: (number | null)[]; nl: number; ng: number }[]
 }
 
-// One request per file per page: field.json feeds five charts and a table, and client-side moves
-// between them reuse the first fetch. A failed fetch is dropped so the next mount retries.
-const cache = new Map<string, Promise<unknown>>()
+// One request per file per page (lib/use-data.ts): field.json feeds five charts and a table, and client-side moves
+// between them reuse the first fetch, as does every other loader of the same file.
 function get<T>(name: string): () => Promise<T> {
-  return () => {
-    let p = cache.get(name)
-    if (!p) {
-      p = fetch(dataUrl(`${name}.json`)).then((r) => {
-        if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
-        return r.json()
-      })
-      p.catch(() => cache.delete(name))
-      cache.set(name, p)
-    }
-    return p as Promise<T>
-  }
+  return () => fetchData<T>(`${name}.json`)
 }
 
 export const loadField = get<Field>('field')
@@ -59,7 +47,6 @@ export const loadScatter = get<Scatter>('scatter')
 export const loadTriples = get<Triples>('triples')
 export const loadFlows = get<Flows>('flows')
 export const loadMatrix = get<Matrix>('matrix')
-export const loadLevels = get<Levels>('levels')
 
 // Chart batch B (2026-11-04): nuclear-structure snapshots.
 

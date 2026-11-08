@@ -3,26 +3,14 @@
 // so the prototype stands alone. The types, the colours, the names and the half-life text are lib/nuclide.ts's,
 // shared with the physics charts, and re-exported here.
 
-import { dataUrl } from '@/lib/data-url'
+import { fetchData } from '@/lib/use-data'
 import { keyOf, type DecayData } from '@/lib/nuclide'
 
 export { FAMILIES, FAMILY, familyOf, familyOfMode, formatSeconds, halfLifeText, keyOf, nucName } from '@/lib/nuclide'
 export type { DecayData, DecayMode, DecayNuclide, Family } from '@/lib/nuclide'
 
-let cached: Promise<DecayData> | null = null
-export function loadDecay(): Promise<DecayData> {
-  if (!cached) {
-    const p = fetch(dataUrl('decay.json')).then((r) => {
-      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
-      return r.json() as Promise<DecayData>
-    })
-    p.catch(() => {
-      cached = null
-    })
-    cached = p
-  }
-  return cached
-}
+/** decay.json, the same request and cache entry as lib/viz-physics.ts's loadDecay (lib/use-data.ts). */
+export const loadDecay = () => fetchData<DecayData>('decay.json')
 
 export type ChainStep = { index: number; mode?: string; pct?: number | null }
 export type ChainEnd = 'stable' | 'fission' | 'no mode' | 'not in the data' | 'loop'

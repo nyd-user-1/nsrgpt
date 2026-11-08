@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, MailCheck } from "lucide-react";
-import { useProductStatus } from "@/components/ProductStatus";
+import { useProductStatus } from "@/components/ProductStatusContext";
 
 type Mode = "signin" | "signup";
 

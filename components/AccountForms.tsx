@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { BUTTON, FIELD, Section } from "@/components/AccountShell";
-import { useProductStatus } from "@/components/ProductStatus";
+import { useProductStatus } from "@/components/ProductStatusContext";
 import { Skeleton } from "@/components/ui/nova/skeleton";
 
 const post = async (action: string, body: object) => {

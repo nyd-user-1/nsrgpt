@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { WaveLoader } from "./WaveLoader";
-import { useProductStatus } from "@/components/ProductStatus";
+import { useProductStatus } from "@/components/ProductStatusContext";
 
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 

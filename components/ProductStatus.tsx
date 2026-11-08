@@ -1,10 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { gated, isProductUrl } from "@/lib/gate";
 import { CARDS as cards, type HomeCardData } from "@/lib/home-data";
 import { ClassicSpinner } from "./ClassicSpinner";
+import { ProductStatusContext, type LinkProps, type Status } from "./ProductStatusContext";
+
+export { useProductStatus, type Status } from "./ProductStatusContext";
 
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 
@@ -12,25 +15,6 @@ const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 const WAKING_MS = 5_000;
 /** Between knocks on a product that answered, so its check stays true (it pauses after 5 idle minutes). */
 const AWAKE_MS = 4 * 60_000;
-
-export type Status = "idle" | "loading" | "ready";
-
-type LinkProps = { href: string; onClick?: (e: React.MouseEvent) => void };
-
-type Ctx = {
-  /** The signed-in reader's email; null while signed out or not yet known. */
-  email: string | null;
-  /** True once /api/auth/me has answered: from then on a null email means signed out, not unknown. */
-  checked: boolean;
-  /** "idle" while signed out (or not yet known); then loading → ready per product. */
-  statusOf: (url: string) => Status;
-  /** Where a product link goes and what a click does, given the reader and the product's state. */
-  linkProps: (url: string) => LinkProps;
-};
-
-const ProductStatusContext = createContext<Ctx>({ email: null, checked: false, statusOf: () => "idle", linkProps: (url) => ({ href: gated(url) }) });
-
-export const useProductStatus = () => useContext(ProductStatusContext);
 
 const hostOf = (url: string) => {
   try {

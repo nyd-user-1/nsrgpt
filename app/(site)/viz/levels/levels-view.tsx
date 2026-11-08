@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic'
 import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 import { X } from 'lucide-react'
 import { THEME_EVENT } from '@/lib/theme'
-import { loadLevels } from '@/lib/viz-data'
+import { useData } from '@/lib/use-data'
 import { PARITY, find, label, parseNuclide, toModel, type Model } from './model'
 import type { Palette } from './scene'
 
@@ -50,28 +50,17 @@ function readPalette(el: HTMLElement): Palette {
 
 export function LevelsView() {
   const wrap = React.useRef<HTMLDivElement>(null)
-  const [model, setModel] = React.useState<Model | null>(null)
-  const [failed, setFailed] = React.useState(false)
+  const { data: model = null, error } = useData('levels.json', { select: toModel })
+  const failed = error !== null
   const [palette, setPalette] = React.useState<Palette | null>(null)
   const [focus, setFocus] = React.useState(-1)
   const [hover, setHover] = React.useState(-1)
   const [row, setRow] = React.useState(-1)
 
+  // The page opens on ²⁰⁸Pb once the levels are in.
   React.useEffect(() => {
-    let live = true
-    loadLevels().then(
-      (d) => {
-        if (!live) return
-        const m = toModel(d)
-        setModel(m)
-        setFocus(find(m, 82, 126))
-      },
-      () => live && setFailed(true),
-    )
-    return () => {
-      live = false
-    }
-  }, [])
+    if (model) setFocus(find(model, 82, 126))
+  }, [model])
 
   // The theme: read on arrival and on every theme event (a picked theme, or the light/dark class flipping).
   React.useEffect(() => {

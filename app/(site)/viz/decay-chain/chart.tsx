@@ -6,6 +6,7 @@ import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { AXIS, FAMILY, decayIndex, familyOf, formatSeconds, halfLifeText, ink, isDark, keyOf, loadDecay, nucName, type Decay } from '@/lib/viz-physics'
+import { useData } from '@/lib/use-data'
 import { atoms, logTimes, solveChain, timeSpan } from '@/lib/viz-bateman'
 
 // Decay simulation, per chain (Brendan, 2026-11-05: "a second version with meaning and purpose behind it"). The
@@ -33,12 +34,9 @@ const POINTS = 260
 
 
 export function DecayChainChart() {
-  const [decay, setDecay] = React.useState<Decay | null>(null)
+  const { data: decay = null } = useData<Decay>('decay.json')
   const [start, setStart] = React.useState(keyOf(88, 138))
   const [showAtoms, setShowAtoms] = React.useState(false)
-  React.useEffect(() => {
-    void loadDecay().then(setDecay)
-  }, [])
 
   // Only nuclides that decay can start a chain.
   const options = React.useMemo<PickerOption[]>(

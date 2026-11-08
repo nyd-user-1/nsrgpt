@@ -6,7 +6,8 @@ import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { AXIS, halfLifeText, isDark, keyOf, loadDecay, nucName, sup, type Decay } from '@/lib/viz-physics'
-import { TYPES, budget, loadElement, type ElementFile, type Lines } from './data'
+import { TYPES, budget, type ElementFile, type Lines } from './data'
+import { useData } from '@/lib/use-data'
 
 // The decay radiation card (Brendan, 2026-11-06): everything one nuclide's decay gives off, from ENSDF through the
 // IAEA Live Chart API. Each line stands at its energy, as tall as its intensity per 100 decays, both on log scales:
@@ -27,7 +28,6 @@ const PRESETS: [number, number][] = [
   [94, 145],
 ]
 
-type Shown = { key: number; file: ElementFile | null }
 type Item = { type: (typeof TYPES)[number]['id']; e: number; i: number; end?: number | null; kind?: string }
 
 /** Every line of a nuclide's decay, as the chart draws them. */
@@ -43,31 +43,21 @@ function items(l: Lines): Item[] {
 }
 
 export function RadiationChart() {
-  const [decay, setDecay] = React.useState<Decay | null>(null)
+  const { data: decay = null } = useData<Decay>('decay.json')
   const [key, setKey] = React.useState(keyOf(27, 33))
-  const [shown, setShown] = React.useState<Shown>({ key, file: null })
   React.useEffect(() => {
-    void loadDecay().then(setDecay)
     // A link may name the nuclide (/viz/radiation?z=55&n=82, from the γ-line finder).
     const q = new URLSearchParams(window.location.search)
     const z = Number(q.get('z'))
     const n = Number(q.get('n'))
     if (z > 0 && n >= 0 && q.get('n') !== null) setKey(keyOf(z, n))
   }, [])
-  React.useEffect(() => {
-    let live = true
-    void loadElement(Math.floor(key / 1000)).then(
-      (file) => live && setShown({ key, file }),
-      () => live && setShown({ key, file: null }),
-    )
-    return () => {
-      live = false
-    }
-  }, [key])
   const z = Math.floor(key / 1000)
   const n = key % 1000
-  const nuc = shown.file?.nuclides.find((x) => x.n === n) ?? null
-  const lines = React.useMemo(() => (nuc && shown.key === key ? nuc.lines : null), [nuc, shown.key, key])
+  // The element's file, one per element (lib/use-data.ts); a failed load reads as no radiation listed.
+  const { data: file, loading } = useData<ElementFile>(`radiation/${z}.json`)
+  const nuc = file?.nuclides.find((x) => x.n === n) ?? null
+  const lines = React.useMemo(() => nuc?.lines ?? null, [nuc])
   const latest = React.useRef(lines)
   latest.current = lines
 
@@ -204,7 +194,7 @@ export function RadiationChart() {
             ))}
           </div>
         ) : (
-          <span className="text-[var(--paper-muted)]">{shown.key === key && shown.file !== undefined ? 'ENSDF lists no radiation for this decay.' : 'Loading…'}</span>
+          <span className="text-[var(--paper-muted)]">{loading ? 'Loading…' : 'ENSDF lists no radiation for this decay.'}</span>
         )}
 
         {strongest.length > 0 && (

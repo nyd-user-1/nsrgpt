@@ -9,6 +9,7 @@ import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { FAMILIES, FAMILY, familyColor, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
+import { useData } from '@/lib/use-data'
 import { chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphModel, type Pin } from './model'
 
 // The decay network (chart batch A, 2026-11-04): every ENSDF ground state a node, coloured by its primary decay
@@ -45,10 +46,7 @@ const MORPH_MS = 600
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
 
 export function GraphChart() {
-  const [decay, setDecay] = React.useState<Decay | null>(null)
-  React.useEffect(() => {
-    void loadDecay().then(setDecay)
-  }, [])
+  const { data: decay = null } = useData<Decay>('decay.json')
   const [pinned, setPinned] = React.useState<number[]>([])
   const [flow, setFlow] = React.useState(true)
   // The flow starts off for a reader who asks the system for less motion.

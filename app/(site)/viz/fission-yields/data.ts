@@ -2,7 +2,7 @@
 // JEFF-3.1.1 yields (scripts/iaea-livechart-build.mjs). Yields are per fission (they sum to about 2, two fragments a
 // fission); the charts show them in percent.
 
-import { dataUrl } from '@/lib/data-url'
+import { fetchData } from '@/lib/use-data'
 
 export type Energy = 'thermal' | 'fast' | '14mev'
 export const ENERGIES: { id: Energy; label: string }[] = [
@@ -36,19 +36,7 @@ export const PARENTS = [
 ] as const
 export type ParentId = (typeof PARENTS)[number]['id']
 
-const cache = new Map<string, Promise<FissionFile>>()
-export function loadFission(id: string): Promise<FissionFile> {
-  let p = cache.get(id)
-  if (!p) {
-    p = fetch(dataUrl(`fission/${id}.json`)).then((r) => {
-      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
-      return r.json() as Promise<FissionFile>
-    })
-    p.catch(() => cache.delete(id))
-    cache.set(id, p)
-  }
-  return p
-}
+export const loadFission = (id: string) => fetchData<FissionFile>(`fission/${id}.json`)
 export const loadAllFission = () => Promise.all(PARENTS.map((p) => loadFission(p.id)))
 
 /** The mass-yield curve: independent yields summed per mass number, every charge and state, % per fission. */

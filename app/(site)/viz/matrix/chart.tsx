@@ -3,7 +3,8 @@
 import * as React from 'react'
 import { X } from 'lucide-react'
 import { useEChart, valueRow, type ChartClick } from '@/components/viz/use-echart'
-import { loadMatrixRows, loadNuclideMatrix, nuclideName } from '@/lib/viz-data'
+import { loadMatrixRows, loadNuclideMatrix, nuclideName, type NuclideMatrix } from '@/lib/viz-data'
+import { useData } from '@/lib/use-data'
 import { isDark } from '@/lib/viz-physics'
 
 // Pearson r across nine nuclide measures (chart batch B, 2026-11-04), over the nuclides that have all nine
@@ -49,15 +50,12 @@ function PairScatter({ pair }: { pair: [number, number] }) {
   return <div ref={ref} className="min-h-0 w-full flex-1" />
 }
 
+/** The labels, the nuclide count, and each pair's r by "i-j", for the scatter a cell opens. */
+const metaOf = (d: NuclideMatrix) => ({ labels: d.labels, n: d.n, r: new Map(d.cells.map(([a, b, r]): [string, number] => [`${Math.min(a, b)}-${Math.max(a, b)}`, r])) })
+
 export function MatrixChart() {
   const [pair, setPair] = React.useState<[number, number] | null>(null)
-  const [meta, setMeta] = React.useState<{ labels: string[]; n: number; r: Map<string, number> } | null>(null)
-  React.useEffect(() => {
-    loadNuclideMatrix().then(
-      (d) => setMeta({ labels: d.labels, n: d.n, r: new Map(d.cells.map(([a, b, r]): [string, number] => [`${Math.min(a, b)}-${Math.max(a, b)}`, r])) }),
-      () => {},
-    )
-  }, [])
+  const { data: meta } = useData('nuclide-matrix.json', { select: metaOf })
 
   const ref = useEChart(
     loadNuclideMatrix,

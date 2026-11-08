@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { dataUrl } from '@/lib/data-url'
+import { fetchData, useData } from '@/lib/use-data'
 import { useEChart } from '@/components/viz/use-echart'
 import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, formatSeconds, ink, isDark, keyOf, loadDecay, nucName, type Decay } from '@/lib/viz-physics'
@@ -20,27 +20,9 @@ const Y_MIN = 1e-4
 type Index = { bin: number; bins: number[]; els: string[]; count: number }
 type Line = [number, number, number, number]
 
-let indexP: Promise<Index> | null = null
-const loadIndex = () => {
-  if (!indexP) {
-    indexP = fetch(dataUrl('gamma/index.json')).then((r) => {
-      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
-      return r.json() as Promise<Index>
-    })
-    indexP.catch(() => (indexP = null))
-  }
-  return indexP
-}
-const slices = new Map<number, Promise<Line[]>>()
-const loadSlice = (b: number) => {
-  let p = slices.get(b)
-  if (!p) {
-    p = fetch(dataUrl(`gamma/${b}.json`)).then((r) => (r.ok ? (r.json() as Promise<Line[]>) : []))
-    p.catch(() => slices.delete(b))
-    slices.set(b, p)
-  }
-  return p
-}
+// Each file once per page (lib/use-data.ts); a slice that doesn't load draws as empty.
+const loadIndex = () => fetchData<Index>('gamma/index.json')
+const loadSlice = (b: number) => fetchData<Line[]>(`gamma/${b}.json`).catch((): Line[] => [])
 
 const HALF_LIVES = [
   { label: 'Any', s: 0 },
@@ -62,15 +44,12 @@ export function GammaLinesChart() {
   // An hour by default: a detector's peaks are mostly long-lived emitters, and the exotic short-lived ones crowd every energy.
   const [minT, setMinT] = React.useState(3600)
   const [minI, setMinI] = React.useState(0)
-  const [decay, setDecay] = React.useState<Decay | null>(null)
+  const { data: decay = null } = useData<Decay>('decay.json')
   const [near, setNear] = React.useState<Line[]>([])
   const e = Number(energy)
   const w = Math.max(0, Number(window_) || 0)
   const valid = Number.isFinite(e) && e > 0
 
-  React.useEffect(() => {
-    void loadDecay().then(setDecay)
-  }, [])
   // The slices the view touches.
   React.useEffect(() => {
     if (!valid) return

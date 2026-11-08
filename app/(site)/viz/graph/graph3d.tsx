@@ -14,7 +14,8 @@ import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { FAMILIES, FAMILY, familyOf, halfLifeText, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
 import { usePaperTheme } from '@/lib/use-paper-theme'
 import { VizControls } from '@/components/viz/VizControls'
-import { chainsOf, graphModel, loadGraphLayout, loadGraphLayout3d, positions3d, sizeOf, type GraphModel, type Pin } from './model'
+import { chainsOf, graphModel, positions3d, sizeOf, type GraphModel, type LayoutFile, type Layout3dFile, type Pin } from './model'
+import { useData } from '@/lib/use-data'
 
 const MORPH = 0.6
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -30,27 +31,19 @@ export default function Graph3D({ decay, pinned, onPin, flow, open }: { decay: D
   const box = React.useRef<HTMLDivElement>(null)
   const theme = usePaperTheme(box)
   const cross = useCrossRules()
-  const [layouts, setLayouts] = React.useState<Layouts | null>(null)
-  const [failed, setFailed] = React.useState(false)
-  React.useEffect(() => {
-    let live = true
-    Promise.all([loadGraphLayout(), loadGraphLayout3d()]).then(
-      ([l2, l3]) => {
-        if (!live) return
-        const m = graphModel(decay, l2)
-        const xyz = positions3d(decay, m, l3)
-        const flat = new Float32Array(m.xy.length * 3)
-        const deep = new Float32Array(m.xy.length * 3)
-        m.xy.forEach(([x, y], i) => flat.set([x, -y, 0], i * 3))
-        xyz.forEach(([x, y, z], i) => deep.set([x, -y, z], i * 3))
-        setLayouts({ m, flat, deep })
-      },
-      () => live && setFailed(true),
-    )
-    return () => {
-      live = false
-    }
-  }, [decay])
+  const l2 = useData<LayoutFile>('graph-layout.json')
+  const l3 = useData<Layout3dFile>('graph-layout-3d.json')
+  const failed = l2.error !== null || l3.error !== null
+  const layouts = React.useMemo<Layouts | null>(() => {
+    if (!l2.data || !l3.data) return null
+    const m = graphModel(decay, l2.data)
+    const xyz = positions3d(decay, m, l3.data)
+    const flat = new Float32Array(m.xy.length * 3)
+    const deep = new Float32Array(m.xy.length * 3)
+    m.xy.forEach(([x, y], i) => flat.set([x, -y, 0], i * 3))
+    xyz.forEach(([x, y, z], i) => deep.set([x, -y, z], i * 3))
+    return { m, flat, deep }
+  }, [decay, l2.data, l3.data])
 
   const pal = React.useMemo<Pal>(
     () => ({

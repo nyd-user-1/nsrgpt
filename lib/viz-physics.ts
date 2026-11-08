@@ -6,7 +6,7 @@
 // The decay types, the decay-mode colours, the nuclide names and the half-life text are lib/nuclide.ts's, shared
 // with /viz/decay; they're re-exported here so the charts import from one place.
 
-import { dataUrl } from '@/lib/data-url'
+import { fetchData } from '@/lib/use-data'
 import { FAMILIES, FAMILY, familyOf, keyOf, type DecayData, type DecayMode, type DecayNuclide, type Family } from '@/lib/nuclide'
 
 export { FAMILIES, FAMILY, familyOf, familyOfMode, formatSeconds, halfLifeText, keyOf, nucName, sup } from '@/lib/nuclide'
@@ -33,26 +33,7 @@ type MassFile = { source: string; els: string[]; cols: string[]; rows: (number |
 
 export type Decay = DecayData
 
-// One request per file per page, as lib/viz-data.ts does it; a failed fetch is dropped so the next mount retries.
-const cache = new Map<string, Promise<unknown>>()
-function once<T>(name: string, make: () => Promise<T>): () => Promise<T> {
-  return () => {
-    let p = cache.get(name) as Promise<T> | undefined
-    if (!p) {
-      p = make()
-      p.catch(() => cache.delete(name))
-      cache.set(name, p)
-    }
-    return p
-  }
-}
-async function json(name: string): Promise<unknown> {
-  const r = await fetch(dataUrl(`${name}.json`))
-  if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
-  return r.json()
-}
-
-function parseMasses(f: MassFile): Mass[] {
+export function parseMasses(f: MassFile): Mass[] {
   return f.rows.map(([z, n, , b, sn, su, sp, qa, qb, e, nl, e2]) => ({
     z: z as number,
     n: n as number,
@@ -63,8 +44,10 @@ function parseMasses(f: MassFile): Mass[] {
   }))
 }
 
-export const loadMasses = once('masses', () => json('masses').then((raw) => parseMasses(raw as MassFile)))
-export const loadDecay = once('decay', () => json('decay').then((raw) => raw as Decay))
+// One request per file per page, shared with every other loader of the file (lib/use-data.ts); the masses are
+// parsed once per file.
+export const loadMasses = () => fetchData<Mass[], MassFile>('masses.json', parseMasses)
+export const loadDecay = () => fetchData<Decay>('decay.json')
 export const loadMassesAndDecay = () => Promise.all([loadMasses(), loadDecay()])
 
 // ── names, units, colours ────────────────────────────────────────────────────────────────────────

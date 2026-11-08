@@ -15,7 +15,7 @@ import {
   GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, Users, X,
 } from "lucide-react";
 import { FlowSettingsPanel, DEFAULT_FLOW_PROPS, type FlowProps } from "@/components/nsr/graph/FlowSettings";
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogPopup, DialogHeader, DialogTitle, DialogDescription } from "@/components/animate-ui/components/base/dialog";
@@ -1720,15 +1720,11 @@ function GraphPageInner() {
   );
 }
 
-// One query cache for the page (the old app's App-level QueryClientProvider).
-const queryClient = new QueryClient();
-
+// The query cache is the app's one (components/DataProvider.tsx, 2026-11-08).
 export function GraphPage() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ReactFlowProvider>
-        <GraphPageInner />
-      </ReactFlowProvider>
-    </QueryClientProvider>
+    <ReactFlowProvider>
+      <GraphPageInner />
+    </ReactFlowProvider>
   );
 }

@@ -6,6 +6,7 @@ import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { AXIS, FAMILY, decayIndex, decayLinks, familyOf, halfLifeText, ink, isDark, keyOf, loadDecay, modesText, nucName, type Decay, type Link, stepPeriod as period } from '@/lib/viz-physics'
+import { useData } from '@/lib/use-data'
 import { FAMILIES, familyOfMode, type Family } from '@/lib/nuclide'
 
 // The decay network as a route map (Brendan, 2026-11-05: "like a subway map or a traffic map"). Every decay
@@ -65,12 +66,9 @@ function route(d: Decay, start: number, up: boolean): { steps: Link[]; nodes: nu
 let drawnNodes: number[] = []
 
 export function ReactionsChart() {
-  const [decay, setDecay] = React.useState<Decay | null>(null)
+  const { data: decay = null } = useData<Decay>('decay.json')
   const [start, setStart] = React.useState(keyOf(92, 146))
   const [up, setUp] = React.useState(false)
-  React.useEffect(() => {
-    void loadDecay().then(setDecay)
-  }, [])
 
   const options = React.useMemo<PickerOption[]>(
     () =>

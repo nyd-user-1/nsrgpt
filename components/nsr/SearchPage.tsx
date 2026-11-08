@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import {
   Loader2, Calendar, Atom, Zap, ExternalLink, BookOpen, Users, Tag, Layers, FileText, Quote,
@@ -361,15 +360,9 @@ function ResultRow({
 /*  Search page                                                         */
 /* ------------------------------------------------------------------ */
 
-// One query cache for the page (the old app's App-level QueryClientProvider).
-const queryClient = new QueryClient();
-
+// The query cache is the app's one (components/DataProvider.tsx, 2026-11-08).
 export function SearchPage() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Search />
-    </QueryClientProvider>
-  );
+  return <Search />;
 }
 
 function Search() {
