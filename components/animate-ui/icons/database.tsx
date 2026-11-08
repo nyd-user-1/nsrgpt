@@ -66,7 +66,6 @@ function IconComponent({ size, ...props }: DatabaseProps) {
         animate={controls}
       />
       <motion.path
-        className="fill-none"
         d="M3 12A9 3 0 0 0 21 12"
         variants={variants.path2}
         initial="initial"
