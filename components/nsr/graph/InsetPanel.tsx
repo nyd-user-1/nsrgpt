@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 
 import { RailToggle, useRailClosed } from "@/components/rail-toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/nova/tooltip";
@@ -32,9 +32,53 @@ export function InsetBody({ className, children }: { className?: string; childre
   return <div className={cn("min-h-0 flex-1 overflow-y-auto pb-4", className)}>{children}</div>;
 }
 
+type Layer = { key: string; depth: number; node: ReactNode };
+
+/** A panel's drill-down layers (Brendan, 2026-11-08): a deeper layer pushes in from the right as the sidebar opens
+ *  (AppLayout.tsx, 500 ms ease-in-out), the one it covers sliding out to the left; back runs it in reverse. `layerKey`
+ *  names the layer on screen and `depth` orders the layers. */
+export function InsetLayers({ layerKey, depth, children }: { layerKey: string; depth: number; children: ReactNode }) {
+  const shown = useRef<Layer>({ key: layerKey, depth, node: children });
+  const [out, setOut] = useState<{ layer: Layer; dir: 1 | -1; run: boolean } | null>(null);
+  // After every render: a new layer turns the one last on screen into the leaving layer, before the browser paints.
+  useLayoutEffect(() => {
+    const was = shown.current;
+    if (was.key !== layerKey) setOut({ layer: was, dir: depth >= was.depth ? 1 : -1, run: false });
+    shown.current = { key: layerKey, depth, node: children };
+  });
+  // Both layers paint at their starting places, then move; the leaving one goes once the move is done.
+  useEffect(() => {
+    if (!out || out.run) return;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => setOut((o) => (o && !o.run ? { ...o, run: true } : o)));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [out]);
+  useEffect(() => {
+    if (!out?.run) return;
+    const t = setTimeout(() => setOut(null), 500);
+    return () => clearTimeout(t);
+  }, [out]);
+  const layer = "absolute inset-0 flex min-h-0 flex-col bg-[var(--paper)]";
+  const move = out?.run ? "transition-transform duration-[500ms] ease-in-out" : "";
+  return (
+    <div className="relative min-h-0 flex-1 overflow-hidden">
+      {out && (
+        <div key={out.layer.key} aria-hidden className={cn(layer, move, "pointer-events-none")} style={{ transform: `translateX(${out.run ? -out.dir * 100 : 0}%)` }}>
+          {out.layer.node}
+        </div>
+      )}
+      <div key={layerKey} className={cn(layer, move)} style={{ transform: `translateX(${out && !out.run ? out.dir * 100 : 0}%)` }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /** The settings panel's tooltip, for both panels: a name and what it does, in a paper card beside the row, on the
  *  canvas's side. It renders in a portal above the canvas, so no panel edge clips it. */
-export function InsetTip({ name, text, side, children }: { name: string; text?: string; side: InsetSide; children: ReactElement }) {
+// The tip shows the row's name only; Brendan dropped the descriptions (2026-11-08). `text` is accepted and ignored until the call sites shed it.
+export function InsetTip({ name, side, children }: { name: string; text?: string; side: InsetSide; children: ReactElement }) {
   return (
     <Tooltip>
       <TooltipTrigger delay={0} closeDelay={0} render={children} />
@@ -42,10 +86,9 @@ export function InsetTip({ name, text, side, children }: { name: string; text?: 
         side={side === "left" ? "right" : "left"}
         align="start"
         sideOffset={8}
-        className="nysgpt-app pointer-events-none flex w-56 max-w-56 flex-col items-start gap-1 rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] p-2.5 text-left text-[var(--paper-text)] shadow-md [&>[data-side]]:hidden"
+        className="nysgpt-app pointer-events-none flex w-auto max-w-56 flex-col items-start gap-1 rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] p-2.5 text-left text-[var(--paper-text)] shadow-md [&>[data-side]]:hidden"
       >
         <span className="block font-mono text-[10px] text-[var(--paper-muted)]">{name}</span>
-        {text && <span className="block text-xs leading-snug text-[var(--paper-text)]">{text}</span>}
       </TooltipContent>
     </Tooltip>
   );
