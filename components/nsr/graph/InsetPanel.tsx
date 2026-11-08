@@ -2,7 +2,9 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 
-import { RailToggle, useRailClosed } from "@/components/rail-toggle";
+import { AnimateIcon } from "@/components/animate-ui/icons/icon";
+import { PAPER_TAB, RailToggle, useRailClosed } from "@/components/rail-toggle";
+import { ICON_ON, ICON_REST, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/nova/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +28,23 @@ export const INSET = {
   count: "ml-auto shrink-0 font-mono text-xs text-[var(--paper-muted)]",
   note: "p-3 text-xs text-[var(--paper-muted)]",
 };
+
+/** A row whose icon plays as a sidebar row's does (SideBarMenuItem.tsx, Brendan, 2026-11-08): this wrapper is the
+ *  AnimateIcon and the hover group, so hovering anywhere on the row animates the icon and gives it the two tones, and
+ *  the icon alone does nothing. It is `group/row` too, for a drill-down row's arrow (SwitchboardPanel.tsx RowArrow). */
+export function IconRow({ children }: { children: ReactNode }) {
+  return (
+    <AnimateIcon asChild animateOnHover>
+      <div className="group/item group/row">{children}</div>
+    </AnimateIcon>
+  );
+}
+
+/** A row's icon, as a sidebar row wears it: 18 px, the sidebar's two tones, 1.75 stroke at rest and 2.25 when on. Inside
+ *  an IconRow. */
+export function InsetIcon({ icon: Icon, on = false }: { icon: SideBarIcon; on?: boolean }) {
+  return <Icon size={18} className={cn("shrink-0 transition-colors", on ? ICON_ON : cn("text-[var(--paper-muted)]", ICON_REST))} strokeWidth={on ? 2.25 : 1.75} />;
+}
 
 /** A panel's scrolling content, with the one bottom margin both panels share. */
 export function InsetBody({ className, children }: { className?: string; children: ReactNode }) {
@@ -75,10 +94,9 @@ export function InsetLayers({ layerKey, depth, children }: { layerKey: string; d
   );
 }
 
-/** The settings panel's tooltip, for both panels: a name and what it does, in a paper card beside the row, on the
- *  canvas's side. It renders in a portal above the canvas, so no panel edge clips it. */
-// The tip shows the row's name only; Brendan dropped the descriptions (2026-11-08). `text` is accepted and ignored until the call sites shed it.
-export function InsetTip({ name, side, children }: { name: string; text?: string; side: InsetSide; children: ReactElement }) {
+/** The settings panel's tooltip, for both panels: the row's name in a paper card beside the row, on the canvas's side
+ *  (Brendan dropped the descriptions, 2026-11-08). It renders in a portal above the canvas, so no panel edge clips it. */
+export function InsetTip({ name, side, children }: { name: string; side: InsetSide; children: ReactElement }) {
   return (
     <Tooltip>
       <TooltipTrigger delay={0} closeDelay={0} render={children} />
@@ -138,7 +156,7 @@ export function InsetPanel({ side, storageKey, tabs, children }: { side: InsetSi
       <RailToggle
         side={side}
         className={cn(
-          "top-24 w-[22px] border border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]",
+          PAPER_TAB,
           side === "left" ? "right-0 border-l-0" : "left-0 border-r-0",
         )}
       />

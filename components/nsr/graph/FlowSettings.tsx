@@ -250,9 +250,9 @@ export function FlowSettingsPanel({
         <div key={s.title}>
           <p className={INSET.section}>{s.title}</p>
           {s.rows.map((r) => {
-            const [name, ...rest] = r.tip.split(" — ");
+            const [name] = r.tip.split(" — ");
             return (
-            <InsetTip key={String(r.key)} name={`${name} #`} text={rest.join(" — ")} side="right">
+            <InsetTip key={String(r.key)} name={`${name} #`} side="right">
             <div className={ROW}>
               <span className={LABEL}>{r.label}</span>
               {r.kind === "bool" && (

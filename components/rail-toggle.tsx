@@ -120,6 +120,12 @@ export function useRailClosed(side: Side) {
   return closed
 }
 
+/** The tab on the paper's panels (/docs, /graph's inset panels): paper ground, ink chevron and the paper's hover tint, so
+ *  it reads in every theme (Brendan, 2026-11-08; the dark-blue chevron on the ink ground was lost in the light themes).
+ *  22 px wide at rest, 30.25 px on hover, as if pulling the panel. The caller adds its edge. */
+export const PAPER_TAB =
+  "top-24 w-[22px] border border-[var(--paper-rule)] bg-[var(--paper)] text-[var(--paper-text)] shadow-md hover:w-[30.25px] hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
+
 export function RailToggle({ side, className }: { side: Side; className?: string }) {
   const closed = useRailClosed(side)
   const toggle = () => toggleRail(side)

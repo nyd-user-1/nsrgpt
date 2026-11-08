@@ -250,9 +250,24 @@ function RowIcon({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** The row's arrow: up-right, nudging further up-right on hover. */
-function RowArrow() {
+/** The row's arrow: up-right, nudging further up-right on hover. The row is `group/row`. /graph's right inset panel's
+ *  menu rows wear it too (components/nsr/graph/RightInsetPanel.tsx). */
+export function RowArrow() {
   return <ArrowUpRight className={`${GLYPH} transition-transform duration-200 ease-out group-hover/row:-translate-y-0.5 group-hover/row:translate-x-0.5`} />
+}
+
+/** The header's back arrow one level down, which returns to the layer above; the inset panels' drill-down layers wear
+ *  it too (components/nsr/graph/InsetPanel.tsx). */
+export function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className="shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
+    >
+      <ArrowLeft className="h-4 w-4" />
+    </button>
+  )
 }
 
 /** A plain row: icon, label, arrow; the whole thing drills down. */
@@ -395,13 +410,7 @@ function SwitchboardPanel() {
               becomes the product name. That IS the navigation affordance. */}
           <div className="flex shrink-0 items-center gap-2 border-b border-[var(--paper-rule)] px-5 py-4">
             {deep ? (
-              <button
-                onClick={back}
-                aria-label={view.kind === 'vizControls' ? 'Back to the Viz list' : 'Back to the switchboard'}
-                className="shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </button>
+              <BackButton onClick={back} label={view.kind === 'vizControls' ? 'Back to the Viz list' : 'Back to the switchboard'} />
             ) : (
               <span className="shrink-0 pl-1"><LiveDot /></span>
             )}

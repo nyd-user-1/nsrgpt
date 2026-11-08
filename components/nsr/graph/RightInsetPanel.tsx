@@ -32,7 +32,7 @@ export function RightInsetPanel({ view, onView, papers, config, features }: {
   const tabs = VIEWS.map((v, i) => {
     const on = view === v.key && !closed;
     return (
-      <InsetTip key={v.key} name={v.label} text={v.text} side="right">
+      <InsetTip key={v.key} name={v.label} side="right">
         <button
           type="button"
           aria-label={v.label}

@@ -7,7 +7,8 @@ import { MessagesSquare } from "@/components/animate-ui/icons/messages-square"
 import { SquarePlay } from "@/components/animate-ui/icons/square-play"
 import { ICONS } from "@/components/docs/icons"
 import { SearchBar } from "@/components/search/SearchBar"
-import { RailToggle } from "@/components/rail-toggle"
+import { PAPER_TAB, RailToggle } from "@/components/rail-toggle"
+import { cn } from "@/lib/utils"
 import { SideBarMenuFoot, SideBarMenuGroup, SideBarMenuItem, SideBarMenuPinned } from "@/components/sidebar/SideBarMenuItem"
 import { arrange, useNavRows } from "@/lib/nav-rows"
 import type { DocCategory } from "@/lib/docs"
@@ -35,10 +36,8 @@ export function DocsNav({ categories }: { categories: NavCategory[] }) {
     // opens and closes it, and rides the edge as the column slides, so it looks to drag the panel open. The tab
     // overhangs the column; the column's inner box clips the nav. Open or closed is <html data-rail-left>.
     <div className="relative h-full w-[284px] shrink-0 transition-[width] duration-[500ms] ease-in-out [[data-rail-left=closed]_&]:w-0">
-    {/* Filled in the paper text colour, as the docs' "How can I help?" heading (Brendan, 2026-11-07); chevron and outline in the dark
-        blue (Brendan, 2026-11-07). 22 px wide at rest; on hover it grows outward by the same ratio as before (16 → 22,
-        ×1.375), to 30.25 px, as if pulling the panel. */}
-    <RailToggle side="left" className="top-24 right-0 w-[22px] border border-l-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
+    {/* The paper's tab (rail-toggle.tsx PAPER_TAB, 2026-11-08), flat against the panel's edge. */}
+    <RailToggle side="left" className={cn(PAPER_TAB, "right-0 border-l-0")} />
     <div className="h-full w-full overflow-hidden">
     <nav aria-label="Docs" className="no-scrollbar flex h-full w-[284px] shrink-0 flex-col overflow-y-auto border-r border-[var(--paper-rule)] px-4 pt-5 pb-10">
       {/* The SearchBar, as the SideBarMenu's: it opens ⌘K, whose Docs chip narrows to the articles (2026-11-07). */}

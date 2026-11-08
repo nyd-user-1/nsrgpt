@@ -11,9 +11,17 @@ import {
 import "@xyflow/react/dist/style.css";
 import dagre from "@dagrejs/dagre";
 import {
-  ArrowLeft, Atom, BookOpen, Boxes, Check, ChevronRight, Crosshair, Database, FileText, FlaskConical, History, Layers,
-  GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, Users, X,
+  ArrowLeft, Check, ChevronRight, Crosshair, History,
+  GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, X,
 } from "lucide-react";
+import { Atom } from "@/components/animate-ui/icons/atom";
+import { BookOpen } from "@/components/animate-ui/icons/book-open";
+import { Boxes } from "@/components/animate-ui/icons/boxes";
+import { Database } from "@/components/animate-ui/icons/database";
+import { FileText } from "@/components/animate-ui/icons/file-text";
+import { FlaskConical } from "@/components/animate-ui/icons/flask-conical";
+import { Layers } from "@/components/animate-ui/icons/layers";
+import { Users } from "@/components/animate-ui/icons/users";
 import { FlowSettingsPanel, DEFAULT_FLOW_PROPS, type FlowProps } from "@/components/nsr/graph/FlowSettings";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -575,7 +583,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
             </p>
           )}
           {items.map((v) => (
-            <InsetTip key={v.id} name={v.name} text="Loads onto the canvas." side="left">
+            <InsetTip key={v.id} name={v.name} side="left">
             <button
               onClick={() => onLoadView(v.id)}
               className="flex w-full flex-col gap-0.5 border-b border-[var(--paper-rule-soft)] px-3 py-2 text-left transition-colors hover:bg-[var(--paper-quiet)]"
@@ -621,7 +629,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
             <p className="p-3 text-xs text-[var(--paper-muted)]">Nothing here yet — drop a file anywhere on the canvas.</p>
           )}
           {items.map((f) => (
-            <InsetTip key={f.key} name={f.name} text="Adds to the canvas." side="left">
+            <InsetTip key={f.key} name={f.name} side="left">
             <button
               onClick={() => onAddFile(f)}
               className="flex w-full items-center gap-2 border-b border-[var(--paper-rule-soft)] px-3 py-2 text-left transition-colors hover:bg-[var(--paper-quiet)]"
@@ -666,7 +674,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
             const g = toGNode(browse, it);
             return (
               <div key={it.id} className="group/row relative border-b border-[var(--paper-rule-soft)]">
-                <InsetTip name={it.label} text="Centres on the canvas. Drag onto the canvas or into the chat." side="left">
+                <InsetTip name={it.label} side="left">
                 <button
                   onClick={() => onPick(g)}
                   draggable
@@ -696,12 +704,11 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
   }
 
   // The main view. Its type, spacing and hover are the standard both inset panels share (InsetPanel.tsx INSET).
-  const demoTip = (d: Demo) => (d.grid === "figure" ? "Drawn to its reference figure." : "Hand-typed sample values, in the shape the real data will take.");
   return (
     <InsetBody>
       <p className={cn(INSET.section, "pt-3")}>Corpus</p>
       {CATALOG_TYPES.map(({ key, label, icon: Icon }) => (
-        <InsetTip key={key} name={key} text="Most studied first. The search bar covers the full corpus." side="left">
+        <InsetTip key={key} name={key} side="left">
           <button onClick={() => setBrowse(key)} className={INSET.row}>
             <Icon className={INSET.icon} />
             <span>{label}</span>
@@ -710,14 +717,14 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
         </InsetTip>
       ))}
       <p className={INSET.section}>Workspace</p>
-      <InsetTip name="library" text="Everything ever dropped on a canvas. Click a file to add it to this one." side="left">
+      <InsetTip name="library" side="left">
         <button onClick={() => setBrowse("files")} className={INSET.row}>
           <FileText className={INSET.icon} />
           <span>Library</span>
         </button>
       </InsetTip>
-      {([["views", "Views", Layers, "Saved canvases, exactly as arranged. Click one to load it onto this one."], ["recipes", "Recipes", BookOpen, "Saved canvases with prompt steps. Click one to load it, then Run."]] as const).map(([key, label, Icon, tip]) => (
-        <InsetTip key={key} name={key} text={tip} side="left">
+      {([["views", "Views", Layers], ["recipes", "Recipes", BookOpen]] as const).map(([key, label, Icon]) => (
+        <InsetTip key={key} name={key} side="left">
           <button onClick={() => setBrowse(key)} className={INSET.row}>
             <Icon className={INSET.icon} />
             <span>{label}</span>
@@ -729,7 +736,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       ))}
       <p className={INSET.section}>Datasets</p>
       {CATALOG_LINKS.map(({ key, label, icon: Icon, href }) => (
-        <InsetTip key={key} name={href} text={`Opens the ${label} page.`} side="left">
+        <InsetTip key={key} name={href} side="left">
           <button onClick={() => navigate(href)} className={INSET.row}>
             <Icon className={INSET.icon} />
             <span>{label}</span>
@@ -739,7 +746,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       ))}
       <p className={INSET.section}>Decay chains</p>
       {CHAINS.map((c) => (
-        <InsetTip key={c.id} name={c.id} text="Loads the series onto a fresh canvas from ENSDF's decay modes." side="left">
+        <InsetTip key={c.id} name={c.id} side="left">
           <button onClick={() => onLoadChain(c.id)} className={INSET.row}>
             <Atom className={INSET.icon} />
             <span>{c.label}</span>
@@ -747,7 +754,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
         </InsetTip>
       ))}
       {ALL_DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
-        <InsetTip key={d.id} name={d.id} text={demoTip(d)} side="left">
+        <InsetTip key={d.id} name={d.id} side="left">
           <button onClick={() => onLoadDemo(d.id)} className={INSET.row}>
             <Atom className={INSET.icon} />
             <span>{d.label}</span>
@@ -758,7 +765,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
         <div key={section}>
           <p className={INSET.section}>{section}</p>
           {ALL_DEMOS.filter((d) => d.section === section).map((d) => (
-            <InsetTip key={d.id} name={d.id} text={demoTip(d)} side="left">
+            <InsetTip key={d.id} name={d.id} side="left">
               <button onClick={() => onLoadDemo(d.id)} className={INSET.row}>
                 <Atom className={INSET.icon} />
                 <span>{d.label}</span>
