@@ -39,6 +39,9 @@ export const VIZ_CHARTS: VizChart[] = [
   { href: "/viz/nuclide-card", title: "Radar Chart", body: "One nuclide's half-life, Qα, Qβ−, Sₙ, Sₚ and E(2⁺) as a polygon, with a second nuclide overlaid.", lines: ["Spokes: T½, Qα, Qβ−, Sₙ, Sₚ, E(2⁺)", "Source: ENSDF, AME2020"] },
   { href: "/viz/isotope-radar", title: "Radar Chart", body: "One element at a time, every isotope as a translucent polygon on the same six spokes; the timeline walks Z with a play button. Neutron-poor runs cool, neutron-rich warm.", lines: ["Spokes: T½, Qα, Qβ−, Sₙ, Sₚ, E(2⁺)", "Source: ENSDF, AME2020"] },
   { href: "/viz/literature", title: "Bubble Chart", body: "x neutrons N · y protons Z · size and glow log₁₀ papers. All 7,799 nuclides the literature touches.", lines: ["X: Neutron Number N", "Y: Proton Number Z", "Source: NSR"] },
+  // Placeholders (Brendan, 2026-11-08): two decay-chain charts to build, each linked to the illustration to match until then.
+  { href: "https://en.wikipedia.org/wiki/Decay_chain#/media/File:DecayChain241Pu-eng.svg", title: "Placeholder", body: "The ²⁴¹Pu decay chain as a flow chart: each nuclide a box, each decay an arrow with mode and half-life. To build; the link is the illustration to match.", lines: ["Placeholder", "Source: Wikipedia, Decay chain"] },
+  { href: "https://en.wikipedia.org/wiki/Decay_chain#/media/File:Radioactive_decay_chains_diagram.svg", title: "Placeholder", body: "The four decay series on one Z against N grid, α and β steps as arrows: the Flow Map's data in the textbook form. To build, beside the Flow Map, not instead of it.", lines: ["Placeholder", "Source: Wikipedia, Decay chain"] },
 ]
 
 /** The chart before and after `path` in box order, wrapping at the ends; null off the list. */

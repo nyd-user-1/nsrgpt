@@ -24,6 +24,7 @@ import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { RailToggle, useRailClosed } from "@/components/rail-toggle";
+import { decayIndex, halfLifeText, loadDecay, seriesFrom } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
 
@@ -61,7 +62,7 @@ export interface GNode {
   openGroups?: string[];
 }
 /** Edge provenance. Absent = a record from the join tables. */
-type EdgeMeta = { kind?: "similar" | "wired"; cos?: number } & Record<string, unknown>;
+type EdgeMeta = { kind?: "similar" | "wired" | "decay"; cos?: number; mode?: string; pct?: number | null } & Record<string, unknown>;
 const isSimilar = (e: Edge) => (e.data as EdgeMeta | undefined)?.kind === "similar";
 const keyOf = (n: { type: string; id: string }) => `${n.type}:${n.id}`;
 
@@ -163,6 +164,8 @@ interface RunTrace {
 function edgeReceipt(x: GNode, y: GNode, meta?: EdgeMeta): { table?: string; text: string } {
   if (meta?.kind === "similar")
     return { text: `Inference from the embedding space (bge-m3 cosine similarity${meta.cos != null ? ` = ${meta.cos.toFixed(3)}` : ""}) — NOT a database record. ${x.label} and ${y.label} sit near each other in vector space; nothing in the corpus joins them.` };
+  if (meta?.kind === "decay")
+    return { table: "ensdf decay modes (decay.json)", text: `${x.label} decays to ${y.label} by ${meta.mode}${meta.pct != null ? `, ${meta.pct}% of its decays` : ""}: the ground-state decay mode and branching ENSDF lists for ${x.label}.` };
   const pair = (t1: GNode["type"], t2: GNode["type"]) =>
     (x.type === t1 && y.type === t2) || (x.type === t2 && y.type === t1);
   const paper = x.type === "paper" ? x : y.type === "paper" ? y : null;
@@ -419,12 +422,13 @@ function RowMenu({ g, onPick, onAdd, onAsk }: {
   );
 }
 
-function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: {
+function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, navigate }: {
   onPick: (g: GNode) => void;
   onAdd: (g: GNode) => void;
   onAsk: (g: GNode) => void;
   onAddFile: (f: LibFile) => void;
   onLoadView: (id: number) => void;
+  onLoadChain: (id: string) => void;
   navigate: (p: string) => void;
 }) {
   const { data } = useQuery({
@@ -659,6 +663,17 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
           </span>
         </button>
       ))}
+      <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Decay chains</p>
+      {CHAINS.map((c) => (
+        <button
+          key={c.id}
+          onClick={() => onLoadChain(c.id)}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
+        >
+          <Atom className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
+          <span>{c.label}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -680,6 +695,15 @@ const STARTER: (GNode & { code?: string })[] = [
   { type: "paper", id: "2011CH57", label: "2011CH57", title: "ENDF/B-VII.1 Nuclear Data for Science and Technology: Cross Sections, Covariances, Fission Product Yields and Decay Data", sub: "2011 · 2,767 cites" },
   { type: "paper", id: "1971JA07", label: "1971JA07", title: "Precision Measurement of Half-Lives and Specific Activities of $^{235}$U and $^{238}$U", sub: "1971 · 2,648 cites" },
   { type: "paper", id: "2005AD25", label: "2005AD25", title: "Formation of dense partonic matter in relativistic nucleus-nucleus collisions at RHIC", sub: "2005 · 2,622 cites" },
+];
+
+/** The four decay series (Brendan, 2026-11-08): node = nuclide, edge = a decay mode with its branching, walked from
+ *  the head through ENSDF's ground-state decay modes (decay.json, the Flow Map's data) down to stable lead or bismuth. */
+const CHAINS: { id: string; label: string; head: readonly [number, number] }[] = [
+  { id: "thorium", label: "Thorium series (4n)", head: [90, 142] },
+  { id: "neptunium", label: "Neptunium series (4n+1)", head: [93, 144] },
+  { id: "uranium", label: "Uranium series (4n+2)", head: [92, 146] },
+  { id: "actinium", label: "Actinium series (4n+3)", head: [92, 143] },
 ];
 
 /** Seed canvases for the props panel — each one centers a real entity. */
@@ -1280,6 +1304,33 @@ function GraphPageInner() {
     else if (RELS[g.type]?.length) setTimeout(() => expand(g, RELS[g.type]![0].rel), 0);
   }, [setEdges, setNodes, expand, fetchCards, snapshot]);
 
+  /** A decay series onto a fresh canvas: nuclide nodes, decay edges labelled with mode and branching. */
+  const loadChain = useCallback(async (id: string) => {
+    const c = CHAINS.find((x) => x.id === id);
+    if (!c) return;
+    const d = await loadDecay();
+    const steps = seriesFrom(d, decayIndex(d), c.head);
+    if (!steps.length) { toast.error(`${c.label}: its head is not in the decay data`); return; }
+    const gnode = (i: number): GNode => {
+      const x = d.nuclides[i];
+      const a = x.z + x.n;
+      return { type: "nuclide", id: `${a}${x.el.toUpperCase()}`, label: `${a}${x.el}`, sub: `Z=${x.z} N=${x.n} · ${halfLifeText(x)}` };
+    };
+    const pct = (p: number | null) => (p == null ? "" : ` ${p >= 10 ? p.toFixed(0) : p >= 1 ? p.toFixed(1) : p.toPrecision(2)}%`);
+    snapshot();
+    store.current = new Map();
+    expandState.current = new Map();
+    setSelectedKey(null);
+    setEdgeInfo(null);
+    for (const s of steps) for (const i of [s.from, s.to]) { const g = gnode(i); store.current.set(keyOf(g), g); }
+    const edges: Edge[] = steps.map((s) => {
+      const from = keyOf(gnode(s.from)), to = keyOf(gnode(s.to));
+      return { id: `${from}->${to}:${s.mode}`, source: from, target: to, label: `${s.mode}${pct(s.pct)}`, data: { kind: "decay", mode: s.mode, pct: s.pct } as EdgeMeta };
+    });
+    setNodes([]);
+    setEdges(() => { syncNodes(edges, true); setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60); return edges; });
+  }, [setEdges, setNodes, syncNodes, fitView, snapshot]);
+
   const applyDataset = useCallback((id: string) => {
     const d = DATASETS.find((x) => x.id === id);
     if (!d) return;
@@ -1491,6 +1542,7 @@ function GraphPageInner() {
               type: "file", id: f.key, label: f.name,
               sub: `${(f.size / 1024).toFixed(0)} kB`, fileKey: f.key,
             }], undefined)}
+            onLoadChain={loadChain}
             navigate={navigate}
           />
         </div>
