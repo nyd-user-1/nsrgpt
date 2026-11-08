@@ -2,14 +2,21 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ChevronDown, Database } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import {
-  Background, Controls, Handle, MarkerType, Position, ReactFlow, ReactFlowProvider, useNodesInitialized, useReactFlow, useUpdateNodeInternals,
+  Background, Controls, Handle, MarkerType, Position, ReactFlow, ReactFlowProvider, useReactFlow, useStore, useUpdateNodeInternals,
   type Edge, type Node, type NodeProps, type NodeTypes,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 
+import { Activity } from "@/components/animate-ui/icons/activity"
+import { Blocks } from "@/components/animate-ui/icons/blocks"
+import { Database } from "@/components/animate-ui/icons/database"
+import { AnimateIcon } from "@/components/animate-ui/icons/icon"
+import { MessagesSquare } from "@/components/animate-ui/icons/messages-square"
+import { Radar } from "@/components/animate-ui/icons/radar"
 import { SideBarFold, SideBarFoldItem } from "@/components/sidebar/SideBarFold"
+import { ICON_REST, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem"
 import { CORE, LAKE, NUCLIDE, SOURCES, SURFACES, type Status } from "@/lib/pipeline-map"
 import { cn } from "@/lib/utils"
 
@@ -56,10 +63,16 @@ function Title({ children }: { children: React.ReactNode }) {
   return <p className="mb-1.5 text-[12px] text-[var(--paper-muted)]">{children}</p>
 }
 
+/** A–Z by label, numbers in numeric order, case and accents ignored (Brendan, 2026-11-08): every list inside a card
+ *  sorts at render time, so the data file's order doesn't matter. The cards in each column keep their order. */
+function az<T>(items: readonly T[], label: (item: T) => string): T[] {
+  return [...items].sort((a, b) => label(a).localeCompare(label(b), undefined, { numeric: true, sensitivity: "base" }))
+}
+
 function Rows({ rows }: { rows: [string, string][] }) {
   return (
     <div className="flex flex-col gap-1.5">
-      {rows.map(([l, p]) => (
+      {az(rows, ([l]) => l).map(([l, p]) => (
         <Row key={l} left={l} pill={p} />
       ))}
     </div>
@@ -74,28 +87,45 @@ function Mark({ s }: { s: Status }) {
 
 type Port = { type: "source" | "target"; position: Position; id: string }
 
-/** A card: its header opens it; a port on the header's outer edge keeps the connector at the header. */
-function Card({ nodeId, title, soon, port, width, children }: { nodeId: string; title: string; soon?: boolean; port?: Port; width?: number; children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false)
+/** Re-measures a node when a card in it opens or closes, so the ports below the card follow it. Not on mount: a
+ *  request then measured one column ahead of the others. */
+function useRemeasure(nodeId: string, open: boolean) {
   const update = useUpdateNodeInternals()
-  // The ports below this card move when it opens or closes; React Flow re-measures them on request. Not on mount: a
-  // request then ran the first fitView with only the sources measured, and the lake and surfaces sat off the view.
-  const opened = React.useRef(open)
+  const was = React.useRef(open)
   React.useEffect(() => {
-    if (opened.current === open) return
-    opened.current = open
+    if (was.current === open) return
+    was.current = open
     update(nodeId)
   }, [open, nodeId, update])
+}
+
+/** A card's header: it opens and closes the card, and holds the card's ports. A card with the sidebar's icon plays it
+ *  when the header is hovered, as a sidebar row plays its icon (SideBarMenuItem.tsx): AnimateIcon on the header, the
+ *  row's group, size and two tones. */
+function Header({ title, icon: Icon, soon, open, onToggle, children }: { title: string; icon?: SideBarIcon; soon?: boolean; open: boolean; onToggle: () => void; children?: React.ReactNode }) {
+  const button = (
+    <button type="button" onClick={onToggle} aria-expanded={open} className="group/item relative flex h-11 w-full items-center gap-2 px-3.5 text-left text-[15px] font-medium">
+      {Icon && <Icon size={18} className={cn("shrink-0 text-[var(--paper-muted)] transition-colors", ICON_REST)} strokeWidth={1.75} />}
+      <span className="truncate">{title}</span>
+      {soon && <span className="shrink-0 rounded-full border border-dashed border-[var(--paper-muted)] px-2 py-px text-[11px] font-normal">Coming Soon</span>}
+      <ChevronDown className={cn("ml-auto size-4 shrink-0 text-[var(--paper-muted)] transition-transform", open && "rotate-180")} />
+      {children}
+    </button>
+  )
+  return Icon ? <AnimateIcon asChild animateOnHover>{button}</AnimateIcon> : button
+}
+
+/** A card: its header opens it; a port on the header's outer edge keeps the connector at the header. */
+function Card({ nodeId, title, icon, soon, port, width, children }: { nodeId: string; title: string; icon?: SideBarIcon; soon?: boolean; port?: Port; width?: number; children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false)
+  useRemeasure(nodeId, open)
   // pointer-events-auto: React Flow turns pointer events off on a node that is neither selectable nor draggable, which
   // left every card's header unpressable; the card takes them back, and the gaps between cards still pan the canvas.
   return (
     <div className={cn(CARD, soon && SOON, "pointer-events-auto")} style={width ? { width } : undefined}>
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="relative flex h-11 w-full items-center gap-2 px-3.5 text-left text-[15px] font-medium">
-        <span className="truncate">{title}</span>
-        {soon && <span className="shrink-0 rounded-full border border-dashed border-[var(--paper-muted)] px-2 py-px text-[11px] font-normal">Coming Soon</span>}
-        <ChevronDown className={cn("ml-auto size-4 shrink-0 text-[var(--paper-muted)] transition-transform", open && "rotate-180")} />
+      <Header title={title} icon={icon} soon={soon} open={open} onToggle={() => setOpen((v) => !v)}>
         {port && <Handle type={port.type} position={port.position} id={port.id} isConnectable={false} className="!pointer-events-none !opacity-0" />}
-      </button>
+      </Header>
       {open && <div className={cn("border-t", RULE)}>{children}</div>}
     </div>
   )
@@ -107,9 +137,9 @@ function SourcesNode({ id }: NodeProps) {
       {SOURCES.map((s) => (
         <Card key={s.id} nodeId={id} title={s.title} port={{ type: "source", position: Position.Right, id: s.id }}>
           <div className="px-1 py-1.5">
-            {s.folds.map((f) => (
+            {az(s.folds, (f) => f.label).map((f) => (
               <SideBarFold key={f.label} label={f.label} hint={`${f.items.filter((i) => i.status === "held").length} of ${f.items.length}`}>
-                {f.items.map((i) => (
+                {az(f.items, (i) => i.name).map((i) => (
                   <SideBarFoldItem key={i.name} mark={<Mark s={i.status} />} label={i.name} pill={i.pill && compact(i.pill)} />
                 ))}
               </SideBarFold>
@@ -121,24 +151,28 @@ function SourcesNode({ id }: NodeProps) {
   )
 }
 
+/** The lake: open on load; closed, it shows only the five core dataset cards. The datasets' section keeps its place in
+ *  both states, so a dataset card left open stays open. */
 function LakeNode({ id }: NodeProps) {
+  const [open, setOpen] = React.useState(true)
+  useRemeasure(id, open)
   return (
-    <div className={CARD} style={{ width: LAKE_W }}>
-      <header className="relative flex h-11 items-center gap-2 px-3.5 text-[15px] font-medium">
-        <Database className="size-4 text-[var(--paper-muted)]" aria-hidden />
-        NSR Lake
+    <div className={cn(CARD, "pointer-events-auto")} style={{ width: LAKE_W }}>
+      <Header title="NSR Lake" icon={Database} open={open} onToggle={() => setOpen((v) => !v)}>
         <Handle type="target" position={Position.Left} id="in" isConnectable={false} className="!pointer-events-none !opacity-0" />
         <Handle type="source" position={Position.Right} id="out" isConnectable={false} className="!pointer-events-none !opacity-0" />
-      </header>
+      </Header>
       <div className={cn("divide-y border-t", RULE, "divide-[var(--paper-rule-soft)]")}>
+        {open && (
+          <section className="px-3.5 py-3">
+            <Title>Detail</Title>
+            <Rows rows={[["Size", LAKE.size], ["Files", LAKE.files], ["Records", LAKE.records]]} />
+          </section>
+        )}
         <section className="px-3.5 py-3">
-          <Title>Detail</Title>
-          <Rows rows={[["Size", LAKE.size], ["Files", LAKE.files], ["Records", LAKE.records]]} />
-        </section>
-        <section className="px-3.5 py-3">
-          <Title>Core Datasets</Title>
+          {open && <Title>Core Datasets</Title>}
           <div className="flex flex-col gap-2">
-            {CORE.map((d) => (
+            {az(CORE, (d) => d.name).map((d) => (
               <Card key={d.id} nodeId={id} title={d.name}>
                 <div className="px-3 py-2.5 text-[13px]">
                   <p>{d.what}</p>
@@ -156,20 +190,25 @@ function LakeNode({ id }: NodeProps) {
             ))}
           </div>
         </section>
-        <section className="px-3.5 py-3">
-          <Title>Shared key</Title>
-          <Row left={NUCLIDE.name} pill={`${NUCLIDE.keys} · ${NUCLIDE.count}`} />
-        </section>
+        {open && (
+          <section className="px-3.5 py-3">
+            <Title>Shared key</Title>
+            <Row left={NUCLIDE.name} pill={`${NUCLIDE.keys} · ${NUCLIDE.count}`} />
+          </section>
+        )}
       </div>
     </div>
   )
 }
 
+/** The surfaces that have a sidebar row wear its icon (components/sidebar/SideBarMenu.tsx). */
+const SURFACE_ICON: Record<string, SideBarIcon> = { chat: MessagesSquare, search: Radar, graph: Blocks, charts: Activity }
+
 function SurfacesNode({ id }: NodeProps) {
   return (
     <div className="flex flex-col gap-3" style={{ width: COL_W }}>
       {SURFACES.map((s) => (
-        <Card key={s.id} nodeId={id} title={s.title} soon={s.soon} port={{ type: "target", position: Position.Left, id: s.id }}>
+        <Card key={s.id} nodeId={id} title={s.title} icon={SURFACE_ICON[s.id]} soon={s.soon} port={{ type: "target", position: Position.Left, id: s.id }}>
           <div className="flex flex-col gap-1.5 px-3.5 py-3">
             <Rows rows={s.rows} />
             {s.href && s.open && (
@@ -204,20 +243,24 @@ const EDGES: Edge[] = [
   ...SURFACES.map((s) => edge(`out-${s.id}`, "lake", "out", "surfaces", s.id, s.soon)),
 ]
 
-/** Centres the diagram once the nodes are measured, and again after the page's reveal has finished resizing the pane. */
-function Fit() {
+/** Fits the diagram exactly as the controls' fit button does (React Flow's default fitView), once every node is
+ *  measured and again whenever the pane changes size, until the reader pans or zooms. It watches the measured sizes
+ *  itself: useNodesInitialized stays false on this canvas, since its nodes are a constant with no onNodesChange and
+ *  React Flow only updates that flag when nodes are set, so a fit waiting on it never ran (2026-11-08). */
+function Fit({ moved }: { moved: React.RefObject<boolean> }) {
   const { fitView } = useReactFlow()
-  const ready = useNodesInitialized()
+  const measured = useStore((s) => s.nodeLookup.size > 0 && [...s.nodeLookup.values()].every((n) => n.measured.width && n.measured.height))
+  const width = useStore((s) => s.width)
+  const height = useStore((s) => s.height)
   React.useEffect(() => {
-    if (!ready) return
-    const fit = () => fitView({ padding: 0.08, maxZoom: 1 })
-    const t = [60, 450].map((ms) => setTimeout(fit, ms))
-    return () => t.forEach(clearTimeout)
-  }, [ready, fitView])
+    if (measured && width && height && !moved.current) fitView()
+  }, [measured, width, height, moved, fitView])
   return null
 }
 
 export function PipelineCanvas() {
+  // A pan or zoom by the reader (an event, not a fit) ends the automatic fits.
+  const moved = React.useRef(false)
   return (
     <ReactFlowProvider>
       <div className="pipeline-flow h-full w-full">
@@ -231,8 +274,11 @@ export function PipelineCanvas() {
           nodesFocusable={false}
           elementsSelectable={false}
           proOptions={{ hideAttribution: true }}
+          onMoveStart={(event) => {
+            if (event) moved.current = true
+          }}
         >
-          <Fit />
+          <Fit moved={moved} />
           <Background gap={24} size={1} />
           <Controls showInteractive={false} />
         </ReactFlow>
