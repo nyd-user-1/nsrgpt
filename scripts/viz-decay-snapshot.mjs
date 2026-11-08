@@ -2,6 +2,7 @@
 // its half-life and decay branchings — read once from the lake (Athena, nsr.ensdf_datasets) and written
 // to public/viz-data/decay.json. Rerun by hand; it uses the local AWS CLI's credentials:
 //   node scripts/viz-decay-snapshot.mjs
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // ENSDF is fixed-width (the ENSDF manual's columns; parser reference: /Code/nsr/api/_lib/ensdf.ts):
 //   col 1–5 NUCID · col 6 continuation (blank = primary record) · col 7 comment flag · col 8 record type.

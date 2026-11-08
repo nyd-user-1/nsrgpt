@@ -2,6 +2,8 @@
 // JEFF-3.1.1 yields (scripts/iaea-livechart-build.mjs). Yields are per fission (they sum to about 2, two fragments a
 // fission); the charts show them in percent.
 
+import { dataUrl } from '@/lib/data-url'
+
 export type Energy = 'thermal' | 'fast' | '14mev'
 export const ENERGIES: { id: Energy; label: string }[] = [
   { id: 'thermal', label: 'Thermal' },
@@ -38,8 +40,8 @@ const cache = new Map<string, Promise<FissionFile>>()
 export function loadFission(id: string): Promise<FissionFile> {
   let p = cache.get(id)
   if (!p) {
-    p = fetch(`/viz-data/fission/${id}.json`).then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/fission/${id}.json: ${r.status}`)
+    p = fetch(dataUrl(`fission/${id}.json`)).then((r) => {
+      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
       return r.json() as Promise<FissionFile>
     })
     p.catch(() => cache.delete(id))

@@ -1,7 +1,5 @@
-# Workers static assets headers (2026-11-05). The chart data changes rarely, so a browser keeps each file
-# for a day and, for 30 days after that, shows its cached copy at once while it checks for a newer one.
-/viz-data/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+# Workers static assets headers (2026-11-05). Chart data left public/ for the lake and CloudFront on
+# 2026-11-08 (lib/data-url.ts), which sets its own cache headers.
 
 # The Cloudflare view's per-deploy numbers: always the current deploy's.
 /build-usage.json

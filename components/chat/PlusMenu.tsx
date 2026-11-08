@@ -5,6 +5,7 @@ import {
   Plus, ChevronRight, ArrowLeft,
   Lightbulb, Atom, Zap, Users, X, BarChart3, Paperclip,
 } from "lucide-react";
+import { dataUrl } from "@/lib/data-url";
 import { VIZ_CHARTS } from "@/lib/viz-charts";
 import { HEADER_TITLES } from "@/lib/header-titles";
 
@@ -182,7 +183,7 @@ export function PlusMenu({ onSelect, mode, onAttach }: PlusMenuProps) {
   const dictCache = useRef<Record<string, DbItem[]>>({});
   const loadDict = useCallback(async (type: "nuclides" | "reactions" | "authors"): Promise<DbItem[]> => {
     if (dictCache.current[type]) return dictCache.current[type];
-    const res = await fetch(`/viz-data/dict/${type}.json`);
+    const res = await fetch(dataUrl(`dict/${type}.json`));
     const rows = res.ok ? ((await res.json()) as DbItem[]) : [];
     rows.sort((a, b) => a.value.localeCompare(b.value));
     dictCache.current[type] = rows;

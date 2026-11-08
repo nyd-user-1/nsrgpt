@@ -2,6 +2,8 @@
 // scripts/viz-capgam-snapshot.mjs from NNDC CapGam — thermal-neutron capture γ rays, one set per product nucleus.
 // /viz/simplex, /viz/spectra, /viz/gamma-atlas and /viz/gamma-punchcard all draw from it, one fetch between them.
 
+import { dataUrl } from '@/lib/data-url'
+
 export type GammaSet = {
   z: number
   n: number
@@ -22,8 +24,8 @@ export type Capgam = { source: string; sets: GammaSet[] }
 let cached: Promise<Capgam> | null = null
 export function loadCapgam(): Promise<Capgam> {
   if (!cached) {
-    const p = fetch('/viz-data/capgam.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/capgam.json: ${r.status}`)
+    const p = fetch(dataUrl('capgam.json')).then((r) => {
+      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
       return r.json() as Promise<Capgam>
     })
     p.catch(() => {

@@ -1,7 +1,9 @@
 // The /viz datasets (2026-11-04, second cut): the corpus is frozen, so every query ran ONCE
-// (scripts/viz-snapshot.mjs) and lives as JSON in public/viz-data/. The browser fetches each file
-// as a static asset: no page carries the data in its HTML, nothing bundles it, and the worker
-// never touches it. Rerun the snapshot and commit when the corpus ever moves.
+// (scripts/viz-snapshot.mjs) and lives as JSON in the lake behind CloudFront (lib/data-url.ts). The
+// browser fetches each file from there: no page carries the data in its HTML, nothing bundles it, and
+// the worker never touches it. Rerun the snapshot and publish a new version when the corpus ever moves.
+
+import { dataUrl } from '@/lib/data-url'
 
 /** The nuclide field: every (N, Z) the literature touches, with its paper count. 7,799 rows. */
 export type Field = { n: number; z: number; c: number }[]
@@ -39,8 +41,8 @@ function get<T>(name: string): () => Promise<T> {
   return () => {
     let p = cache.get(name)
     if (!p) {
-      p = fetch(`/viz-data/${name}.json`).then((r) => {
-        if (!r.ok) throw new Error(`/viz-data/${name}.json: ${r.status}`)
+      p = fetch(dataUrl(`${name}.json`)).then((r) => {
+        if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
         return r.json()
       })
       p.catch(() => cache.delete(name))

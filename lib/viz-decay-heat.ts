@@ -18,6 +18,7 @@
 // solver reads it (listed percentages, the rest shared among modes listed without one, scaled down where they add to
 // more than 100).
 
+import { dataUrl } from '@/lib/data-url'
 import { familyOfMode, keyOf, type Decay, type Mass } from '@/lib/viz-physics'
 import { atoms, logTimes, solveChain, timeSpan, type Chain } from '@/lib/viz-bateman'
 
@@ -35,9 +36,9 @@ let energyFile: Promise<Measured> | null = null
 /** public/viz-data/decay-energy.json, once per page; a failed fetch is dropped so the next call retries. */
 export function loadMeasured(): Promise<Measured> {
   if (!energyFile) {
-    energyFile = fetch('/viz-data/decay-energy.json')
+    energyFile = fetch(dataUrl('decay-energy.json'))
       .then((r) => {
-        if (!r.ok) throw new Error(`/viz-data/decay-energy.json: ${r.status}`)
+        if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
         return r.json() as Promise<EnergyFile>
       })
       .then((f) => {

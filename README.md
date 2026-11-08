@@ -15,7 +15,7 @@ Live: https://nsrgpt.brendan-stanton.workers.dev
 | Particle physics | threejs-particle-fluids (WebGPU) |
 | Notes | TipTap 3, ported from pax-trinity |
 | Hosting | Cloudflare Worker `nsrgpt`, built with OpenNext |
-| Data | Static JSON in `public/viz-data/`, built from snapshots; raw pulls in S3 |
+| Data | Static JSON in the lake (`site/viz-data/<version>/`) behind CloudFront, built from snapshots (`lib/data-url.ts`, `scripts/viz-data-publish.sh`); raw pulls in S3 |
 | Chat and sign-in | Bedrock (the models pax-trinity serves); Cognito (invite-only pool) |
 | Search | Lambda `nsr-search`: the NSR-CPT encoder and paper vectors |
 

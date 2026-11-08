@@ -6,6 +6,7 @@
 //   public/viz-data/livechart-ground.json   every ground state's properties (/viz/explorer)
 //
 //   node scripts/iaea-livechart-build.mjs <raw dir>
+// Upload with `scripts/viz-data-publish.sh <version>`.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseCsv } from "./iaea-livechart-csv.mjs";

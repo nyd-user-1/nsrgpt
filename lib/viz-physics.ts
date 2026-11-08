@@ -6,6 +6,7 @@
 // The decay types, the decay-mode colours, the nuclide names and the half-life text are lib/nuclide.ts's, shared
 // with /viz/decay; they're re-exported here so the charts import from one place.
 
+import { dataUrl } from '@/lib/data-url'
 import { FAMILIES, FAMILY, familyOf, keyOf, type DecayData, type DecayMode, type DecayNuclide, type Family } from '@/lib/nuclide'
 
 export { FAMILIES, FAMILY, familyOf, familyOfMode, formatSeconds, halfLifeText, keyOf, nucName, sup } from '@/lib/nuclide'
@@ -46,8 +47,8 @@ function once<T>(name: string, make: () => Promise<T>): () => Promise<T> {
   }
 }
 async function json(name: string): Promise<unknown> {
-  const r = await fetch(`/viz-data/${name}.json`)
-  if (!r.ok) throw new Error(`/viz-data/${name}.json: ${r.status}`)
+  const r = await fetch(dataUrl(`${name}.json`))
+  if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
   return r.json()
 }
 

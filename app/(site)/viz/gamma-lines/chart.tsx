@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { dataUrl } from '@/lib/data-url'
 import { useEChart } from '@/components/viz/use-echart'
 import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, formatSeconds, ink, isDark, keyOf, loadDecay, nucName, type Decay } from '@/lib/viz-physics'
@@ -22,8 +23,8 @@ type Line = [number, number, number, number]
 let indexP: Promise<Index> | null = null
 const loadIndex = () => {
   if (!indexP) {
-    indexP = fetch('/viz-data/gamma/index.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/gamma/index.json: ${r.status}`)
+    indexP = fetch(dataUrl('gamma/index.json')).then((r) => {
+      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
       return r.json() as Promise<Index>
     })
     indexP.catch(() => (indexP = null))
@@ -34,7 +35,7 @@ const slices = new Map<number, Promise<Line[]>>()
 const loadSlice = (b: number) => {
   let p = slices.get(b)
   if (!p) {
-    p = fetch(`/viz-data/gamma/${b}.json`).then((r) => (r.ok ? (r.json() as Promise<Line[]>) : []))
+    p = fetch(dataUrl(`gamma/${b}.json`)).then((r) => (r.ok ? (r.json() as Promise<Line[]>) : []))
     p.catch(() => slices.delete(b))
     slices.set(b, p)
   }

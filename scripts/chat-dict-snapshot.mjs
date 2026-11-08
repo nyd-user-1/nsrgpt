@@ -4,6 +4,7 @@
 // served from Neon, now static files.
 //
 //   node scripts/chat-dict-snapshot.mjs
+// Upload with `scripts/viz-data-publish.sh <version>`.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 

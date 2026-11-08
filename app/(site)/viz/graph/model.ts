@@ -3,6 +3,7 @@
 // 2026-11-06: the 3D layout (scripts/viz-graph-layout-3d.mjs → graph-layout-3d.json), the chains of several pinned
 // nuclides at once, and each edge's flow timing.
 
+import { dataUrl } from '@/lib/data-url'
 import { decayLinks, keyOf, stepPeriod, type Decay, type Link } from '@/lib/viz-physics'
 
 type LayoutFile = { source: string; k: number[]; x: number[]; y: number[] }
@@ -11,8 +12,8 @@ let layoutPromise: Promise<LayoutFile> | null = null
 /** One request per page; a failed fetch is dropped so the next mount retries. */
 export function loadGraphLayout(): Promise<LayoutFile> {
   if (!layoutPromise) {
-    layoutPromise = fetch('/viz-data/graph-layout.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/graph-layout.json: ${r.status}`)
+    layoutPromise = fetch(dataUrl('graph-layout.json')).then((r) => {
+      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
       return r.json() as Promise<LayoutFile>
     })
     layoutPromise.catch(() => (layoutPromise = null))
@@ -26,8 +27,8 @@ let layout3dPromise: Promise<Layout3dFile> | null = null
 /** The 3D layout, fetched when the 3D switch first turns on. */
 export function loadGraphLayout3d(): Promise<Layout3dFile> {
   if (!layout3dPromise) {
-    layout3dPromise = fetch('/viz-data/graph-layout-3d.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/graph-layout-3d.json: ${r.status}`)
+    layout3dPromise = fetch(dataUrl('graph-layout-3d.json')).then((r) => {
+      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
       return r.json() as Promise<Layout3dFile>
     })
     layout3dPromise.catch(() => (layout3dPromise = null))

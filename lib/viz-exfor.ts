@@ -2,6 +2,8 @@
 // written by scripts/viz-exfor-snapshot.mjs — a seeded sample of 50,000 measured cross sections from the EXFOR
 // library's data tables (IAEA-NDS/exfor_json).
 
+import { dataUrl } from '@/lib/data-url'
+
 export type Exfor = {
   source: string
   commit: string
@@ -16,8 +18,8 @@ export type Exfor = {
 let cached: Promise<Exfor> | null = null
 export function loadExfor(): Promise<Exfor> {
   if (!cached) {
-    const p = fetch('/viz-data/exfor.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/exfor.json: ${r.status}`)
+    const p = fetch(dataUrl('exfor.json')).then((r) => {
+      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
       return r.json() as Promise<Exfor>
     })
     p.catch(() => {

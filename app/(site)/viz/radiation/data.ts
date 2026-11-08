@@ -2,6 +2,8 @@
 // isotope's ground-state decay radiation from the IAEA Live Chart API (scripts/iaea-livechart-build.mjs). Energies
 // keV; intensities per 100 decays of the parent, every mode together.
 
+import { dataUrl } from '@/lib/data-url'
+
 export type Lines = {
   /** α: [energy, intensity] */
   a?: [number, number][]
@@ -22,8 +24,8 @@ const cache = new Map<number, Promise<ElementFile>>()
 export function loadElement(z: number): Promise<ElementFile> {
   let p = cache.get(z)
   if (!p) {
-    p = fetch(`/viz-data/radiation/${z}.json`).then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/radiation/${z}.json: ${r.status}`)
+    p = fetch(dataUrl(`radiation/${z}.json`)).then((r) => {
+      if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
       return r.json() as Promise<ElementFile>
     })
     p.catch(() => cache.delete(z))

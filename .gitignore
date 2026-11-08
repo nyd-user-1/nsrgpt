@@ -52,3 +52,6 @@ next-env.d.ts
 .open-next/
 # Netlify local state
 .netlify/
+
+# Chart data: the snapshot scripts write here, scripts/viz-data-publish.sh uploads it to the lake (2026-11-08)
+public/viz-data/

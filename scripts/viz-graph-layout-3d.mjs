@@ -5,6 +5,7 @@
 //
 // Rerun after public/viz-data/decay.json or graph-layout.json changes:
 //   D3_FORCE_3D=/path/to/node_modules/d3-force-3d node scripts/viz-graph-layout-3d.mjs
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // Output — { source, k, x, y, z }: k the nuclide key (Z × 1000 + N), x y z its position, one decimal.
 import { readFileSync, writeFileSync } from "node:fs";

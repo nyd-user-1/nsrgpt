@@ -2,6 +2,7 @@
 // hold for each nuclide, as plain counts from the lake (Athena, nsr), written to
 // public/viz-data/knowledge.json. Rerun by hand; it uses the local AWS CLI's credentials:
 //   node scripts/viz-knowledge-snapshot.mjs
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // Per (Z, N):
 //   papers  NSR papers indexing the nuclide (nsr_nuclides, distinct key numbers)

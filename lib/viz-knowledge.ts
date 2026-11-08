@@ -2,6 +2,8 @@
 // scripts/viz-knowledge-snapshot.mjs — per nuclide, the NSR papers, EXFOR entries, adopted levels, XUNDL sets and
 // the ENSDF evaluation's cutoff year.
 
+import { dataUrl } from '@/lib/data-url'
+
 export type KnowledgeRow = {
   z: number
   n: number
@@ -20,9 +22,9 @@ type Raw = { source: string; columns: string[]; rows: number[][] }
 let cached: Promise<KnowledgeRow[]> | null = null
 export function loadKnowledge(): Promise<KnowledgeRow[]> {
   if (!cached) {
-    const p = fetch('/viz-data/knowledge.json')
+    const p = fetch(dataUrl('knowledge.json'))
       .then((r) => {
-        if (!r.ok) throw new Error(`/viz-data/knowledge.json: ${r.status}`)
+        if (!r.ok) throw new Error(`${r.url}: ${r.status}`)
         return r.json() as Promise<Raw>
       })
       .then(({ columns, rows }) => {

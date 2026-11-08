@@ -3,6 +3,7 @@
 // tables fetch the files in the browser (lib/viz-data.ts); no database at request time. Rerun by
 // hand when the corpus ever moves:
 //   node --env-file=/Users/brendanstanton/Code/nsr/.env.local scripts/viz-snapshot.mjs
+// Upload with `scripts/viz-data-publish.sh <version>`.
 import { writeFileSync, mkdirSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";
 
