@@ -7,24 +7,68 @@ import { createPortal } from "react-dom"
 import { Archive, ArchiveRestore, ChevronDown, ChevronRight, EllipsisVertical, Eye, EyeOff, Link2, Pencil, Pin, PinOff, SlidersHorizontal, Star } from "lucide-react"
 
 import { myChats, updateChat } from "@/app/chat-actions"
-import { KebabMenu, MenuFoot, MenuHeader, MenuRow, MenuSeparator } from "@/components/kebab-menu"
+import { KebabMenu, MenuFlyout, MenuFoot, MenuHeader, MenuRow, MenuSeparator } from "@/components/kebab-menu"
+import { RowTip } from "@/components/sidebar/RowTip"
 import type { ChatMeta } from "@/lib/chats"
 import { cn } from "@/lib/utils"
-import { MARK, ROW_BUTTON, ROW_HOVER, ROW_ON } from "@/components/sidebar/SideBarMenuItem"
+import { MARK, ROW_BUTTON, ROW_HOVER, ROW_ON, useRememberedOpen } from "@/components/sidebar/SideBarMenuItem"
 
 // SidebarChats (2026-11-06): pax-trinity's components/sidebar-chats.tsx, colours moved to the paper tokens.
 // The sidebar's lower half: the reader's saved /chat conversations, newest first. Ported from Code/hq's
 // Recents (app/ui/sidebar-recents.tsx) in the sidebar's own dress: rows truncate to one line, the
 // whole title and its age show on hover, and each row's actions sit behind its kebab (Favorite, Rename,
-// Hide, Archive). The sliders group the list by date or not at all; hidden chats show on request, and
+// Hide, Archive). Under the Recents header the sliders filter, group and sort the list; hidden chats show on request, and
 // archived ones fold into their own group at the foot. Chat sends `pax2:chats` after each save.
 
-type GroupBy = "none" | "date"
-const GROUP_OPTIONS: { value: GroupBy; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "date", label: "Date" },
-]
+// Recents' filter menu (Brendan, 2026-11-08, after Claude's chat sidebar): Status, Last activity, Group by and Sort by, each
+// a submenu with its current value beside it. An option the chats can't answer yet (Group by Page) is shown, marked soon.
+type Status = "active" | "archived" | "all"
+type Activity = "all" | "today" | "7d" | "30d"
+type GroupBy = "none" | "date" | "page"
+type SortBy = "activity" | "created" | "name"
+type Option<T> = { value: T; label: string; soon?: boolean }
+const STATUS: Option<Status>[] = [{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }, { value: "all", label: "All" }]
+const ACTIVITY: Option<Activity>[] = [{ value: "all", label: "All" }, { value: "today", label: "Today" }, { value: "7d", label: "Last 7 days" }, { value: "30d", label: "Last 30 days" }]
+const GROUP_OPTIONS: Option<GroupBy>[] = [{ value: "none", label: "None" }, { value: "date", label: "Date" }, { value: "page", label: "Page", soon: true }]
+const SORTS: Option<SortBy>[] = [{ value: "activity", label: "Last activity" }, { value: "created", label: "Created" }, { value: "name", label: "Name" }]
 const STORAGE_KEY = "pax2:chats-group"
+
+/** A choice from `options`, remembered in this browser under `key`; `initial` until one is stored. */
+function useStoredChoice<T extends string>(key: string, options: Option<T>[], initial: T): [T, (v: T) => void] {
+  const [value, setValue] = React.useState<T>(initial)
+  React.useEffect(() => {
+    try {
+      const v = localStorage.getItem(key)
+      const o = options.find((x) => x.value === v && !x.soon)
+      if (o) setValue(o.value)
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key])
+  const choose = (v: T) => {
+    setValue(v)
+    try {
+      localStorage.setItem(key, v)
+    } catch {}
+  }
+  return [value, choose]
+}
+
+const labelOf = <T,>(options: Option<T>[], v: T) => options.find((o) => o.value === v)?.label ?? ""
+
+/** The time a chat sorts and buckets by: its last activity, or when it was started. */
+const timeOf = (c: ChatMeta, sort: SortBy) => Date.parse(sort === "created" ? c.createdAt : c.updatedAt)
+
+function sortChats(chats: ChatMeta[], sort: SortBy): ChatMeta[] {
+  if (sort === "name") return [...chats].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }))
+  return [...chats].sort((a, b) => timeOf(b, sort) - timeOf(a, sort))
+}
+
+/** Last activity at or after this time, or everything. */
+function activitySince(a: Activity, now: number): number {
+  const d = new Date(now)
+  const startOfToday = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  return a === "today" ? startOfToday : a === "7d" ? now - 7 * 86_400_000 : a === "30d" ? now - 30 * 86_400_000 : 0
+}
 
 function dateBucket(ts: number, now: number): string {
   const d = new Date(now)
@@ -36,16 +80,19 @@ function dateBucket(ts: number, now: number): string {
 
 /** Buckets the newest-first list. Pinned chats lead either way: ungrouped they come first, then the
  *  favorites; grouped they sit in their own Pinned bucket above the dates, and the star marks the favorites. */
-function groupChats(chats: ChatMeta[], mode: GroupBy): { label: string; chats: ChatMeta[] }[] {
-  if (mode === "none") return [{ label: "", chats: [...chats].sort((a, b) => Number(b.pinned) - Number(a.pinned) || Number(b.favorite) - Number(a.favorite)) }]
+function groupChats(chats: ChatMeta[], mode: GroupBy, sort: SortBy): { label: string; chats: ChatMeta[] }[] {
+  if (mode !== "date") return [{ label: "", chats: sortChats(chats, sort).sort((a, b) => Number(b.pinned) - Number(a.pinned) || Number(b.favorite) - Number(a.favorite)) }]
   const map = new Map<string, ChatMeta[]>()
-  const pinned = chats.filter((c) => c.pinned)
+  const pinned = sortChats(chats.filter((c) => c.pinned), sort)
   if (pinned.length) map.set("Pinned", pinned)
-  for (const c of chats.filter((x) => !x.pinned)) {
-    const k = dateBucket(Date.parse(c.updatedAt), Date.now())
+  // The date buckets run newest first, by when the chat was started under Sort by Created and by its last activity
+  // otherwise; each bucket lists its chats in the sort's order.
+  const by: SortBy = sort === "created" ? "created" : "activity"
+  for (const c of sortChats(chats.filter((x) => !x.pinned), by)) {
+    const k = dateBucket(timeOf(c, by), Date.now())
     map.set(k, [...(map.get(k) ?? []), c])
   }
-  return [...map.entries()].map(([label, chats]) => ({ label, chats }))
+  return [...map.entries()].map(([label, chats]) => ({ label, chats: label === "Pinned" ? chats : sortChats(chats, sort) }))
 }
 
 function ago(iso: string): string {
@@ -65,17 +112,16 @@ export function SidebarChats() {
   const current = path === "/chat" ? params.get("c") : null
   const [chats, setChats] = React.useState<ChatMeta[]>([])
   const [loaded, setLoaded] = React.useState(false)
-  const [groupBy, setGroupBy] = React.useState<GroupBy>("date")
+  const [open, setOpen] = useRememberedOpen("pax2:chats-open")
+  const [status, setStatus] = useStoredChoice<Status>("pax2:chats-status", STATUS, "active")
+  const [activity, setActivity] = useStoredChoice<Activity>("pax2:chats-activity", ACTIVITY, "all")
+  const [groupBy, setGroupBy] = useStoredChoice<GroupBy>(STORAGE_KEY, GROUP_OPTIONS, "date")
+  const [sortBy, setSortBy] = useStoredChoice<SortBy>("pax2:chats-sort", SORTS, "activity")
   const [showHidden, setShowHidden] = React.useState(false)
   const [showArchived, setShowArchived] = React.useState(false)
   const [editing, setEditing] = React.useState<string | null>(null)
   const [editValue, setEditValue] = React.useState("")
   const [tip, setTip] = React.useState<{ x: number; y: number; text: string } | null>(null)
-
-  React.useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === "date" || saved === "none") setGroupBy(saved)
-  }, [])
 
   React.useEffect(() => {
     let alive = true
@@ -97,13 +143,6 @@ export function SidebarChats() {
     }
   }, [])
 
-  const choose = (v: GroupBy) => {
-    setGroupBy(v)
-    try {
-      localStorage.setItem(STORAGE_KEY, v)
-    } catch {}
-  }
-
   // Optimistic local patch, then the write; the next load reconciles with what was stored.
   const patch = (id: string, p: Partial<Pick<ChatMeta, "title" | "favorite" | "pinned" | "hidden" | "archived">>) => {
     setChats((xs) => xs.map((c) => (c.id === id ? { ...c, ...p } : c)))
@@ -115,11 +154,15 @@ export function SidebarChats() {
     setEditing(null)
   }
 
-  const archived = chats.filter((c) => c.archived)
-  const live = chats.filter((c) => !c.archived)
+  // Last activity narrows everything; Status picks the active chats, the archived ones, or both (the archived then fold
+  // into their own group at the foot, as before).
+  const since = activitySince(activity, Date.now())
+  const recent = chats.filter((c) => Date.parse(c.updatedAt) >= since)
+  const archived = status === "all" ? recent.filter((c) => c.archived) : []
+  const live = recent.filter((c) => (status === "archived" ? c.archived : !c.archived))
   const hiddenCount = live.filter((c) => c.hidden).length
   const visible = showHidden ? live : live.filter((c) => !c.hidden)
-  const groups = groupChats(visible, groupBy)
+  const groups = groupChats(visible, groupBy, sortBy)
 
   const renderRow = (c: ChatMeta) => {
     const on = c.id === current
@@ -188,36 +231,67 @@ export function SidebarChats() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-1">
-      {/* The first group's label sits beside the grouping control, so no separate heading repeats it. */}
-      <div className="flex items-center justify-between px-3">
-        <span className={LABEL}>{groups[0]?.label || "Chats"}</span>
-        <KebabMenu
-          label="Group chats"
-          align="left"
-          width="w-44"
-          trigger={<SlidersHorizontal className="size-3.5" />}
-          triggerClassName={cn("flex size-6 items-center justify-center rounded-md transition-colors hover:bg-[var(--paper)] hover:text-[var(--paper-strong)] aria-expanded:bg-[var(--paper)]", groupBy !== "none" ? "text-[var(--paper-muted)]" : "text-[var(--paper-faint)]")}
+      {/* Recents (Brendan, 2026-11-08, after Claude's chat sidebar): the header folds the whole list, remembered; the
+          sliders beside it filter, group and sort it. */}
+      <div className="flex items-center gap-1 px-1">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className={cn("flex items-center gap-1 rounded-lg px-2 py-1 text-[13px] font-medium text-[var(--paper-muted)] outline-none transition-[color,background-color,box-shadow]", ROW_HOVER)}
         >
-          <p className={cn(LABEL, "px-2.5 py-1")}>Group by</p>
-          {GROUP_OPTIONS.map((o) => (
-            <MenuRow key={o.value} label={o.label} checked={groupBy === o.value} onClick={() => choose(o.value)} />
-          ))}
-          {hiddenCount > 0 && (
-            <>
-              <MenuSeparator />
-              <MenuRow icon={showHidden ? <EyeOff /> : <Eye />} label={showHidden ? "Hide hidden" : `Show hidden (${hiddenCount})`} onClick={() => setShowHidden((v) => !v)} />
-            </>
-          )}
-        </KebabMenu>
+          Recents
+          {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+        </button>
+        <span className="flex-1" />
+        <RowTip name="Filter and group recents" side="left">
+          <span className="inline-flex">
+            <KebabMenu
+              label="Filter and group recents"
+              align="left"
+              width="w-56"
+              trigger={<SlidersHorizontal className="size-3.5" />}
+              triggerClassName={cn("flex size-7 items-center justify-center rounded-lg text-[var(--paper-muted)] outline-none transition-[color,background-color,box-shadow] aria-expanded:bg-[color-mix(in_oklab,var(--paper-text)_8%,var(--paper))]", ROW_HOVER)}
+            >
+              <MenuFlyout id="status" label="Status" hint={labelOf(STATUS, status)}>
+                {STATUS.map((o) => (
+                  <MenuRow key={o.value} label={o.label} checked={status === o.value} onClick={() => setStatus(o.value)} />
+                ))}
+              </MenuFlyout>
+              <MenuFlyout id="activity" label="Last activity" hint={labelOf(ACTIVITY, activity)}>
+                {ACTIVITY.map((o) => (
+                  <MenuRow key={o.value} label={o.label} checked={activity === o.value} onClick={() => setActivity(o.value)} />
+                ))}
+              </MenuFlyout>
+              <MenuFlyout id="group" label="Group by" hint={labelOf(GROUP_OPTIONS, groupBy)}>
+                {GROUP_OPTIONS.map((o) => (
+                  <MenuRow key={o.value} label={o.label} checked={groupBy === o.value} disabled={o.soon} hint={o.soon ? "soon" : undefined} onClick={() => setGroupBy(o.value)} />
+                ))}
+              </MenuFlyout>
+              <MenuFlyout id="sort" label="Sort by" hint={labelOf(SORTS, sortBy)}>
+                {SORTS.map((o) => (
+                  <MenuRow key={o.value} label={o.label} checked={sortBy === o.value} onClick={() => setSortBy(o.value)} />
+                ))}
+              </MenuFlyout>
+              {hiddenCount > 0 && (
+                <>
+                  <MenuSeparator />
+                  <MenuRow icon={showHidden ? <EyeOff /> : <Eye />} label={showHidden ? "Hide hidden" : `Show hidden (${hiddenCount})`} onClick={() => setShowHidden((v) => !v)} />
+                </>
+              )}
+            </KebabMenu>
+          </span>
+        </RowTip>
       </div>
 
-      {loaded && chats.length === 0 ? (
+      {!open ? null : loaded && chats.length === 0 ? (
         <p className="px-3 text-[13px] text-[var(--paper-faint)]">No chats yet.</p>
       ) : (
         <div className="no-scrollbar mt-1 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
           {groups.map((g, gi) => (
             <div key={g.label || `g${gi}`} className="flex flex-col gap-0.5">
-              {gi > 0 && g.label && <span className={cn(LABEL, "px-3 pb-0.5 pt-1")}>{g.label}</span>}
+              {/* The date groups beneath Recents, only while Group by is Date. */}
+              {groupBy === "date" && g.label && <span className={cn(LABEL, "px-3 pb-0.5 pt-1")}>{g.label}</span>}
               {g.chats.map(renderRow)}
             </div>
           ))}
@@ -228,7 +302,7 @@ export function SidebarChats() {
                 <Archive className="size-3" />
                 Archived · {archived.length}
               </button>
-              {showArchived && archived.map(renderRow)}
+              {showArchived && sortChats(archived, sortBy).map(renderRow)}
             </div>
           )}
         </div>
