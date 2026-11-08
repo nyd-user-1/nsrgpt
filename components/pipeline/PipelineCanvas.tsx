@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { ChevronDown, Database } from "lucide-react"
 import {
-  Background, Controls, Handle, MarkerType, Position, ReactFlow, ReactFlowProvider, useUpdateNodeInternals,
+  Background, Controls, Handle, MarkerType, Position, ReactFlow, ReactFlowProvider, useNodesInitialized, useReactFlow, useUpdateNodeInternals,
   type Edge, type Node, type NodeProps, type NodeTypes,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
@@ -195,6 +195,19 @@ const EDGES: Edge[] = [
   ...SURFACES.map((s) => edge(`out-${s.id}`, "lake", "out", "surfaces", s.id, s.soon)),
 ]
 
+/** Centres the diagram once the nodes are measured, and again after the page's reveal has finished resizing the pane. */
+function Fit() {
+  const { fitView } = useReactFlow()
+  const ready = useNodesInitialized()
+  React.useEffect(() => {
+    if (!ready) return
+    const fit = () => fitView({ padding: 0.08, maxZoom: 1 })
+    const t = [60, 450].map((ms) => setTimeout(fit, ms))
+    return () => t.forEach(clearTimeout)
+  }, [ready, fitView])
+  return null
+}
+
 export function PipelineCanvas() {
   return (
     <ReactFlowProvider>
@@ -203,15 +216,14 @@ export function PipelineCanvas() {
           nodes={NODES}
           edges={EDGES}
           nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.08, maxZoom: 1 }}
           minZoom={0.25}
           nodesDraggable={false}
           nodesConnectable={false}
           nodesFocusable={false}
-          elementsSelectable={false}
+          selectNodesOnDrag={false}
           proOptions={{ hideAttribution: true }}
         >
+          <Fit />
           <Background gap={24} size={1} />
           <Controls showInteractive={false} />
         </ReactFlow>
