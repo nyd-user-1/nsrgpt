@@ -1899,10 +1899,10 @@ function GraphPageInner() {
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onConnect={onConnect}
-          onNodeClick={(_, n) => { setSelectedKey(n.id); setEdgeInfo(null); }}
+          onNodeClick={(_, n) => { setSelectedKey(n.id); setEdgeInfo(null); setRightView("papers"); }}
           onEdgeClick={(_, e) => {
             const s = store.current.get(e.source), t = store.current.get(e.target);
-            if (s && t) { setEdgeInfo({ source: s, target: t, meta: e.data as EdgeMeta | undefined }); setSelectedKey(null); }
+            if (s && t) { setEdgeInfo({ source: s, target: t, meta: e.data as EdgeMeta | undefined }); setSelectedKey(null); setRightView("papers"); }
           }}
           onPaneClick={() => { setSelectedKey(null); setEdgeInfo(null); }}
           onPaneContextMenu={(e) => {
