@@ -1,7 +1,7 @@
 "use client";
 
 
-import { X } from "lucide-react";
+import { RightViewHeader } from "@/components/nsr/graph/RightInsetPanel";
 import { Input } from "@/components/ui/input";
 import { INSET, InsetBody, InsetTip } from "@/components/nsr/graph/InsetPanel";
 import { cn } from "@/lib/utils";
@@ -203,7 +203,7 @@ const ROW = cn(INSET.row, "justify-between gap-3");
 const LABEL = "min-w-0 truncate";
 
 export function FlowSettingsPanel({
-  value, onChange, dataset, onDataset, datasets, layoutMode, onLayoutMode, onClose, onReset,
+  value, onChange, dataset, onDataset, datasets, layoutMode, onLayoutMode, onBack, onReset,
 }: {
   value: FlowProps;
   onChange: (p: FlowProps) => void;
@@ -212,7 +212,7 @@ export function FlowSettingsPanel({
   datasets: { id: string; label: string }[];
   layoutMode: string;
   onLayoutMode: (m: string) => void;
-  onClose: () => void;
+  onBack: () => void;
   onReset: () => void;
 }) {
   const set = (key: keyof FlowProps, v: unknown) => onChange({ ...value, [key]: v });
@@ -220,13 +220,10 @@ export function FlowSettingsPanel({
 
   return (
     <>
-      <div className={INSET.header}>
+      <RightViewHeader onBack={onBack}>
         <h2 className={INSET.title}>{"<ReactFlow /> Props"}</h2>
-        <div className="ml-auto flex items-center gap-3">
-          <button onClick={onReset} className="text-xs text-[var(--paper-muted)] hover:text-[var(--paper-text)]">Reset</button>
-          <button onClick={onClose} aria-label="Close the panel" className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
-        </div>
-      </div>
+        <button onClick={onReset} className="ml-auto text-xs text-[var(--paper-muted)] hover:text-[var(--paper-text)]">Reset</button>
+      </RightViewHeader>
       <InsetBody>
       <p className={cn(INSET.section, "pt-3")}>Nodes &amp; Edges</p>
       <div className={ROW}>
