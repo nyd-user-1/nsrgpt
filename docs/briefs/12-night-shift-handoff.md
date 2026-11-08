@@ -25,6 +25,21 @@ every nuclear dataset worth having, then parse, index and cite it in the app.
 - IAEA inventory sketch: `docs/sketches/2026-11-07-iaea-inventory.html` (Coverage, Holdings, Routes and spend tabs).
   Its "Save notes" writes `~/Downloads/iaea-inventory-notes-*.md`; read the newest when Brendan says his notes are saved.
 
+## After the reboot (Brendan restarted the Mac at about 8:50 PM)
+- Gone with the reboot: the old agent-2 session (it relaunched the Wayback box every 4 hours), caffeinate, the notes watcher
+  on ~/Downloads, and the localhost:4317 fetch page. Re-arm what you need.
+- Still running in AWS: box `nsr-wayback-1` (i-0f37aebec5673249f), launched 00:03 UTC 2026-11-08. It terminates itself
+  around 04:03 UTC. The lane then has to be relaunched from what's left in
+  `raw/iaea/2026-11-07/_work/wayback-lane-remaining.json`.
+- Relaunch, from agent-2's tools: `scripts/iaea/box/create.sh nsr-wayback-2 t3.small userdata-wb.sh` (prints the instance id;
+  self-terminates in 4 hours), then start `scripts/iaea/box/wbget.py` on it through `scripts/iaea/box/ssm.sh` with the remaining
+  list (3 streams; archive.org answers 429 above that). Rebuild the manifests and the IAEA inventory sketch with
+  `scripts/iaea/manifest.sh` and `scripts/iaea/inventory.sh` as files land. A new agent-2 can own this; its kickoff is below.
+
+## Kickoffs
+- Night lead: `Read ~/Code/nsrgpt/docs/briefs/12-night-shift-handoff.md and take over as night-shift lead.`
+- agent-2: `Read ~/Code/nsrgpt/docs/briefs/11-iaea-and-open-libraries-acquisition.md and the "After the reboot" section of ~/Code/nsrgpt/docs/briefs/12-night-shift-handoff.md, then resume the Wayback lane until it finishes; report to the night lead.`
+
 ## Uncommitted (Brendan decides)
 README.md, the EV rule 22, `app/(site)/pipeline/`, `components/{pipeline,dash,blocks.tsx}`, `components/ui/nova/tooltip.tsx`,
 `components/sidebar/SideBarFold.tsx`, `lib/{pipeline-map.ts,header-titles.ts}`, `services/{nsr-fetch,nsr-count,iaea-pull}/`,
