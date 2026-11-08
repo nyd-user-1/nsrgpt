@@ -19,8 +19,8 @@ export function RowTip({ name, sub, side, children }: { name: string; sub?: stri
         sideOffset={8}
         className="nysgpt-app pointer-events-none flex w-auto max-w-56 flex-col items-start gap-0.5 rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] p-2.5 text-left shadow-md [&>[data-side]]:hidden"
       >
+        <span className="block text-base font-semibold leading-snug text-[var(--paper-text)]">{name}</span>
         {sub && <span className="block font-mono text-[10px] text-[var(--paper-muted)]">{sub}</span>}
-        <span className="block text-xs leading-snug text-[var(--paper-text)]">{name}</span>
       </TooltipContent>
     </Tooltip>
   )
