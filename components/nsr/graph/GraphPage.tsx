@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
+import { RailToggle } from "@/components/rail-toggle";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
 
@@ -1388,17 +1389,25 @@ function GraphPageInner() {
 
   return (
     <div className="flex h-full min-h-0">
-      <CatalogRail
-        onPick={center}
-        onAdd={(g) => { if (store.current.has(keyOf(g))) toast.info(`${g.label} is already on the canvas`); else { addNodes([g]); if (g.type === "paper") fetchCards([keyOf(g)]); } }}
-        onAsk={(g) => { setAttached(g); setDockOpen(true); }}
-        onLoadView={loadView}
-        onAddFile={(f) => addNodes([{
-          type: "file", id: f.key, label: f.name,
-          sub: `${(f.size / 1024).toFixed(0)} kB`, fileKey: f.key,
-        }], undefined)}
-        navigate={navigate}
-      />
+      {/* The docs panel's rail tab (components/docs/DocsNav.tsx), on the catalog rail (Brendan, 2026-11-08): the chevron tab on the
+          panel's edge closes and opens it; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-left>,
+          the same memory as /docs. The rail's own panels keep their w-64; the clip box hides them as the column narrows. */}
+      <div className="relative hidden h-full w-64 shrink-0 transition-[width] duration-[500ms] ease-in-out lg:block [[data-rail-left=closed]_&]:w-0">
+        <RailToggle side="left" className="top-24 right-0 w-[22px] border border-l-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
+        <div className="flex h-full w-full overflow-hidden">
+          <CatalogRail
+            onPick={center}
+            onAdd={(g) => { if (store.current.has(keyOf(g))) toast.info(`${g.label} is already on the canvas`); else { addNodes([g]); if (g.type === "paper") fetchCards([keyOf(g)]); } }}
+            onAsk={(g) => { setAttached(g); setDockOpen(true); }}
+            onLoadView={loadView}
+            onAddFile={(f) => addNodes([{
+              type: "file", id: f.key, label: f.name,
+              sub: `${(f.size / 1024).toFixed(0)} kB`, fileKey: f.key,
+            }], undefined)}
+            navigate={navigate}
+          />
+        </div>
+      </div>
       <div className="relative min-w-0 flex-1" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
         <ReactFlow
           nodes={rfNodes}
