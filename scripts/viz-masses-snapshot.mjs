@@ -3,6 +3,7 @@
 // committed ENSDF levels snapshot. Written to public/viz-data/masses.json for /viz/nebula, /viz/surface,
 // /viz/separation and /viz/nuclide-card. Rerun by hand:
 //   node scripts/viz-masses-snapshot.mjs [path/to/ame2020.json]
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // Source: /Code/nsr/public/data/ame2020.json (nsr's scripts/build-ame2020.mjs, from AME2020's mass_1.mas20 and
 // rct files). Δ is the mass excess in keV; with Δn and ΔH the neutron's and ¹H's:

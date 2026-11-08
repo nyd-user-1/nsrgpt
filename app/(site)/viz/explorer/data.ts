@@ -1,6 +1,7 @@
 // The 3D explorer's data (2026-11-06): public/viz-data/livechart-ground.json, every ground state from the IAEA Live
 // Chart API (scripts/iaea-livechart-build.mjs), and the fission yields (../fission-yields/data.ts) as variables too.
 
+import { fetchData } from '@/lib/use-data'
 import { loadFission, type Energy, type FissionFile } from '../fission-yields/data'
 
 export type Ground = {
@@ -11,17 +12,7 @@ export type Ground = {
   fission: { id: string; z: number; a: number; el: string; energies: Energy[] }[]
 }
 
-let ground: Promise<Ground> | null = null
-export function loadGround(): Promise<Ground> {
-  if (!ground) {
-    ground = fetch('/viz-data/livechart-ground.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/livechart-ground.json: ${r.status}`)
-      return r.json() as Promise<Ground>
-    })
-    ground.catch(() => (ground = null))
-  }
-  return ground
-}
+export const loadGround = () => fetchData<Ground>('livechart-ground.json')
 
 export type Var = { id: string; label: string; unit: string; group: string; log?: boolean }
 

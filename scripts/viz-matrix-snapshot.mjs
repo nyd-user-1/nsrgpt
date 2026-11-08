@@ -7,6 +7,7 @@
 // T½, E(2⁺), B(E2) and the level count span orders of magnitude, so they enter as log₁₀; the energies enter as
 // they are, keV. Rerun by hand after any of the three inputs changes:
 //   node scripts/viz-matrix-snapshot.mjs
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // Output — { source, vars, labels, n, cells }: cells [i, j, r] for i < j (36 pairs), r to 4 places; n nuclides.
 import { readFileSync, writeFileSync } from "node:fs";

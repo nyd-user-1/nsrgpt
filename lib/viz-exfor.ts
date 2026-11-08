@@ -2,6 +2,8 @@
 // written by scripts/viz-exfor-snapshot.mjs — a seeded sample of 50,000 measured cross sections from the EXFOR
 // library's data tables (IAEA-NDS/exfor_json).
 
+import { fetchData } from '@/lib/use-data'
+
 export type Exfor = {
   source: string
   commit: string
@@ -13,20 +15,8 @@ export type Exfor = {
   rows: [number, number, number, number, number, number, number][]
 }
 
-let cached: Promise<Exfor> | null = null
-export function loadExfor(): Promise<Exfor> {
-  if (!cached) {
-    const p = fetch('/viz-data/exfor.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/exfor.json: ${r.status}`)
-      return r.json() as Promise<Exfor>
-    })
-    p.catch(() => {
-      cached = null
-    })
-    cached = p
-  }
-  return cached
-}
+/** exfor.json, one request and cache entry for every chart and table that reads it (lib/use-data.ts). */
+export const loadExfor = () => fetchData<Exfor>('exfor.json')
 
 /** Projectiles as the chart groups them: the light ones by name, every heavier ion together. */
 export const PROJECTILE_GROUPS = ['n', 'p', 'd', 't', '³He', 'α', 'γ', 'Heavy ion', 'Other'] as const

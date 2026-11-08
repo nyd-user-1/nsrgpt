@@ -3,6 +3,7 @@
 // as the nsr repo fetched it. Written to public/viz-data/e2.json for /viz/weight, /viz/scatter3d and
 // /viz/first-excited. Rerun by hand:
 //   node scripts/viz-e2-snapshot.mjs [path/to/be2/adopted.json]
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // Output — { source, els, rows }: els[Z] is the element symbol; each row is [z, n, e2, be2], sorted by Z then N:
 //   e2   E(2⁺₁) in keV, to 0.1

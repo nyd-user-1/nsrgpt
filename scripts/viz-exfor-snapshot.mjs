@@ -8,6 +8,7 @@
 // read as data only. Reproduce:
 //   git clone https://github.com/IAEA-NDS/exfor_json /tmp/exfor_json && git -C /tmp/exfor_json checkout 36b38778
 //   node scripts/viz-exfor-snapshot.mjs /tmp/exfor_json
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // A row is one data point of a subentry whose reaction is a plain cross section (SF6 = SIG, no ratio or
 // expression, no particle/partial modifier), with an incident-energy column (EN) and a DATA column in barn

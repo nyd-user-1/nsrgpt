@@ -5,7 +5,8 @@ import { Pause, Play } from 'lucide-react'
 import { useEChart } from '@/components/viz/use-echart'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
-import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, type DecayNuclide, type Mass } from '@/lib/viz-physics'
+import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, parseMasses, type DecayNuclide, type Mass } from '@/lib/viz-physics'
+import { useData } from '@/lib/use-data'
 
 // One element at a time, all of its isotopes as translucent polygons on one radar (the radar-aqi
 // pattern, Brendan 2026-11-04). Spokes and scales match /viz/nuclide-card. Neutron-rich isotopes run
@@ -35,12 +36,9 @@ function ramp(i: number, count: number, dark: boolean): string {
 }
 
 export function IsotopeRadarChart() {
-  const [masses, setMasses] = React.useState<Mass[] | null>(null)
+  const { data: masses = null } = useData('masses.json', { select: parseMasses })
   const [z, setZ] = React.useState(50)
   const [playing, setPlaying] = React.useState(false)
-  React.useEffect(() => {
-    void loadMassesAndDecay().then(([ms]) => setMasses(ms))
-  }, [])
 
   // Elements present, ascending Z, as picker rows: "Sn 50", searchable as "tin"-free "50" or "Sn".
   const elements = React.useMemo<PickerOption[]>(() => {

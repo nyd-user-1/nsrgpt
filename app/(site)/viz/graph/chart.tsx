@@ -2,12 +2,14 @@
 
 import * as React from 'react'
 import dynamic from 'next/dynamic'
+import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 import { X } from 'lucide-react'
 import { useEChart, type ChartClick } from '@/components/viz/use-echart'
 import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { FAMILIES, FAMILY, familyColor, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
+import { useData } from '@/lib/use-data'
 import { chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphModel, type Pin } from './model'
 
 // The decay network (chart batch A, 2026-11-04): every ENSDF ground state a node, coloured by its primary decay
@@ -25,7 +27,7 @@ import { chainsOf, graphModel, loadGraphLayout, sizeOf, type GraphModel, type Pi
 // nuclide's chain or unpins it (2026-11-06: no Shift), and the picker pins by name; with chains lit, only their
 // edges flow. The 3D switch opens the graph into a precomputed 3D layout (graph3d.tsx).
 
-const Graph3D = dynamic(() => import('./graph3d'), { ssr: false, loading: () => <div className="min-h-0 flex-1" /> })
+const Graph3D = dynamic(() => import('./graph3d'), { ssr: false, loading: () => <ChartSkeleton /> })
 
 const load = () => Promise.all([loadDecay(), loadGraphLayout()])
 type Loaded = Awaited<ReturnType<typeof load>>
@@ -44,10 +46,7 @@ const MORPH_MS = 600
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
 
 export function GraphChart() {
-  const [decay, setDecay] = React.useState<Decay | null>(null)
-  React.useEffect(() => {
-    void loadDecay().then(setDecay)
-  }, [])
+  const { data: decay = null } = useData<Decay>('decay.json')
   const [pinned, setPinned] = React.useState<number[]>([])
   const [flow, setFlow] = React.useState(true)
   // The flow starts off for a reader who asks the system for less motion.

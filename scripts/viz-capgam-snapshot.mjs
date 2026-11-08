@@ -3,6 +3,7 @@
 // reduced to what /viz/simplex, /viz/spectra, /viz/gamma-atlas and /viz/gamma-punchcard draw, in
 // public/viz-data/capgam.json. Read-only on the source. Rerun by hand:
 //   node scripts/viz-capgam-snapshot.mjs
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // One set per product nucleus (the compound nucleus the capture makes), ordered by A then Z. A product's datasets
 // are merged — CapGam splits some into PRIMARY/SECONDARY or PLACED/UNPLACED — and a line both list once is kept once.

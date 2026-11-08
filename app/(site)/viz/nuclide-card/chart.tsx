@@ -6,7 +6,8 @@ import { useEChart } from '@/components/viz/use-echart'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { isEngaged } from '@/lib/viz-engage'
-import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, type DecayNuclide, type Mass } from '@/lib/viz-physics'
+import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, parseMasses, type DecayNuclide, type Mass } from '@/lib/viz-physics'
+import { useData } from '@/lib/use-data'
 import { type DecayData } from '@/lib/nuclide'
 
 // One nuclide's card as a radar (chart batch A, 2026-11-04): half-life, Qα, Qβ−, Sₙ, Sₚ and E(2⁺) on six spokes,
@@ -37,14 +38,8 @@ const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as cons
 
 export function NuclideCardChart() {
   const [keys, setKeys] = React.useState<[number, number | null]>([PB208, U238])
-  const [masses, setMasses] = React.useState<Mass[] | null>(null)
-  const [decayData, setDecayData] = React.useState<DecayData | null>(null)
-  React.useEffect(() => {
-    void loadMassesAndDecay().then(([ms, d]) => {
-      setMasses(ms)
-      setDecayData(d)
-    })
-  }, [])
+  const { data: masses = null } = useData('masses.json', { select: parseMasses })
+  const { data: decayData = null } = useData<DecayData>('decay.json')
   const rowOfKey = React.useMemo(() => new Map((masses ?? []).map((m, i) => [keyOf(m.z, m.n), i])), [masses])
   // The pickers' lists, Z then A: "208Pb", searchable as "Pb208" too.
   const options = React.useMemo<PickerOption[]>(

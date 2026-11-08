@@ -17,9 +17,10 @@ import { VizControls } from '@/components/viz/VizControls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Pause, Play, RotateCcw, X } from 'lucide-react'
 import {
-  FAMILIES, FAMILY, familyOf, familyOfMode, formatSeconds, halfLifeText, keyOf, loadDecay, nucName, primaryChain,
+  FAMILIES, FAMILY, familyOf, familyOfMode, formatSeconds, halfLifeText, keyOf, nucName, primaryChain,
   type DecayData, type Family,
 } from '@/lib/viz-decay'
+import { useData } from '@/lib/use-data'
 
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -526,11 +527,8 @@ export default function DecayScene() {
   const box = React.useRef<HTMLDivElement>(null)
   const cross = useCrossRules()
   const theme = useTheme(box)
-  const [data, setData] = React.useState<DecayData | null>(null)
-  const [failed, setFailed] = React.useState(false)
-  React.useEffect(() => {
-    loadDecay().then(setData, () => setFailed(true))
-  }, [])
+  const { data = null, error } = useData<DecayData>('decay.json')
+  const failed = error !== null
   const model = React.useMemo(() => (data ? prepare(data) : null), [data])
   const pal = React.useMemo(() => palette(theme.dark, theme.paper, theme.ink), [theme])
 

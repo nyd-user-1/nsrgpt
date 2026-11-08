@@ -1,6 +1,7 @@
 import { AdminDeleteUserCommand, AdminSetUserPasswordCommand, AdminUpdateUserAttributesCommand, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { readAccount } from "@/lib/account";
 import { cognito, currentUser, POOL_ID, SESSION_COOKIE } from "@/lib/auth";
 
 /**
@@ -19,6 +20,14 @@ const FRIENDLY: Record<string, string> = {
   TooManyRequestsException: "Too many tries. Wait a minute and try again.",
   LimitExceededException: "Too many tries. Wait a minute and try again.",
 };
+
+/** GET profile: the reader's name, email and join date, which /profile fetches after its shell paints (2026-11-08). */
+export async function GET(_req: Request, { params }: { params: Promise<{ action: string }> }) {
+  if ((await params).action !== "profile") return NextResponse.json({ error: "Unknown action" }, { status: 404 });
+  const user = await currentUser();
+  if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  return NextResponse.json(await readAccount(user.email), { headers: { "cache-control": "private, no-store" } });
+}
 
 export async function POST(req: Request, { params }: { params: Promise<{ action: string }> }) {
   const user = await currentUser();

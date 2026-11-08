@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useEChart, valueRow } from '@/components/viz/use-echart'
 import { VizControls } from '@/components/viz/VizControls'
 import { MenuSelect } from '@/components/viz/MenuSelect'
-import { loadLevelStats, nuclideName } from '@/lib/viz-data'
+import { loadLevelStats, nuclideName, type LevelStats } from '@/lib/viz-data'
+import { useData } from '@/lib/use-data'
 
 // One isotope chain at a time, one bar per nuclide (chart batch B, 2026-11-04; ECharts' custom-ohlc pattern): the
 // bar runs from the ground state to the highest known level, the left tick sits at the first excited level, the
@@ -41,28 +42,25 @@ function renderItem(_: unknown, api: Api) {
   }
 }
 
+type Chain = { z: number; el: string; count: number }
+const NO_CHAINS: Chain[] = []
+
+/** The elements with at least MIN_CHAIN nuclides, by Z: the picker's list. */
+function chainsOf(d: LevelStats): Chain[] {
+  const by = new Map<number, Chain>()
+  for (const [rz, , el] of d.rows) {
+    const c = by.get(rz) ?? { z: rz, el, count: 0 }
+    c.count++
+    by.set(rz, c)
+  }
+  return [...by.values()].filter((c) => c.count >= MIN_CHAIN).sort((a, b) => a.z - b.z)
+}
+
 export function LevelSpansChart() {
   const [z, setZ] = React.useState(50)
-  const [chains, setChains] = React.useState<{ z: number; el: string; count: number }[]>([])
+  const { data: chains = NO_CHAINS } = useData('level-stats.json', { select: chainsOf })
   // The chain's table rows, in bar order, for a table press pointing at its bar.
   const shown = React.useRef<number[]>([])
-
-  React.useEffect(() => {
-    let live = true
-    loadLevelStats().then((d) => {
-      if (!live) return
-      const by = new Map<number, { z: number; el: string; count: number }>()
-      for (const [rz, , el] of d.rows) {
-        const c = by.get(rz) ?? { z: rz, el, count: 0 }
-        c.count++
-        by.set(rz, c)
-      }
-      setChains([...by.values()].filter((c) => c.count >= MIN_CHAIN).sort((a, b) => a.z - b.z))
-    })
-    return () => {
-      live = false
-    }
-  }, [])
 
   const ref = useEChart(
     loadLevelStats,

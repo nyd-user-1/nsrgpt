@@ -2,7 +2,8 @@
 # @opennextjs/cloudflare and deploys the worker named nsrgpt (wrangler.jsonc).
 # Copied from NYSgpt's cloudflare-branch workflow. GitHub Actions runs it because
 # the Workers Builds repo connection needs a dashboard click. Secrets:
-# CLOUDFLARE_API_TOKEN (workers edit), CLOUDFLARE_ACCOUNT_ID.
+# CLOUDFLARE_API_TOKEN (workers edit), CLOUDFLARE_ACCOUNT_ID. The build step sets NEXT_PUBLIC_DATA_BASE, the chart
+# data's CloudFront domain (lib/data-url.ts, 2026-11-08): Next.js writes it into the browser code at build time.
 name: Deploy to Cloudflare
 on:
   push:
@@ -26,6 +27,7 @@ jobs:
       - run: npx opennextjs-cloudflare build
         env:
           NODE_OPTIONS: --max-old-space-size=6144
+          NEXT_PUBLIC_DATA_BASE: https://dcl3kyt3ynmb2.cloudfront.net
       # The right panel's Cloudflare view reads this deploy's numbers from /build-usage.json (2026-11-05):
       # GitHub Actions minutes this repo used this month, static files, and the bundled worker size.
       - name: Record this deploy's build numbers

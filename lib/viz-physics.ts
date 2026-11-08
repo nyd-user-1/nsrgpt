@@ -6,6 +6,7 @@
 // The decay types, the decay-mode colours, the nuclide names and the half-life text are lib/nuclide.ts's, shared
 // with /viz/decay; they're re-exported here so the charts import from one place.
 
+import { fetchData } from '@/lib/use-data'
 import { FAMILIES, FAMILY, familyOf, keyOf, type DecayData, type DecayMode, type DecayNuclide, type Family } from '@/lib/nuclide'
 
 export { FAMILIES, FAMILY, familyOf, familyOfMode, formatSeconds, halfLifeText, keyOf, nucName, sup } from '@/lib/nuclide'
@@ -32,26 +33,7 @@ type MassFile = { source: string; els: string[]; cols: string[]; rows: (number |
 
 export type Decay = DecayData
 
-// One request per file per page, as lib/viz-data.ts does it; a failed fetch is dropped so the next mount retries.
-const cache = new Map<string, Promise<unknown>>()
-function once<T>(name: string, make: () => Promise<T>): () => Promise<T> {
-  return () => {
-    let p = cache.get(name) as Promise<T> | undefined
-    if (!p) {
-      p = make()
-      p.catch(() => cache.delete(name))
-      cache.set(name, p)
-    }
-    return p
-  }
-}
-async function json(name: string): Promise<unknown> {
-  const r = await fetch(`/viz-data/${name}.json`)
-  if (!r.ok) throw new Error(`/viz-data/${name}.json: ${r.status}`)
-  return r.json()
-}
-
-function parseMasses(f: MassFile): Mass[] {
+export function parseMasses(f: MassFile): Mass[] {
   return f.rows.map(([z, n, , b, sn, su, sp, qa, qb, e, nl, e2]) => ({
     z: z as number,
     n: n as number,
@@ -62,8 +44,10 @@ function parseMasses(f: MassFile): Mass[] {
   }))
 }
 
-export const loadMasses = once('masses', () => json('masses').then((raw) => parseMasses(raw as MassFile)))
-export const loadDecay = once('decay', () => json('decay').then((raw) => raw as Decay))
+// One request per file per page, shared with every other loader of the file (lib/use-data.ts); the masses are
+// parsed once per file.
+export const loadMasses = () => fetchData<Mass[], MassFile>('masses.json', parseMasses)
+export const loadDecay = () => fetchData<Decay>('decay.json')
 export const loadMassesAndDecay = () => Promise.all([loadMasses(), loadDecay()])
 
 // ── names, units, colours ────────────────────────────────────────────────────────────────────────
@@ -144,35 +128,38 @@ export const SERIES = [
 ]
 export const SERIES_MIN_PCT = 0.001
 export type SeriesStep = { series: number; from: number; to: number; mode: string; pct: number | null }
-export function decaySeries(d: Decay): SeriesStep[] {
-  const index = decayIndex(d)
+/** One series from its head (Z, N): every α and β branch of at least SERIES_MIN_PCT down to stable. The graph page's
+ *  decay chains use it for a head of their own (the neptunium series, 2026-11-08). */
+export function seriesFrom(d: Decay, index: Map<number, number>, head: readonly [number, number], si = 0): SeriesStep[] {
   const steps: SeriesStep[] = []
-  SERIES.forEach((s, si) => {
-    const start = index.get(keyOf(s.head[0], s.head[1]))
-    if (start === undefined) return
-    const seen = new Set<number>([start])
-    const queue = [start]
-    while (queue.length) {
-      const from = queue.shift() as number
-      const x = d.nuclides[from]
-      for (const [mode, pct] of x.m) {
-        const m = d.modes[mode]
-        if (!m || m.dz === null || m.dn === null) continue
-        // A series keeps its A mod 4: β−n (²¹⁰Tl → ²⁰⁹Pb) and the cluster emissions leave it, as does any
-        // branch under the floor.
-        if ((m.dz + m.dn) % 4 !== 0 || Math.abs(m.dz) > 2) continue
-        if (pct !== null && pct < SERIES_MIN_PCT) continue
-        const to = index.get(keyOf(x.z + m.dz, x.n + m.dn))
-        if (to === undefined) continue
-        steps.push({ series: si, from, to, mode, pct })
-        if (!seen.has(to)) {
-          seen.add(to)
-          queue.push(to)
-        }
+  const start = index.get(keyOf(head[0], head[1]))
+  if (start === undefined) return steps
+  const seen = new Set<number>([start])
+  const queue = [start]
+  while (queue.length) {
+    const from = queue.shift() as number
+    const x = d.nuclides[from]
+    for (const [mode, pct] of x.m) {
+      const m = d.modes[mode]
+      if (!m || m.dz === null || m.dn === null) continue
+      // A series keeps its A mod 4: β−n (²¹⁰Tl → ²⁰⁹Pb) and the cluster emissions leave it, as does any
+      // branch under the floor.
+      if ((m.dz + m.dn) % 4 !== 0 || Math.abs(m.dz) > 2) continue
+      if (pct !== null && pct < SERIES_MIN_PCT) continue
+      const to = index.get(keyOf(x.z + m.dz, x.n + m.dn))
+      if (to === undefined) continue
+      steps.push({ series: si, from, to, mode, pct })
+      if (!seen.has(to)) {
+        seen.add(to)
+        queue.push(to)
       }
     }
-  })
+  }
   return steps
+}
+export function decaySeries(d: Decay): SeriesStep[] {
+  const index = decayIndex(d)
+  return SERIES.flatMap((s, si) => seriesFrom(d, index, s.head, si))
 }
 
 /** The separation candles: each nuclide whose Sₙ and its lighter isotope's are both known, Z then N. */

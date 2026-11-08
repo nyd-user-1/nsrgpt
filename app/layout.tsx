@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DataProvider } from "@/components/DataProvider";
 import { ProductStatusProvider } from "@/components/ProductStatus";
 import { SwitchboardProvider, SwitchboardShell } from "@/components/SwitchboardPanel";
 import { ShiftNotes } from "@/components/ShiftNotes";
@@ -105,29 +106,31 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* The provider mounts the panel itself (portaled to <body>), so the
-              shell wrapper and the drawer stay in one system. */}
-          <ProductStatusProvider>
-            <SwitchboardProvider>
-              {/* The shell (components/shell.tsx): the second panel beside the page, and the contract the
-                  chat, the notes and the Nav call — so all three sit inside it. */}
-              <Shell>
-                <SwitchboardShell>{children}</SwitchboardShell>
-                {/* The two global gestures, ported from pax-trinity (2026-11-03):
-                    Shift-drag draws a note; Shift and a right-click opens the Nav.
-                    Inside the provider so the Nav can open a box in the panel. */}
-                <ShiftNotes />
-                <ShiftNav />
-                {/* Trinity's dev kit (2026-11-04): the housekeeping pointer, the inspector
-                    dock, and Live edit's armed mode — all inert until the panel's Dev tools
-                    rows switch them on. */}
-                <HousekeepingTool />
-                <DevInspector />
-                <LiveEditMode />
-                <ThemeSync />
-              </Shell>
-            </SwitchboardProvider>
-          </ProductStatusProvider>
+          <DataProvider>
+            {/* The provider mounts the panel itself (portaled to <body>), so the
+                shell wrapper and the drawer stay in one system. */}
+            <ProductStatusProvider>
+              <SwitchboardProvider>
+                {/* The shell (components/shell.tsx): the second panel beside the page, and the contract the
+                    chat, the notes and the Nav call — so all three sit inside it. */}
+                <Shell>
+                  <SwitchboardShell>{children}</SwitchboardShell>
+                  {/* The two global gestures, ported from pax-trinity (2026-11-03):
+                      Shift-drag draws a note; Shift and a right-click opens the Nav.
+                      Inside the provider so the Nav can open a box in the panel. */}
+                  <ShiftNotes />
+                  <ShiftNav />
+                  {/* Trinity's dev kit (2026-11-04): the housekeeping pointer, the inspector
+                      dock, and Live edit's armed mode — all inert until the panel's Dev tools
+                      rows switch them on. */}
+                  <HousekeepingTool />
+                  <DevInspector />
+                  <LiveEditMode />
+                  <ThemeSync />
+                </Shell>
+              </SwitchboardProvider>
+            </ProductStatusProvider>
+          </DataProvider>
         </ThemeProvider>
       </body>
     </html>

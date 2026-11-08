@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, MailCheck } from "lucide-react";
+import { useProductStatus } from "@/components/ProductStatusContext";
 
 type Mode = "signin" | "signup";
 
@@ -15,6 +17,12 @@ const post = async (action: string, body: object) => {
   return { status: r.status, ...j };
 };
 
+/** The place to return to, from ?next=: only a local path, never another site. */
+const nextOf = (search: string) => {
+  const next = new URLSearchParams(search).get("next");
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/welcome";
+};
+
 /**
  * Sign in, or make an account (ported from Hermes, 2026-10-07): email and
  * password, then the six-digit code Cognito emails, then signed in and on to
@@ -22,7 +30,16 @@ const post = async (action: string, body: object) => {
  * Forgot password (2026-10-24): the email, then the emailed code and a new
  * password, then signed in with it.
  */
-export function SignInForm({ mode, next }: { mode: Mode; next: string }) {
+export function SignInForm({ mode }: { mode: Mode }) {
+  // ?next= and the session are read in the browser, so the page itself is a static file (2026-11-08). A reader
+  // already signed in goes straight on.
+  const [next, setNext] = useState("/welcome");
+  const { email: reader, checked } = useProductStatus();
+  const router = useRouter();
+  useEffect(() => setNext(nextOf(window.location.search)), []);
+  useEffect(() => {
+    if (checked && reader !== null) router.replace(nextOf(window.location.search));
+  }, [checked, reader, router]);
   const [step, setStep] = useState<"form" | "code" | "forgot" | "reset">("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

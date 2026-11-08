@@ -3,37 +3,15 @@
 // 2026-11-06: the 3D layout (scripts/viz-graph-layout-3d.mjs → graph-layout-3d.json), the chains of several pinned
 // nuclides at once, and each edge's flow timing.
 
+import { fetchData } from '@/lib/use-data'
 import { decayLinks, keyOf, stepPeriod, type Decay, type Link } from '@/lib/viz-physics'
 
-type LayoutFile = { source: string; k: number[]; x: number[]; y: number[] }
+export type LayoutFile = { source: string; k: number[]; x: number[]; y: number[] }
 
-let layoutPromise: Promise<LayoutFile> | null = null
-/** One request per page; a failed fetch is dropped so the next mount retries. */
-export function loadGraphLayout(): Promise<LayoutFile> {
-  if (!layoutPromise) {
-    layoutPromise = fetch('/viz-data/graph-layout.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/graph-layout.json: ${r.status}`)
-      return r.json() as Promise<LayoutFile>
-    })
-    layoutPromise.catch(() => (layoutPromise = null))
-  }
-  return layoutPromise
-}
+/** One request per page (lib/use-data.ts). */
+export const loadGraphLayout = () => fetchData<LayoutFile>('graph-layout.json')
 
-type Layout3dFile = { source: string; k: number[]; x: number[]; y: number[]; z: number[] }
-
-let layout3dPromise: Promise<Layout3dFile> | null = null
-/** The 3D layout, fetched when the 3D switch first turns on. */
-export function loadGraphLayout3d(): Promise<Layout3dFile> {
-  if (!layout3dPromise) {
-    layout3dPromise = fetch('/viz-data/graph-layout-3d.json').then((r) => {
-      if (!r.ok) throw new Error(`/viz-data/graph-layout-3d.json: ${r.status}`)
-      return r.json() as Promise<Layout3dFile>
-    })
-    layout3dPromise.catch(() => (layout3dPromise = null))
-  }
-  return layout3dPromise
-}
+export type Layout3dFile = { source: string; k: number[]; x: number[]; y: number[]; z: number[] }
 
 /** Each node's 3D position, in decay.json's order; a nuclide the 3D layout hasn't placed stays at its 2D place. */
 export function positions3d(decay: Decay, m: GraphModel, layout: Layout3dFile): [number, number, number][] {

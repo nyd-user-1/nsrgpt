@@ -658,3 +658,31 @@ html[data-motion-first] [data-app-card] > :not([data-main-header]) {
     transition: none !important;
   }
 }
+
+/* React Flow's zoom controls on /graph (Brendan, 2026-11-08): the library ships them white; its stylesheet loads after this one, so these rules carry the html prefix to win. They take
+   the paper palette, so the plus, minus and fit buttons read on the dark canvas too. */
+html .react-flow {
+  --xy-controls-button-background-color-default: var(--paper);
+  --xy-controls-button-background-color-hover-default: var(--paper-quiet);
+  --xy-controls-button-color-default: var(--paper-text);
+  --xy-controls-button-color-hover-default: var(--paper-text);
+  --xy-controls-button-border-color-default: var(--paper-rule);
+  --xy-controls-box-shadow-default: none;
+}
+html .react-flow__controls {
+  border: 1px solid var(--paper-rule) !important;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+html .react-flow__controls-button {
+  background: var(--paper) !important;
+  border-bottom: 1px solid var(--paper-rule) !important;
+  color: var(--paper-text) !important;
+}
+html .react-flow__controls-button:last-child { border-bottom: 0 !important; }
+html .react-flow__controls-button:hover { background: var(--paper-quiet) !important; }
+html .react-flow__controls-button svg { fill: currentColor !important; }
+
+/* /pipeline's connectors (2026-11-08): the arrowheads take the palette's faint ink, matching the lines; React Flow colours them inline, so the rule carries !important. */
+html .pipeline-flow .react-flow__arrowhead polyline { fill: var(--paper-faint) !important; stroke: var(--paper-faint) !important; }

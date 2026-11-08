@@ -3,6 +3,7 @@
 // public/viz-data/levels.json for the browser to fetch. Rerun by hand when ENSDF is reloaded:
 //   node scripts/viz-levels-snapshot.mjs                 (queries Athena with the local AWS CLI)
 //   node scripts/viz-levels-snapshot.mjs --csv=PATH      (reuses a results CSV already downloaded)
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // Source: nsr.ensdf_datasets.raw (one card deck per dataset), dsid 'ADOPTED LEVELS…', minus
 // the unobserved/not-observed decks; Z and N from nuclide_dict. Athena splits each deck into its

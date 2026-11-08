@@ -18,6 +18,7 @@
 // solver reads it (listed percentages, the rest shared among modes listed without one, scaled down where they add to
 // more than 100).
 
+import { fetchData } from '@/lib/use-data'
 import { familyOfMode, keyOf, type Decay, type Mass } from '@/lib/viz-physics'
 import { atoms, logTimes, solveChain, timeSpan, type Chain } from '@/lib/viz-bateman'
 
@@ -31,29 +32,19 @@ const FISSION_KEV = 2e5
 export type Measured = Map<number, { kept: number; photons: number }>
 
 type EnergyFile = { cols: string[]; rows: (number | null)[][] }
-let energyFile: Promise<Measured> | null = null
-/** public/viz-data/decay-energy.json, once per page; a failed fetch is dropped so the next call retries. */
-export function loadMeasured(): Promise<Measured> {
-  if (!energyFile) {
-    energyFile = fetch('/viz-data/decay-energy.json')
-      .then((r) => {
-        if (!r.ok) throw new Error(`/viz-data/decay-energy.json: ${r.status}`)
-        return r.json() as Promise<EnergyFile>
-      })
-      .then((f) => {
-        const c = (name: string) => f.cols.indexOf(name)
-        const v = (r: (number | null)[], name: string) => r[c(name)] ?? 0
-        return new Map(
-          f.rows.map((r) => [
-            keyOf(r[0] as number, r[1] as number),
-            { kept: v(r, 'alpha') + v(r, 'recoil') + v(r, 'beta') + v(r, 'electron'), photons: v(r, 'gamma') + v(r, 'xray') + v(r, 'annihilation') },
-          ]),
-        )
-      })
-    energyFile.catch(() => (energyFile = null))
-  }
-  return energyFile
+function parseMeasured(f: EnergyFile): Measured {
+  const c = (name: string) => f.cols.indexOf(name)
+  const v = (r: (number | null)[], name: string) => r[c(name)] ?? 0
+  return new Map(
+    f.rows.map((r) => [
+      keyOf(r[0] as number, r[1] as number),
+      { kept: v(r, 'alpha') + v(r, 'recoil') + v(r, 'beta') + v(r, 'electron'), photons: v(r, 'gamma') + v(r, 'xray') + v(r, 'annihilation') },
+    ]),
+  )
 }
+
+/** decay-energy.json as a map, worked out once per file (lib/use-data.ts). */
+export const loadMeasured = () => fetchData<Measured, EnergyFile>('decay-energy.json', parseMeasured)
 
 /** A nuclide's fission branch, as a fraction of its decays. */
 function fissionShare(d: Decay, i: number): number {

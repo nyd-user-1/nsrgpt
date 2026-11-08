@@ -17,27 +17,13 @@ export type KnowledgeRow = {
 
 type Raw = { source: string; columns: string[]; rows: number[][] }
 
-let cached: Promise<KnowledgeRow[]> | null = null
-export function loadKnowledge(): Promise<KnowledgeRow[]> {
-  if (!cached) {
-    const p = fetch('/viz-data/knowledge.json')
-      .then((r) => {
-        if (!r.ok) throw new Error(`/viz-data/knowledge.json: ${r.status}`)
-        return r.json() as Promise<Raw>
-      })
-      .then(({ columns, rows }) => {
-        const c = (name: string) => columns.indexOf(name)
-        const [z, n, papers, levels, cards, exfor, xundl, cutoff, ev] = ['z', 'n', 'papers', 'levels', 'cards', 'exfor', 'xundl', 'cutoff', 'eval'].map(c)
-        return rows.map((r) => ({
-          z: r[z], n: r[n], papers: r[papers], levels: r[levels], cards: r[cards], exfor: r[exfor], xundl: r[xundl], cutoff: r[cutoff], evaluated: r[ev] === 1,
-        }))
-      })
-    p.catch(() => {
-      cached = null
-    })
-    cached = p
-  }
-  return cached
+/** knowledge.json's columns as rows, worked out once per file (lib/use-data.ts). */
+export function parseKnowledge({ columns, rows }: Raw): KnowledgeRow[] {
+  const c = (name: string) => columns.indexOf(name)
+  const [z, n, papers, levels, cards, exfor, xundl, cutoff, ev] = ['z', 'n', 'papers', 'levels', 'cards', 'exfor', 'xundl', 'cutoff', 'eval'].map(c)
+  return rows.map((r) => ({
+    z: r[z], n: r[n], papers: r[papers], levels: r[levels], cards: r[cards], exfor: r[exfor], xundl: r[xundl], cutoff: r[cutoff], evaluated: r[ev] === 1,
+  }))
 }
 
 const ELEMENTS = ['n', 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og', 'Uue', 'Ubn']

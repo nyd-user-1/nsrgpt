@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, Panel, Handle, Position,
   useNodesState, useEdgesState, useReactFlow, addEdge,
-  SelectionMode, ConnectionMode, ConnectionLineType, PanOnScrollMode,
+  SelectionMode, ConnectionMode, ConnectionLineType, PanOnScrollMode, MarkerType,
   type Node, type Edge, type NodeProps, type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -15,7 +15,7 @@ import {
   GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, Users, X,
 } from "lucide-react";
 import { FlowSettingsPanel, DEFAULT_FLOW_PROPS, type FlowProps } from "@/components/nsr/graph/FlowSettings";
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogPopup, DialogHeader, DialogTitle, DialogDescription } from "@/components/animate-ui/components/base/dialog";
@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
+import { RailToggle, useRailClosed } from "@/components/rail-toggle";
+import { decayIndex, halfLifeText, loadDecay, seriesFrom, FAMILY, familyOf, familyOfMode, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
 
@@ -49,6 +51,19 @@ export interface GNode {
   output?: string;
   fileKey?: string;
   fileText?: string;
+  /** Nuclide cards on a chart grid (decay chains, capture paths): proton and neutron numbers; levels: energy in keV. */
+  z?: number;
+  n?: number;
+  e?: number;
+  /** The nuclide's decay family (lib/nuclide.ts FAMILY): the card wears its colour, as every chart does. */
+  family?: Family;
+  /** Figure-faithful drawings (Brendan, 2026-11-08): "glyph" is the actinide build-up's bare "238 U" with its fission share;
+   *  "bubble" the decay-series circle with A, Z, symbol and half-life. `pos` is the figure's own column and row. */
+  style?: "glyph" | "bubble";
+  cls?: "fissile" | "fertile" | "less" | "short";
+  fission?: number;
+  hl?: string;
+  pos?: [number, number];
   /** Paper cards: the entity rows shown inside the card (op=cards). */
   rows?: CardRows;
   /** "+N more" overflow supernodes: whose overflow, which relation. */
@@ -60,7 +75,7 @@ export interface GNode {
   openGroups?: string[];
 }
 /** Edge provenance. Absent = a record from the join tables. */
-type EdgeMeta = { kind?: "similar" | "wired"; cos?: number } & Record<string, unknown>;
+type EdgeMeta = { kind?: "similar" | "wired" | "decay" | "reaction" | "sample"; cos?: number; mode?: string; pct?: number | null } & Record<string, unknown>;
 const isSimilar = (e: Edge) => (e.data as EdgeMeta | undefined)?.kind === "similar";
 const keyOf = (n: { type: string; id: string }) => `${n.type}:${n.id}`;
 
@@ -121,6 +136,21 @@ function layout(nodes: Node[], edges: Edge[], rankdir: "LR" | "TB" = "LR"): Node
 /* ── node cards ───────────────────────────────────────────────────────────── */
 
 const CARD = "rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] px-3 py-2 text-xs shadow-sm";
+// The actinide build-up figure's classes (Sasahara): fissile dark red, fertile blue, less fertile grey, short-lived light grey;
+// its arrows: capture blue, α magenta, β and EC green.
+const GLYPH_COLOR: Record<"fissile" | "fertile" | "less" | "short", string> = { fissile: "#a0352c", fertile: "#1f4fd6", less: "#6b6b6b", short: "#aaaaaa" };
+const ARROW_COLOR = { capture: "#1f4fd6", alpha: "#e22bd0", beta: "#1b8c3a" } as const;
+/** The decay-series figure's bubble fills by the element's class (periodic-table colours). */
+function bubbleFill(z: number): string {
+  if (z >= 89 && z <= 103) return "#bcd8ff"; // actinides
+  if (z === 87 || z === 55 || z === 37 || z === 19 || z === 11 || z === 3) return "#ffb3b3"; // alkali metals
+  if (z === 88 || z === 56 || z === 38 || z === 20 || z === 12 || z === 4) return "#ffe0b8"; // alkaline earth metals
+  if (z === 85 || z === 53 || z === 35 || z === 17 || z === 9) return "#ffff99"; // halogens
+  if (z === 84 || z === 52 || z === 51 || z === 33 || z === 32 || z === 14 || z === 5) return "#d8dcae"; // metalloids
+  if (z === 86 || z === 54 || z === 36 || z === 18 || z === 10 || z === 2) return "#c8f8ff"; // noble gases
+  if ((z >= 21 && z <= 30) || (z >= 39 && z <= 48) || (z >= 72 && z <= 80)) return "#ffd0d0"; // transition metals
+  return "#dedede"; // post-transition metals and the rest
+}
 
 type EntityData = GNode & {
   onExpand: (node: GNode, rel: string) => void;
@@ -162,6 +192,12 @@ interface RunTrace {
 function edgeReceipt(x: GNode, y: GNode, meta?: EdgeMeta): { table?: string; text: string } {
   if (meta?.kind === "similar")
     return { text: `Inference from the embedding space (bge-m3 cosine similarity${meta.cos != null ? ` = ${meta.cos.toFixed(3)}` : ""}) — NOT a database record. ${x.label} and ${y.label} sit near each other in vector space; nothing in the corpus joins them.` };
+  if (meta?.kind === "decay")
+    return { table: "ensdf decay modes (decay.json)", text: `${x.label} decays to ${y.label} by ${meta.mode}${meta.pct != null ? `, ${meta.pct}% of its decays` : ""}: the ground-state decay mode and branching ENSDF lists for ${x.label}.` };
+  if (meta?.kind === "reaction")
+    return { table: "endfb_xs (ENDF/B-VIII.1, MT by reaction)", text: `${x.label} ${meta.mode} ${y.label}: a reaction step. Its cross section is in the ENDF/B tables; this canvas is sample data until the API serves it.` };
+  if (meta?.kind === "sample")
+    return { text: `${x.label} to ${y.label}${meta.mode ? ` (${meta.mode})` : ""}: sample data for the layout, not yet a database record.` };
   const pair = (t1: GNode["type"], t2: GNode["type"]) =>
     (x.type === t1 && y.type === t2) || (x.type === t2 && y.type === t1);
   const paper = x.type === "paper" ? x : y.type === "paper" ? y : null;
@@ -185,6 +221,48 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
   const d = data;
   const accent = selected ? "border-nuclear ring-1 ring-nuclear" : "";
   const dim = d.dimmed ? "opacity-30" : "";
+
+  // Eight quiet handles so an arrow can leave or enter any side; the edge picks the pair by direction.
+  const sides = (
+    <>
+      {([["t", Position.Top], ["b", Position.Bottom], ["l", Position.Left], ["r", Position.Right]] as const).map(([id, p]) => (
+        <Fragment key={id}>
+          <Handle type="source" id={id} position={p} className="!h-1 !w-1 !border-0 !bg-transparent" />
+          <Handle type="target" id={`${id}t`} position={p} className="!h-1 !w-1 !border-0 !bg-transparent" />
+        </Fragment>
+      ))}
+    </>
+  );
+  if (d.style === "glyph") {
+    // The actinide build-up's glyph: mass number small, symbol large, in the class colour; the fission share in red beneath.
+    const color = GLYPH_COLOR[d.cls ?? "less"];
+    const a = d.label.match(/^\d+m?/)?.[0] ?? "";
+    const el = d.label.replace(/^\d+m?/, "");
+    return (
+      <div className={`relative flex flex-col items-center px-2 py-1 ${accent ? "rounded-md ring-1 ring-nuclear" : ""} ${dim}`} style={{ width: NODE_W.nuclide }} title={d.sub}>
+        {sides}
+        <p className="font-mono leading-none" style={{ color }}><span className="text-sm">{a}</span> <span className="text-xl font-semibold">{el}</span></p>
+        {d.fission !== undefined && <p className="mt-0.5 font-mono text-sm font-semibold leading-none text-[#d1242f]">{d.fission}%</p>}
+      </div>
+    );
+  }
+  if (d.style === "bubble") {
+    // The decay-series bubble: A over Z at the left, the symbol large, the half-life beneath, filled in the element's class colour.
+    const fill = bubbleFill(d.z ?? 0);
+    const a = d.z !== undefined && d.n !== undefined ? d.z + d.n : "";
+    const [hlValue, hlUnit] = (d.hl ?? "").split("|");
+    return (
+      <div className={`relative flex flex-col items-center justify-center rounded-full border border-[#333] text-[#16181d] ${accent ? "ring-2 ring-nuclear" : ""} ${dim}`} style={{ width: 112, height: 112, background: `radial-gradient(circle at 35% 30%, #fff 0%, ${fill} 70%)` }} title={d.sub}>
+        {sides}
+        <p className="flex items-center leading-none">
+          <span className="mr-0.5 flex flex-col items-end font-mono text-[11px] leading-[1.05]"><span>{a}</span><span>{d.z}</span></span>
+          <span className="text-3xl font-bold tracking-tight">{d.label.replace(/^\d+m?/, "")}</span>
+        </p>
+        <p className="mt-0.5 font-mono text-[11px] leading-tight">{hlValue}</p>
+        {hlUnit && <p className="text-[11px] leading-tight">{hlUnit}</p>}
+      </div>
+    );
+  }
 
   if (d.type === "prompt") {
     const busy = d.running === keyOf(d);
@@ -245,8 +323,12 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
     );
   }
 
+  // Nuclide cards wear their decay family's colour (lib/nuclide.ts FAMILY, the same as every chart): a 4px left edge
+  // and a strong wash of it over the paper, so yellow reads yellow and blue reads blue (Brendan, 2026-11-08, 03:23).
+  const famColor = d.type === "nuclide" && d.family ? (isDark() ? FAMILY[d.family].dark : FAMILY[d.family].light) : null;
+  const famStyle = famColor ? { borderLeft: `5px solid ${famColor}`, borderColor: famColor, background: `color-mix(in oklab, ${famColor} 38%, var(--paper))` } : {};
   return (
-    <div className={`${CARD} ${accent} ${dim} group/card relative transition-opacity`} style={{ width: NODE_W[d.type] }}>
+    <div className={`${CARD} ${accent} ${dim} group/card relative transition-opacity`} style={{ width: NODE_W[d.type], ...famStyle }} title={d.family ? FAMILY[d.family].label : undefined}>
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-0 !bg-[var(--paper-quiet)]-foreground/50" />
       <Handle type="source" position={Position.Right} className="!h-2 !w-2 !border-0 !bg-[var(--paper-quiet)]-foreground/50" />
       {/* nodrag keeps React Flow's pointer-drag off this grip, so the native
@@ -418,12 +500,14 @@ function RowMenu({ g, onPick, onAdd, onAsk }: {
   );
 }
 
-function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: {
+function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, onLoadDemo, navigate }: {
   onPick: (g: GNode) => void;
   onAdd: (g: GNode) => void;
   onAsk: (g: GNode) => void;
   onAddFile: (f: LibFile) => void;
   onLoadView: (id: number) => void;
+  onLoadChain: (id: string) => void;
+  onLoadDemo: (id: string) => void;
   navigate: (p: string) => void;
 }) {
   const { data } = useQuery({
@@ -464,7 +548,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
       .filter((v) => isRecipe(v) === wantRecipes)
       .filter((v) => !filter.trim() || `${v.name} ${v.saved_by}`.toLowerCase().includes(filter.trim().toLowerCase()));
     return (
-      <div className="hidden w-64 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -512,7 +596,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
       (f) => !filter.trim() || f.name.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden w-64 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -558,7 +642,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
       (it) => !filter.trim() || `${it.label} ${it.title ?? ""}`.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden w-64 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -606,7 +690,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
   }
 
   return (
-    <div className="hidden w-56 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+    <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
       <p className="px-3 pb-1 pt-3 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Corpus</p>
       {CATALOG_TYPES.map(({ key, label, icon: Icon }) => (
         <button
@@ -658,6 +742,38 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
           </span>
         </button>
       ))}
+      <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Decay chains</p>
+      {CHAINS.map((c) => (
+        <button
+          key={c.id}
+          onClick={() => onLoadChain(c.id)}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
+        >
+          <Atom className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
+          <span>{c.label}</span>
+        </button>
+      ))}
+      {ALL_DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
+        <button key={d.id} onClick={() => onLoadDemo(d.id)} className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]">
+          <Atom className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
+          <span>{d.label}</span>
+        </button>
+      ))}
+      {DEMO_SECTIONS.map((section) => (
+        <div key={section} className="flex flex-col">
+          <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">{section}</p>
+          {ALL_DEMOS.filter((d) => d.section === section).map((d) => (
+            <button
+              key={d.id}
+              onClick={() => onLoadDemo(d.id)}
+              className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
+            >
+              <Atom className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
+              <span>{d.label}</span>
+            </button>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
@@ -681,6 +797,103 @@ const STARTER: (GNode & { code?: string })[] = [
   { type: "paper", id: "2005AD25", label: "2005AD25", title: "Formation of dense partonic matter in relativistic nucleus-nucleus collisions at RHIC", sub: "2005 · 2,622 cites" },
 ];
 
+/** The four decay series (Brendan, 2026-11-08): node = nuclide, edge = a decay mode with its branching, walked from
+ *  the head through ENSDF's ground-state decay modes (decay.json, the Flow Map's data) down to stable lead or bismuth. */
+const CHAINS: { id: string; label: string; head: readonly [number, number] }[] = [
+  { id: "thorium", label: "Thorium series (4n)", head: [90, 142] },
+  { id: "neptunium", label: "Neptunium series (4n+1)", head: [93, 144] },
+  { id: "uranium", label: "Uranium series (4n+2)", head: [92, 146] },
+  { id: "actinium", label: "Actinium series (4n+3)", head: [92, 143] },
+];
+
+/** Sample canvases for the design review (Brendan, 2026-11-08, 02:52): one or two per section, hand-typed values in the
+ *  shape the real data will take. Real data replaces them section by section; the decay chains above are real already. */
+/** The grids the reference figures use (Brendan, 2026-11-08): "ZA" is the decay-series drawing (columns Z, rows A down the page,
+ *  α steps down-left, β− steps right); "NZ" the chart of nuclides (x N, y Z: (n,γ) right, β− up-left); "AZ" the actinide
+ *  build-up (x A, y Z: capture right, β− up, α down-left); "levels" a level scheme (the parent top-left, levels a ladder by energy). */
+type Grid = "ZA" | "NZ" | "AZ" | "levels" | "figure";
+type DemoEdge = { s: string; t: string; label: string; kind: EdgeMeta["kind"]; curve?: boolean; arrow?: keyof typeof ARROW_COLOR | "ink" };
+type Demo = { section: string; id: string; label: string; layout: "LR" | "TB"; grid?: Grid; cell?: [number, number]; nodes: GNode[]; edges: DemoEdge[] };
+const ZS: Record<string, number> = { CO: 27, NI: 28, SR: 38, Y: 39, ZR: 40, NB: 41, MO: 42, TC: 43, RU: 44, AG: 47, CD: 48, IN: 49, SN: 50, SB: 51, TE: 52, I: 53, XE: 54, CS: 55, BA: 56, LA: 57, CE: 58, PR: 59, ND: 60, YB: 70, LU: 71, HF: 72, HG: 80, TL: 81, PB: 82, BI: 83, PO: 84, AT: 85, RN: 86, FR: 87, RA: 88, AC: 89, TH: 90, PA: 91, U: 92, NP: 93, PU: 94, AM: 95, CM: 96 };
+/** "107AG" → Z 47, N 60; "137BAM" (an isomer) the same as 137BA; "60NI-2505" → Z 28, N 32, level 2505 keV. */
+const nuc = (id: string, label: string, sub: string): GNode => {
+  const m = /^(\d+)([A-Z]+?)(M)?(?:-(\d+))?$/.exec(id);
+  const g: GNode = { type: "nuclide", id, label, sub };
+  if (m && ZS[m[2]] !== undefined) { g.z = ZS[m[2]]; g.n = Number(m[1]) - g.z; }
+  if (m && m[4] !== undefined) g.e = Number(m[4]);
+  else if (m && /\s0 keV$/.test(label)) g.e = 0;
+  return g;
+};
+/** A glyph of the actinide figure: "239Pu" at column c, row r, in a class, with its fission share. */
+const glyph = (id: string, label: string, cls: GNode["cls"], c: number, r: number, fission?: number, sub = ""): GNode => ({ ...nuc(id, label, sub), style: "glyph", cls, fission, pos: [c, r] });
+/** A bubble of the decay-series figure: half-life as "value|unit". */
+const bubble = (id: string, label: string, hl: string, c: number, r: number): GNode => ({ ...nuc(id, label, hl.replace("|", " ")), style: "bubble", hl, pos: [c, r] });
+const FIGURES: Demo[] = [
+  { section: "Decay chains", id: "thorium-figure", label: "Thorium series, as the figure", layout: "TB", grid: "figure", cell: [210, 150],
+    nodes: [bubble("232TH", "232Th", "1.41e+10|Years", 0, 0), bubble("228RA", "228Ra", "5.7|Years", 0, 2), bubble("228AC", "228Ac", "6.1|Hours", 1, 1), bubble("228TH", "228Th", "1.9|Years", 2, 0), bubble("224RA", "224Ra", "3.6|Days", 2, 2), bubble("220RN", "220Rn", "55|Seconds", 2, 4), bubble("216PO", "216Po", "0.14|Seconds", 2, 6), bubble("212PB", "212Pb", "10.6|Hours", 2, 8), bubble("212BI", "212Bi", "61|Minutes", 3, 7), bubble("212PO", "212Po", "3e-07|Seconds", 4, 6), bubble("208PB", "208Pb", "Stable|", 4, 8), bubble("208TL", "208Tl", "3.1|Minutes", 3, 9)],
+    edges: [["232TH", "228RA", "α"], ["228RA", "228AC", "β−"], ["228AC", "228TH", "β−"], ["228TH", "224RA", "α"], ["224RA", "220RN", "α"], ["220RN", "216PO", "α"], ["216PO", "212PB", "α"], ["212PB", "212BI", "β−"], ["212BI", "212PO", "β−"], ["212PO", "208PB", "α"], ["212BI", "208TL", "α"], ["208TL", "208PB", "β−"]].map(([s, t, label]) => ({ s, t, label, kind: "decay" as const, arrow: "ink" as const })) },
+  { section: "Actinide build-up", id: "sasahara-figure", label: "U-238 to Cm-245, as the figure", layout: "LR", grid: "figure", cell: [230, 170],
+    nodes: [glyph("238U", "238U", "fertile", 0, 0), glyph("239PU", "239Pu", "fissile", 1, 0, 64), glyph("240PU", "240Pu", "fertile", 2, 0), glyph("238PU", "238Pu", "fertile", 0, 1, 9), glyph("241PU", "241Pu", "fissile", 1, 2, 72), glyph("242PU", "242Pu", "less", 2, 2), glyph("243PU", "243Pu", "short", 3, 2), glyph("241AM", "241Am", "less", 0, 3.6, 10), glyph("242AM", "242Am", "short", 1, 3.6), glyph("243AM", "243Am", "less", 2, 3.6, 1), glyph("244AM", "244Am", "short", 3, 3.6), glyph("242AMM", "242mAm", "fissile", 1.5, 4.4, 84), glyph("242CM", "242Cm", "short", 0, 5.4, 1), glyph("243CM", "243Cm", "fissile", 1, 5.4, 85), glyph("244CM", "244Cm", "fertile", 2, 5.4, 4), glyph("245CM", "245Cm", "fissile", 3, 5.4, 85)],
+    edges: [
+      { s: "238U", t: "239PU", label: "91%", kind: "reaction", arrow: "capture", curve: true }, { s: "239PU", t: "240PU", label: "36%", kind: "reaction", arrow: "capture" }, { s: "240PU", t: "241PU", label: "", kind: "reaction", arrow: "capture" }, { s: "241PU", t: "242PU", label: "25%", kind: "reaction", arrow: "capture" }, { s: "242PU", t: "243PU", label: "", kind: "reaction", arrow: "capture" },
+      { s: "241PU", t: "241AM", label: "β 3%", kind: "decay", arrow: "beta" }, { s: "243PU", t: "243AM", label: "β", kind: "decay", arrow: "beta" },
+      { s: "241AM", t: "242AM", label: "79%", kind: "reaction", arrow: "capture" }, { s: "241AM", t: "242AMM", label: "10%", kind: "reaction", arrow: "capture", curve: true }, { s: "242AM", t: "242CM", label: "β 81%", kind: "decay", arrow: "beta" }, { s: "242AM", t: "242PU", label: "EC 17%", kind: "decay", arrow: "beta" }, { s: "242AM", t: "243AM", label: "1%", kind: "reaction", arrow: "capture" }, { s: "242AMM", t: "243AM", label: "16%", kind: "reaction", arrow: "capture" }, { s: "243AM", t: "244AM", label: "99%", kind: "reaction", arrow: "capture" }, { s: "244AM", t: "244CM", label: "β", kind: "decay", arrow: "beta" },
+      { s: "242CM", t: "238PU", label: "α 96%", kind: "decay", arrow: "alpha", curve: true }, { s: "243CM", t: "239PU", label: "α 2%", kind: "decay", arrow: "alpha", curve: true }, { s: "244CM", t: "240PU", label: "α 15%", kind: "decay", arrow: "alpha", curve: true },
+      { s: "242CM", t: "243CM", label: "3%", kind: "reaction", arrow: "capture" }, { s: "243CM", t: "244CM", label: "13%", kind: "reaction", arrow: "capture" }, { s: "244CM", t: "245CM", label: "81%", kind: "reaction", arrow: "capture" },
+    ] },
+];
+/** Positions for a grid; a node without the numbers it needs lands at the origin and the layout leaves it there. */
+function gridPositions(nodes: GNode[], grid: Grid): Map<string, { x: number; y: number }> {
+  const pos = new Map<string, { x: number; y: number }>();
+  if (grid === "levels") {
+    // The parent top-left; the daughter's levels a ladder on the right, the highest at the top, 0.25 px a keV.
+    const maxE = Math.max(0, ...nodes.map((g) => g.e ?? 0));
+    nodes.forEach((g, i) => pos.set(keyOf(g), g.e === undefined ? { x: 0, y: i * 100 } : { x: 480, y: (maxE - g.e) * 0.25 + 120 }));
+    return pos;
+  }
+  // Columns and rows start at the smallest Z, N or A on the canvas, so the drawing sits at the origin and fits the view.
+  const have = nodes.filter((g) => g.z !== undefined && g.n !== undefined) as (GNode & { z: number; n: number })[];
+  const zs = have.map((g) => g.z), ns = have.map((g) => g.n), as = have.map((g) => g.z + g.n);
+  const zMin = Math.min(...zs), zMax = Math.max(...zs), nMin = Math.min(...ns), aMin = Math.min(...as), aMax = Math.max(...as);
+  for (const g of nodes) {
+    if (g.z === undefined || g.n === undefined) { pos.set(keyOf(g), { x: 0, y: 0 }); continue; }
+    const a = g.z + g.n;
+    pos.set(keyOf(g), grid === "ZA" ? { x: (g.z - zMin) * 170, y: (aMax - a) * 40 } : grid === "NZ" ? { x: (g.n - nMin) * 165, y: (zMax - g.z) * 100 } : { x: (a - aMin) * 165, y: (zMax - g.z) * 100 });
+  }
+  return pos;
+}
+const DEMOS: Demo[] = [
+  { section: "Decay chains", id: "pu241", label: "241Pu chain (sample)", layout: "TB", grid: "ZA",
+    nodes: [nuc("241PU", "241Pu", "Z=94 N=147 · 14.3 y"), nuc("241AM", "241Am", "Z=95 N=146 · 432.6 y"), nuc("237NP", "237Np", "Z=93 N=144 · 2.1×10⁶ y"), nuc("233PA", "233Pa", "Z=91 N=142 · 27.0 d"), nuc("233U", "233U", "Z=92 N=141 · 1.6×10⁵ y"), nuc("229TH", "229Th", "Z=90 N=139 · 7,880 y"), nuc("225RA", "225Ra", "Z=88 N=137 · 14.9 d"), nuc("225AC", "225Ac", "Z=89 N=136 · 10.0 d"), nuc("221FR", "221Fr", "Z=87 N=134 · 4.8 min"), nuc("217AT", "217At", "Z=85 N=132 · 32 ms"), nuc("213BI", "213Bi", "Z=83 N=130 · 45.6 min"), nuc("213PO", "213Po", "Z=84 N=129 · 3.7 μs"), nuc("209TL", "209Tl", "Z=81 N=128 · 2.2 min"), nuc("209PB", "209Pb", "Z=82 N=127 · 3.25 h"), nuc("209BI", "209Bi", "Z=83 N=126 · 2.0×10¹⁹ y"), nuc("205TL", "205Tl", "Z=81 N=124 · stable")],
+    edges: [["241PU", "241AM", "β− 99.998%"], ["241AM", "237NP", "α 100%"], ["237NP", "233PA", "α 100%"], ["233PA", "233U", "β− 100%"], ["233U", "229TH", "α 100%"], ["229TH", "225RA", "α 100%"], ["225RA", "225AC", "β− 100%"], ["225AC", "221FR", "α 100%"], ["221FR", "217AT", "α 100%"], ["217AT", "213BI", "α 99.99%"], ["213BI", "213PO", "β− 97.8%"], ["213BI", "209TL", "α 2.2%"], ["213PO", "209PB", "α 100%"], ["209TL", "209PB", "β− 100%"], ["209PB", "209BI", "β− 100%"], ["209BI", "205TL", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: "decay" as const })) },
+  { section: "Neutron capture paths", id: "s-ag-sb", label: "s-process, Ag to Sb (sample)", layout: "LR", grid: "NZ",
+    nodes: [nuc("107AG", "107Ag", "Z=47 N=60 · stable"), nuc("108AG", "108Ag", "Z=47 N=61 · 2.4 min"), nuc("108CD", "108Cd", "Z=48 N=60 · stable"), nuc("109CD", "109Cd", "Z=48 N=61 · 462 d"), nuc("109AG", "109Ag", "Z=47 N=62 · stable"), nuc("110AG", "110Ag", "Z=47 N=63 · 24.6 s"), nuc("110CD", "110Cd", "Z=48 N=62 · stable"), nuc("111CD", "111Cd", "Z=48 N=63 · stable"), nuc("112CD", "112Cd", "Z=48 N=64 · stable"), nuc("113CD", "113Cd", "Z=48 N=65 · 8×10¹⁵ y"), nuc("114CD", "114Cd", "Z=48 N=66 · stable"), nuc("115CD", "115Cd", "Z=48 N=67 · 53.5 h"), nuc("115IN", "115In", "Z=49 N=66 · 4.4×10¹⁴ y"), nuc("116IN", "116In", "Z=49 N=67 · 14.1 s"), nuc("116SN", "116Sn", "Z=50 N=66 · stable"), nuc("120SN", "120Sn", "Z=50 N=70 · stable"), nuc("121SN", "121Sn", "Z=50 N=71 · 27.0 h"), nuc("121SB", "121Sb", "Z=51 N=70 · stable"), nuc("122SB", "122Sb", "Z=51 N=71 · 2.72 d"), nuc("122TE", "122Te", "Z=52 N=70 · stable")],
+    edges: [["107AG", "108AG", "(n,γ) 38 b"], ["108AG", "108CD", "β− 97%"], ["108CD", "109CD", "(n,γ) 1.1 b"], ["109CD", "109AG", "EC 100%"], ["109AG", "110AG", "(n,γ) 91 b"], ["110AG", "110CD", "β− 99.7%"], ["110CD", "111CD", "(n,γ) 11 b"], ["111CD", "112CD", "(n,γ) 24 b"], ["112CD", "113CD", "(n,γ) 2.2 b"], ["113CD", "114CD", "(n,γ) 20,600 b"], ["114CD", "115CD", "(n,γ) 0.3 b"], ["115CD", "115IN", "β− 100%"], ["115IN", "116IN", "(n,γ) 202 b"], ["116IN", "116SN", "β− 99.98%"], ["116SN", "120SN", "(n,γ) × 4"], ["120SN", "121SN", "(n,γ) 0.14 b"], ["121SN", "121SB", "β− 100%"], ["121SB", "122SB", "(n,γ) 5.8 b"], ["122SB", "122TE", "β− 97.6%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Neutron capture paths", id: "mass-201-210", label: "Mass 201 to 210, s and r (sample)", layout: "LR", grid: "NZ",
+    nodes: [nuc("201HG", "201Hg", "Z=80 N=121 · stable"), nuc("202HG", "202Hg", "Z=80 N=122 · stable"), nuc("203HG", "203Hg", "Z=80 N=123 · 46.6 d"), nuc("203TL", "203Tl", "Z=81 N=122 · stable"), nuc("204TL", "204Tl", "Z=81 N=123 · 3.78 y"), nuc("204PB", "204Pb", "Z=82 N=122 · stable"), nuc("205TL", "205Tl", "Z=81 N=124 · stable"), nuc("205PB", "205Pb", "Z=82 N=123 · 1.7×10⁷ y"), nuc("206PB", "206Pb", "Z=82 N=124 · stable"), nuc("207PB", "207Pb", "Z=82 N=125 · stable"), nuc("208PB", "208Pb", "Z=82 N=126 · stable"), nuc("209PB", "209Pb", "Z=82 N=127 · 3.25 h"), nuc("209BI", "209Bi", "Z=83 N=126 · 2×10¹⁹ y"), nuc("210BI", "210Bi", "Z=83 N=127 · 5.01 d"), nuc("210PO", "210Po", "Z=84 N=126 · 138 d")],
+    edges: [["201HG", "202HG", "(n,γ)"], ["202HG", "203HG", "(n,γ)"], ["203HG", "203TL", "β− 100%"], ["203TL", "204TL", "(n,γ)"], ["204TL", "204PB", "β− 97%"], ["204PB", "205PB", "(n,γ)"], ["205PB", "205TL", "EC 100%"], ["205TL", "206PB", "r-process β−"], ["206PB", "207PB", "(n,γ)"], ["207PB", "208PB", "(n,γ)"], ["208PB", "209PB", "(n,γ)"], ["209PB", "209BI", "β− 100%"], ["209BI", "210BI", "(n,γ)"], ["210BI", "210PO", "β− 100%"], ["210PO", "206PB", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : label.startsWith("r-") ? "sample" as const : "decay" as const })) },
+  { section: "Actinide build-up", id: "sasahara", label: "U-238 to Cm-244 in a reactor (sample)", layout: "LR", grid: "AZ",
+    nodes: [nuc("235U", "235U", "Z=92 N=143 · 7.0×10⁸ y"), nuc("236U", "236U", "Z=92 N=144 · 2.3×10⁷ y"), nuc("237U", "237U", "Z=92 N=145 · 6.75 d"), nuc("237NP", "237Np", "Z=93 N=144 · 2.1×10⁶ y"), nuc("238NP", "238Np", "Z=93 N=145 · 2.1 d"), nuc("238PU", "238Pu", "Z=94 N=144 · 87.7 y"), nuc("238U", "238U", "Z=92 N=146 · 4.5×10⁹ y"), nuc("239U", "239U", "Z=92 N=147 · 23.5 min"), nuc("239NP", "239Np", "Z=93 N=146 · 2.36 d"), nuc("239PU", "239Pu", "Z=94 N=145 · 24,110 y"), nuc("240PU", "240Pu", "Z=94 N=146 · 6,561 y"), nuc("241PU", "241Pu", "Z=94 N=147 · 14.3 y"), nuc("241AM", "241Am", "Z=95 N=146 · 432.6 y"), nuc("242AM", "242Am", "Z=95 N=147 · 16.0 h"), nuc("242CM", "242Cm", "Z=96 N=146 · 163 d"), nuc("242PU", "242Pu", "Z=94 N=148 · 3.7×10⁵ y"), nuc("243PU", "243Pu", "Z=94 N=149 · 4.96 h"), nuc("243AM", "243Am", "Z=95 N=148 · 7,370 y"), nuc("244AM", "244Am", "Z=95 N=149 · 10.1 h"), nuc("244CM", "244Cm", "Z=96 N=148 · 18.1 y")],
+    edges: [["235U", "236U", "(n,γ) 99 b"], ["236U", "237U", "(n,γ) 5.1 b"], ["237U", "237NP", "β− 100%"], ["237NP", "238NP", "(n,γ) 176 b"], ["238NP", "238PU", "β− 100%"], ["238U", "239U", "(n,γ) 2.7 b"], ["239U", "239NP", "β− 100%"], ["239NP", "239PU", "β− 100%"], ["239PU", "240PU", "(n,γ) 271 b"], ["240PU", "241PU", "(n,γ) 290 b"], ["241PU", "241AM", "β− 99.998%"], ["241AM", "242AM", "(n,γ) 684 b"], ["242AM", "242CM", "β− 82.7%"], ["242CM", "238PU", "α 100%"], ["241PU", "242PU", "(n,γ) 363 b"], ["242PU", "243PU", "(n,γ) 19 b"], ["243PU", "243AM", "β− 100%"], ["243AM", "244AM", "(n,γ) 75 b"], ["244AM", "244CM", "β− 100%"], ["244CM", "240PU", "α 100%"], ["241AM", "237NP", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Production routes", id: "mo99", label: "Mo-99 and Tc-99m (sample)", layout: "LR",
+    nodes: [nuc("235U", "235U", "Z=92 N=143 · fission target"), nuc("98MO", "98Mo", "Z=42 N=56 · stable"), nuc("100MO", "100Mo", "Z=42 N=58 · stable"), nuc("99MO", "99Mo", "Z=42 N=57 · 65.9 h"), nuc("99TCM", "99mTc", "Z=43 N=56 · 6.01 h"), nuc("99TC", "99Tc", "Z=43 N=56 · 2.1×10⁵ y"), nuc("99RU", "99Ru", "Z=44 N=55 · stable")],
+    edges: [["235U", "99MO", "(n,f) 6.1% yield"], ["98MO", "99MO", "(n,γ) 0.13 b"], ["100MO", "99MO", "(γ,n)"], ["99MO", "99TCM", "β− 87.6%"], ["99MO", "99TC", "β− 12.4%"], ["99TCM", "99TC", "IT 99.996%"], ["99TC", "99RU", "β− 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Production routes", id: "lu177", label: "Lu-177, two routes (sample)", layout: "LR",
+    nodes: [nuc("176LU", "176Lu", "Z=71 N=105 · 3.8×10¹⁰ y"), nuc("176YB", "176Yb", "Z=70 N=106 · stable"), nuc("177YB", "177Yb", "Z=70 N=107 · 1.9 h"), nuc("177LU", "177Lu", "Z=71 N=106 · 6.65 d"), nuc("177HF", "177Hf", "Z=72 N=105 · stable")],
+    edges: [["176LU", "177LU", "(n,γ) 2,090 b · direct"], ["176YB", "177YB", "(n,γ) 2.85 b · carrier-free"], ["177YB", "177LU", "β− 100%"], ["177LU", "177HF", "β− 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Fission fans", id: "u235-fan", label: "U-235 thermal fission, top products (sample)", layout: "LR",
+    nodes: [nuc("235U", "235U", "Z=92 N=143 · thermal fission"), nuc("137CS", "137Cs", "30.08 y · 6.2%"), nuc("137BAM", "137mBa", "2.55 min"), nuc("137BA", "137Ba", "stable"), nuc("90SR", "90Sr", "28.9 y · 5.8%"), nuc("90Y", "90Y", "64.0 h"), nuc("90ZR", "90Zr", "stable"), nuc("131I", "131I", "8.02 d · 2.9%"), nuc("131XE", "131Xe", "stable"), nuc("133XE", "133Xe", "5.25 d · 6.7%"), nuc("133CS", "133Cs", "stable"), nuc("140BA", "140Ba", "12.8 d · 6.2%"), nuc("140LA", "140La", "1.68 d"), nuc("140CE", "140Ce", "stable"), nuc("95ZR", "95Zr", "64.0 d · 6.5%"), nuc("95NB", "95Nb", "35.0 d"), nuc("95MO", "95Mo", "stable"), nuc("99MO", "99Mo", "65.9 h · 6.1%"), nuc("99TC", "99Tc", "2.1×10⁵ y"), nuc("144CE", "144Ce", "285 d · 5.5%"), nuc("144PR", "144Pr", "17.3 min"), nuc("144ND", "144Nd", "2.3×10¹⁵ y")],
+    edges: [["235U", "137CS", "(n,f) 6.2%"], ["137CS", "137BAM", "β− 94.7%"], ["137BAM", "137BA", "IT 100%"], ["235U", "90SR", "(n,f) 5.8%"], ["90SR", "90Y", "β− 100%"], ["90Y", "90ZR", "β− 100%"], ["235U", "131I", "(n,f) 2.9%"], ["131I", "131XE", "β− 100%"], ["235U", "133XE", "(n,f) 6.7%"], ["133XE", "133CS", "β− 100%"], ["235U", "140BA", "(n,f) 6.2%"], ["140BA", "140LA", "β− 100%"], ["140LA", "140CE", "β− 100%"], ["235U", "95ZR", "(n,f) 6.5%"], ["95ZR", "95NB", "β− 100%"], ["95NB", "95MO", "β− 100%"], ["235U", "99MO", "(n,f) 6.1%"], ["99MO", "99TC", "β− 100%"], ["235U", "144CE", "(n,f) 5.5%"], ["144CE", "144PR", "β− 100%"], ["144PR", "144ND", "β− 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Level schemes", id: "co60", label: "60Co decay into 60Ni levels (sample)", layout: "TB", grid: "levels",
+    nodes: [nuc("60CO", "60Co", "5+ · 5.27 y · ground state"), nuc("60NI-2505", "60Ni 2505.8 keV", "4+ · 0.59 ps"), nuc("60NI-2158", "60Ni 2158.6 keV", "2+ · 0.6 ps"), nuc("60NI-1332", "60Ni 1332.5 keV", "2+ · 0.73 ps"), nuc("60NI", "60Ni 0 keV", "0+ · stable")],
+    edges: [["60CO", "60NI-2505", "β− 99.88% · 317 keV"], ["60CO", "60NI-2158", "β− 0.12% · 664 keV"], ["60NI-2505", "60NI-1332", "γ 1173.2 keV · E2 · 99.85"], ["60NI-2158", "60NI-1332", "γ 826.1 keV · 0.008"], ["60NI-2158", "60NI", "γ 2158.6 keV · 0.0012"], ["60NI-1332", "60NI", "γ 1332.5 keV · E2 · 99.98"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
+  { section: "Level schemes", id: "cs137", label: "137Cs decay into 137Ba levels (sample)", layout: "TB", grid: "levels",
+    nodes: [nuc("137CS", "137Cs", "7/2+ · 30.08 y · ground state"), nuc("137BA-661", "137Ba 661.7 keV", "11/2− · 2.55 min · 137mBa"), nuc("137BA", "137Ba 0 keV", "3/2+ · stable")],
+    edges: [["137CS", "137BA-661", "β− 94.7% · 514 keV"], ["137CS", "137BA", "β− 5.3% · 1176 keV"], ["137BA-661", "137BA", "γ 661.7 keV · M4 · 85.1"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
+];
+const ALL_DEMOS: Demo[] = [...FIGURES, ...DEMOS];
+const DEMO_SECTIONS = [...new Set(ALL_DEMOS.map((d) => d.section))].filter((s) => s !== "Decay chains");
+
 /** Seed canvases for the props panel — each one centers a real entity. */
 const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
   { id: "137CS", label: "137Cs nuclide", seed: { type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" } },
@@ -691,6 +904,92 @@ const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
 ];
 
 /* ── page ─────────────────────────────────────────────────────────────────── */
+
+// The right inset panel's rail tab (Brendan, 2026-11-08): the same chevron tab the docs panel and the catalog rail wear, on the
+// panel's left edge; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-right>.
+// What the lake makes possible, ranked by Brendan (2026-11-08, night shift). Shown in the right panel while nothing is selected.
+const IDEAS: { title: string; text: string; href?: string }[] = [
+  { title: "Our own evaluated library", text: "Fit all 19 million EXFOR points with their covariances (IAEA's GMAP code is in the lake) across every reaction at once on GPUs; publish NSRgpt-1.0, rebuilt whenever EXFOR changes, every number traceable to its measurements." },
+  { title: "A nuclear data model", text: "Train on every measured and evaluated point, level and decay record, TENDL as the prior for all 2,800 nuclides. It predicts unmeasured cross sections with calibrated uncertainty and flags measurements that don't fit." },
+  { title: "The validation fleet", text: "OpenMC on thousands of ICSBEP and CoNDERC benchmarks times every library, plus total Monte Carlo with TENDL's random files: a standing scoreboard of which library gets which benchmark right, and which cross sections drive the misses." },
+  { title: "Run the physics on demand", text: "OpenMC's libraries and depletion chains plus CoNDERC's benchmark inputs: k-eff, activation, inventories computed when asked. TALYS for reactions nobody measured, with its uncertainty." },
+  { title: "Spectrum identification by learned model", text: "Millions of simulated detector spectra from ENSDF and fission yields, calibrated against IDB's real U and Pu spectra, train a model that reads a raw spectrum and returns isotopics." },
+  { title: "Structure at scale", text: "Check all 20,117 ENSDF datasets for internal consistency in one pass, then a level-scheme model trained on 568,000 levels that proposes schemes for nuclides with none." },
+  { title: "Structure systematics", text: "568,000 levels with spin, parity and half-life: first 2+ energies, magic numbers, deformation regions, drawn from the data." },
+  { title: "Mine the scans", text: "Vision models over the 37,000 PDFs and NNDC's scanned reports pull tables and figures into EXFOR-shaped data: the uncompiled literature, compiled. Later." },
+  { title: "Gaps for compilers and evaluators", text: "Papers with no EXFOR entry, EXFOR entries no evaluation uses, nuclides with structure but no reaction data. Later." },
+  { title: "Process everything ourselves", text: "NJOY and ENDFtk on the fleet turn every evaluation into transport-ready data at any temperature; the phase 3 and 4 processed forms become things we generate." },
+  { title: "Spectra", text: "ENSDF decay data and fission yields predict a gamma spectrum for any inventory at any time; IDB's real spectra check it; identification from detector peaks against 793,000 known gammas." },
+  { title: "What pins a number", text: "EXFOR partial uncertainties, C5 correlations, ENDF covariances: which experiments constrain an evaluation, and what one new measurement would buy." },
+  { title: "Fifty years of a cross section", text: "ENDF/B-II to VIII.1, release by release, for any material, with the papers that changed it." },
+  { title: "Measured against evaluated, everywhere", text: "EXFOR points over every library: residuals per reaction, a ranked map of where libraries disagree with experiment." },
+  { title: "The nuclide as the hub", text: "Z, A joins levels, gammas, decay radiation, cross sections, measurements, evaluations and papers, with provenance to the record." },
+  { title: "Answers that cite the card", text: "The ENSDF line, the EXFOR subentry, the ENDF MAT and MT section, quoted for every number in a chat." },
+  // Reading, to go over together (Brendan, 2026-11-08).
+  { title: "EXFOR formats manual, IAEA WP2007-23 (PDF)", text: "", href: "https://nds.iaea.org/exfor/x4guide/manuals/wp2007-23.pdf" },
+  { title: "NuDat at USNDP 2022, BNL (PDF)", text: "", href: "https://indico.bnl.gov/event/15497/contributions/70076/attachments/44350/74834/NUDAT_USNDP2022.pdf" },
+];
+
+// The panel is draggable (Brendan, 2026-11-08): the gripper is the shell's (components/shell.tsx, pax-trinity's
+// src/components/shell.tsx), an 18px separator with a 1×8 pill on the panel's left edge; drag, arrow keys (24px),
+// double-click to reset. The width is remembered per browser. 500 ms slide, as the sidebar menu; none while dragging.
+const RIGHT_W_KEY = "graph:right-w";
+const RIGHT_W_DEFAULT = 320, RIGHT_W_MIN = 280, RIGHT_W_MAX = 720;
+function RightRail({ children }: { children: ReactNode }) {
+  const closed = useRailClosed("right");
+  const [w, setW] = useState(RIGHT_W_DEFAULT);
+  const [dragging, setDragging] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    try { const v = Number(localStorage.getItem(RIGHT_W_KEY)); if (v >= RIGHT_W_MIN && v <= RIGHT_W_MAX) setW(v); } catch {}
+  }, []);
+  useEffect(() => {
+    if (dragging) return;
+    try { localStorage.setItem(RIGHT_W_KEY, String(w)); } catch {}
+  }, [w, dragging]);
+  useEffect(() => {
+    if (!dragging) return;
+    const s = document.body.style;
+    const prev = [s.cursor, s.userSelect];
+    s.cursor = "col-resize"; s.userSelect = "none";
+    return () => { s.cursor = prev[0]; s.userSelect = prev[1]; };
+  }, [dragging]);
+  // The panel's left edge follows the pointer; the canvas keeps at least 480px.
+  const resizeTo = (x: number) => {
+    const right = box.current?.getBoundingClientRect().right ?? window.innerWidth;
+    setW(Math.max(RIGHT_W_MIN, Math.min(right - x, RIGHT_W_MAX, window.innerWidth - 480)));
+  };
+  return (
+    <div ref={box} style={{ width: closed ? 0 : w }} className={`relative hidden h-full shrink-0 md:block ${dragging ? "" : "transition-[width] duration-[500ms] ease-in-out"}`}>
+      <RailToggle side="right" className="top-24 left-0 w-[22px] border border-r-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
+      {!closed && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize the panel"
+          tabIndex={0}
+          onPointerDown={(e) => { if (e.button !== 0) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); setDragging(true); }}
+          onPointerMove={(e) => e.currentTarget.hasPointerCapture(e.pointerId) && resizeTo(e.clientX)}
+          onPointerUp={() => setDragging(false)}
+          onPointerCancel={() => setDragging(false)}
+          onLostPointerCapture={() => setDragging(false)}
+          onDoubleClick={() => setW(RIGHT_W_DEFAULT)}
+          onKeyDown={(e) => {
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.preventDefault();
+            setW((v) => Math.max(RIGHT_W_MIN, Math.min(RIGHT_W_MAX, v + (e.key === "ArrowLeft" ? 24 : -24))));
+          }}
+          className="group absolute top-1/2 left-0 z-40 flex h-16 w-[18px] -translate-x-1/2 -translate-y-1/2 cursor-col-resize touch-none items-center justify-center outline-none"
+        >
+          <span className={`h-8 w-1 rounded-full transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] ${dragging ? "bg-[#033882]" : "bg-[rgba(22,24,29,0.18)] dark:bg-[rgba(240,233,216,0.2)]"}`} />
+        </div>
+      )}
+      <div className="flex h-full w-full justify-end overflow-hidden">
+        <div style={{ width: w }} className="flex h-full shrink-0">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 function GraphPageInner() {
   const router = useRouter();
@@ -955,7 +1254,8 @@ function GraphPageInner() {
       }
       fetchCards((json.nodes as GNode[]).map(keyOf));
     } catch (e) {
-      toast.error(`Expand failed: ${(e as Error).message}`);
+      // On dev no session is signed in, so every expand fails with "Sign in."; the toast is noise there (Brendan, 2026-11-08). Production keeps it.
+      if (process.env.NODE_ENV !== "development") toast.error(`Expand failed: ${(e as Error).message}`);
     } finally {
       setExpanding(null);
     }
@@ -1192,6 +1492,80 @@ function GraphPageInner() {
     else if (RELS[g.type]?.length) setTimeout(() => expand(g, RELS[g.type]![0].rel), 0);
   }, [setEdges, setNodes, expand, fetchCards, snapshot]);
 
+  /** A whole graph onto a fresh canvas: the nodes, the edges, laid out left-to-right or top-to-bottom. */
+  const loadGraph = useCallback((gnodes: GNode[], edges: Edge[], layoutDir: "LR" | "TB" = "LR", positions?: Map<string, { x: number; y: number }>) => {
+    snapshot();
+    store.current = new Map();
+    expandState.current = new Map();
+    setSelectedKey(null);
+    setEdgeInfo(null);
+    for (const g of gnodes) store.current.set(keyOf(g), g);
+    // A grid (the reference figure's own arrangement) pins every node; otherwise dagre lays the graph out.
+    const mode: LayoutMode = positions ? "none" : layoutDir === "TB" ? "dagre-tb" : "dagre-lr";
+    setLayoutMode(mode);
+    layoutModeRef.current = mode;
+    setNodes(positions ? gnodes.map((g) => ({ id: keyOf(g), type: "entity", position: positions.get(keyOf(g)) ?? { x: 0, y: 0 }, data: { ...g } })) : []);
+    // Fit twice: once as the nodes land, once after they've measured; never closer than zoom 1, so small drawings don't balloon.
+    setEdges(() => { syncNodes(edges, !positions); [60, 450].forEach((ms) => setTimeout(() => fitView({ padding: 0.12, duration: 300, maxZoom: 1 }), ms)); return edges; });
+  }, [setEdges, setNodes, syncNodes, fitView, snapshot]);
+
+  /** A decay series: nuclide nodes, decay edges labelled with mode and branching, from ENSDF's decay modes. */
+  const loadChain = useCallback(async (id: string) => {
+    const c = CHAINS.find((x) => x.id === id);
+    if (!c) return;
+    let d;
+    try { d = await loadDecay(); } catch (e) { toast.error(`The decay data didn't load: ${(e as Error).message}`); return; }
+    const steps = seriesFrom(d, decayIndex(d), c.head);
+    if (!steps.length) { toast.error(`${c.label}: its head is not in the decay data`); return; }
+    const gnode = (i: number): GNode => {
+      const x = d.nuclides[i];
+      const a = x.z + x.n;
+      return { type: "nuclide", id: `${a}${x.el.toUpperCase()}`, label: `${a}${x.el}`, sub: `Z=${x.z} N=${x.n} · ${halfLifeText(x)}`, z: x.z, n: x.n, family: familyOf(x) };
+    };
+    const pct = (p: number | null) => (p == null ? "" : ` ${p >= 10 ? p.toFixed(0) : p >= 1 ? p.toFixed(1) : p.toPrecision(2)}%`);
+    const gnodes = new Map<string, GNode>();
+    for (const s of steps) for (const i of [s.from, s.to]) { const g = gnode(i); gnodes.set(keyOf(g), g); }
+    const edges: Edge[] = steps.map((s) => {
+      const from = keyOf(gnode(s.from)), to = keyOf(gnode(s.to));
+      return { id: `${from}->${to}:${s.mode}`, source: from, target: to, label: `${s.mode}${pct(s.pct)}`, data: { kind: "decay", mode: s.mode, pct: s.pct } as EdgeMeta };
+    });
+    const all = [...gnodes.values()];
+    loadGraph(all, edges, "TB", gridPositions(all, "ZA"));
+  }, [loadGraph]);
+
+  /** A sample canvas (DEMOS and FIGURES): the layout review's hand-typed graphs. */
+  const loadDemo = useCallback((id: string) => {
+    const d = ALL_DEMOS.find((x) => x.id === id);
+    if (!d) return;
+    // The figure grid: each node's own column and row, scaled by the demo's cell size.
+    const figurePos = d.grid === "figure" ? new Map(d.nodes.map((g) => [keyOf(g), { x: (g.pos?.[0] ?? 0) * (d.cell?.[0] ?? 200), y: (g.pos?.[1] ?? 0) * (d.cell?.[1] ?? 150) }])) : undefined;
+    const byId = new Map(d.nodes.map((g) => [g.id, g]));
+    const dark = isDark();
+    const edges: Edge[] = d.edges.map((e) => {
+      const base: Edge = { id: `nuclide:${e.s}->nuclide:${e.t}`, source: `nuclide:${e.s}`, target: `nuclide:${e.t}`, label: e.label || undefined, data: { kind: e.kind, mode: e.label } as EdgeMeta };
+      if (!figurePos || !e.arrow) return base;
+      // Figure arrows: coloured, arrow-headed, leaving and entering the sides that face each other.
+      const color = e.arrow === "ink" ? (dark ? "#f0e9d8" : "#16181d") : ARROW_COLOR[e.arrow];
+      const sp = figurePos.get(`nuclide:${e.s}`)!, tp = figurePos.get(`nuclide:${e.t}`)!;
+      const dx = tp.x - sp.x, dy = tp.y - sp.y;
+      const horizontal = Math.abs(dx) >= Math.abs(dy);
+      const sourceHandle = horizontal ? (dx > 0 ? "r" : "l") : dy > 0 ? "b" : "t";
+      const targetHandle = horizontal ? (dx > 0 ? "lt" : "rt") : dy > 0 ? "tt" : "bt";
+      void byId;
+      return { ...base, type: e.curve ? "default" : "straight", sourceHandle, targetHandle, style: { stroke: color, strokeWidth: 2.2 }, markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 }, labelStyle: { fill: color, fontWeight: 600, fontSize: 12 }, labelBgStyle: { fill: "transparent" } };
+    });
+    // A sample card's family from its first decay edge out (β−, α, EC, IT), or "stable" from its text.
+    const fam = (g: GNode): Family => {
+      if (/stable/.test(g.sub ?? "")) return "stable";
+      const out = d.edges.find((e) => e.s === g.id && e.kind !== "reaction" && !e.label.startsWith("("));
+      if (!out) return "unknown";
+      const m = out.label.split(/\s/)[0];
+      return m.startsWith("β−") || m.startsWith("β-") ? "b-" : m.startsWith("α") ? "a" : m.startsWith("EC") || m.startsWith("β+") ? "ec" : m.startsWith("IT") || m.startsWith("γ") ? "unknown" : m.startsWith("SF") ? "sf" : "unknown";
+    };
+    const nodes = d.nodes.map((g) => ({ ...g, family: g.family ?? fam(g) }));
+    loadGraph(nodes, edges, d.layout, figurePos ?? (d.grid ? gridPositions(nodes, d.grid) : undefined));
+  }, [loadGraph]);
+
   const applyDataset = useCallback((id: string) => {
     const d = DATASETS.find((x) => x.id === id);
     if (!d) return;
@@ -1388,17 +1762,27 @@ function GraphPageInner() {
 
   return (
     <div className="flex h-full min-h-0">
-      <CatalogRail
-        onPick={center}
-        onAdd={(g) => { if (store.current.has(keyOf(g))) toast.info(`${g.label} is already on the canvas`); else { addNodes([g]); if (g.type === "paper") fetchCards([keyOf(g)]); } }}
-        onAsk={(g) => { setAttached(g); setDockOpen(true); }}
-        onLoadView={loadView}
-        onAddFile={(f) => addNodes([{
-          type: "file", id: f.key, label: f.name,
-          sub: `${(f.size / 1024).toFixed(0)} kB`, fileKey: f.key,
-        }], undefined)}
-        navigate={navigate}
-      />
+      {/* The docs panel's rail tab (components/docs/DocsNav.tsx), on the catalog rail (Brendan, 2026-11-08): the chevron tab on the
+          panel's edge closes and opens it; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-left>,
+          the same memory as /docs. The rail's panels are 284px wide, as the docs panel; the clip box hides them as the column narrows. */}
+      <div className="relative hidden h-full w-[284px] shrink-0 transition-[width] duration-[500ms] ease-in-out lg:block [[data-rail-left=closed]_&]:w-0">
+        <RailToggle side="left" className="top-24 right-0 w-[22px] border border-l-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
+        <div className="flex h-full w-full overflow-hidden">
+          <CatalogRail
+            onPick={center}
+            onAdd={(g) => { if (store.current.has(keyOf(g))) toast.info(`${g.label} is already on the canvas`); else { addNodes([g]); if (g.type === "paper") fetchCards([keyOf(g)]); } }}
+            onAsk={(g) => { setAttached(g); setDockOpen(true); }}
+            onLoadView={loadView}
+            onAddFile={(f) => addNodes([{
+              type: "file", id: f.key, label: f.name,
+              sub: `${(f.size / 1024).toFixed(0)} kB`, fileKey: f.key,
+            }], undefined)}
+            onLoadChain={loadChain}
+            onLoadDemo={loadDemo}
+            navigate={navigate}
+          />
+        </div>
+      </div>
       <div className="relative min-w-0 flex-1" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
         <ReactFlow
           nodes={rfNodes}
@@ -1646,8 +2030,24 @@ function GraphPageInner() {
           </div>
         );
       })()}
+      {!settingsOpen && !traceOpen && !sel && !edgeInfo && (
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
+          <h2 className="text-sm font-semibold text-[var(--paper-text)]">Ideas, ranked</h2>
+          <ol className="mt-3 space-y-3">
+            {IDEAS.map((i, n) => (
+              <li key={i.title} className="flex gap-2 text-xs leading-relaxed">
+                <span className="w-5 shrink-0 font-mono text-[var(--paper-muted)]">{n + 1}</span>
+                <span>
+                  {i.href ? <a href={i.href} target="_blank" rel="noreferrer" className="font-semibold text-nuclear hover:underline">{i.title}</a> : <span className="font-semibold text-[var(--paper-text)]">{i.title}</span>}
+                  {i.text && <span className="text-[var(--paper-muted)]"> {i.text}</span>}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div></RightRail>
+      )}
       {!settingsOpen && !sel && edgeInfo && (
-        <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant={edgeInfo.meta?.kind === "similar" ? "outline" : "secondary"} className="text-[10px]">
               {edgeInfo.meta?.kind === "similar" ? "inference" : "edge"}
@@ -1685,10 +2085,10 @@ function GraphPageInner() {
               </div>
             );
           })()}
-        </div>
+        </div></RightRail>
       )}
       {!settingsOpen && sel && sel.type !== "prompt" && sel.type !== "file" && sel.type !== "more" && (
-        <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant="secondary" className="text-[10px]">{sel.type}</Badge>
             <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
@@ -1705,30 +2105,26 @@ function GraphPageInner() {
           {detail && !detail.error && (
             <DetailBody type={sel.type} detail={detail} navigate={navigate} onCanvas={(g) => expand(g as GNode, "papers")} />
           )}
-        </div>
+        </div></RightRail>
       )}
       {!settingsOpen && sel && sel.type === "prompt" && sel.output && (
-        <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant="secondary" className="text-[10px]">step output</Badge>
             <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
           </div>
           <p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{sel.output}</p>
-        </div>
+        </div></RightRail>
       )}
     </div>
   );
 }
 
-// One query cache for the page (the old app's App-level QueryClientProvider).
-const queryClient = new QueryClient();
-
+// The query cache is the app's one (components/DataProvider.tsx, 2026-11-08).
 export function GraphPage() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ReactFlowProvider>
-        <GraphPageInner />
-      </ReactFlowProvider>
-    </QueryClientProvider>
+    <ReactFlowProvider>
+      <GraphPageInner />
+    </ReactFlowProvider>
   );
 }

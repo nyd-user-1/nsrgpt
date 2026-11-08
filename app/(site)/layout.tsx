@@ -1,3 +1,5 @@
+// Pages are static shells. Data loads after the shell paints, through `useData` or an API route. No server component awaits data.
+// scripts/check-static-shells.sh checks every page and layout file for it.
 import { AppLayout } from "@/components/AppLayout";
 
 // The app's shell — header, sidebar — for every page in this group (2026-11-04). As a layout it mounts once

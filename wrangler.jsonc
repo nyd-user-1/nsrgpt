@@ -23,7 +23,12 @@
   //   NSR_DATABASE_URL         — unused since 2026-11-04 (the NSR corpus left Neon for the lake)
   // NYSGPT_CHAT_OPEN is gone (2026-11-07): the chat requires a signed-in reader. Set it to "1"
   // in "vars" to answer without a session again.
-  "vars": {},
+  // NEXT_PUBLIC_DATA_BASE: the chart data's CloudFront distribution (EDQ9A6XJBYEH5, New account), read by
+  // lib/data-url.ts. Next.js writes NEXT_PUBLIC_ values into the browser code at build time, so the same value
+  // is set in the build step of .github/workflows/cloudflare.yml; "vars" alone reaches only the running worker.
+  "vars": {
+    "NEXT_PUBLIC_DATA_BASE": "https://dcl3kyt3ynmb2.cloudfront.net"
+  },
   "observability": {
     "enabled": true
   }

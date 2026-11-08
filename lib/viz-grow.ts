@@ -24,14 +24,17 @@ export function noteOrigin(from: Rect, to: Rect) {
   } catch {}
 }
 
-/** The main container: a chart's frame, or else Panel 1's card below its header. */
+/** The main container: Panel 1's card below its header, inside the card's border, which a chart's frame fills edge to
+ *  edge. Measured from the card, not the page (2026-11-08): the card's outer edge put the cover over its border and
+ *  corners, and a chart frame measured as its page arrives sits 4 px low, mid-reveal (app/(site)/template.tsx). */
 function mainRect(): Rect | null {
-  const frame = document.querySelector('[data-viz-frame]')
-  if (frame) return frame.getBoundingClientRect()
-  const card = document.querySelector('[data-app-card]')?.getBoundingClientRect()
+  const card = document.querySelector<HTMLElement>('[data-app-card]')
   const head = document.querySelector('[data-main-header]')?.getBoundingClientRect()
   if (!card || !head) return null
-  return { left: card.left, top: head.bottom, width: card.width, height: card.bottom - head.bottom }
+  const box = card.getBoundingClientRect()
+  const cs = getComputedStyle(card)
+  const [l, r, b] = [cs.borderLeftWidth, cs.borderRightWidth, cs.borderBottomWidth].map(parseFloat)
+  return { left: box.left + l, top: head.bottom, width: box.width - l - r, height: box.bottom - b - head.bottom }
 }
 
 function originIn(to: Rect): Rect {
@@ -104,7 +107,7 @@ export function chartForwardFirst() {
   const veil = document.createElement('div')
   veil.setAttribute('aria-hidden', 'true')
   veil.className = 'nysgpt-app'
-  Object.assign(veil.style, { position: 'fixed', zIndex: '89', background: 'var(--paper)', ...at(to) })
+  Object.assign(veil.style, { position: 'fixed', zIndex: '89', background: 'var(--paper)', borderRadius: FULL.borderRadius, ...at(to) })
   document.body.appendChild(veil)
   const el = clone('data-viz-first', originIn(to), to, SMALL, FULL, true, () =>
     window.setTimeout(() => {

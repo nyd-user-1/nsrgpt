@@ -8,6 +8,7 @@
 // falls back to its place on the chart of nuclides until then):
 //   PLAYWRIGHT_CORE=/path/to/node_modules/playwright-core node scripts/viz-graph-layout.mjs [node_modules dir]
 // The node_modules dir holds echarts and echarts-gl (default ./node_modules).
+// Upload with `scripts/viz-data-publish.sh <version>`.
 //
 // Output — { source, k, x, y }: k the nuclide key (Z × 1000 + N), x and y its position, one decimal.
 import { readFileSync, writeFileSync } from "node:fs";

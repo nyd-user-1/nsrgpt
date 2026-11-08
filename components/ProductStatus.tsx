@@ -1,10 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { gated, isProductUrl } from "@/lib/gate";
 import { CARDS as cards, type HomeCardData } from "@/lib/home-data";
 import { ClassicSpinner } from "./ClassicSpinner";
+import { ProductStatusContext, type LinkProps, type Status } from "./ProductStatusContext";
+
+export { useProductStatus, type Status } from "./ProductStatusContext";
 
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 
@@ -12,23 +15,6 @@ const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 const WAKING_MS = 5_000;
 /** Between knocks on a product that answered, so its check stays true (it pauses after 5 idle minutes). */
 const AWAKE_MS = 4 * 60_000;
-
-export type Status = "idle" | "loading" | "ready";
-
-type LinkProps = { href: string; onClick?: (e: React.MouseEvent) => void };
-
-type Ctx = {
-  /** The signed-in reader's email; null while signed out or not yet known. */
-  email: string | null;
-  /** "idle" while signed out (or not yet known); then loading → ready per product. */
-  statusOf: (url: string) => Status;
-  /** Where a product link goes and what a click does, given the reader and the product's state. */
-  linkProps: (url: string) => LinkProps;
-};
-
-const ProductStatusContext = createContext<Ctx>({ email: null, statusOf: () => "idle", linkProps: (url) => ({ href: gated(url) }) });
-
-export const useProductStatus = () => useContext(ProductStatusContext);
 
 const hostOf = (url: string) => {
   try {
@@ -49,6 +35,7 @@ const hostOf = (url: string) => {
 /** The cards come from lib/home-data here rather than as props, so no page carries them in its HTML (2026-11-04). */
 export function ProductStatusProvider({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
   const signedIn = email !== null;
   const [status, setStatus] = useState<Record<string, Status>>({});
   const [notice, setNotice] = useState<string | null>(null);
@@ -75,7 +62,9 @@ export function ProductStatusProvider({ children }: { children: React.ReactNode 
 
     (async () => {
       const me = (await fetch("/api/auth/me", { cache: "no-store" }).then((r) => r.json()).catch(() => ({}))) as { user?: { email?: string } | null };
-      if (!live || !me.user) return;
+      if (!live) return;
+      setChecked(true);
+      if (!me.user) return;
       setEmail(me.user.email ?? "");
       setStatus(Object.fromEntries(products.map((c) => [hostOf(c.href), "loading" as Status])));
       products.forEach((c) => void watch(c));
@@ -106,7 +95,7 @@ export function ProductStatusProvider({ children }: { children: React.ReactNode 
   );
 
   return (
-    <ProductStatusContext.Provider value={{ email, statusOf, linkProps }}>
+    <ProductStatusContext.Provider value={{ email, checked, statusOf, linkProps }}>
       {children}
       <AnimatePresence>
         {notice && (
