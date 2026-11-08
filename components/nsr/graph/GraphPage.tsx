@@ -62,7 +62,7 @@ export interface GNode {
   openGroups?: string[];
 }
 /** Edge provenance. Absent = a record from the join tables. */
-type EdgeMeta = { kind?: "similar" | "wired" | "decay"; cos?: number; mode?: string; pct?: number | null } & Record<string, unknown>;
+type EdgeMeta = { kind?: "similar" | "wired" | "decay" | "reaction" | "sample"; cos?: number; mode?: string; pct?: number | null } & Record<string, unknown>;
 const isSimilar = (e: Edge) => (e.data as EdgeMeta | undefined)?.kind === "similar";
 const keyOf = (n: { type: string; id: string }) => `${n.type}:${n.id}`;
 
@@ -166,6 +166,10 @@ function edgeReceipt(x: GNode, y: GNode, meta?: EdgeMeta): { table?: string; tex
     return { text: `Inference from the embedding space (bge-m3 cosine similarity${meta.cos != null ? ` = ${meta.cos.toFixed(3)}` : ""}) — NOT a database record. ${x.label} and ${y.label} sit near each other in vector space; nothing in the corpus joins them.` };
   if (meta?.kind === "decay")
     return { table: "ensdf decay modes (decay.json)", text: `${x.label} decays to ${y.label} by ${meta.mode}${meta.pct != null ? `, ${meta.pct}% of its decays` : ""}: the ground-state decay mode and branching ENSDF lists for ${x.label}.` };
+  if (meta?.kind === "reaction")
+    return { table: "endfb_xs (ENDF/B-VIII.1, MT by reaction)", text: `${x.label} ${meta.mode} ${y.label}: a reaction step. Its cross section is in the ENDF/B tables; this canvas is sample data until the API serves it.` };
+  if (meta?.kind === "sample")
+    return { text: `${x.label} to ${y.label}${meta.mode ? ` (${meta.mode})` : ""}: sample data for the layout, not yet a database record.` };
   const pair = (t1: GNode["type"], t2: GNode["type"]) =>
     (x.type === t1 && y.type === t2) || (x.type === t2 && y.type === t1);
   const paper = x.type === "paper" ? x : y.type === "paper" ? y : null;
@@ -422,13 +426,14 @@ function RowMenu({ g, onPick, onAdd, onAsk }: {
   );
 }
 
-function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, navigate }: {
+function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, onLoadDemo, navigate }: {
   onPick: (g: GNode) => void;
   onAdd: (g: GNode) => void;
   onAsk: (g: GNode) => void;
   onAddFile: (f: LibFile) => void;
   onLoadView: (id: number) => void;
   onLoadChain: (id: string) => void;
+  onLoadDemo: (id: string) => void;
   navigate: (p: string) => void;
 }) {
   const { data } = useQuery({
@@ -674,6 +679,21 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
           <span>{c.label}</span>
         </button>
       ))}
+      {DEMO_SECTIONS.map((section) => (
+        <div key={section} className="flex flex-col">
+          <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">{section}</p>
+          {DEMOS.filter((d) => d.section === section).map((d) => (
+            <button
+              key={d.id}
+              onClick={() => onLoadDemo(d.id)}
+              className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
+            >
+              <Atom className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
+              <span>{d.label}</span>
+            </button>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
@@ -705,6 +725,38 @@ const CHAINS: { id: string; label: string; head: readonly [number, number] }[] =
   { id: "uranium", label: "Uranium series (4n+2)", head: [92, 146] },
   { id: "actinium", label: "Actinium series (4n+3)", head: [92, 143] },
 ];
+
+/** Sample canvases for the design review (Brendan, 2026-11-08, 02:52): one or two per section, hand-typed values in the
+ *  shape the real data will take. Real data replaces them section by section; the decay chains above are real already. */
+type Demo = { section: string; id: string; label: string; layout: "LR" | "TB"; nodes: GNode[]; edges: { s: string; t: string; label: string; kind: EdgeMeta["kind"] }[] };
+const nuc = (id: string, label: string, sub: string): GNode => ({ type: "nuclide", id, label, sub });
+const DEMOS: Demo[] = [
+  { section: "Neutron capture paths", id: "s-ag-sb", label: "s-process, Ag to Sb (sample)", layout: "LR",
+    nodes: [nuc("107AG", "107Ag", "Z=47 N=60 · stable"), nuc("108AG", "108Ag", "Z=47 N=61 · 2.4 min"), nuc("108CD", "108Cd", "Z=48 N=60 · stable"), nuc("109CD", "109Cd", "Z=48 N=61 · 462 d"), nuc("109AG", "109Ag", "Z=47 N=62 · stable"), nuc("110AG", "110Ag", "Z=47 N=63 · 24.6 s"), nuc("110CD", "110Cd", "Z=48 N=62 · stable"), nuc("111CD", "111Cd", "Z=48 N=63 · stable"), nuc("112CD", "112Cd", "Z=48 N=64 · stable"), nuc("113CD", "113Cd", "Z=48 N=65 · 8×10¹⁵ y"), nuc("114CD", "114Cd", "Z=48 N=66 · stable"), nuc("115CD", "115Cd", "Z=48 N=67 · 53.5 h"), nuc("115IN", "115In", "Z=49 N=66 · 4.4×10¹⁴ y"), nuc("116IN", "116In", "Z=49 N=67 · 14.1 s"), nuc("116SN", "116Sn", "Z=50 N=66 · stable"), nuc("120SN", "120Sn", "Z=50 N=70 · stable"), nuc("121SN", "121Sn", "Z=50 N=71 · 27.0 h"), nuc("121SB", "121Sb", "Z=51 N=70 · stable"), nuc("122SB", "122Sb", "Z=51 N=71 · 2.72 d"), nuc("122TE", "122Te", "Z=52 N=70 · stable")],
+    edges: [["107AG", "108AG", "(n,γ) 38 b"], ["108AG", "108CD", "β− 97%"], ["108CD", "109CD", "(n,γ) 1.1 b"], ["109CD", "109AG", "EC 100%"], ["109AG", "110AG", "(n,γ) 91 b"], ["110AG", "110CD", "β− 99.7%"], ["110CD", "111CD", "(n,γ) 11 b"], ["111CD", "112CD", "(n,γ) 24 b"], ["112CD", "113CD", "(n,γ) 2.2 b"], ["113CD", "114CD", "(n,γ) 20,600 b"], ["114CD", "115CD", "(n,γ) 0.3 b"], ["115CD", "115IN", "β− 100%"], ["115IN", "116IN", "(n,γ) 202 b"], ["116IN", "116SN", "β− 99.98%"], ["116SN", "120SN", "(n,γ) × 4"], ["120SN", "121SN", "(n,γ) 0.14 b"], ["121SN", "121SB", "β− 100%"], ["121SB", "122SB", "(n,γ) 5.8 b"], ["122SB", "122TE", "β− 97.6%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Neutron capture paths", id: "mass-201-210", label: "Mass 201 to 210, s and r (sample)", layout: "LR",
+    nodes: [nuc("201HG", "201Hg", "Z=80 N=121 · stable"), nuc("202HG", "202Hg", "Z=80 N=122 · stable"), nuc("203HG", "203Hg", "Z=80 N=123 · 46.6 d"), nuc("203TL", "203Tl", "Z=81 N=122 · stable"), nuc("204TL", "204Tl", "Z=81 N=123 · 3.78 y"), nuc("204PB", "204Pb", "Z=82 N=122 · stable"), nuc("205TL", "205Tl", "Z=81 N=124 · stable"), nuc("205PB", "205Pb", "Z=82 N=123 · 1.7×10⁷ y"), nuc("206PB", "206Pb", "Z=82 N=124 · stable"), nuc("207PB", "207Pb", "Z=82 N=125 · stable"), nuc("208PB", "208Pb", "Z=82 N=126 · stable"), nuc("209PB", "209Pb", "Z=82 N=127 · 3.25 h"), nuc("209BI", "209Bi", "Z=83 N=126 · 2×10¹⁹ y"), nuc("210BI", "210Bi", "Z=83 N=127 · 5.01 d"), nuc("210PO", "210Po", "Z=84 N=126 · 138 d")],
+    edges: [["201HG", "202HG", "(n,γ)"], ["202HG", "203HG", "(n,γ)"], ["203HG", "203TL", "β− 100%"], ["203TL", "204TL", "(n,γ)"], ["204TL", "204PB", "β− 97%"], ["204PB", "205PB", "(n,γ)"], ["205PB", "205TL", "EC 100%"], ["205TL", "206PB", "r-process β−"], ["206PB", "207PB", "(n,γ)"], ["207PB", "208PB", "(n,γ)"], ["208PB", "209PB", "(n,γ)"], ["209PB", "209BI", "β− 100%"], ["209BI", "210BI", "(n,γ)"], ["210BI", "210PO", "β− 100%"], ["210PO", "206PB", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : label.startsWith("r-") ? "sample" as const : "decay" as const })) },
+  { section: "Actinide build-up", id: "sasahara", label: "U-238 to Cm-244 in a reactor (sample)", layout: "LR",
+    nodes: [nuc("235U", "235U", "Z=92 N=143 · 7.0×10⁸ y"), nuc("236U", "236U", "Z=92 N=144 · 2.3×10⁷ y"), nuc("237U", "237U", "Z=92 N=145 · 6.75 d"), nuc("237NP", "237Np", "Z=93 N=144 · 2.1×10⁶ y"), nuc("238NP", "238Np", "Z=93 N=145 · 2.1 d"), nuc("238PU", "238Pu", "Z=94 N=144 · 87.7 y"), nuc("238U", "238U", "Z=92 N=146 · 4.5×10⁹ y"), nuc("239U", "239U", "Z=92 N=147 · 23.5 min"), nuc("239NP", "239Np", "Z=93 N=146 · 2.36 d"), nuc("239PU", "239Pu", "Z=94 N=145 · 24,110 y"), nuc("240PU", "240Pu", "Z=94 N=146 · 6,561 y"), nuc("241PU", "241Pu", "Z=94 N=147 · 14.3 y"), nuc("241AM", "241Am", "Z=95 N=146 · 432.6 y"), nuc("242AM", "242Am", "Z=95 N=147 · 16.0 h"), nuc("242CM", "242Cm", "Z=96 N=146 · 163 d"), nuc("242PU", "242Pu", "Z=94 N=148 · 3.7×10⁵ y"), nuc("243PU", "243Pu", "Z=94 N=149 · 4.96 h"), nuc("243AM", "243Am", "Z=95 N=148 · 7,370 y"), nuc("244AM", "244Am", "Z=95 N=149 · 10.1 h"), nuc("244CM", "244Cm", "Z=96 N=148 · 18.1 y")],
+    edges: [["235U", "236U", "(n,γ) 99 b"], ["236U", "237U", "(n,γ) 5.1 b"], ["237U", "237NP", "β− 100%"], ["237NP", "238NP", "(n,γ) 176 b"], ["238NP", "238PU", "β− 100%"], ["238U", "239U", "(n,γ) 2.7 b"], ["239U", "239NP", "β− 100%"], ["239NP", "239PU", "β− 100%"], ["239PU", "240PU", "(n,γ) 271 b"], ["240PU", "241PU", "(n,γ) 290 b"], ["241PU", "241AM", "β− 99.998%"], ["241AM", "242AM", "(n,γ) 684 b"], ["242AM", "242CM", "β− 82.7%"], ["242CM", "238PU", "α 100%"], ["241PU", "242PU", "(n,γ) 363 b"], ["242PU", "243PU", "(n,γ) 19 b"], ["243PU", "243AM", "β− 100%"], ["243AM", "244AM", "(n,γ) 75 b"], ["244AM", "244CM", "β− 100%"], ["244CM", "240PU", "α 100%"], ["241AM", "237NP", "α 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Production routes", id: "mo99", label: "Mo-99 and Tc-99m (sample)", layout: "LR",
+    nodes: [nuc("235U", "235U", "Z=92 N=143 · fission target"), nuc("98MO", "98Mo", "Z=42 N=56 · stable"), nuc("100MO", "100Mo", "Z=42 N=58 · stable"), nuc("99MO", "99Mo", "Z=42 N=57 · 65.9 h"), nuc("99TCM", "99mTc", "Z=43 N=56 · 6.01 h"), nuc("99TC", "99Tc", "Z=43 N=56 · 2.1×10⁵ y"), nuc("99RU", "99Ru", "Z=44 N=55 · stable")],
+    edges: [["235U", "99MO", "(n,f) 6.1% yield"], ["98MO", "99MO", "(n,γ) 0.13 b"], ["100MO", "99MO", "(γ,n)"], ["99MO", "99TCM", "β− 87.6%"], ["99MO", "99TC", "β− 12.4%"], ["99TCM", "99TC", "IT 99.996%"], ["99TC", "99RU", "β− 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Production routes", id: "lu177", label: "Lu-177, two routes (sample)", layout: "LR",
+    nodes: [nuc("176LU", "176Lu", "Z=71 N=105 · 3.8×10¹⁰ y"), nuc("176YB", "176Yb", "Z=70 N=106 · stable"), nuc("177YB", "177Yb", "Z=70 N=107 · 1.9 h"), nuc("177LU", "177Lu", "Z=71 N=106 · 6.65 d"), nuc("177HF", "177Hf", "Z=72 N=105 · stable")],
+    edges: [["176LU", "177LU", "(n,γ) 2,090 b · direct"], ["176YB", "177YB", "(n,γ) 2.85 b · carrier-free"], ["177YB", "177LU", "β− 100%"], ["177LU", "177HF", "β− 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Fission fans", id: "u235-fan", label: "U-235 thermal fission, top products (sample)", layout: "LR",
+    nodes: [nuc("235U", "235U", "Z=92 N=143 · thermal fission"), nuc("137CS", "137Cs", "30.08 y · 6.2%"), nuc("137BAM", "137mBa", "2.55 min"), nuc("137BA", "137Ba", "stable"), nuc("90SR", "90Sr", "28.9 y · 5.8%"), nuc("90Y", "90Y", "64.0 h"), nuc("90ZR", "90Zr", "stable"), nuc("131I", "131I", "8.02 d · 2.9%"), nuc("131XE", "131Xe", "stable"), nuc("133XE", "133Xe", "5.25 d · 6.7%"), nuc("133CS", "133Cs", "stable"), nuc("140BA", "140Ba", "12.8 d · 6.2%"), nuc("140LA", "140La", "1.68 d"), nuc("140CE", "140Ce", "stable"), nuc("95ZR", "95Zr", "64.0 d · 6.5%"), nuc("95NB", "95Nb", "35.0 d"), nuc("95MO", "95Mo", "stable"), nuc("99MO", "99Mo", "65.9 h · 6.1%"), nuc("99TC", "99Tc", "2.1×10⁵ y"), nuc("144CE", "144Ce", "285 d · 5.5%"), nuc("144PR", "144Pr", "17.3 min"), nuc("144ND", "144Nd", "2.3×10¹⁵ y")],
+    edges: [["235U", "137CS", "(n,f) 6.2%"], ["137CS", "137BAM", "β− 94.7%"], ["137BAM", "137BA", "IT 100%"], ["235U", "90SR", "(n,f) 5.8%"], ["90SR", "90Y", "β− 100%"], ["90Y", "90ZR", "β− 100%"], ["235U", "131I", "(n,f) 2.9%"], ["131I", "131XE", "β− 100%"], ["235U", "133XE", "(n,f) 6.7%"], ["133XE", "133CS", "β− 100%"], ["235U", "140BA", "(n,f) 6.2%"], ["140BA", "140LA", "β− 100%"], ["140LA", "140CE", "β− 100%"], ["235U", "95ZR", "(n,f) 6.5%"], ["95ZR", "95NB", "β− 100%"], ["95NB", "95MO", "β− 100%"], ["235U", "99MO", "(n,f) 6.1%"], ["99MO", "99TC", "β− 100%"], ["235U", "144CE", "(n,f) 5.5%"], ["144CE", "144PR", "β− 100%"], ["144PR", "144ND", "β− 100%"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("(") ? "reaction" as const : "decay" as const })) },
+  { section: "Level schemes", id: "co60", label: "60Co decay into 60Ni levels (sample)", layout: "TB",
+    nodes: [nuc("60CO", "60Co", "5+ · 5.27 y · ground state"), nuc("60NI-2505", "60Ni 2505.8 keV", "4+ · 0.59 ps"), nuc("60NI-2158", "60Ni 2158.6 keV", "2+ · 0.6 ps"), nuc("60NI-1332", "60Ni 1332.5 keV", "2+ · 0.73 ps"), nuc("60NI", "60Ni 0 keV", "0+ · stable")],
+    edges: [["60CO", "60NI-2505", "β− 99.88% · 317 keV"], ["60CO", "60NI-2158", "β− 0.12% · 664 keV"], ["60NI-2505", "60NI-1332", "γ 1173.2 keV · E2 · 99.85"], ["60NI-2158", "60NI-1332", "γ 826.1 keV · 0.008"], ["60NI-2158", "60NI", "γ 2158.6 keV · 0.0012"], ["60NI-1332", "60NI", "γ 1332.5 keV · E2 · 99.98"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
+  { section: "Level schemes", id: "cs137", label: "137Cs decay into 137Ba levels (sample)", layout: "TB",
+    nodes: [nuc("137CS", "137Cs", "7/2+ · 30.08 y · ground state"), nuc("137BA-661", "137Ba 661.7 keV", "11/2− · 2.55 min · 137mBa"), nuc("137BA", "137Ba 0 keV", "3/2+ · stable")],
+    edges: [["137CS", "137BA-661", "β− 94.7% · 514 keV"], ["137CS", "137BA", "β− 5.3% · 1176 keV"], ["137BA-661", "137BA", "γ 661.7 keV · M4 · 85.1"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
+];
+const DEMO_SECTIONS = [...new Set(DEMOS.map((d) => d.section))];
 
 /** Seed canvases for the props panel — each one centers a real entity. */
 const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
@@ -1304,11 +1356,27 @@ function GraphPageInner() {
     else if (RELS[g.type]?.length) setTimeout(() => expand(g, RELS[g.type]![0].rel), 0);
   }, [setEdges, setNodes, expand, fetchCards, snapshot]);
 
-  /** A decay series onto a fresh canvas: nuclide nodes, decay edges labelled with mode and branching. */
+  /** A whole graph onto a fresh canvas: the nodes, the edges, laid out left-to-right or top-to-bottom. */
+  const loadGraph = useCallback((gnodes: GNode[], edges: Edge[], layoutDir: "LR" | "TB" = "LR") => {
+    snapshot();
+    store.current = new Map();
+    expandState.current = new Map();
+    setSelectedKey(null);
+    setEdgeInfo(null);
+    for (const g of gnodes) store.current.set(keyOf(g), g);
+    const mode: LayoutMode = layoutDir === "TB" ? "dagre-tb" : "dagre-lr";
+    setLayoutMode(mode);
+    layoutModeRef.current = mode;
+    setNodes([]);
+    setEdges(() => { syncNodes(edges, true); setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60); return edges; });
+  }, [setEdges, setNodes, syncNodes, fitView, snapshot]);
+
+  /** A decay series: nuclide nodes, decay edges labelled with mode and branching, from ENSDF's decay modes. */
   const loadChain = useCallback(async (id: string) => {
     const c = CHAINS.find((x) => x.id === id);
     if (!c) return;
-    const d = await loadDecay();
+    let d;
+    try { d = await loadDecay(); } catch (e) { toast.error(`The decay data didn't load: ${(e as Error).message}`); return; }
     const steps = seriesFrom(d, decayIndex(d), c.head);
     if (!steps.length) { toast.error(`${c.label}: its head is not in the decay data`); return; }
     const gnode = (i: number): GNode => {
@@ -1317,19 +1385,22 @@ function GraphPageInner() {
       return { type: "nuclide", id: `${a}${x.el.toUpperCase()}`, label: `${a}${x.el}`, sub: `Z=${x.z} N=${x.n} · ${halfLifeText(x)}` };
     };
     const pct = (p: number | null) => (p == null ? "" : ` ${p >= 10 ? p.toFixed(0) : p >= 1 ? p.toFixed(1) : p.toPrecision(2)}%`);
-    snapshot();
-    store.current = new Map();
-    expandState.current = new Map();
-    setSelectedKey(null);
-    setEdgeInfo(null);
-    for (const s of steps) for (const i of [s.from, s.to]) { const g = gnode(i); store.current.set(keyOf(g), g); }
+    const gnodes = new Map<string, GNode>();
+    for (const s of steps) for (const i of [s.from, s.to]) { const g = gnode(i); gnodes.set(keyOf(g), g); }
     const edges: Edge[] = steps.map((s) => {
       const from = keyOf(gnode(s.from)), to = keyOf(gnode(s.to));
       return { id: `${from}->${to}:${s.mode}`, source: from, target: to, label: `${s.mode}${pct(s.pct)}`, data: { kind: "decay", mode: s.mode, pct: s.pct } as EdgeMeta };
     });
-    setNodes([]);
-    setEdges(() => { syncNodes(edges, true); setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60); return edges; });
-  }, [setEdges, setNodes, syncNodes, fitView, snapshot]);
+    loadGraph([...gnodes.values()], edges, "TB");
+  }, [loadGraph]);
+
+  /** A sample canvas (DEMOS): the layout review's hand-typed graphs. */
+  const loadDemo = useCallback((id: string) => {
+    const d = DEMOS.find((x) => x.id === id);
+    if (!d) return;
+    const edges: Edge[] = d.edges.map((e) => ({ id: `nuclide:${e.s}->nuclide:${e.t}`, source: `nuclide:${e.s}`, target: `nuclide:${e.t}`, label: e.label, data: { kind: e.kind, mode: e.label } as EdgeMeta }));
+    loadGraph(d.nodes, edges, d.layout);
+  }, [loadGraph]);
 
   const applyDataset = useCallback((id: string) => {
     const d = DATASETS.find((x) => x.id === id);
@@ -1543,6 +1614,7 @@ function GraphPageInner() {
               sub: `${(f.size / 1024).toFixed(0)} kB`, fileKey: f.key,
             }], undefined)}
             onLoadChain={loadChain}
+            onLoadDemo={loadDemo}
             navigate={navigate}
           />
         </div>
