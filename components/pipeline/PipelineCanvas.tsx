@@ -104,7 +104,7 @@ function useRemeasure(nodeId: string, open: boolean) {
  *  row's group, size and two tones. */
 function Header({ title, icon: Icon, iconOn, soon, open, onToggle, children }: { title: string; icon?: SideBarIcon; iconOn?: boolean; soon?: boolean; open: boolean; onToggle: () => void; children?: React.ReactNode }) {
   const button = (
-    <button type="button" onClick={onToggle} aria-expanded={open} className="group/item relative flex h-11 w-full items-center gap-2 px-3.5 text-left text-[15px] font-medium">
+    <button type="button" onClick={onToggle} aria-expanded={open} className={cn("group/item relative flex h-11 w-full items-center gap-2 rounded-xl px-3.5 text-left text-[15px] font-medium transition-colors hover:bg-[var(--paper-quiet)]", open && "rounded-b-none")}>
       {Icon && <Icon size={18} className={cn("shrink-0 transition-colors", iconOn ? ICON_ON : cn("text-[var(--paper-muted)]", ICON_REST))} strokeWidth={iconOn ? 2.25 : 1.75} />}
       <span className="truncate">{title}</span>
       {soon && <span className="shrink-0 rounded-full border border-dashed border-[var(--paper-muted)] px-2 py-px text-[11px] font-normal">Coming Soon</span>}
