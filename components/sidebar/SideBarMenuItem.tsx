@@ -24,15 +24,14 @@ export const ROW_HOVER = "hover:bg-[color-mix(in_oklab,var(--paper-text)_8%,var(
 export const ICON_ON = "fill-[color-mix(in_oklab,var(--paper-strong)_18%,var(--paper))] text-[var(--paper-strong)]"
 export const ICON_REST =
   "fill-[var(--paper)] group-hover/item:fill-[color-mix(in_oklab,var(--paper-strong)_18%,var(--paper))] group-hover/item:text-[var(--paper-strong)]"
-/** On hover a menu row's icon takes the header discussion button's two blues: light blue fill, dark blue stroke (Brendan, 2026-11-08). */
-export const ICON_HOVER = "group-hover/item:fill-[#dbe7fa] group-hover/item:text-[#033882]"
 export const MARK = "absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[var(--paper-strong)]"
 export const ROW_BUTTON =
   "flex size-7 items-center justify-center rounded-lg text-[var(--paper-faint)] opacity-0 transition-opacity hover:bg-[var(--paper)] hover:text-[var(--paper-strong)] focus-visible:opacity-100 group-hover/item:opacity-100"
 /** The paper's middle rule: the branch lines, hairlines inside a card, the SearchBar's border. */
 export const BRANCH = "color-mix(in oklab, var(--paper-text) 18%, var(--paper))"
 
-export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main" }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string }) {
+/** iconHover: the icon's hover tones when a row wants the header button's two blues rather than the paper tint (trial on Chat, 2026-11-08). */
+export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", iconHover }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; iconHover?: string }) {
   const { openPane } = useShellPanel()
   const { rows, patch } = useNavRows()
   const row = rows[href] ?? {}
@@ -76,7 +75,7 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
           )}
         >
           {on && <span aria-hidden className={MARK} />}
-          {Icon && <Icon size={small ? 14 : 18} className={cn("shrink-0 transition-colors", on ? ICON_ON : cn(ICON_REST, ICON_HOVER))} strokeWidth={on ? 2.25 : 1.75} />}
+          {Icon && <Icon size={small ? 14 : 18} className={cn("shrink-0 transition-colors", on ? ICON_ON : ICON_REST, !on && iconHover)} strokeWidth={on ? 2.25 : 1.75} />}
           <span className="min-w-0 truncate">{name}</span>
         </Link>
         <span className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center">
@@ -146,7 +145,7 @@ export function SideBarMenuGroup({ label, icon: Icon, items: all, isOn, openWhen
             holds ? "font-semibold text-[var(--paper-strong)]" : "text-[var(--paper-muted)]",
           )}
         >
-          {Icon && <Icon size={18} className={cn("shrink-0 transition-colors", holds ? ICON_ON : cn(ICON_REST, ICON_HOVER))} strokeWidth={holds ? 2.25 : 1.75} />}
+          {Icon && <Icon size={18} className={cn("shrink-0 transition-colors", holds ? ICON_ON : ICON_REST)} strokeWidth={holds ? 2.25 : 1.75} />}
           <span className="flex-1">{label}</span>
           <Chevron className="size-4 shrink-0 text-[var(--paper-faint)] transition-colors group-hover/item:text-[var(--paper-strong)]" />
         </button>
