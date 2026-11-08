@@ -48,7 +48,7 @@ export function SideBarMenu() {
       </div>
       <nav className="-mx-1 flex max-h-[55%] shrink-0 flex-col gap-0.5 overflow-y-auto px-1">
         <SideBarMenuPinned pinned={pinned} isOn={isOn} />
-        {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={MessagesSquare} on={path === "/chat"} iconHover="group-hover/item:fill-[#dbe7fa] group-hover/item:text-[#033882]" />}
+        {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={MessagesSquare} on={path === "/chat"} />}
         <SideBarMenuGroup label="Charts" icon={Activity} items={CHARTS} isOn={isOn} place={place} />
         <SideBarMenuGroup label="Data" icon={Database} items={TABLES} isOn={isOn} place={place} />
         {place("/docs") && <SideBarMenuItem href="/docs" label="Docs" icon={BookOpen} on={path === "/docs" || path.startsWith("/docs/")} />}
