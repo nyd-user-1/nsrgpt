@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
-import { RailToggle } from "@/components/rail-toggle";
+import { RailToggle, useRailClosed } from "@/components/rail-toggle";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
 
@@ -696,7 +696,7 @@ const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
 // The right inset panel's rail tab (Brendan, 2026-11-08): the same chevron tab the docs panel and the catalog rail wear, on the
 // panel's left edge; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-right>.
 // What the lake makes possible, ranked by Brendan (2026-11-08, night shift). Shown in the right panel while nothing is selected.
-const IDEAS: { title: string; text: string }[] = [
+const IDEAS: { title: string; text: string; href?: string }[] = [
   { title: "Our own evaluated library", text: "Fit all 19 million EXFOR points with their covariances (IAEA's GMAP code is in the lake) across every reaction at once on GPUs; publish NSRgpt-1.0, rebuilt whenever EXFOR changes, every number traceable to its measurements." },
   { title: "A nuclear data model", text: "Train on every measured and evaluated point, level and decay record, TENDL as the prior for all 2,800 nuclides. It predicts unmeasured cross sections with calibrated uncertainty and flags measurements that don't fit." },
   { title: "The validation fleet", text: "OpenMC on thousands of ICSBEP and CoNDERC benchmarks times every library, plus total Monte Carlo with TENDL's random files: a standing scoreboard of which library gets which benchmark right, and which cross sections drive the misses." },
@@ -713,13 +713,68 @@ const IDEAS: { title: string; text: string }[] = [
   { title: "Measured against evaluated, everywhere", text: "EXFOR points over every library: residuals per reaction, a ranked map of where libraries disagree with experiment." },
   { title: "The nuclide as the hub", text: "Z, A joins levels, gammas, decay radiation, cross sections, measurements, evaluations and papers, with provenance to the record." },
   { title: "Answers that cite the card", text: "The ENSDF line, the EXFOR subentry, the ENDF MAT and MT section, quoted for every number in a chat." },
+  // Reading, to go over together (Brendan, 2026-11-08).
+  { title: "EXFOR formats manual, IAEA WP2007-23 (PDF)", text: "", href: "https://nds.iaea.org/exfor/x4guide/manuals/wp2007-23.pdf" },
+  { title: "NuDat at USNDP 2022, BNL (PDF)", text: "", href: "https://indico.bnl.gov/event/15497/contributions/70076/attachments/44350/74834/NUDAT_USNDP2022.pdf" },
 ];
 
+// The panel is draggable (Brendan, 2026-11-08): the gripper is the shell's (components/shell.tsx, pax-trinity's
+// src/components/shell.tsx), an 18px separator with a 1×8 pill on the panel's left edge; drag, arrow keys (24px),
+// double-click to reset. The width is remembered per browser. 500 ms slide, as the sidebar menu; none while dragging.
+const RIGHT_W_KEY = "graph:right-w";
+const RIGHT_W_DEFAULT = 320, RIGHT_W_MIN = 280, RIGHT_W_MAX = 720;
 function RightRail({ children }: { children: ReactNode }) {
+  const closed = useRailClosed("right");
+  const [w, setW] = useState(RIGHT_W_DEFAULT);
+  const [dragging, setDragging] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    try { const v = Number(localStorage.getItem(RIGHT_W_KEY)); if (v >= RIGHT_W_MIN && v <= RIGHT_W_MAX) setW(v); } catch {}
+  }, []);
+  useEffect(() => {
+    if (dragging) return;
+    try { localStorage.setItem(RIGHT_W_KEY, String(w)); } catch {}
+  }, [w, dragging]);
+  useEffect(() => {
+    if (!dragging) return;
+    const s = document.body.style;
+    const prev = [s.cursor, s.userSelect];
+    s.cursor = "col-resize"; s.userSelect = "none";
+    return () => { s.cursor = prev[0]; s.userSelect = prev[1]; };
+  }, [dragging]);
+  // The panel's left edge follows the pointer; the canvas keeps at least 480px.
+  const resizeTo = (x: number) => {
+    const right = box.current?.getBoundingClientRect().right ?? window.innerWidth;
+    setW(Math.max(RIGHT_W_MIN, Math.min(right - x, RIGHT_W_MAX, window.innerWidth - 480)));
+  };
   return (
-    <div className="relative hidden h-full w-80 shrink-0 transition-[width] duration-[500ms] ease-in-out md:block [[data-rail-right=closed]_&]:w-0">
+    <div ref={box} style={{ width: closed ? 0 : w }} className={`relative hidden h-full shrink-0 md:block ${dragging ? "" : "transition-[width] duration-[500ms] ease-in-out"}`}>
       <RailToggle side="right" className="top-24 left-0 w-[22px] border border-r-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
-      <div className="flex h-full w-full justify-end overflow-hidden">{children}</div>
+      {!closed && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize the panel"
+          tabIndex={0}
+          onPointerDown={(e) => { if (e.button !== 0) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); setDragging(true); }}
+          onPointerMove={(e) => e.currentTarget.hasPointerCapture(e.pointerId) && resizeTo(e.clientX)}
+          onPointerUp={() => setDragging(false)}
+          onPointerCancel={() => setDragging(false)}
+          onLostPointerCapture={() => setDragging(false)}
+          onDoubleClick={() => setW(RIGHT_W_DEFAULT)}
+          onKeyDown={(e) => {
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.preventDefault();
+            setW((v) => Math.max(RIGHT_W_MIN, Math.min(RIGHT_W_MAX, v + (e.key === "ArrowLeft" ? 24 : -24))));
+          }}
+          className="group absolute top-1/2 left-0 z-40 flex h-16 w-[18px] -translate-x-1/2 -translate-y-1/2 cursor-col-resize touch-none items-center justify-center outline-none"
+        >
+          <span className={`h-8 w-1 rounded-full transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] ${dragging ? "bg-[#033882]" : "bg-[rgba(22,24,29,0.18)] dark:bg-[rgba(240,233,216,0.2)]"}`} />
+        </div>
+      )}
+      <div className="flex h-full w-full justify-end overflow-hidden">
+        <div style={{ width: w }} className="flex h-full shrink-0">{children}</div>
+      </div>
     </div>
   );
 }
@@ -1688,20 +1743,23 @@ function GraphPageInner() {
         );
       })()}
       {!settingsOpen && !traceOpen && !sel && !edgeInfo && (
-        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
           <h2 className="text-sm font-semibold text-[var(--paper-text)]">Ideas, ranked</h2>
           <ol className="mt-3 space-y-3">
             {IDEAS.map((i, n) => (
               <li key={i.title} className="flex gap-2 text-xs leading-relaxed">
                 <span className="w-5 shrink-0 font-mono text-[var(--paper-muted)]">{n + 1}</span>
-                <span><span className="font-semibold text-[var(--paper-text)]">{i.title}</span> <span className="text-[var(--paper-muted)]">{i.text}</span></span>
+                <span>
+                  {i.href ? <a href={i.href} target="_blank" rel="noreferrer" className="font-semibold text-nuclear hover:underline">{i.title}</a> : <span className="font-semibold text-[var(--paper-text)]">{i.title}</span>}
+                  {i.text && <span className="text-[var(--paper-muted)]"> {i.text}</span>}
+                </span>
               </li>
             ))}
           </ol>
         </div></RightRail>
       )}
       {!settingsOpen && !sel && edgeInfo && (
-        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant={edgeInfo.meta?.kind === "similar" ? "outline" : "secondary"} className="text-[10px]">
               {edgeInfo.meta?.kind === "similar" ? "inference" : "edge"}
@@ -1742,7 +1800,7 @@ function GraphPageInner() {
         </div></RightRail>
       )}
       {!settingsOpen && sel && sel.type !== "prompt" && sel.type !== "file" && sel.type !== "more" && (
-        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant="secondary" className="text-[10px]">{sel.type}</Badge>
             <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
@@ -1762,7 +1820,7 @@ function GraphPageInner() {
         </div></RightRail>
       )}
       {!settingsOpen && sel && sel.type === "prompt" && sel.output && (
-        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
+        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant="secondary" className="text-[10px]">step output</Badge>
             <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
