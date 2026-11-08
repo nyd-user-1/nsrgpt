@@ -9,7 +9,7 @@
 #    "hosts": ["nds.iaea.org", "www-nds.iaea.org"], "items": [{"url", "key"?}], "lines": [0, 1, 2],
 #    "rate": 2.0, "max": 20000, "minutes": 200}
 # Writes <prefix>/_work/box/<name>/results.jsonl and status.json as it goes.
-import hashlib, json, os, queue, random, re, sys, threading, time, urllib.parse
+import hashlib, json, os, queue, random, re, signal, sys, threading, time, urllib.parse
 import boto3
 from playwright.sync_api import sync_playwright
 
@@ -143,7 +143,7 @@ FETCH_JS = """async (u) => {
   const ctl = new AbortController();
   const r = await fetch(u, {credentials: 'include', signal: ctl.signal, redirect: 'follow'});
   const len = +(r.headers.get('content-length') || 0), ct = r.headers.get('content-type') || '';
-  if (len > 40e6) { ctl.abort(); return {status: r.status, big: true, len, ct, url: r.url}; }
+  if (len > 10e6) { ctl.abort(); return {status: r.status, big: true, len, ct, url: r.url}; }
   const buf = new Uint8Array(await r.arrayBuffer());
   let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
   return {status: r.status, ct, url: r.url, len: buf.length, b64: btoa(s)};
@@ -247,6 +247,7 @@ def worker(n):
             st["state"] = f"warm failed: {str(e)[:120]}"
         if not cleared(page):
             st["state"] = "challenge did not clear on warm page"
+            st["busy"] = False  # a dropped line counts as idle, so the others can finish the job
             br.close(); return
         st["state"] = "cleared"
         tries = 0
@@ -325,12 +326,30 @@ def worker(n):
                                 add(u, depth=depth + 1)
             except Exception as e:
                 r.update(status="error", error=str(e)[:200]); st["errors"] += 1; tries += 1
-                if "challenged" in str(e):
+                if "challenged" in str(e) or "crashed" in str(e) or "closed" in str(e):
                     with lock:
                         seen.discard(url)
                     add(url, key, depth)  # another line may get it
+                if "crashed" in str(e) or "closed" in str(e):
+                    # the tab died (usually memory): open a new one and warm it, or end this line if the browser is gone
+                    st["restarts"] = st.get("restarts", 0) + 1
+                    try:
+                        page.close()
+                    except Exception:
+                        pass
+                    try:
+                        page = ctx.new_page()
+                        rate.wait()
+                        page.goto(job["warm"], timeout=90000, wait_until="domcontentloaded")
+                        cleared(page)
+                    except Exception as e2:
+                        st["state"] = f"browser lost: {str(e2)[:100]}"; st["busy"] = False
+                        with lock:
+                            results.append(r)
+                        break
                 if tries >= 5 and st["ok"] == 0:
                     st["state"] = "dropped: 0 of first 5"
+                    st["busy"] = False
                     with lock:
                         results.append(r)
                     break
@@ -343,6 +362,11 @@ def worker(n):
 for lk in job.get("lists", []):  # pull lists written by iaea-pull select (Wayback index): original URL and key
     for f in json.loads(s3.get_object(Bucket=BUCKET, Key=lk)["Body"].read())["files"]:
         add(f["original"].replace("http://", "https://", 1).replace(":80/", "/", 1), f["key"])
+for lk in job.get("seen_from", []):  # results.jsonl of an earlier run of the same crawl: don't fetch those URLs again
+    for ln in s3.get_object(Bucket=BUCKET, Key=lk)["Body"].read().decode().splitlines():
+        r = json.loads(ln)
+        if r.get("status") in ("done", "skipped", "dead"):
+            seen.add(r["url"])
 for lk in job.get("resume", []):  # queue.json files from stopped runs
     for it in json.loads(s3.get_object(Bucket=BUCKET, Key=lk)["Body"].read()):
         add(it["url"], it["key"], it.get("depth", 1))
@@ -350,6 +374,13 @@ for it in job.get("items", []):
     add(it["url"], it.get("key"))
 for u in job.get("seeds", []):
     add(u)
+def stop(*_):
+    # SIGTERM: each worker finishes the file in hand and leaves; the queue left is saved to queue.json for a resume
+    global DEADLINE
+    DEADLINE = 0
+
+
+signal.signal(signal.SIGTERM, stop)
 threads = [threading.Thread(target=worker, args=(n,), daemon=True) for n in job.get("lines", [0])]
 for i, t in enumerate(threads):
     t.start(); time.sleep(5)

@@ -1,0 +1,44 @@
+{
+  "name": "proxy-nrdc-5",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/",
+  "scope": [
+    "https://nds.iaea.org/nrdc/",
+    "https://www-nds.iaea.org/nrdc/",
+    "https://nds.iaea.org/CIELO/",
+    "https://www-nds.iaea.org/CIELO/",
+    "https://nds.iaea.org/exfor/",
+    "https://www-nds.iaea.org/exfor/"
+  ],
+  "skip": "\\?|/cdn-cgi/|/servlet/|/nrdc/exfor-master/(entry|j4|c4)/.+|\\.(js|css|png|gif|jpe?g|ico|svg|woff2?)$",
+  "files": "\\.(zip|gz|tgz|tar|7z|bz2|xz|txt|dat|endf|e6|pdf|asc|doc|docx|xls|xlsx|csv|json|xml|for|f|f90|c|exe|ps|lst|x4|c4|cx4|j4|x4z|x5z|zvd|ppt|pptx)$",
+  "hosts": [
+    "nds.iaea.org",
+    "www-nds.iaea.org"
+  ],
+  "render": true,
+  "depth": 8,
+  "max": 30000,
+  "lines": [
+    8,
+    8,
+    12,
+    12,
+    13,
+    13,
+    13,
+    13
+  ],
+  "rate": 16.0,
+  "minutes": 120,
+  "budget_bytes": 3500000000,
+  "max_bytes": 1500000000,
+  "resume": [
+    "raw/iaea/2026-11-07/_work/box/proxy-nrdc-4/queue.json"
+  ],
+  "seen_from": [
+    "raw/iaea/2026-11-07/_work/box/proxy-nrdc/results.jsonl",
+    "raw/iaea/2026-11-07/_work/box/proxy-nrdc-3/results.jsonl",
+    "raw/iaea/2026-11-07/_work/box/proxy-nrdc-4/results.jsonl"
+  ]
+}

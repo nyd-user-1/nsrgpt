@@ -1,0 +1,36 @@
+CREATE EXTERNAL TABLE `ensdf_gammas` (
+  `release` string,
+  `dataset_seq` int,
+  `nucid` string,
+  `dsid` string,
+  `card_seq` int,
+  `level_seq` int,
+  `e_gamma` double,
+  `e_gamma_raw` string,
+  `unc` double,
+  `unc_raw` string,
+  `ri` double,
+  `ri_raw` string,
+  `ri_unc` double,
+  `ri_unc_raw` string,
+  `mult` string,
+  `mr` double,
+  `mr_raw` string,
+  `mr_unc` double,
+  `mr_unc_raw` string,
+  `cc` double,
+  `cc_raw` string,
+  `cc_unc` double,
+  `cc_unc_raw` string,
+  `ti` double,
+  `ti_raw` string,
+  `ti_unc` double,
+  `ti_unc_raw` string,
+  `flag` string,
+  `coincidence` string,
+  `question` string,
+  `continuation` string
+)
+STORED AS PARQUET
+LOCATION 's3://nsr-lake-613473203863/lake/ensdf/2026-11-05/gammas/'
+TBLPROPERTIES ('parquet.compression'='SNAPPY');

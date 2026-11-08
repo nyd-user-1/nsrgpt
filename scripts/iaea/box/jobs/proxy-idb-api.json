@@ -1,0 +1,4793 @@
+{
+  "name": "proxy-idb-api",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/idb/",
+  "items": [
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/2?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/3?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/4?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/5?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/6?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/7?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/8?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/9?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/10?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/11?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/12?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/13?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/14?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/15?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/16?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/17?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/18?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/19?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/20?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/21?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/22?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/23?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/24?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/25?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/26?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/27?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/28?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/29?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/30?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/31?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/32?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/33?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/34?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/35?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/36?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/37?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/38?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/39?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/40?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/41?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/42?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/43?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/44?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/45?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/46?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/47?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/48?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/49?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/50?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/51?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/52?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/53?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/54?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/55?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/56?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/57?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/58?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/59?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/60?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/61?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/62?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/63?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/64?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/65?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/66?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/67?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/68?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/69?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/70?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/71?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/72?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/73?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/74?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/75?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/76?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/77?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/78?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/79?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/80?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/81?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/82?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/83?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/84?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/85?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/86?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/87?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/88?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/89?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/90?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/91?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/92?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/93?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/94?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/95?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/96?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/97?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/98?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/99?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/100?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/101?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/102?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/103?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/104?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/105?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/106?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/107?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/108?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/109?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/110?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/111?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/112?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/113?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/114?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/115?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/116?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/117?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/118?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/119?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/120?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/121?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/122?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/123?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/124?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/125?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/126?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/127?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/128?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/129?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/130?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/131?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/132?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/133?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/134?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/135?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/136?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/137?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/138?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/139?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/140?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/141?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/142?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/143?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/144?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/145?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/146?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/147?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/148?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/149?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/150?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/151?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/152?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/153?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/154?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/155?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/156?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/157?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/158?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/159?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/160?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/161?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/162?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/163?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/164?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/165?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/166?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/167?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/168?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/169?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/170?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/171?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/172?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/173?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/174?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/175?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/176?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/177?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/178?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/179?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/180?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/181?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/182?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/183?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/184?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/185?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/186?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/187?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/188?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/189?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/190?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/191?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/192?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/193?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/194?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/195?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/196?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/197?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/198?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/199?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/200?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/201?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/202?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/203?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/204?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/205?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/206?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/207?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/208?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/209?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/210?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/211?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/212?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/213?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/214?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/215?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/216?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/217?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/218?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/219?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/220?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/221?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/222?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/223?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/224?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/225?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/226?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/227?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/228?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/229?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/230?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/231?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/232?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/233?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/234?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/235?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/236?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/237?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/238?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/239?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/240?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/241?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/242?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/243?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/244?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/245?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/246?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/247?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/248?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/249?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/250?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/251?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/252?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/253?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/254?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/255?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/256?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/257?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/258?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/259?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/260?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/261?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/262?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/263?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/264?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/265?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/266?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/267?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/268?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/269?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/270?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/271?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/272?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/273?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/274?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/275?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/276?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/277?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/278?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/279?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/280?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/281?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/282?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/283?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/284?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/285?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/286?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/287?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/288?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/289?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/290?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/291?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/292?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/293?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/294?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/295?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/296?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/297?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/298?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/299?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/300?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/301?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/302?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/303?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/304?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/305?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/306?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/307?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/308?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/309?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/310?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/311?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/312?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/313?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/314?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/315?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/316?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/317?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/318?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/319?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/320?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/321?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/322?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/323?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/324?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/325?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/326?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/327?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/328?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/329?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/330?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/331?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/332?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/333?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/334?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/335?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/336?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/337?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/338?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/339?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/340?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/341?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/342?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/343?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/344?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/345?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/346?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/347?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/348?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/349?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/350?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/351?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/352?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/353?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/354?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/355?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/356?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/357?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/358?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/359?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/360?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/361?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/362?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/363?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/364?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/365?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/366?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/367?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/368?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/369?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/370?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/371?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/372?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/373?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/374?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/375?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/376?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/377?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/378?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/379?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/380?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/381?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/382?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/383?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/384?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/385?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/386?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/387?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/388?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/389?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/390?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/391?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/392?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/393?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/394?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/395?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/396?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/397?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/398?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/399?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/400?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/401?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/402?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/403?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/404?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/405?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/406?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/407?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/408?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/409?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/410?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/411?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/412?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/413?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/414?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/415?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/416?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/417?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/418?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/419?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/420?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/421?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/422?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/423?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/424?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/425?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/426?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/427?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/428?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/429?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/430?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/431?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/432?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/433?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/434?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/435?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/436?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/437?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/438?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/439?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/440?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/441?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/442?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/443?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/444?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/445?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/446?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/447?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/448?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/449?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/450?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/451?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/452?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/453?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/454?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/455?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/456?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/457?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/458?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/459?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/460?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/461?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/462?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/463?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/464?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/465?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/466?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/467?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/468?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/469?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/470?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/471?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/472?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/473?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/474?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/475?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/476?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/477?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/478?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/479?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/480?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/481?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/482?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/483?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/484?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/485?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/486?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/487?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/488?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/489?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/490?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/491?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/492?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/493?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/494?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/495?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/496?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/497?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/498?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/499?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/500?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/501?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/502?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/503?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/504?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/505?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/506?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/507?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/508?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/509?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/510?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/511?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/512?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/513?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/514?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/515?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/516?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/517?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/518?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/519?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/520?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/521?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/522?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/523?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/524?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/525?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/526?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/527?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/528?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/529?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/530?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/531?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/532?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/533?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/534?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/535?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/536?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/537?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/538?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/539?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/540?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/541?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/542?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/543?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/544?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/545?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/546?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/547?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/548?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/549?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/550?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/551?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/552?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/553?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/554?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/555?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/556?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/557?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/558?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/559?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/560?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/561?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/562?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/563?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/564?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/565?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/566?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/567?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/568?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/569?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/570?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/571?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/572?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/573?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/574?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/575?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/576?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/577?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/578?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/579?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/580?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/581?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/582?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/583?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/584?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/585?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/586?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/587?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/588?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/589?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/590?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/591?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/592?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/593?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/594?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/595?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/596?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/597?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/598?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/599?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/600?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/601?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/602?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/603?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/604?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/605?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/606?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/607?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/608?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/609?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/610?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/611?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/612?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/613?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/614?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/615?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/616?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/617?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/618?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/619?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/620?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/621?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/622?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/623?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/624?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/625?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/626?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/627?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/628?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/629?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/630?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/631?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/632?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/633?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/634?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/635?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/636?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/637?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/638?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/639?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/640?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/641?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/642?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/643?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/644?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/645?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/646?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/647?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/648?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/649?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/650?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/651?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/652?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/653?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/654?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/655?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/656?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/657?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/658?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/659?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/660?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/661?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/662?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/663?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/664?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/665?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/666?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/667?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/668?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/669?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/670?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/671?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/672?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/673?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/674?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/675?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/676?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/677?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/678?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/679?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/680?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/681?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/682?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/683?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/684?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/685?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/686?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/687?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/688?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/689?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/690?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/691?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/692?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/693?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/694?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/695?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/696?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/697?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/698?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/699?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/700?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/701?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/702?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/703?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/704?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/705?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/706?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/707?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/708?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/709?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/710?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/711?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/712?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/713?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/714?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/715?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/716?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/717?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/718?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/719?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/720?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/721?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/722?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/723?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/724?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/725?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/726?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/727?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/728?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/729?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/730?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/731?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/732?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/733?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/734?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/735?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/736?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/737?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/738?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/739?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/740?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/741?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/742?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/743?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/744?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/745?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/746?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/747?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/748?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/749?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/750?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/751?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/752?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/753?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/754?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/755?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/756?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/757?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/758?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/759?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/760?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/761?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/762?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/763?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/764?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/765?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/766?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/767?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/768?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/769?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/770?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/771?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/772?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/773?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/774?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/775?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/776?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/777?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/778?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/779?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/780?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/781?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/782?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/783?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/784?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/785?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/786?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/787?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/788?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/789?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/790?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/791?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/792?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/793?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/794?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/795?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/796?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/797?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/798?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/799?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/800?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/801?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/802?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/803?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/804?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/805?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/806?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/807?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/808?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/809?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/810?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/811?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/812?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/813?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/814?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/815?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/816?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/817?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/818?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/819?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/820?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/821?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/822?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/823?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/824?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/825?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/826?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/827?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/828?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/829?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/830?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/831?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/832?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/833?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/834?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/835?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/836?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/837?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/838?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/839?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/840?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/841?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/842?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/843?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/844?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/845?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/846?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/847?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/848?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/849?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/850?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/851?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/852?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/853?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/854?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/855?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/856?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/857?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/858?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/859?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/860?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/861?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/862?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/863?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/864?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/865?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/866?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/867?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/868?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/869?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/870?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/871?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/872?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/873?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/874?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/875?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/876?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/877?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/878?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/879?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/880?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/881?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/882?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/883?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/884?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/885?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/886?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/887?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/888?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/889?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/890?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/891?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/892?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/893?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/894?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/895?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/896?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/897?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/898?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/899?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/900?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/901?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/902?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/903?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/904?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/905?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/906?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/907?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/908?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/909?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/910?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/911?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/912?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/913?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/914?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/915?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/916?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/917?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/918?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/919?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/920?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/921?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/922?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/923?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/924?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/925?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/926?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/927?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/928?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/929?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/930?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/931?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/932?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/933?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/934?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/935?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/936?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/937?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/938?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/939?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/940?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/941?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/942?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/943?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/944?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/945?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/946?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/947?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/948?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/949?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/950?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/951?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/952?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/953?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/954?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/955?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/956?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/957?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/958?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/959?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/960?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/961?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/962?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/963?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/964?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/965?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/966?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/967?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/968?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/969?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/970?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/971?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/972?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/973?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/974?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/975?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/976?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/977?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/978?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/979?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/980?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/981?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/982?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/983?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/984?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/985?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/986?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/987?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/988?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/989?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/990?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/991?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/992?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/993?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/994?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/995?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/996?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/997?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/998?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/999?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1000?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1001?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1002?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1003?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1004?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1005?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1006?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1007?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1008?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1009?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1010?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1011?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1012?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1013?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1014?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1015?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1016?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1017?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1018?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1019?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1020?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1021?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1022?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1023?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1024?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1025?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1026?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1027?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1028?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1029?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1030?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1031?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1032?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1033?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1034?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1035?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1036?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1037?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1038?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1039?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1040?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1041?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1042?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1043?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1044?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1045?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1046?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1047?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1048?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1049?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1050?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1051?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1052?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1053?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1054?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1055?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1056?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1057?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1058?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1059?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1060?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1061?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1062?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1063?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1064?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1065?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1066?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1067?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1068?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1069?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1070?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1071?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1072?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1073?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1074?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1075?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1076?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1077?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1078?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1079?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1080?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1081?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1082?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1083?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1084?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1085?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1086?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1087?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1088?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1089?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1090?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1091?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1092?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1093?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1094?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1095?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1096?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1097?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1098?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1099?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1100?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1101?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1102?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1103?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1104?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1105?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1106?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1107?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1108?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1109?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1110?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1111?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1112?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1113?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1114?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1115?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1116?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1117?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1118?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1119?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1120?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1121?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1122?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1123?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1124?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1125?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1126?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1127?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1128?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1129?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1130?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1131?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1132?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1133?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1134?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1135?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1136?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1137?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1138?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1139?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1140?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1141?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1142?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1143?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1144?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1145?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1146?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1147?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1148?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1149?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1150?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1151?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1152?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1153?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1154?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1155?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1156?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1157?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1158?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1159?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1160?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1161?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1162?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1163?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1164?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1165?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1166?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1167?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1168?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1169?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1170?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1171?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1172?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1173?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1174?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1175?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1176?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1177?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1178?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1179?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1180?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1181?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1182?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1183?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1184?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1185?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1186?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1187?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1188?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1189?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1190?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1191?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1192?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1193?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1194?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1195?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1196?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1197?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1198?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1199?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1200?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1201?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1202?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1203?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1204?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1205?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1206?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1207?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1208?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1209?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1210?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1211?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1212?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1213?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1214?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1215?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1216?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1217?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1218?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1219?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1220?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1221?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1222?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1223?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1224?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1225?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1226?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1227?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1228?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1229?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1230?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1231?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1232?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1233?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1234?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1235?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1236?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1237?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1238?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1239?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1240?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1241?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1242?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1243?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1244?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1245?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1246?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1247?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1248?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1249?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1250?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1251?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1252?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1253?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1254?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1255?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1256?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1257?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1258?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1259?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1260?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1261?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1262?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1263?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1264?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1265?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1266?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1267?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1268?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1269?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1270?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1271?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1272?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1273?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1274?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1275?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1276?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1277?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1278?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1279?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1280?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1281?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1282?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1283?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1284?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1285?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1286?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1287?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1288?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1289?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1290?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1291?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1292?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1293?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1294?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1295?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1296?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1297?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1298?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1299?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1300?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1301?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1302?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1303?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1304?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1305?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1306?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1307?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1308?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1309?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1310?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1311?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1312?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1313?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1314?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1315?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1316?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1317?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1318?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1319?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1320?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1321?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1322?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1323?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1324?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1325?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1326?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1327?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1328?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1329?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1330?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1331?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1332?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1333?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1334?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1335?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1336?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1337?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1338?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1339?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1340?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1341?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1342?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1343?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1344?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1345?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1346?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1347?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1348?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1349?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1350?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1351?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1352?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1353?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1354?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1355?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1356?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1357?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1358?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1359?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1360?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1361?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1362?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1363?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1364?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1365?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1366?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1367?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1368?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1369?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1370?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1371?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1372?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1373?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1374?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1375?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1376?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1377?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1378?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1379?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1380?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1381?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1382?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1383?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1384?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1385?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1386?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1387?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1388?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1389?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1390?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1391?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1392?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1393?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1394?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1395?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1396?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1397?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1398?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1399?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1400?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1401?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1402?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1403?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1404?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1405?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1406?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1407?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1408?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1409?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1410?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1411?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1412?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1413?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1414?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1415?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1416?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1417?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1418?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1419?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1420?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1421?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1422?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1423?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1424?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1425?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1426?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1427?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1428?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1429?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1430?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1431?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1432?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1433?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1434?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1435?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1436?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1437?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1438?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1439?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1440?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1441?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1442?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1443?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1444?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1445?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1446?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1447?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1448?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1449?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1450?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1451?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1452?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1453?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1454?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1455?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1456?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1457?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1458?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1459?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1460?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1461?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1462?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1463?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1464?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1465?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1466?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1467?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1468?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1469?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1470?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1471?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1472?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1473?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1474?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1475?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1476?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1477?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1478?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1479?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1480?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1481?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1482?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1483?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1484?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1485?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1486?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1487?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1488?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1489?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1490?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1491?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1492?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1493?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1494?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1495?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1496?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1497?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1498?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1499?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1500?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1501?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1502?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1503?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1504?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1505?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1506?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1507?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1508?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1509?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1510?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1511?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1512?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1513?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1514?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1515?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1516?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1517?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1518?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1519?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1520?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1521?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1522?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1523?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1524?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1525?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1526?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1527?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1528?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1529?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1530?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1531?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1532?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1533?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1534?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1535?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1536?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1537?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1538?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1539?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1540?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1541?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1542?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1543?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1544?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1545?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1546?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1547?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1548?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1549?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1550?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1551?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1552?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1553?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1554?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1555?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1556?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1557?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1558?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1559?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1560?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1561?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1562?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1563?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1564?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1565?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1566?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1567?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1568?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1569?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1570?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1571?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1572?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1573?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1574?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1575?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1576?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1577?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1578?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1579?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1580?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1581?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1582?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1583?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1584?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1585?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1586?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1587?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1588?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1589?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1590?format=json"
+    },
+    {
+      "url": "https://nds.iaea.org/idb/api/spectra/1591?format=json"
+    }
+  ],
+  "lines": [
+    0,
+    0,
+    1,
+    1,
+    4,
+    4,
+    5,
+    5
+  ],
+  "rate": 16.0,
+  "minutes": 45,
+  "budget_bytes": 2000000000
+}

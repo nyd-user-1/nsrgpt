@@ -14,5 +14,10 @@
     "size": 4466500000,
     "phase": 3,
     "reason": "processed (pointwise at 300 K), over 1 GB"
+  },
+  {
+    "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendl-pd2016.1.tar.gz",
+    "size": 1611757699,
+    "reason": "dead (2026-11-08): the Wayback index lists a 2022-06-19 capture (200, 1,611,757,699 bytes) but every replay form answers 404 (id_, plain, http and https originals); JAEA itself refuses file fetches (Incapsula, see above)"
   }
 ]

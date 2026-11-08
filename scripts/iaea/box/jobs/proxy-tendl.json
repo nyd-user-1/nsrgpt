@@ -1,0 +1,107 @@
+{
+  "name": "proxy-tendl",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/",
+  "items": [
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_n.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_n.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_n.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_n.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_d.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_d.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_t.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_t.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_t.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_t.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_d.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_d.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_he3.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_he3.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_he3.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_he3.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_p.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_p.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_p.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_p.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_he4.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_he4.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_g.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_g.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_he4.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_he4.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_g.sublib.zip",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_g.sublib.zip"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_n.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_n.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_t.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_t.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_p.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_p.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_he4.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_he4.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2023/backup/tendl-2023_g.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2023/backup/tendl-2023_g.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_p.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_p.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_he4.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_he4.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_t.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_t.sublib.lst"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2021/backup/tendl-2021_he3.sublib.lst",
+      "key": "raw/iaea/2026-11-07/public/download-endf/TENDL-2021/backup/tendl-2021_he3.sublib.lst"
+    }
+  ],
+  "lines": [
+    0,
+    1,
+    4
+  ],
+  "rate": 2.0,
+  "minutes": 120,
+  "budget_bytes": 33000000000
+}

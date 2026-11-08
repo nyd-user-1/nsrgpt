@@ -1,10 +1,59 @@
 {
- "all": [
-  {"item": "Lambda nsr-fetch and iaea-pull, 2026-11-07 21:00 to 2026-11-08 06:00 UTC", "amount_usd": 0, "note": "21,200 GB-seconds (nsr-fetch 8,120 s at 2 GB, iaea-pull 4,960 s at 1 GB), 404 invocations, from CloudWatch; inside the monthly free tier (list price $0.35)"},
-  {"item": "EC2 Chrome box i-002756e918db51233 (m7i-flex.large, 100 GB gp3), 21:53 to 00:26 UTC", "amount_usd": 0.27, "note": "2.55 hours at about $0.107 an hour with its volume; Free Tier type, covered by the account's credits; terminated"},
-  {"item": "EC2 Wayback box (t3.small, 20 GB gp3) from 00:20 UTC, and its successors", "amount_usd": 0.46, "note": "about $0.023 an hour; about 20 hours to finish the Wayback lane (projected)"},
-  {"item": "S3 requests (PUT, multipart parts, HEAD, LIST)", "amount_usd": 0.15, "note": "about 30,000 writes and 40,000 reads"},
-  {"item": "Webshare proxy traffic", "amount_usd": 0, "note": "prepaid plan (expires about 2026-11-19); this job used about 75 GB, its allowance"},
-  {"item": "Inbound transfer (Wayback, codeload, box.com, NNDC, IAEA, PyPI)", "amount_usd": 0, "note": "free"}
- ]
+  "all": [
+    {
+      "item": "Lambda nsr-fetch and iaea-pull, 2026-11-07 21:00 to 2026-11-08 06:00 UTC",
+      "amount_usd": 0,
+      "note": "21,200 GB-seconds (nsr-fetch 8,120 s at 2 GB, iaea-pull 4,960 s at 1 GB), 404 invocations, from CloudWatch; inside the monthly free tier (list price $0.35)"
+    },
+    {
+      "item": "EC2 Chrome box i-002756e918db51233 (m7i-flex.large, 100 GB gp3), 21:53 to 00:26 UTC",
+      "amount_usd": 0.27,
+      "note": "2.55 hours at about $0.107 an hour with its volume; Free Tier type, covered by the account's credits; terminated"
+    },
+    {
+      "item": "EC2 Wayback box (t3.small, 20 GB gp3) from 00:20 UTC, and its successors",
+      "amount_usd": 0.46,
+      "note": "about $0.023 an hour; about 20 hours to finish the Wayback lane (projected)"
+    },
+    {
+      "item": "S3 requests (PUT, multipart parts, HEAD, LIST)",
+      "amount_usd": 0.15,
+      "note": "about 30,000 writes and 40,000 reads"
+    },
+    {
+      "item": "Webshare proxy traffic",
+      "amount_usd": 0,
+      "note": "prepaid plan (expires about 2026-11-19); this job used about 75 GB, its allowance"
+    },
+    {
+      "item": "Inbound transfer (Wayback, codeload, box.com, NNDC, IAEA, PyPI)",
+      "amount_usd": 0,
+      "note": "free"
+    },
+    {
+      "item": "Brief 14: EC2 Chrome box nsr-browser-2 i-0daf3bb494235182b (m7i-flex.large, 100 GB gp3), 2026-11-08 04:59 to 06:55 UTC",
+      "amount_usd": 0.22,
+      "note": "about $0.112 an hour with its volume and IPv4 address; Free Tier type, covered by the account credits"
+    },
+    {
+      "item": "Brief 14: EC2 Chrome boxes nsr-browser-3 i-0acf1e2a52e080be1 and nsr-browser-4 i-04c10fbf6bc4dd6b8 (m7i-flex.large, 100 GB gp3), 05:43 to about 07:25 UTC",
+      "amount_usd": 0.38,
+      "note": "2 boxes at about $0.112 an hour each; Free Tier type, covered by the account credits"
+    },
+    {
+      "item": "Brief 14: EC2 Wayback box nsr-wayback-2 i-08b198dded4dd92cc (t3.small, 16 GB gp3), 05:01 to 06:41 UTC",
+      "amount_usd": 0.05,
+      "note": "about $0.028 an hour; ended itself when the lane B list finished"
+    },
+    {
+      "item": "Brief 14: S3 requests (about 45,000 writes incl. multipart parts and status saves, 60,000 reads)",
+      "amount_usd": 0.25,
+      "note": "estimate at list price"
+    },
+    {
+      "item": "Brief 14: Webshare proxy traffic",
+      "amount_usd": 0,
+      "note": "prepaid plan (ends 2026-11-19), about 140 GB, which is about all of the allowance left: 111.8 GB by file bytes to 06:44 UTC (lane A 86.3: TENDL 31.1, window list 43.5, nrdc crawl 7.3, sites 3.4, Quick Links 1.0; lane B 25.6), then 27.6 GB measured by firewall byte counters on the proxy addresses (window list 23.8, nrdc crawl 3.8)"
+    }
+  ]
 }

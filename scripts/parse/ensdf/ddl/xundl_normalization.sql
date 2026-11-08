@@ -1,0 +1,35 @@
+CREATE EXTERNAL TABLE `xundl_normalization` (
+  `release` string,
+  `dataset_seq` int,
+  `nucid` string,
+  `dsid` string,
+  `card_seq` int,
+  `kind` string,
+  `parent_seq` string,
+  `nr` double,
+  `nr_raw` string,
+  `nr_unc` double,
+  `nr_unc_raw` string,
+  `nt` double,
+  `nt_raw` string,
+  `nt_unc` double,
+  `nt_unc_raw` string,
+  `br` double,
+  `br_raw` string,
+  `br_unc` double,
+  `br_unc_raw` string,
+  `nb` double,
+  `nb_raw` string,
+  `nb_unc` double,
+  `nb_unc_raw` string,
+  `np` double,
+  `np_raw` string,
+  `np_unc` double,
+  `np_unc_raw` string,
+  `com` string,
+  `opt` string,
+  `continuation` string
+)
+STORED AS PARQUET
+LOCATION 's3://nsr-lake-613473203863/lake/xundl/2026-10-01/normalization/'
+TBLPROPERTIES ('parquet.compression'='SNAPPY');

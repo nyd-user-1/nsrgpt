@@ -1,0 +1,25 @@
+{
+  "build_choice": "x4sqlite-20251105-c, the newest build, is reduced: it has the same tables, but x4pro_c5dat, x4pro_x4data, x4pro_x4cdat and x4pro_kw are empty (19.75 M, 19.75 M, 19.75 M and 1.19 M rows here), so its point views return nothing. Following brief 16, the newest full build, x4sqlite-20230714-c, is registered as exfor_*. The 2025 build is registered too, as exfor_x25_* (lake/exfor/x4pro-2025-11-05/), for its newer index tables. J4 (2026-10-28) is the current source for data points.",
+  "counts_check": {
+    "reference": {
+      "entries": 27116,
+      "subentries": 223615,
+      "source": "Lambda nsr-count over J4, 2026-11-07"
+    },
+    "x4pro": {
+      "entries": 25896,
+      "subentries": 213949
+    },
+    "result": "differs; the build date explains it",
+    "explained": "X4Pro 2023-07-14 is built from the EXFOR master as of July 2023; J4 is 2026-10-28. Entries: 25,895 in both, 1,221 only in J4 (1,028 of them dated after 2023-07-14 by J4; the rest reached the master after the build), 1 only in X4Pro (14508, no longer in J4). Subentries: 213,914 in both, 9,701 only in J4 (7,800 of them in entries new to J4; 8,357 dated after the build), 35 only in X4Pro.",
+    "data_rows_cross_check": "50 random subentries with data in both: all 50 have the same row count (X4Pro SUBENT.DnRow against J4 DATA N2). Over all 164,334 shared subentries with data: 162,765 the same; 1,187 differ and J4 dates them after the build; 382 differ with no later J4 date."
+  },
+  "types": "DuckDB sqlite_scan read every table with its declared type under SQLite's affinity rules: any INT type to bigint, REAL to double, char(n), varchar(n) and json to string, BLOB to binary, date and datetime to date and timestamp. No table needed the Python fallback reader.",
+  "views": "Six SQLite views (da1, dae1, dap1, de1, sig1, uni1) are queries over x4pro_c5dat and the index tables, not stored tables. They are not converted; their SQL is under views_not_converted.",
+  "partitioning": "none; tables over 400 MB are written as several files in source order",
+  "spend": {
+    "box": "EC2 m7i-flex.large with 100 GB gp3 (nsr-parse-2, i-046622c64d2784a39), shared by all of brief 16, 46 minutes (06:25 to 07:11 UTC, 2026-11-08): about $0.08 if billed outside the free tier ($0.0958 an hour, plus about $0.011 an hour for the disk)",
+    "s3": "3.0 GB stored, about $0.07 a month",
+    "athena": "DDL is free; the row checks read Parquet footers only"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "proxy-window-8",
+  "prefix": "raw/iaea/2026-11-07",
+  "warm": "https://nds.iaea.org/",
+  "lines": [
+    2,
+    2,
+    3,
+    3,
+    6,
+    6,
+    7,
+    7
+  ],
+  "rate": 16.0,
+  "minutes": 90,
+  "budget_bytes": 7000000000,
+  "resume": [
+    "raw/iaea/2026-11-07/_work/box/proxy-window-7/queue.json"
+  ]
+}

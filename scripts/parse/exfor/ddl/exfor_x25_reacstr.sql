@@ -1,0 +1,42 @@
+CREATE EXTERNAL TABLE `exfor_x25_reacstr` (
+  `reacstrid` string,
+  `subentid` bigint,
+  `reacodeid` string,
+  `pointer` string,
+  `ireacstr` bigint,
+  `code` string,
+  `target` string,
+  `reaction` string,
+  `product` string,
+  `projectile` string,
+  `reactiontype` string,
+  `cindaquantity` string,
+  `quant` string,
+  `sf1` string,
+  `sf2` string,
+  `sf3` string,
+  `sf4` string,
+  `sf5` string,
+  `sf6` string,
+  `sf7` string,
+  `sf8` string,
+  `sf9` string,
+  `sf58` string,
+  `zincident` bigint,
+  `ztarg` bigint,
+  `eltarg` string,
+  `atarg` bigint,
+  `starg` string,
+  `zttarg` string,
+  `attarg` string,
+  `zprod` bigint,
+  `elprod` string,
+  `aprod` bigint,
+  `sprod` string,
+  `ztprod` string,
+  `atprod` string
+)
+COMMENT 'X4Pro x4sqlite-20251105-c table REACSTR'
+STORED AS PARQUET
+LOCATION 's3://nsr-lake-613473203863/lake/exfor/x4pro-2025-11-05/REACSTR/'
+TBLPROPERTIES ('parquet.compression'='SNAPPY');

@@ -1,0 +1,12 @@
+{
+ "build_choice": "Reduced build, converted at agent-1's request for its newer index tables (registered as exfor_x25_*). Its point tables are empty: x4pro_c5dat, x4pro_x4data, x4pro_x4cdat and x4pro_kw hold 0 rows, so the views over them return nothing. Its data points are held only as JSON text, one document per dataset, in x4pro_x5z.jx5z (2.0 GB) and per subentry in x4pro_x4z.jx4z. J4 (2026-10-28) is the current source for data points; the full build is exfor_* (lake/exfor/x4pro-2023-07-14/).",
+ "counts_check": {
+  "reference": {"entries": 27116, "subentries": 223615, "source": "Lambda nsr-count over J4, 2026-11-07"},
+  "x4pro": {"entries": 26797, "subentries": 221490},
+  "result": "differs; the build date explains it (EXFOR master as of 2025-11-05 against J4 2026-10-28)"
+ },
+ "types": "DuckDB sqlite_scan with declared types, as for the 2023-07-14 build.",
+ "views": "The six SQLite views are not converted; their SQL is under views_not_converted.",
+ "partitioning": "none; tables over 400 MB are written as several files in source order",
+ "spend": {"box": "shared parse box, see lake/exfor/x4pro-2023-07-14/manifest.json", "s3": "1.6 GB stored, about $0.04 a month", "athena": "DDL is free; the row checks read Parquet footers only"}
+}

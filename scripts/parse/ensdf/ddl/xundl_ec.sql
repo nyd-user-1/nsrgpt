@@ -1,0 +1,35 @@
+CREATE EXTERNAL TABLE `xundl_ec` (
+  `release` string,
+  `dataset_seq` int,
+  `nucid` string,
+  `dsid` string,
+  `card_seq` int,
+  `level_seq` int,
+  `energy_kev` double,
+  `energy_kev_raw` string,
+  `energy_unc` double,
+  `energy_unc_raw` string,
+  `ib` double,
+  `ib_raw` string,
+  `ib_unc` double,
+  `ib_unc_raw` string,
+  `ie` double,
+  `ie_raw` string,
+  `ie_unc` double,
+  `ie_unc_raw` string,
+  `logft` double,
+  `logft_raw` string,
+  `logft_unc` double,
+  `logft_unc_raw` string,
+  `ti` double,
+  `ti_raw` string,
+  `ti_unc` double,
+  `ti_unc_raw` string,
+  `flag` string,
+  `un` string,
+  `question` string,
+  `continuation` string
+)
+STORED AS PARQUET
+LOCATION 's3://nsr-lake-613473203863/lake/xundl/2026-10-01/ec/'
+TBLPROPERTIES ('parquet.compression'='SNAPPY');

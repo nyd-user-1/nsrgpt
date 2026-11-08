@@ -1,0 +1,22 @@
+CREATE EXTERNAL TABLE `exfor_refers` (
+  `entryid` bigint,
+  `ireference` bigint,
+  `isub` bigint,
+  `entry` string,
+  `reference` string,
+  `publication` string,
+  `stdfilename` string,
+  `dict` string,
+  `type` string,
+  `ref` string,
+  `refdic` string,
+  `nsrkeyno` string,
+  `doi` string,
+  `authorslist` string,
+  `title` string,
+  `dateref` date
+)
+COMMENT 'X4Pro x4sqlite-20230714-c table REFERS'
+STORED AS PARQUET
+LOCATION 's3://nsr-lake-613473203863/lake/exfor/x4pro-2023-07-14/REFERS/'
+TBLPROPERTIES ('parquet.compression'='SNAPPY');

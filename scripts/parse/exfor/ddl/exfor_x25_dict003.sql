@@ -1,0 +1,15 @@
+CREATE EXTERNAL TABLE `exfor_x25_dict003` (
+  `id` bigint,
+  `code` string,
+  `statflag` string,
+  `inst` string,
+  `zone` string,
+  `countrycode` string,
+  `countryflag` string,
+  `shorthelp` string,
+  `longexpansion` string
+)
+COMMENT 'X4Pro x4sqlite-20251105-c table DICT003'
+STORED AS PARQUET
+LOCATION 's3://nsr-lake-613473203863/lake/exfor/x4pro-2025-11-05/DICT003/'
+TBLPROPERTIES ('parquet.compression'='SNAPPY');
