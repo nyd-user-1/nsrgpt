@@ -2086,8 +2086,10 @@ function GraphPageInner() {
 
 // The query cache is the app's one (components/DataProvider.tsx, 2026-11-08).
 export function GraphPage() {
-  // Both inset panels closed on load (Brendan, 2026-11-08), without changing what this browser remembers for /docs.
-  useRailsClosedWhileMounted(["left", "right"]);
+  // Both inset panels closed on load (Brendan, 2026-11-08), without changing what this browser remembers for /docs; a
+  // right panel row's link (/graph?panel=config) leaves the right one to open on its view (GraphPageInner's boot).
+  const panelLink = RIGHT_VIEWS.some((v) => v.key === useSearchParams().get("panel"));
+  useRailsClosedWhileMounted(panelLink ? ["left"] : ["left", "right"]);
   return (
     <ReactFlowProvider>
       <GraphPageInner />
