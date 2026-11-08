@@ -1,0 +1,242 @@
+{
+  "access": {
+    "embargo": {
+      "active": false,
+      "reason": null
+    },
+    "files": "public",
+    "record": "public",
+    "status": "open"
+  },
+  "created": "2025-12-15T13:40:24.505763+00:00",
+  "custom_fields": {
+    "nds:nds_legacy_url": "/index-meeting-crp/3RCM%20FY/"
+  },
+  "deletion_status": {
+    "is_deleted": false,
+    "status": "P"
+  },
+  "files": {
+    "count": 3,
+    "enabled": true,
+    "entries": {
+      "20241202_130351.jpg": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:3844626758048cafbfd4e31501fc3ea6",
+        "ext": "jpg",
+        "id": "295833b5-bb93-45ff-b782-ab5f64908f9b",
+        "key": "20241202_130351.jpg",
+        "links": {
+          "content": "https://nds.iaea.org/api/records/s0x9e-md404/files/20241202_130351.jpg/content",
+          "iiif_api": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:20241202_130351.jpg/full/full/0/default.png",
+          "iiif_base": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:20241202_130351.jpg",
+          "iiif_canvas": "https://nds.iaea.org/api/iiif/record:s0x9e-md404/canvas/20241202_130351.jpg",
+          "iiif_info": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:20241202_130351.jpg/info.json",
+          "self": "https://nds.iaea.org/api/records/s0x9e-md404/files/20241202_130351.jpg"
+        },
+        "metadata": {},
+        "mimetype": "image/jpeg",
+        "size": 3665126,
+        "storage_class": "L"
+      },
+      "EVT2303706_FInal-Agenda.pdf": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:40557d4c9c3a8b15a5edad896cff7033",
+        "ext": "pdf",
+        "id": "acf44f4b-8588-4157-8c74-a395f828c63e",
+        "key": "EVT2303706_FInal-Agenda.pdf",
+        "links": {
+          "content": "https://nds.iaea.org/api/records/s0x9e-md404/files/EVT2303706_FInal-Agenda.pdf/content",
+          "iiif_api": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/full/full/0/default.png",
+          "iiif_base": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf",
+          "iiif_canvas": "https://nds.iaea.org/api/iiif/record:s0x9e-md404/canvas/EVT2303706_FInal-Agenda.pdf",
+          "iiif_info": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/info.json",
+          "self": "https://nds.iaea.org/api/records/s0x9e-md404/files/EVT2303706_FInal-Agenda.pdf"
+        },
+        "metadata": {},
+        "mimetype": "application/pdf",
+        "size": 197526,
+        "storage_class": "L"
+      },
+      "meeting_participants.csv": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:8afd43897ebc6a4ddc7c7f6d42d18b0f",
+        "ext": "csv",
+        "id": "36f8c016-eee5-4475-b612-e640f286036e",
+        "key": "meeting_participants.csv",
+        "links": {
+          "content": "https://nds.iaea.org/api/records/s0x9e-md404/files/meeting_participants.csv/content",
+          "self": "https://nds.iaea.org/api/records/s0x9e-md404/files/meeting_participants.csv"
+        },
+        "metadata": {},
+        "mimetype": "text/csv",
+        "size": 651,
+        "storage_class": "L"
+      }
+    },
+    "order": [],
+    "total_bytes": 3863303
+  },
+  "id": "s0x9e-md404",
+  "is_draft": false,
+  "is_published": true,
+  "links": {
+    "access": "https://nds.iaea.org/api/records/s0x9e-md404/access",
+    "access_grants": "https://nds.iaea.org/api/records/s0x9e-md404/access/grants",
+    "access_groups": "https://nds.iaea.org/api/records/s0x9e-md404/access/groups",
+    "access_links": "https://nds.iaea.org/api/records/s0x9e-md404/access/links",
+    "access_request": "https://nds.iaea.org/api/records/s0x9e-md404/access/request",
+    "access_users": "https://nds.iaea.org/api/records/s0x9e-md404/access/users",
+    "archive": "https://nds.iaea.org/api/records/s0x9e-md404/files-archive",
+    "archive_media": "https://nds.iaea.org/api/records/s0x9e-md404/media-files-archive",
+    "communities": "https://nds.iaea.org/api/records/s0x9e-md404/communities",
+    "communities-suggestions": "https://nds.iaea.org/api/records/s0x9e-md404/communities-suggestions",
+    "draft": "https://nds.iaea.org/api/records/s0x9e-md404/draft",
+    "files": "https://nds.iaea.org/api/records/s0x9e-md404/files",
+    "latest": "https://nds.iaea.org/api/records/s0x9e-md404/versions/latest",
+    "latest_html": "https://nds.iaea.org/records/s0x9e-md404/latest",
+    "media_files": "https://nds.iaea.org/api/records/s0x9e-md404/media-files",
+    "parent": "https://nds.iaea.org/api/records/6qv35-bke84",
+    "parent_html": "https://nds.iaea.org/records/6qv35-bke84",
+    "preview_html": "https://nds.iaea.org/records/s0x9e-md404?preview=1",
+    "requests": "https://nds.iaea.org/api/records/s0x9e-md404/requests",
+    "reserve_doi": "https://nds.iaea.org/api/records/s0x9e-md404/draft/pids/doi",
+    "self": "https://nds.iaea.org/api/records/s0x9e-md404",
+    "self_html": "https://nds.iaea.org/records/s0x9e-md404",
+    "self_iiif_manifest": "https://nds.iaea.org/api/iiif/record:s0x9e-md404/manifest",
+    "self_iiif_sequence": "https://nds.iaea.org/api/iiif/record:s0x9e-md404/sequence/default",
+    "thumbnails": {
+      "10": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/full/%5E10,/0/default.jpg",
+      "100": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/full/%5E100,/0/default.jpg",
+      "1200": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/full/%5E1200,/0/default.jpg",
+      "250": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/full/%5E250,/0/default.jpg",
+      "50": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/full/%5E50,/0/default.jpg",
+      "750": "https://nds.iaea.org/api/iiif/record:s0x9e-md404:EVT2303706_FInal-Agenda.pdf/full/%5E750,/0/default.jpg"
+    },
+    "versions": "https://nds.iaea.org/api/records/s0x9e-md404/versions"
+  },
+  "media_files": {
+    "count": 0,
+    "enabled": false,
+    "entries": {},
+    "order": [],
+    "total_bytes": 0
+  },
+  "metadata": {
+    "creators": [
+      {
+        "person_or_org": {
+          "name": "IAEA",
+          "type": "organizational"
+        }
+      },
+      {
+        "affiliations": [
+          {
+            "name": "Nuclear Data Section, IAEA"
+          }
+        ],
+        "person_or_org": {
+          "family_name": "Capote Noy",
+          "given_name": "R.",
+          "identifiers": [
+            {
+              "identifier": "0000-0002-1799-3438",
+              "scheme": "orcid"
+            }
+          ],
+          "name": "Capote Noy, R.",
+          "type": "personal"
+        },
+        "role": {
+          "id": "scientificsecretary",
+          "title": {
+            "en": "Scientific Secretary"
+          }
+        }
+      }
+    ],
+    "dates": [
+      {
+        "date": "2024-12-02",
+        "type": {
+          "id": "start",
+          "title": {
+            "en": "Start"
+          }
+        }
+      },
+      {
+        "date": "2024-12-06",
+        "type": {
+          "id": "end",
+          "title": {
+            "en": "End"
+          }
+        }
+      }
+    ],
+    "description": "No description available.",
+    "locations": {
+      "features": [
+        {
+          "place": "IAEA, Vienna, Austria"
+        }
+      ]
+    },
+    "publication_date": "2024-12-02",
+    "resource_type": {
+      "id": "meeting-rcm",
+      "title": {
+        "en": "Research Coordination Meeting"
+      }
+    },
+    "title": "3rd RCM of the  CRP on Updating Fission Yields Data for Applications"
+  },
+  "parent": {
+    "access": {
+      "owned_by": {
+        "user": "2"
+      },
+      "settings": {
+        "accept_conditions_text": null,
+        "allow_guest_requests": false,
+        "allow_user_requests": false,
+        "secret_link_expiration": 0
+      }
+    },
+    "communities": {},
+    "id": "6qv35-bke84",
+    "pids": {}
+  },
+  "pids": {},
+  "revision_id": 6,
+  "stats": {
+    "all_versions": {
+      "data_volume": 975644472.0,
+      "downloads": 897,
+      "unique_downloads": 884,
+      "unique_views": 1118,
+      "views": 1161
+    },
+    "this_version": {
+      "data_volume": 975644472.0,
+      "downloads": 897,
+      "unique_downloads": 884,
+      "unique_views": 1118,
+      "views": 1161
+    }
+  },
+  "status": "published",
+  "updated": "2025-12-19T14:46:54.987379+00:00",
+  "versions": {
+    "index": 1,
+    "is_latest": true
+  }
+}
