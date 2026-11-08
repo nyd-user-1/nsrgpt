@@ -260,9 +260,9 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
   }
 
   // Nuclide cards wear their decay family's colour (lib/nuclide.ts FAMILY, the same as every chart): a 4px left edge
-  // and a faint wash of it over the paper (Brendan, 2026-11-08).
+  // and a strong wash of it over the paper, so yellow reads yellow and blue reads blue (Brendan, 2026-11-08, 03:23).
   const famColor = d.type === "nuclide" && d.family ? (isDark() ? FAMILY[d.family].dark : FAMILY[d.family].light) : null;
-  const famStyle = famColor ? { borderLeft: `4px solid ${famColor}`, background: `color-mix(in oklab, ${famColor} 14%, var(--paper))` } : {};
+  const famStyle = famColor ? { borderLeft: `5px solid ${famColor}`, borderColor: famColor, background: `color-mix(in oklab, ${famColor} 38%, var(--paper))` } : {};
   return (
     <div className={`${CARD} ${accent} ${dim} group/card relative transition-opacity`} style={{ width: NODE_W[d.type], ...famStyle }} title={d.family ? FAMILY[d.family].label : undefined}>
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-0 !bg-[var(--paper-quiet)]-foreground/50" />
@@ -484,7 +484,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       .filter((v) => isRecipe(v) === wantRecipes)
       .filter((v) => !filter.trim() || `${v.name} ${v.saved_by}`.toLowerCase().includes(filter.trim().toLowerCase()));
     return (
-      <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -532,7 +532,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       (f) => !filter.trim() || f.name.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -578,7 +578,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       (it) => !filter.trim() || `${it.label} ${it.title ?? ""}`.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -626,7 +626,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
   }
 
   return (
-    <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+    <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
       <p className="px-3 pb-1 pt-3 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Corpus</p>
       {CATALOG_TYPES.map(({ key, label, icon: Icon }) => (
         <button
