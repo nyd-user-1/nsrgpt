@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, Panel, Handle, Position,
@@ -692,6 +692,17 @@ const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
 ];
 
 /* ── page ─────────────────────────────────────────────────────────────────── */
+
+// The right inset panel's rail tab (Brendan, 2026-11-08): the same chevron tab the docs panel and the catalog rail wear, on the
+// panel's left edge; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-right>.
+function RightRail({ children }: { children: ReactNode }) {
+  return (
+    <div className="relative hidden h-full w-80 shrink-0 transition-[width] duration-[500ms] ease-in-out md:block [[data-rail-right=closed]_&]:w-0">
+      <RailToggle side="right" className="top-24 left-0 w-[22px] border border-r-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
+      <div className="flex h-full w-full justify-end overflow-hidden">{children}</div>
+    </div>
+  );
+}
 
 function GraphPageInner() {
   const router = useRouter();
@@ -1657,7 +1668,7 @@ function GraphPageInner() {
         );
       })()}
       {!settingsOpen && !sel && edgeInfo && (
-        <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
+        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant={edgeInfo.meta?.kind === "similar" ? "outline" : "secondary"} className="text-[10px]">
               {edgeInfo.meta?.kind === "similar" ? "inference" : "edge"}
@@ -1695,10 +1706,10 @@ function GraphPageInner() {
               </div>
             );
           })()}
-        </div>
+        </div></RightRail>
       )}
       {!settingsOpen && sel && sel.type !== "prompt" && sel.type !== "file" && sel.type !== "more" && (
-        <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
+        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant="secondary" className="text-[10px]">{sel.type}</Badge>
             <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
@@ -1715,16 +1726,16 @@ function GraphPageInner() {
           {detail && !detail.error && (
             <DetailBody type={sel.type} detail={detail} navigate={navigate} onCanvas={(g) => expand(g as GNode, "papers")} />
           )}
-        </div>
+        </div></RightRail>
       )}
       {!settingsOpen && sel && sel.type === "prompt" && sel.output && (
-        <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
+        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
             <Badge variant="secondary" className="text-[10px]">step output</Badge>
             <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
           </div>
           <p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{sel.output}</p>
-        </div>
+        </div></RightRail>
       )}
     </div>
   );
