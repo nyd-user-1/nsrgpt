@@ -24,7 +24,7 @@ import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { RailToggle, useRailClosed } from "@/components/rail-toggle";
-import { decayIndex, halfLifeText, loadDecay, seriesFrom } from "@/lib/viz-physics";
+import { decayIndex, halfLifeText, loadDecay, seriesFrom, FAMILY, familyOf, familyOfMode, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
 
@@ -55,6 +55,8 @@ export interface GNode {
   z?: number;
   n?: number;
   e?: number;
+  /** The nuclide's decay family (lib/nuclide.ts FAMILY): the card wears its colour, as every chart does. */
+  family?: Family;
   /** Paper cards: the entity rows shown inside the card (op=cards). */
   rows?: CardRows;
   /** "+N more" overflow supernodes: whose overflow, which relation. */
@@ -257,8 +259,12 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
     );
   }
 
+  // Nuclide cards wear their decay family's colour (lib/nuclide.ts FAMILY, the same as every chart): a 4px left edge
+  // and a faint wash of it over the paper (Brendan, 2026-11-08).
+  const famColor = d.type === "nuclide" && d.family ? (isDark() ? FAMILY[d.family].dark : FAMILY[d.family].light) : null;
+  const famStyle = famColor ? { borderLeft: `4px solid ${famColor}`, background: `color-mix(in oklab, ${famColor} 14%, var(--paper))` } : {};
   return (
-    <div className={`${CARD} ${accent} ${dim} group/card relative transition-opacity`} style={{ width: NODE_W[d.type] }}>
+    <div className={`${CARD} ${accent} ${dim} group/card relative transition-opacity`} style={{ width: NODE_W[d.type], ...famStyle }} title={d.family ? FAMILY[d.family].label : undefined}>
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-0 !bg-[var(--paper-quiet)]-foreground/50" />
       <Handle type="source" position={Position.Right} className="!h-2 !w-2 !border-0 !bg-[var(--paper-quiet)]-foreground/50" />
       {/* nodrag keeps React Flow's pointer-drag off this grip, so the native
@@ -1430,7 +1436,7 @@ function GraphPageInner() {
     const gnode = (i: number): GNode => {
       const x = d.nuclides[i];
       const a = x.z + x.n;
-      return { type: "nuclide", id: `${a}${x.el.toUpperCase()}`, label: `${a}${x.el}`, sub: `Z=${x.z} N=${x.n} · ${halfLifeText(x)}`, z: x.z, n: x.n };
+      return { type: "nuclide", id: `${a}${x.el.toUpperCase()}`, label: `${a}${x.el}`, sub: `Z=${x.z} N=${x.n} · ${halfLifeText(x)}`, z: x.z, n: x.n, family: familyOf(x) };
     };
     const pct = (p: number | null) => (p == null ? "" : ` ${p >= 10 ? p.toFixed(0) : p >= 1 ? p.toFixed(1) : p.toPrecision(2)}%`);
     const gnodes = new Map<string, GNode>();
@@ -1448,7 +1454,16 @@ function GraphPageInner() {
     const d = DEMOS.find((x) => x.id === id);
     if (!d) return;
     const edges: Edge[] = d.edges.map((e) => ({ id: `nuclide:${e.s}->nuclide:${e.t}`, source: `nuclide:${e.s}`, target: `nuclide:${e.t}`, label: e.label, data: { kind: e.kind, mode: e.label } as EdgeMeta }));
-    loadGraph(d.nodes, edges, d.layout, d.grid ? gridPositions(d.nodes, d.grid) : undefined);
+    // A sample card's family from its first decay edge out (β−, α, EC, IT), or "stable" from its text.
+    const fam = (g: GNode): Family => {
+      if (/stable/.test(g.sub ?? "")) return "stable";
+      const out = d.edges.find((e) => e.s === g.id && e.kind !== "reaction" && !e.label.startsWith("("));
+      if (!out) return "unknown";
+      const m = out.label.split(/\s/)[0];
+      return m.startsWith("β−") || m.startsWith("β-") ? "b-" : m.startsWith("α") ? "a" : m.startsWith("EC") || m.startsWith("β+") ? "ec" : m.startsWith("IT") || m.startsWith("γ") ? familyOfMode("IT") : m.startsWith("SF") ? "sf" : "unknown";
+    };
+    const nodes = d.nodes.map((g) => ({ ...g, family: g.family ?? fam(g) }));
+    loadGraph(nodes, edges, d.layout, d.grid ? gridPositions(nodes, d.grid) : undefined);
   }, [loadGraph]);
 
   const applyDataset = useCallback((id: string) => {
