@@ -46,7 +46,6 @@ function IconComponent({ size, ...props }: AtomProps) {
       strokeLinejoin="round"
       {...props}
     >
-      <motion.circle cx="12" cy="12" r="1" variants={variants.nucleus} initial="initial" animate={controls} />
       <motion.path
         d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"
         style={{ transformOrigin: '12px 12px' }}
@@ -61,6 +60,7 @@ function IconComponent({ size, ...props }: AtomProps) {
         initial="initial"
         animate={controls}
       />
+      <motion.circle cx="12" cy="12" r="1" fill="currentColor" variants={variants.nucleus} initial="initial" animate={controls} />
     </motion.svg>
   );
 }
