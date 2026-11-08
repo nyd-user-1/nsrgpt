@@ -184,7 +184,6 @@ const NODES: Node[] = [
 const edge = (id: string, source: string, sourceHandle: string, target: string, targetHandle: string, soon?: boolean): Edge => ({
   id, source, sourceHandle, target, targetHandle,
   type: "smoothstep",
-  pathOptions: { borderRadius: 10 },
   style: { stroke: LINE, strokeWidth: 2, strokeDasharray: soon ? "6 5" : undefined },
   markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
 })
