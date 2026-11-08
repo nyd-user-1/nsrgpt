@@ -30,7 +30,8 @@ export const ROW_BUTTON =
 /** The paper's middle rule: the branch lines, hairlines inside a card, the SearchBar's border. */
 export const BRANCH = "color-mix(in oklab, var(--paper-text) 18%, var(--paper))"
 
-export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main" }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string }) {
+/** iconHover: the icon's hover tones when a row wants the header button's two blues rather than the paper tint (trial on Chat, 2026-11-08). */
+export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", iconHover }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; iconHover?: string }) {
   const { openPane } = useShellPanel()
   const { rows, patch } = useNavRows()
   const row = rows[href] ?? {}
@@ -74,7 +75,7 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
           )}
         >
           {on && <span aria-hidden className={MARK} />}
-          {Icon && <Icon size={small ? 14 : 18} className={cn("shrink-0 transition-colors", on ? ICON_ON : ICON_REST)} strokeWidth={on ? 2.25 : 1.75} />}
+          {Icon && <Icon size={small ? 14 : 18} className={cn("shrink-0 transition-colors", on ? ICON_ON : ICON_REST, !on && iconHover)} strokeWidth={on ? 2.25 : 1.75} />}
           <span className="min-w-0 truncate">{name}</span>
         </Link>
         <span className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center">
