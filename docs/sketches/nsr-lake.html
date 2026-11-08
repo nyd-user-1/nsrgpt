@@ -514,6 +514,10 @@
     <tr><td class="k">EXFOR, C5</td><td class="n">2</td><td class="n">11,700,000</td><td class="n">0.34 GB</td><td><code>lake/exfor/c5-2023-08-28/</code> · <code>exfor_c5_*</code></td><td>renormalized points with uncertainties</td></tr>
     <tr><td class="k">EXFOR dictionary</td><td class="n">33</td><td class="n">5,552</td><td class="n"></td><td><code>lake/exfor/dictionary/</code> · <code>exfor_dict_*</code></td><td>drives the search page's pickers</td></tr>
     <tr><td class="k">EXFOR serving tables</td><td class="n">4</td><td class="n">195,487</td><td class="n">20 MB</td><td><code>lake/serve/exfor/2026-10-28/</code></td><td>read by the API: <code>https://daw1qggkn69lv.cloudfront.net/exfor/search</code></td></tr>
+    <tr><td class="k">Nuclide serving tables</td><td class="n">4</td><td class="n">502,064</td><td class="n"></td><td><code>lake/serve/nuclide/2026-11-05/</code> · <code>nuclide_serve_*</code></td><td>3,445 nuclides, 195,026 adopted levels, 299,107 gammas, 4,486 decays; read by <code>/nuclide/{name}</code></td></tr>
+    <tr><td class="k">ENDF serving tables</td><td class="n">3</td><td class="n">136,905</td><td class="n">70 MB</td><td><code>lake/serve/endf/&lt;release&gt;/</code> · <code>endf_serve_*</code></td><td>22,315 materials, 114,217 cross sections as energy and value arrays, 373 MT names; read by <code>/endf/xs</code></td></tr>
+    <tr><td class="k">Search index</td><td class="n">2</td><td class="n">675,427</td><td class="n">0.3 GB</td><td><code>lake/serve/search/2026-11-08/</code> · <code>search_docs</code>, <code>search.duckdb</code></td><td>every parsed record by keyword; <code>/search?q=</code> and <code>/suggest?q=</code>, 0.1 to 0.25 s warm</td></tr>
+    <tr><td class="k">The API</td><td class="n"></td><td class="n"></td><td class="n"></td><td><code>https://daw1qggkn69lv.cloudfront.net</code></td><td>Lambda <code>nsr-api</code> behind API Gateway and CloudFront, 1-hour cache: <code>/exfor/*</code>, <code>/nuclide/*</code>, <code>/endf/*</code>, <code>/search</code>, <code>/suggest</code>, <code>/nsr/{key}</code>; <code>services/nsr-api/README.md</code></td></tr>
   </table>
 
   </div>
