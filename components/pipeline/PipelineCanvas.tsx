@@ -16,7 +16,7 @@ import { AnimateIcon } from "@/components/animate-ui/icons/icon"
 import { MessagesSquare } from "@/components/animate-ui/icons/messages-square"
 import { Radar } from "@/components/animate-ui/icons/radar"
 import { SideBarFold, SideBarFoldItem } from "@/components/sidebar/SideBarFold"
-import { ICON_REST, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem"
+import { ICON_ON, ICON_REST, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem"
 import { CORE, LAKE, NUCLIDE, SOURCES, SURFACES, type Status } from "@/lib/pipeline-map"
 import { cn } from "@/lib/utils"
 
@@ -102,10 +102,10 @@ function useRemeasure(nodeId: string, open: boolean) {
 /** A card's header: it opens and closes the card, and holds the card's ports. A card with the sidebar's icon plays it
  *  when the header is hovered, as a sidebar row plays its icon (SideBarMenuItem.tsx): AnimateIcon on the header, the
  *  row's group, size and two tones. */
-function Header({ title, icon: Icon, soon, open, onToggle, children }: { title: string; icon?: SideBarIcon; soon?: boolean; open: boolean; onToggle: () => void; children?: React.ReactNode }) {
+function Header({ title, icon: Icon, iconOn, soon, open, onToggle, children }: { title: string; icon?: SideBarIcon; iconOn?: boolean; soon?: boolean; open: boolean; onToggle: () => void; children?: React.ReactNode }) {
   const button = (
     <button type="button" onClick={onToggle} aria-expanded={open} className="group/item relative flex h-11 w-full items-center gap-2 px-3.5 text-left text-[15px] font-medium">
-      {Icon && <Icon size={18} className={cn("shrink-0 text-[var(--paper-muted)] transition-colors", ICON_REST)} strokeWidth={1.75} />}
+      {Icon && <Icon size={18} className={cn("shrink-0 transition-colors", iconOn ? ICON_ON : cn("text-[var(--paper-muted)]", ICON_REST))} strokeWidth={iconOn ? 2.25 : 1.75} />}
       <span className="truncate">{title}</span>
       {soon && <span className="shrink-0 rounded-full border border-dashed border-[var(--paper-muted)] px-2 py-px text-[11px] font-normal">Coming Soon</span>}
       <ChevronDown className={cn("ml-auto size-4 shrink-0 text-[var(--paper-muted)] transition-transform", open && "rotate-180")} />
@@ -116,14 +116,14 @@ function Header({ title, icon: Icon, soon, open, onToggle, children }: { title: 
 }
 
 /** A card: its header opens it; a port on the header's outer edge keeps the connector at the header. */
-function Card({ nodeId, title, icon, soon, port, width, children }: { nodeId: string; title: string; icon?: SideBarIcon; soon?: boolean; port?: Port; width?: number; children: React.ReactNode }) {
+function Card({ nodeId, title, icon, iconOn, soon, port, width, children }: { nodeId: string; title: string; icon?: SideBarIcon; iconOn?: boolean; soon?: boolean; port?: Port; width?: number; children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
   useRemeasure(nodeId, open)
   // pointer-events-auto: React Flow turns pointer events off on a node that is neither selectable nor draggable, which
   // left every card's header unpressable; the card takes them back, and the gaps between cards still pan the canvas.
   return (
     <div className={cn(CARD, soon && SOON, "pointer-events-auto")} style={width ? { width } : undefined}>
-      <Header title={title} icon={icon} soon={soon} open={open} onToggle={() => setOpen((v) => !v)}>
+      <Header title={title} icon={icon} iconOn={iconOn} soon={soon} open={open} onToggle={() => setOpen((v) => !v)}>
         {port && <Handle type={port.type} position={port.position} id={port.id} isConnectable={false} className="!pointer-events-none !opacity-0" />}
       </Header>
       {open && <div className={cn("border-t", RULE)}>{children}</div>}
@@ -208,7 +208,7 @@ function SurfacesNode({ id }: NodeProps) {
   return (
     <div className="flex flex-col gap-3" style={{ width: COL_W }}>
       {SURFACES.map((s) => (
-        <Card key={s.id} nodeId={id} title={s.title} icon={SURFACE_ICON[s.id]} soon={s.soon} port={{ type: "target", position: Position.Left, id: s.id }}>
+        <Card key={s.id} nodeId={id} title={s.title} icon={SURFACE_ICON[s.id]} iconOn={s.id === "chat"} soon={s.soon} port={{ type: "target", position: Position.Left, id: s.id }}>
           <div className="flex flex-col gap-1.5 px-3.5 py-3">
             <Rows rows={s.rows} />
             {s.href && s.open && (
