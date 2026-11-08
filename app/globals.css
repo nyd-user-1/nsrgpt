@@ -683,3 +683,6 @@ html .react-flow__controls-button {
 html .react-flow__controls-button:last-child { border-bottom: 0 !important; }
 html .react-flow__controls-button:hover { background: var(--paper-quiet) !important; }
 html .react-flow__controls-button svg { fill: currentColor !important; }
+
+/* /pipeline's connectors (2026-11-08): the arrowheads take the palette's faint ink, matching the lines; React Flow colours them inline, so the rule carries !important. */
+html .pipeline-flow .react-flow__arrowhead polyline { fill: var(--paper-faint) !important; stroke: var(--paper-faint) !important; }
