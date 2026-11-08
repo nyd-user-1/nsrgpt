@@ -695,6 +695,26 @@ const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
 
 // The right inset panel's rail tab (Brendan, 2026-11-08): the same chevron tab the docs panel and the catalog rail wear, on the
 // panel's left edge; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-right>.
+// What the lake makes possible, ranked by Brendan (2026-11-08, night shift). Shown in the right panel while nothing is selected.
+const IDEAS: { title: string; text: string }[] = [
+  { title: "Our own evaluated library", text: "Fit all 19 million EXFOR points with their covariances (IAEA's GMAP code is in the lake) across every reaction at once on GPUs; publish NSRgpt-1.0, rebuilt whenever EXFOR changes, every number traceable to its measurements." },
+  { title: "A nuclear data model", text: "Train on every measured and evaluated point, level and decay record, TENDL as the prior for all 2,800 nuclides. It predicts unmeasured cross sections with calibrated uncertainty and flags measurements that don't fit." },
+  { title: "The validation fleet", text: "OpenMC on thousands of ICSBEP and CoNDERC benchmarks times every library, plus total Monte Carlo with TENDL's random files: a standing scoreboard of which library gets which benchmark right, and which cross sections drive the misses." },
+  { title: "Run the physics on demand", text: "OpenMC's libraries and depletion chains plus CoNDERC's benchmark inputs: k-eff, activation, inventories computed when asked. TALYS for reactions nobody measured, with its uncertainty." },
+  { title: "Spectrum identification by learned model", text: "Millions of simulated detector spectra from ENSDF and fission yields, calibrated against IDB's real U and Pu spectra, train a model that reads a raw spectrum and returns isotopics." },
+  { title: "Structure at scale", text: "Check all 20,117 ENSDF datasets for internal consistency in one pass, then a level-scheme model trained on 568,000 levels that proposes schemes for nuclides with none." },
+  { title: "Structure systematics", text: "568,000 levels with spin, parity and half-life: first 2+ energies, magic numbers, deformation regions, drawn from the data." },
+  { title: "Mine the scans", text: "Vision models over the 37,000 PDFs and NNDC's scanned reports pull tables and figures into EXFOR-shaped data: the uncompiled literature, compiled. Later." },
+  { title: "Gaps for compilers and evaluators", text: "Papers with no EXFOR entry, EXFOR entries no evaluation uses, nuclides with structure but no reaction data. Later." },
+  { title: "Process everything ourselves", text: "NJOY and ENDFtk on the fleet turn every evaluation into transport-ready data at any temperature; the phase 3 and 4 processed forms become things we generate." },
+  { title: "Spectra", text: "ENSDF decay data and fission yields predict a gamma spectrum for any inventory at any time; IDB's real spectra check it; identification from detector peaks against 793,000 known gammas." },
+  { title: "What pins a number", text: "EXFOR partial uncertainties, C5 correlations, ENDF covariances: which experiments constrain an evaluation, and what one new measurement would buy." },
+  { title: "Fifty years of a cross section", text: "ENDF/B-II to VIII.1, release by release, for any material, with the papers that changed it." },
+  { title: "Measured against evaluated, everywhere", text: "EXFOR points over every library: residuals per reaction, a ranked map of where libraries disagree with experiment." },
+  { title: "The nuclide as the hub", text: "Z, A joins levels, gammas, decay radiation, cross sections, measurements, evaluations and papers, with provenance to the record." },
+  { title: "Answers that cite the card", text: "The ENSDF line, the EXFOR subentry, the ENDF MAT and MT section, quoted for every number in a chat." },
+];
+
 function RightRail({ children }: { children: ReactNode }) {
   return (
     <div className="relative hidden h-full w-80 shrink-0 transition-[width] duration-[500ms] ease-in-out md:block [[data-rail-right=closed]_&]:w-0">
@@ -1667,6 +1687,19 @@ function GraphPageInner() {
           </div>
         );
       })()}
+      {!settingsOpen && !traceOpen && !sel && !edgeInfo && (
+        <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
+          <h2 className="text-sm font-semibold text-[var(--paper-text)]">Ideas, ranked</h2>
+          <ol className="mt-3 space-y-3">
+            {IDEAS.map((i, n) => (
+              <li key={i.title} className="flex gap-2 text-xs leading-relaxed">
+                <span className="w-5 shrink-0 font-mono text-[var(--paper-muted)]">{n + 1}</span>
+                <span><span className="font-semibold text-[var(--paper-text)]">{i.title}</span> <span className="text-[var(--paper-muted)]">{i.text}</span></span>
+              </li>
+            ))}
+          </ol>
+        </div></RightRail>
+      )}
       {!settingsOpen && !sel && edgeInfo && (
         <RightRail><div className="w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4">
           <div className="mb-2 flex items-start justify-between">
