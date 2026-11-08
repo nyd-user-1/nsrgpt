@@ -2,7 +2,8 @@
 # Launch the walled-site box: EC2 m7i-flex.large (the largest Free Tier type: 2 vCPU, 8 GB), Ubuntu 24.04, 100 GB gp3, reached through SSM (no SSH keys).
 # Instance-initiated shutdown terminates it; user-data schedules that shutdown 4 hours out. Tag project=nsr.
 #   ./scripts/iaea/box/create.sh [name] [type] [userdata] [disk-gb]       # prints the instance id
-#   SPOT=1 ./scripts/iaea/box/create.sh …    # a one-time Spot instance (brief 20), terminated on interruption
+#   SPOT=1 ./scripts/iaea/box/create.sh …    # a one-time Spot instance, terminated on interruption. Denied in this account
+#                                            # on 2026-11-08 (the organization service control policy denies ec2:InstanceMarketType spot)
 set -euo pipefail
 cd "$(dirname "$0")"
 NAME=${1:-nsr-browser-1}; TYPE=${2:-m7i-flex.large}; UD=${3:-userdata.sh}; DISK=${4:-100}

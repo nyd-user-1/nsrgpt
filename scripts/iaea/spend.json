@@ -54,6 +54,21 @@
       "item": "Brief 14: Webshare proxy traffic",
       "amount_usd": 0,
       "note": "prepaid plan (ends 2026-11-19), about 140 GB, which is about all of the allowance left: 111.8 GB by file bytes to 06:44 UTC (lane A 86.3: TENDL 31.1, window list 43.5, nrdc crawl 7.3, sites 3.4, Quick Links 1.0; lane B 25.6), then 27.6 GB measured by firewall byte counters on the proxy addresses (window list 23.8, nrdc crawl 3.8)"
+    },
+    {
+      "item": "Brief 20: EC2 Chrome box nsr-records-1 i-05d839c1cff3cf9e4 (m7i-flex.large, 30 GB gp3), 2026-11-08 19:36 to 22:03 UTC",
+      "amount_usd": 0.25,
+      "note": "2.4 hours at about $0.104 an hour with its volume and IPv4 address; on-demand because the organization service control policy denies Spot; Free Tier type, covered by the account credits; terminated"
+    },
+    {
+      "item": "Brief 20: S3 requests and storage for raw/iaea-records/2026-11-08/",
+      "amount_usd": 0.05,
+      "note": "about 7,000 PUTs and 12,000 HEAD and GET requests; 16.3 GB in Intelligent-Tiering, about $0.37 a month"
+    },
+    {
+      "item": "Brief 20: Webshare proxy traffic",
+      "amount_usd": 0,
+      "note": "prepaid plan: 4.97 GB measured by firewall byte counters on the proxy addresses (cap 5.0 GB): the records index 24 MB, PRONDOS, 2,851 paperwork files (5.22 GB of file bytes; pages compress in transit). Wayback Machine fetches from the box address: free"
     }
   ]
 }

@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "url": "https://nds.iaea.org/public/download-endf/PRONDOS/mat/",
+      "key": "raw/iaea/2026-11-07/public/download-endf/PRONDOS/mat/index.html",
+      "class": "PRONDOS",
+      "est": 1513
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_1721.txt",
+      "key": "raw/iaea/2026-11-07/public/download-endf/PRONDOS/mat/prondos_1721.txt",
+      "class": "PRONDOS",
+      "est": 2581
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_2511.txt",
+      "key": "raw/iaea/2026-11-07/public/download-endf/PRONDOS/mat/prondos_2511.txt",
+      "class": "PRONDOS",
+      "est": 9353
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_2911.txt",
+      "key": "raw/iaea/2026-11-07/public/download-endf/PRONDOS/mat/prondos_2911.txt",
+      "class": "PRONDOS",
+      "est": 11512
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_5711.txt",
+      "key": "raw/iaea/2026-11-07/public/download-endf/PRONDOS/mat/prondos_5711.txt",
+      "class": "PRONDOS",
+      "est": 11005
+    },
+    {
+      "url": "https://nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_7451.txt",
+      "key": "raw/iaea/2026-11-07/public/download-endf/PRONDOS/mat/prondos_7451.txt",
+      "class": "PRONDOS",
+      "est": 8959
+    }
+  ]
+}
