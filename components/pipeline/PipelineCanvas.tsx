@@ -27,7 +27,18 @@ const CARD = "rounded-xl border border-[var(--paper-rule)] bg-[var(--paper)] tex
 const SOON = "border-dashed text-[var(--paper-muted)]"
 const RULE = "border-[var(--paper-rule-soft)]"
 
+/** Counts in short form on this page (Brendan, 2026-11-08): 303,568 reads 304K, 9,127,277 reads 9.1M, 20,117 reads 20K. */
+export function compact(s: string): string {
+  return s.replace(/\d{1,3}(?:,\d{3})+/g, (m) => {
+    const n = Number(m.replace(/,/g, ""))
+    const unit = n >= 1e6 ? [1e6, "M"] as const : [1e3, "K"] as const
+    const v = n / unit[0]
+    return (v < 10 ? v.toFixed(1).replace(/\.0$/, "") : Math.round(v).toString()) + unit[1]
+  })
+}
+
 function Pill({ children }: { children: React.ReactNode }) {
+  if (typeof children === "string") children = compact(children)
   return <span className={cn("inline-flex shrink-0 items-center whitespace-nowrap rounded-full border bg-[var(--paper-quiet)] px-2 py-0.5 text-[11px] text-[var(--paper-muted)]", RULE)}>{children}</span>
 }
 
@@ -99,7 +110,7 @@ function SourcesNode({ id }: NodeProps) {
             {s.folds.map((f) => (
               <SideBarFold key={f.label} label={f.label} hint={`${f.items.filter((i) => i.status === "held").length} of ${f.items.length}`}>
                 {f.items.map((i) => (
-                  <SideBarFoldItem key={i.name} mark={<Mark s={i.status} />} label={i.name} pill={i.pill} />
+                  <SideBarFoldItem key={i.name} mark={<Mark s={i.status} />} label={i.name} pill={i.pill && compact(i.pill)} />
                 ))}
               </SideBarFold>
             ))}
