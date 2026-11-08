@@ -2088,7 +2088,8 @@ function GraphPageInner() {
 export function GraphPage() {
   // Both inset panels closed on load (Brendan, 2026-11-08), without changing what this browser remembers for /docs; a
   // right panel row's link (/graph?panel=config) leaves the right one to open on its view (GraphPageInner's boot).
-  const panelLink = RIGHT_VIEWS.some((v) => v.key === useSearchParams().get("panel"));
+  const panel = useSearchParams().get("panel");
+  const panelLink = RIGHT_VIEWS.some((v) => v.key === panel);
   useRailsClosedWhileMounted(panelLink ? ["left"] : ["left", "right"]);
   return (
     <ReactFlowProvider>
