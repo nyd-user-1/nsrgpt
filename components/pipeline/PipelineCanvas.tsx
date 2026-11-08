@@ -208,7 +208,7 @@ function SurfacesNode({ id }: NodeProps) {
   return (
     <div className="flex flex-col gap-3" style={{ width: COL_W }}>
       {SURFACES.map((s) => (
-        <Card key={s.id} nodeId={id} title={s.title} icon={SURFACE_ICON[s.id]} iconOn={s.id === "chat"} soon={s.soon} port={{ type: "target", position: Position.Left, id: s.id }}>
+        <Card key={s.id} nodeId={id} title={s.title} icon={SURFACE_ICON[s.id]} soon={s.soon} port={{ type: "target", position: Position.Left, id: s.id }}>
           <div className="flex flex-col gap-1.5 px-3.5 py-3">
             <Rows rows={s.rows} />
             {s.href && s.open && (
