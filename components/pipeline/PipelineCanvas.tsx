@@ -220,7 +220,7 @@ export function PipelineCanvas() {
           nodesDraggable={false}
           nodesConnectable={false}
           nodesFocusable={false}
-          selectNodesOnDrag={false}
+          elementsSelectable={false}
           proOptions={{ hideAttribution: true }}
         >
           <Fit />
