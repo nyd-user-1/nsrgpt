@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactElement, type R
 import { AnimateIcon } from "@/components/animate-ui/icons/icon";
 import { PAPER_TAB, RailToggle, useRailClosed } from "@/components/rail-toggle";
 import { ICON_ON, ICON_REST, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/nova/tooltip";
+import { RowTip } from "@/components/sidebar/RowTip";
 import { cn } from "@/lib/utils";
 
 // /graph's two inset panels on one frame, so they can't drift (Brendan, 2026-11-08): the left panel's type, spacing and
@@ -96,20 +96,8 @@ export function InsetLayers({ layerKey, depth, children }: { layerKey: string; d
 
 /** The settings panel's tooltip, for both panels: the row's name in a paper card beside the row, on the canvas's side
  *  (Brendan dropped the descriptions, 2026-11-08). It renders in a portal above the canvas, so no panel edge clips it. */
-export function InsetTip({ name, side, children }: { name: string; side: InsetSide; children: ReactElement }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger delay={0} closeDelay={0} render={children} />
-      <TooltipContent
-        side={side === "left" ? "right" : "left"}
-        align="start"
-        sideOffset={8}
-        className="nysgpt-app pointer-events-none flex w-auto max-w-56 flex-col items-start gap-1 rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] p-2.5 text-left text-[var(--paper-text)] shadow-md [&>[data-side]]:hidden"
-      >
-        <span className="block font-mono text-[10px] text-[var(--paper-muted)]">{name}</span>
-      </TooltipContent>
-    </Tooltip>
-  );
+export function InsetTip({ name, sub, side, children }: { name: string; sub?: string; side: InsetSide; children: ReactElement }) {
+  return <RowTip name={name} sub={sub} side={side}>{children}</RowTip>;
 }
 
 /** One inset panel: the rail tab on its inner edge closes and opens it (<html data-rail-left|right>); the shell's

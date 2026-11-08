@@ -33,8 +33,9 @@ import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
+import { SideBarMenuItem } from "@/components/sidebar/SideBarMenuItem";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
-import { RightInsetPanel, type RightView } from "@/components/nsr/graph/RightInsetPanel";
+import { RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
 import { decayIndex, halfLifeText, loadDecay, seriesFrom, FAMILY, familyOf, familyOfMode, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
@@ -512,7 +513,8 @@ function RowMenu({ g, onPick, onAdd, onAsk }: {
   );
 }
 
-function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, onLoadDemo, navigate }: {
+function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, onLoadDemo, navigate, initialBrowse = null }: {
+  initialBrowse?: string | null;
   onPick: (g: GNode) => void;
   onAdd: (g: GNode) => void;
   onAsk: (g: GNode) => void;
@@ -531,7 +533,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
     },
     staleTime: Infinity,
   });
-  const [browse, setBrowse] = useState<string | null>(null);
+  const [browse, setBrowse] = useState<string | null>(initialBrowse);
   const [filter, setFilter] = useState("");
   const files = useQuery({
     queryKey: ["workspace-files"],
@@ -703,74 +705,35 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
     );
   }
 
-  // The main view. Its type, spacing and hover are the standard both inset panels share (InsetPanel.tsx INSET).
+  // The main view. Every row is a sidebar row (SideBarMenuItem: its hover, the open-in-panel arrow, the kebab menu),
+  // acting instead of navigating; its count rides in the tooltip beneath the name (Brendan, 2026-11-08).
   return (
     <InsetBody>
       <p className={cn(INSET.section, "pt-3")}>Corpus</p>
-      {CATALOG_TYPES.map(({ key, label, icon: Icon }) => (
-        <InsetTip key={key} name={key} side="left">
-          <button onClick={() => setBrowse(key)} className={INSET.row}>
-            <Icon className={INSET.icon} />
-            <span>{label}</span>
-            <span className={INSET.count}>{data ? data.counts[key]?.toLocaleString() : "…"}</span>
-          </button>
-        </InsetTip>
+      {CATALOG_TYPES.map(({ key, label, icon }) => (
+        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Corpus" onSelect={() => setBrowse(key)} tip={{ name: label, sub: data ? data.counts[key]?.toLocaleString() : undefined, side: "left" }} />
       ))}
       <p className={INSET.section}>Workspace</p>
-      <InsetTip name="library" side="left">
-        <button onClick={() => setBrowse("files")} className={INSET.row}>
-          <FileText className={INSET.icon} />
-          <span>Library</span>
-        </button>
-      </InsetTip>
-      {([["views", "Views", Layers], ["recipes", "Recipes", BookOpen]] as const).map(([key, label, Icon]) => (
-        <InsetTip key={key} name={key} side="left">
-          <button onClick={() => setBrowse(key)} className={INSET.row}>
-            <Icon className={INSET.icon} />
-            <span>{label}</span>
-            {views.data && (
-              <span className={INSET.count}>{views.data.views.filter((v) => isRecipe(v) === (key === "recipes")).length}</span>
-            )}
-          </button>
-        </InsetTip>
+      <SideBarMenuItem href="/graph?browse=files" label="Library" icon={FileText} on={false} group="Workspace" onSelect={() => setBrowse("files")} tip={{ name: "Library", side: "left" }} />
+      {([["views", "Views", Layers], ["recipes", "Recipes", BookOpen]] as const).map(([key, label, icon]) => (
+        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Workspace" onSelect={() => setBrowse(key)} tip={{ name: label, sub: views.data ? String(views.data.views.filter((v) => isRecipe(v) === (key === "recipes")).length) : undefined, side: "left" }} />
       ))}
       <p className={INSET.section}>Datasets</p>
-      {CATALOG_LINKS.map(({ key, label, icon: Icon, href }) => (
-        <InsetTip key={key} name={href} side="left">
-          <button onClick={() => navigate(href)} className={INSET.row}>
-            <Icon className={INSET.icon} />
-            <span>{label}</span>
-            <span className={INSET.count}>{data ? data.counts[key]?.toLocaleString() : "…"}</span>
-          </button>
-        </InsetTip>
+      {CATALOG_LINKS.map(({ key, label, icon, href }) => (
+        <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, sub: data ? data.counts[key]?.toLocaleString() : undefined, side: "left" }} />
       ))}
       <p className={INSET.section}>Decay chains</p>
       {CHAINS.map((c) => (
-        <InsetTip key={c.id} name={c.id} side="left">
-          <button onClick={() => onLoadChain(c.id)} className={INSET.row}>
-            <Atom className={INSET.icon} />
-            <span>{c.label}</span>
-          </button>
-        </InsetTip>
+        <SideBarMenuItem key={c.id} href={`/graph?chain=${c.id}`} label={c.label} icon={Atom} on={false} group="Decay chains" onSelect={() => onLoadChain(c.id)} tip={{ name: c.label, side: "left" }} />
       ))}
       {ALL_DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
-        <InsetTip key={d.id} name={d.id} side="left">
-          <button onClick={() => onLoadDemo(d.id)} className={INSET.row}>
-            <Atom className={INSET.icon} />
-            <span>{d.label}</span>
-          </button>
-        </InsetTip>
+        <SideBarMenuItem key={d.id} href={`/graph?demo=${d.id}`} label={d.label} icon={Atom} on={false} group="Decay chains" onSelect={() => onLoadDemo(d.id)} tip={{ name: d.label, side: "left" }} />
       ))}
       {DEMO_SECTIONS.map((section) => (
         <div key={section}>
           <p className={INSET.section}>{section}</p>
           {ALL_DEMOS.filter((d) => d.section === section).map((d) => (
-            <InsetTip key={d.id} name={d.id} side="left">
-              <button onClick={() => onLoadDemo(d.id)} className={INSET.row}>
-                <Atom className={INSET.icon} />
-                <span>{d.label}</span>
-              </button>
-            </InsetTip>
+            <SideBarMenuItem key={d.id} href={`/graph?demo=${d.id}`} label={d.label} icon={Atom} on={false} group={section} onSelect={() => onLoadDemo(d.id)} tip={{ name: d.label, side: "left" }} />
           ))}
         </div>
       ))}
@@ -990,11 +953,9 @@ function GraphPageInner() {
   useEffect(() => {
     try { localStorage.setItem("graph-flow-props", JSON.stringify(flowProps)); } catch { /* quota */ }
   }, [flowProps]);
-  // The right inset panel's view (RightInsetPanel.tsx): `chosen` is the one last picked from its tabs, Graph Features
-  // until one is; selecting a node or an edge shows the papers, and selecting nothing goes back to `chosen`.
-  const [chosen, setChosen] = useState<RightView>("features");
-  const [rightView, setRightView] = useState<RightView>("features");
-  const pickView = useCallback((v: RightView) => { setChosen(v); setRightView(v); }, []);
+  // The right inset panel's layer (RightInsetPanel.tsx): the menu on load and after a click on the pane; selecting a
+  // node or an edge, or opening a run's trace, drills into the papers.
+  const [rightView, setRightView] = useState<RightView>("menu");
   const rightClosed = useRailClosed("right");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
     const m = localStorage.getItem("graph-layout-mode") as LayoutMode | null;
@@ -1590,8 +1551,14 @@ function GraphPageInner() {
     booted.current = true;
     const viewId = params.get("view");
     const c = params.get("center");
+    const chain = params.get("chain");
+    const demo = params.get("demo");
     if (viewId) {
       loadView(viewId);
+    } else if (chain && CHAINS.some((x) => x.id === chain)) {
+      loadChain(chain);
+    } else if (demo && ALL_DEMOS.some((d) => d.id === demo)) {
+      loadDemo(demo);
     } else if (c?.includes(":")) {
       const [type, ...rest] = c.split(":");
       const id = rest.join(":");
@@ -1605,16 +1572,16 @@ function GraphPageInner() {
     past.current = [];
   }, [params, center, loadView]);
 
-  // Selecting a node or an edge, or opening a run's trace, shows the papers; selecting nothing shows the view last
-  // picked. The node the load centres (137Cs) is selected by the boot, not the reader, so Graph Features stays.
+  // Selecting a node or an edge, or opening a run's trace, drills into the papers; selecting nothing returns to the
+  // menu. The node the load centres (137Cs) is selected by the boot, not the reader, so the menu stays.
   const subject = selectedKey ?? (edgeInfo ? `${keyOf(edgeInfo.source)}->${keyOf(edgeInfo.target)}` : traceOpen ? `run:${traceOpen}` : null);
   const lastSubject = useRef<string | null>(null);
   useEffect(() => {
     if (subject === lastSubject.current) return;
     lastSubject.current = subject;
     if (bootSelection.current) { bootSelection.current = false; return; }
-    setRightView(subject ? "papers" : chosen);
-  }, [subject, chosen]);
+    setRightView(subject ? "papers" : "menu");
+  }, [subject]);
 
   const saveView = async () => {
     if (!viewName.trim()) return;
@@ -1732,16 +1699,15 @@ function GraphPageInner() {
 
   // The right inset panel's papers: the selected node's record or a step's output, else the selected edge's receipt,
   // else a run's trace. The panel's header and lists take the left panel's type and spacing (InsetPanel.tsx INSET).
-  const closeButton = (onClose: () => void) => (
-    <button onClick={onClose} aria-label="Close" className="ml-auto shrink-0 text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
-  );
+  // Its back arrow lets go of what it shows and returns to the menu.
+  const backToMenu = () => { setSelectedKey(null); setEdgeInfo(null); setTraceOpen(null); setRightView("menu"); };
   const traceRun = traceOpen ? runs.find((r) => r.id === traceOpen) : undefined;
   let papersView: ReactNode;
   if (sel) {
     const type = sel.type;
     papersView = (
       <>
-        <div className={INSET.header}>
+        <RightViewHeader onBack={backToMenu}>
           <Badge variant="secondary" className="shrink-0 text-[10px]">{sel.type === "prompt" ? "step output" : sel.type}</Badge>
           {sel.type !== "prompt" && (
             <h2
@@ -1753,8 +1719,7 @@ function GraphPageInner() {
               {sel.label}
             </h2>
           )}
-          {closeButton(() => setSelectedKey(null))}
-        </div>
+        </RightViewHeader>
         {type !== "prompt" && type !== "file" && type !== "more" && (
           <InsetBody className="px-3 pt-3">
             {!detail && <p className="text-xs text-[var(--paper-muted)]">Loading…</p>}
@@ -1774,13 +1739,12 @@ function GraphPageInner() {
     const r = edgeReceipt(edgeInfo.source, edgeInfo.target, edgeInfo.meta);
     papersView = (
       <>
-        <div className={INSET.header}>
+        <RightViewHeader onBack={backToMenu}>
           <Badge variant={edgeInfo.meta?.kind === "similar" ? "outline" : "secondary"} className="shrink-0 text-[10px]">
             {edgeInfo.meta?.kind === "similar" ? "inference" : "edge"}
           </Badge>
           <h2 className={INSET.title}>Edge information</h2>
-          {closeButton(() => setEdgeInfo(null))}
-        </div>
+        </RightViewHeader>
         <InsetBody>
           <div className="pt-1.5">
             {([["Source", edgeInfo.source], ["Target", edgeInfo.target]] as const).map(([role, g]) => (
@@ -1811,7 +1775,7 @@ function GraphPageInner() {
     const step = traceStep != null ? traceRun.steps[traceStep] : null;
     papersView = (
       <>
-        <div className={INSET.header}>
+        <RightViewHeader onBack={backToMenu}>
           <Badge variant="secondary" className="shrink-0 text-[10px]">run</Badge>
           {runs.length > 1 && (
             <select
@@ -1826,8 +1790,7 @@ function GraphPageInner() {
               ))}
             </select>
           )}
-          {closeButton(() => setTraceOpen(null))}
-        </div>
+        </RightViewHeader>
         <InsetBody>
           <div className="px-3 pt-3">
             <h2 className={INSET.title}>{traceRun.label}</h2>
@@ -1876,9 +1839,9 @@ function GraphPageInner() {
   } else {
     papersView = (
       <>
-        <div className={INSET.header}>
+        <RightViewHeader onBack={backToMenu}>
           <h2 className={INSET.title}>Papers</h2>
-        </div>
+        </RightViewHeader>
         <p className={INSET.note}>Select a node or an edge on the canvas.</p>
       </>
     );
@@ -1900,6 +1863,7 @@ function GraphPageInner() {
             }], undefined)}
             onLoadChain={loadChain}
             onLoadDemo={loadDemo}
+            initialBrowse={params.get("browse")}
             navigate={navigate}
           />
       </LeftInsetPanel>
@@ -1915,7 +1879,7 @@ function GraphPageInner() {
             const s = store.current.get(e.source), t = store.current.get(e.target);
             if (s && t) { setEdgeInfo({ source: s, target: t, meta: e.data as EdgeMeta | undefined }); setSelectedKey(null); setRightView("papers"); }
           }}
-          onPaneClick={() => { setSelectedKey(null); setEdgeInfo(null); }}
+          onPaneClick={() => { setSelectedKey(null); setEdgeInfo(null); setRightView("menu"); }}
           onPaneContextMenu={(e) => {
             e.preventDefault();
             const ev = e as unknown as MouseEvent;
@@ -2043,7 +2007,7 @@ function GraphPageInner() {
                 title="Canvas settings — <ReactFlow /> props"
                 onClick={() => {
                   if (rightView === "config" && !rightClosed) setRail("right", true);
-                  else { pickView("config"); setRail("right", false); }
+                  else { setRightView("config"); setRail("right", false); }
                 }}
               >
                 <Settings2 className="h-4 w-4" />
@@ -2075,7 +2039,7 @@ function GraphPageInner() {
 
       <RightInsetPanel
         view={rightView}
-        onView={pickView}
+        onView={setRightView}
         papers={papersView}
         config={
           <FlowSettingsPanel
@@ -2086,15 +2050,15 @@ function GraphPageInner() {
             datasets={DATASETS.map(({ id, label }) => ({ id, label }))}
             layoutMode={layoutMode}
             onLayoutMode={changeLayoutMode}
-            onClose={() => setRail("right", true)}
+            onBack={() => setRightView("menu")}
             onReset={() => setFlowProps(DEFAULT_FLOW_PROPS)}
           />
         }
         features={
           <>
-            <div className={INSET.header}>
+            <RightViewHeader onBack={() => setRightView("menu")}>
               <h2 className={INSET.title}>Graph Features</h2>
-            </div>
+            </RightViewHeader>
             <InsetBody>
               <ol className="pt-1.5">
                 {IDEAS.map((i, n) => (
