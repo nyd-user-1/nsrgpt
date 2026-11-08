@@ -1727,7 +1727,7 @@ function GraphPageInner() {
   const traceRun = traceOpen ? runs.find((r) => r.id === traceOpen) : undefined;
   let papersView: ReactNode;
   if (sel) {
-    const record = sel.type !== "prompt" && sel.type !== "file" && sel.type !== "more";
+    const type = sel.type;
     papersView = (
       <>
         <div className={INSET.header}>
@@ -1744,11 +1744,11 @@ function GraphPageInner() {
           )}
           {closeButton(() => setSelectedKey(null))}
         </div>
-        {record && (
+        {type !== "prompt" && type !== "file" && type !== "more" && (
           <InsetBody className="px-3 pt-3">
             {!detail && <p className="text-xs text-[var(--paper-muted)]">Loading…</p>}
             {detail && !detail.error && (
-              <DetailBody type={sel.type} detail={detail} navigate={navigate} onCanvas={(g) => expand(g as GNode, "papers")} />
+              <DetailBody type={type} detail={detail} navigate={navigate} onCanvas={(g) => expand(g as GNode, "papers")} />
             )}
           </InsetBody>
         )}
