@@ -757,14 +757,19 @@ const nuc = (id: string, label: string, sub: string): GNode => {
 function gridPositions(nodes: GNode[], grid: Grid): Map<string, { x: number; y: number }> {
   const pos = new Map<string, { x: number; y: number }>();
   if (grid === "levels") {
+    // The parent top-left; the daughter's levels a ladder on the right, the highest at the top, 0.25 px a keV.
     const maxE = Math.max(0, ...nodes.map((g) => g.e ?? 0));
-    nodes.forEach((g, i) => pos.set(keyOf(g), g.e === undefined ? { x: 0, y: -(maxE * 0.28) - 160 - i * 10 } : { x: 520, y: -g.e * 0.28 }));
+    nodes.forEach((g, i) => pos.set(keyOf(g), g.e === undefined ? { x: 0, y: i * 100 } : { x: 480, y: (maxE - g.e) * 0.25 + 120 }));
     return pos;
   }
+  // Columns and rows start at the smallest Z, N or A on the canvas, so the drawing sits at the origin and fits the view.
+  const have = nodes.filter((g) => g.z !== undefined && g.n !== undefined) as (GNode & { z: number; n: number })[];
+  const zs = have.map((g) => g.z), ns = have.map((g) => g.n), as = have.map((g) => g.z + g.n);
+  const zMin = Math.min(...zs), zMax = Math.max(...zs), nMin = Math.min(...ns), aMin = Math.min(...as), aMax = Math.max(...as);
   for (const g of nodes) {
     if (g.z === undefined || g.n === undefined) { pos.set(keyOf(g), { x: 0, y: 0 }); continue; }
     const a = g.z + g.n;
-    pos.set(keyOf(g), grid === "ZA" ? { x: g.z * 200, y: -a * 46 } : grid === "NZ" ? { x: g.n * 175, y: -g.z * 110 } : { x: a * 175, y: -g.z * 110 });
+    pos.set(keyOf(g), grid === "ZA" ? { x: (g.z - zMin) * 170, y: (aMax - a) * 40 } : grid === "NZ" ? { x: (g.n - nMin) * 165, y: (zMax - g.z) * 100 } : { x: (a - aMin) * 165, y: (zMax - g.z) * 100 });
   }
   return pos;
 }
@@ -1410,7 +1415,8 @@ function GraphPageInner() {
     setLayoutMode(mode);
     layoutModeRef.current = mode;
     setNodes(positions ? gnodes.map((g) => ({ id: keyOf(g), type: "entity", position: positions.get(keyOf(g)) ?? { x: 0, y: 0 }, data: { ...g } })) : []);
-    setEdges(() => { syncNodes(edges, !positions); setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60); return edges; });
+    // Fit twice: once as the nodes land, once after they've measured; never closer than zoom 1, so small drawings don't balloon.
+    setEdges(() => { syncNodes(edges, !positions); [60, 450].forEach((ms) => setTimeout(() => fitView({ padding: 0.12, duration: 300, maxZoom: 1 }), ms)); return edges; });
   }, [setEdges, setNodes, syncNodes, fitView, snapshot]);
 
   /** A decay series: nuclide nodes, decay edges labelled with mode and branching, from ENSDF's decay modes. */

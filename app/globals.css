@@ -659,19 +659,19 @@ html[data-motion-first] [data-app-card] > :not([data-main-header]) {
   }
 }
 
-/* React Flow's zoom controls on /graph (Brendan, 2026-11-08): the library ships them white on white; here they take
+/* React Flow's zoom controls on /graph (Brendan, 2026-11-08): the library ships them white; its stylesheet loads after this one, so these rules carry the html prefix to win. They take
    the paper palette, so the plus, minus and fit buttons read on the dark canvas too. */
-.react-flow__controls {
+html .react-flow__controls {
   border: 1px solid var(--paper-rule);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: none;
 }
-.react-flow__controls-button {
+html .react-flow__controls-button {
   background: var(--paper);
   border-bottom: 1px solid var(--paper-rule);
   color: var(--paper-text);
 }
-.react-flow__controls-button:last-child { border-bottom: 0; }
-.react-flow__controls-button:hover { background: var(--paper-quiet); }
-.react-flow__controls-button svg { fill: currentColor; }
+html .react-flow__controls-button:last-child { border-bottom: 0; }
+html .react-flow__controls-button:hover { background: var(--paper-quiet); }
+html .react-flow__controls-button svg { fill: currentColor; }
