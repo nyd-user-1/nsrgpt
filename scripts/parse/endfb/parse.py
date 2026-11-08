@@ -260,12 +260,24 @@ def main():
         cur, sec, first = None, [], 0
         rec = tables["records"]
         prev_n, n_mf3 = None, 0
-        f_sections, f_points = [], []  # this file's rows, kept only if the file holds a material
-        f = {"mf3": 0, "points": 0, "nsr_points": 0}
+        # Rows wait in f_sections and f_points until the file shows a material with MF1/451 and a second section;
+        # from then on they go straight to the tables, so a large POINT file never sits in memory whole.
+        f_sections, f_points = [], []
+        f = {"mf3": 0, "points": 0, "nsr_points": 0, "holds": False}
+        xs = tables["xs_points"]
 
         def close(terminator):
             mat, mf, mt = cur
             per_mat[mat][0] += 1
+            if not f["holds"] and mat in heads and per_mat[mat][0] > 1:
+                f["holds"] = True
+                for r in f_sections:
+                    tables["sections"].add(r)
+                for t in f_points:
+                    xs.append(t)
+                f_sections.clear()
+                f_points.clear()
+            put_point = xs.append if f["holds"] else f_points.append
             row = {"release": RELEASE, "sublibrary": sub, "file_name": path, "mat": mat, "mf": mf, "mt": mt,
                    "line_count": n_lines, "first_line": first}
             send = terminator if terminator is not None and toint(terminator[72:75] if len(terminator) >= 75 else "") == 0 \
@@ -283,9 +295,9 @@ def main():
                 for p, (e, x) in enumerate(zip(d["E"], d["xs"]), 1):
                     while region < len(nbt) - 1 and p > nbt[region]:
                         region += 1
-                    f_points.append((RELEASE, sub, path, mat, mt, p, e, x, region + 1, law[region]))
+                    put_point((RELEASE, sub, path, mat, mt, p, e, x, region + 1, law[region]))
                 f["points"] += len(d["E"])
-            f_sections.append(row)
+            (tables["sections"].add if f["holds"] else f_sections.append)(row)
 
         n_lines = 0
         for i, line in enumerate(lines, 1):
@@ -319,7 +331,7 @@ def main():
         # A file holds ENDF data when at least one MAT has an MF1/451 section and more. Header files (MF1/451 only,
         # repeating a material held in its own file) and files with no MF1/451 (LEAPR inputs, DOS tables, READMEs)
         # stay in records only, with what their stray columns would have added listed in the manifest.
-        holds = any(per_mat[m][0] > 1 for m in heads)
+        holds = f["holds"]
         if n_mf3 != (f["mf3"] if holds else 0):
             mf3_differences.append({"file": path, "nsr_count_way": n_mf3, "sections": f["mf3"] if holds else 0})
         if not holds:
@@ -328,11 +340,6 @@ def main():
                                      else "no MF1/451 section", "mats_with_mf1_451": sorted(heads),
                                      "line_runs_read_as_sections": len(f_sections), "mf3_points": f["points"]})
             continue
-        for row in f_sections:
-            tables["sections"].add(row)
-        xs = tables["xs_points"]
-        for row in f_points:
-            xs.append(row)
         mf3_sections += f["mf3"]
         mf3_points += f["points"]
         nsr_points += f["nsr_points"]

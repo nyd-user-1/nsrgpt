@@ -1,5 +1,5 @@
 # Run the count checks in Athena from the parse box and save the results (brief 16).
-#   checks.py <name>     runs checks/<name>.sql (statements split on ";"), prints each result, saves
+#   checks.py <name or path.sql>   runs checks/<name>.sql or the given file (split on ";"), prints each result, saves
 #                        lake/_work/parse/exfor/checks/<name>.json
 import sys, os, json, re
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -7,7 +7,9 @@ from common import *
 
 name = sys.argv[1]
 here = os.path.dirname(os.path.abspath(__file__))
-sqls = [s.strip() for s in re.split(r";[ \t]*(?:\n|$)", open(f"{here}/checks/{name}.sql").read()) if s.strip()]
+path = name if name.endswith(".sql") else f"{here}/checks/{name}.sql"
+name = os.path.basename(path)[:-4]
+sqls = [s.strip() for s in re.split(r";[ \t]*(?:\n|$)", open(path).read()) if s.strip()]
 out = []
 for s in sqls:
     label = s.splitlines()[0].lstrip("- ").strip() if s.startswith("--") else s[:80]

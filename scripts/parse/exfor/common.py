@@ -132,10 +132,10 @@ def ddl(table, location, schema, comment=""):
 
 
 def register(table, location, schema, comment=""):
-    """Drop and create one external table; refuses to drop a table that lives outside lake/exfor or lake/serve."""
+    """Drop and create one external table; refuses to drop one outside lake/exfor, lake/serve/exfor, lake/serve/search."""
     try:
         cur = glue.get_table(DatabaseName=DATABASE, Name=table)["Table"]["StorageDescriptor"]["Location"]
-        if not ("/lake/exfor/" in cur or "/lake/serve/exfor/" in cur):
+        if not ("/lake/exfor/" in cur or "/lake/serve/exfor/" in cur or "/lake/serve/search/" in cur):
             raise RuntimeError(f"{table} already exists at {cur}; not replacing it")
         query(f"DROP TABLE IF EXISTS `{table}`")
     except glue.exceptions.EntityNotFoundException:

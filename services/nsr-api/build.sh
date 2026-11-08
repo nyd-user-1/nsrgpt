@@ -9,8 +9,10 @@ B=s3://nsr-lake-613473203863/lake/_work/parse/exfor/nsr-api
 V=$(/opt/parse/bin/python -c "import duckdb; print(duckdb.__version__)")
 D=/data/nsr-api
 rm -rf $D && mkdir -p $D/pkg/duckdb_ext/v$V/linux_amd64
-aws s3 cp --quiet $B/lambda_function.py $D/pkg/
+aws s3 cp --quiet --recursive $B/ $D/pkg/ --exclude '*' --include '*.py' --exclude 'test_*'  # every module: lambda_function.py, keyword_search.py, structure.py, …
 /opt/parse/bin/pip install -q --target $D/pkg "duckdb==$V"
-cp /opt/duckdb_ext/v$V/linux_amd64/httpfs.duckdb_extension* $D/pkg/duckdb_ext/v$V/linux_amd64/
+export HOME=${HOME:-/root}  # DuckDB needs a home directory to install extensions
+/opt/parse/bin/python -c "import duckdb; c = duckdb.connect(config={'extension_directory': '/opt/duckdb_ext'}); [c.execute(f'INSTALL {e}') for e in ('httpfs', 'fts')]"
+for e in httpfs fts; do cp /opt/duckdb_ext/v$V/linux_amd64/$e.duckdb_extension* $D/pkg/duckdb_ext/v$V/linux_amd64/; done  # httpfs: S3 reads; fts: /search
 cd $D/pkg && /opt/parse/bin/python -m zipfile -c ../nsr-api.zip * && aws s3 cp --quiet ../nsr-api.zip $B/nsr-api.zip
 echo "duckdb $V; zip $(stat -c %s $D/nsr-api.zip) bytes; unzipped $(du -sb $D/pkg | cut -f1) bytes"

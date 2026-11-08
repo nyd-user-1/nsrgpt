@@ -13,6 +13,7 @@ BUCKET=nsr-lake-$ACCT
 FN=nsr-api
 ROLE=nsr-api-lambda
 KEY=lake/_work/parse/exfor/nsr-api/nsr-api.zip
+MEM=3008  # MB, the account's limit (Lambda gives CPU in proportion to memory); /search warm queries run faster than at 2048
 TMP=$(mktemp -d)
 if ! aws iam get-role --role-name $ROLE "${A[@]}" >/dev/null 2>&1; then
   cat > "$TMP/trust.json" <<'J'
@@ -31,9 +32,13 @@ J
 fi
 if aws lambda get-function --function-name $FN "${A[@]}" >/dev/null 2>&1; then
   aws lambda update-function-code --function-name $FN --s3-bucket $BUCKET --s3-key $KEY "${A[@]}" --query LastModified --output text
+  if [ "$(aws lambda get-function-configuration --function-name $FN "${A[@]}" --query MemorySize --output text)" != "$MEM" ]; then
+    aws lambda wait function-updated --function-name $FN "${A[@]}"
+    aws lambda update-function-configuration --function-name $FN --memory-size $MEM "${A[@]}" --query MemorySize --output text
+  fi
 else
   aws lambda create-function --function-name $FN --runtime python3.12 --handler lambda_function.lambda_handler \
-    --role arn:aws:iam::$ACCT:role/$ROLE --memory-size 2048 --timeout 30 --code S3Bucket=$BUCKET,S3Key=$KEY \
+    --role arn:aws:iam::$ACCT:role/$ROLE --memory-size $MEM --timeout 30 --code S3Bucket=$BUCKET,S3Key=$KEY \
     --tags project=nsr "${A[@]}" --query FunctionArn --output text
 fi
 API=$(aws apigatewayv2 get-apis "${A[@]}" --query "Items[?Name=='$FN'].ApiId | [0]" --output text)
