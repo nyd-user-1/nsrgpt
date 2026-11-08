@@ -13,6 +13,7 @@
 #                                      B-VIII.0, temp 0K or 293.6K) it is served instead of the bare MF3, which inside a
 #                                      resonance range is only the background; release_served says which. point=0 forces MF3.
 #   GET /endf/mt                       MT numbers present, with reaction and name (ENDF-102)
+import array
 import json
 import os
 import re
@@ -29,6 +30,7 @@ DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
 PAGE = 500
 HERE = os.path.dirname(os.path.abspath(__file__))
 _con = None
+_s3 = None
 _loaded = set()
 
 
@@ -40,6 +42,11 @@ def con():
                                    "extension_directory": os.environ.get("DUCKDB_EXT_DIR", f"{HERE}/duckdb_ext"),
                                    "temp_directory": "/tmp/duckdb-structure", "threads": 2})
         c.execute("LOAD httpfs")
+        for s in ("enable_object_cache", "enable_http_metadata_cache"):  # keep Parquet footers and S3 metadata per container
+            try:
+                c.execute(f"SET {s} = true")
+            except duckdb.Error:
+                pass
         key, secret, token = (os.environ["AWS_ACCESS_KEY_ID"], os.environ["AWS_SECRET_ACCESS_KEY"],
                               os.environ.get("AWS_SESSION_TOKEN", ""))
         c.execute(f"CREATE SECRET lake (TYPE s3, KEY_ID '{key}', SECRET '{secret}', SESSION_TOKEN '{token}', "
@@ -55,6 +62,8 @@ def table(name):
                "decays": f"{NUC}/decays/*", "materials": f"{ENDF}/*/materials/*", "mt": f"{ENDF}/mt_names/*"}
         if name.startswith("xs_"):
             path = f"{ENDF}/{RELEASES[int(name[3:])]}/xs/*"
+        elif name.startswith("pidx_"):  # a POINT release's xs_index: every column but the arrays, plus sid
+            path = f"{ENDF}/{POINT_RELEASES[int(name[5:])]}/xs_index/part-00000.parquet"
         else:
             path = src[name]
         con().execute(f"CREATE OR REPLACE TABLE {name} AS SELECT * FROM read_parquet('{path}')")
@@ -176,14 +185,26 @@ def temp_of(v):
 
 
 def point_series(pr, name, sub, mt):
-    """One section from a POINT release, read straight from S3 (row groups of 32 rows, sorted by sublibrary, Z, A)."""
-    m = records(f"SELECT z, a, liso FROM {table('materials')} WHERE release = ? AND sublibrary = ? AND upper(name) = upper(?) "
-                "ORDER BY liso, mat LIMIT 1", [pr, sub, name])
-    if not m:
+    """One section from a POINT release: its row from the in-memory xs_index, its arrays from xs_series/series.bin with
+    one S3 byte-range request (energy then cross section, little-endian float64)."""
+    global _s3
+    rows = records(f"SELECT * FROM {table(f'pidx_{POINT_RELEASES.index(pr)}')} WHERE sublibrary = ? AND upper(name) = upper(?) "
+                   "AND mt = ? ORDER BY liso, mat LIMIT 1", [sub, name, mt])
+    if not rows:
         return None
-    rows = records(f"SELECT * FROM read_parquet('{ENDF}/{pr}/xs/*') WHERE sublibrary = ? AND z = ? AND a = ? "
-                   "AND liso = ? AND mt = ? ORDER BY mat LIMIT 1", [sub, m[0]["z"], m[0]["a"], m[0]["liso"], mt])
-    return rows[0] if rows else None
+    row = rows[0]
+    off, size = row.pop("byte_offset"), row.pop("n_bytes")
+    row.pop("sid")
+    if _s3 is None:
+        import boto3  # only the POINT route needs it
+        _s3 = boto3.client("s3", region_name="us-east-2")
+    body = _s3.get_object(Bucket=BUCKET, Key=f"lake/serve/endf/{pr}/xs_series/series.bin",
+                          Range=f"bytes={off}-{off + size - 1}")["Body"].read()
+    v = array.array("d")
+    v.frombytes(body)
+    half = len(v) // 2
+    row["energy_ev"], row["xs_barn"] = v[:half].tolist(), v[half:].tolist()
+    return row
 
 
 def xs(q):
@@ -213,7 +234,7 @@ def xs(q):
             try:
                 row = point_series(pr, name, sub, mt)
                 served = pr if row else r
-            except duckdb.Error:
+            except Exception:  # noqa: BLE001 (a missing or unreadable POINT file falls back to the MF3)
                 row = None
         if row is None and r in RELEASES:
             t = table(f"xs_{RELEASES.index(r)}")

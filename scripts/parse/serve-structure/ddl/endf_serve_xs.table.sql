@@ -16,7 +16,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `endf_serve_xs` (
   `qi` double,
   `lr` int,
   `energy_ev` array<double>,
-  `xs_barn` array<double>
+  `xs_barn` array<double>,
+  `n_served` bigint,
+  `thinned` boolean
 )
 COMMENT 'ENDF/B MF3 cross sections as point arrays, one row each'
 PARTITIONED BY (`release` string)
@@ -32,3 +34,7 @@ ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-V') LOCATION
 ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-IV') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-IV/xs/';
 ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-III') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-III/xs/';
 ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-II') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-II/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.1-point-293.6K/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.1-point-0K/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.0-point-293.6K/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.0-point-0K/xs/';

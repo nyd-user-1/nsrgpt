@@ -22,3 +22,7 @@ ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-V') LOCATI
 ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-IV') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-IV/xs_points/';
 ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-III') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-III/xs_points/';
 ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-II') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-II/xs_points/';
+ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.1-point-293.6K/xs_points/';
+ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.1-point-0K/xs_points/';
+ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.0-point-293.6K/xs_points/';
+ALTER TABLE `endfb_xs_points` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.0-point-0K/xs_points/';

@@ -16,6 +16,7 @@ JSON; CloudFront keeps each one for an hour, keyed on the whole query string.
 | `build.sh` | builds the package on a parse box (every `*.py` here, DuckDB, the httpfs and fts extensions) and puts it in S3 | |
 | `deploy.sh` | creates or updates the Lambda, the HTTP API and CloudFront from the package in S3 | |
 | `test_box.py` | runs the handler on a parse box before deploying | |
+| `test_structure.py` | runs structure.py's routes on a parse box before deploying | parsing-1 (brief 17) |
 
 A module has `route(path, query)` returning `(status, body)`; `lambda_function.py` imports it on first use, so a cold
 start loads only what its route needs.
@@ -64,4 +65,32 @@ rebuilt index loads on each container's next cold start; to load it at once, set
 
 ## Structure and evaluated libraries (parsing-1, brief 17)
 
-parsing-1 adds `/nuclide/*` and `/endf/*` here.
+Serving tables: `lake/serve/nuclide/2026-11-05/` (ENSDF 2026-11-05) and `lake/serve/endf/<release>/` (`nsr.nuclide_serve_*`,
+`nsr.endf_serve_*`), built by `scripts/parse/serve-structure/serve.py`.
+
+| Route | Example |
+| --- | --- |
+| `GET /nuclide/{name}` | `/nuclide/137Cs` (also `cs-137`, `CS137`, `137-Cs`); `?levels=50` caps the level and gamma lists |
+| `GET /nuclide/{name}/levels` | `/nuclide/60Ni/levels?page=2` |
+| `GET /nuclide/{name}/gammas` | `/nuclide/60Co/gammas` |
+| `GET /endf/materials` | `/endf/materials?release=B-VIII.1&sublibrary=neutrons&z=92`; `release=all`; `name=U-235` |
+| `GET /endf/xs` | `/endf/xs?name=U-235&mt=18`, `&compare=B-VIII.0,B-VII.1`, `&temp=293.6K`, `&point=0`, `&sub=protons` |
+| `GET /endf/mt` | `/endf/mt` |
+
+`/nuclide/{name}` returns the nuclide (Z, N, half-life in seconds and as written, decay modes with percentages, ground-state
+J-pi, adopted Q-values, counts), its adopted levels and gammas (each gamma with the level it leaves and, where the energy
+difference picks one level, the level it reaches), and its decays as parent and as daughter. `/levels` and `/gammas` page
+by 500.
+
+`/endf/xs` returns one series per release: `energy_ev` and `xs_barn` arrays with the section's interpolation, Q-values
+and point counts. Defaults: release `B-VIII.1`, sublibrary `neutrons`, `temp=0K`. Where NNDC's reconstructed POINT
+library holds the section (B-VIII.1 and B-VIII.0, at 0K or 293.6K) it is served instead of the bare MF3, because inside a
+resonance range MF3 holds only the background; `release_served` names the release that answered, and `point=0` asks for
+the MF3 itself. POINT series over 40,000 points are thinned for charting to the lowest and highest point in each of
+20,000 log-energy steps (`thinned`, `n_points`, `n_served`); every point is in `nsr.endfb_xs_points`. A release the lake
+does not hold (`compare=JEFF-3.3`) comes back with `held: false`.
+
+The POINT rows are read through `lake/serve/endf/<release>/xs_index/` (held in memory) and `xs_series/series.bin` (one S3
+byte-range request a section). Measured through CloudFront on 2026-11-08 with a warm Lambda: first requests 0.17–0.40 s
+(a POINT cross section 0.27–0.34 s; a two-release POINT compare 0.82 s while it loads the second index), cached
+0.05–0.13 s. A container's first nuclide request loads the nuclide tables (about 1 s); a cold start is about 4–5 s.

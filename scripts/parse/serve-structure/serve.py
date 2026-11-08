@@ -5,6 +5,7 @@ registered in nsr from the Parquet schema, counted, and written into a manifest 
   serve.py mt                         MT names (ENDF-102, by hand)        -> lake/serve/endf/mt_names/
   serve.py endf [--fresh] [release…]  materials and xs per release        -> lake/serve/endf/<release>/<table>/
   serve.py endf_point <release>…      a POINT release: materials, thinned xs -> lake/serve/endf/<release>/<table>/
+  serve.py point_files <release>…     the API's xs_index and xs_series files for a POINT release
   serve.py docs                       search documents (brief 18 shape)   -> lake/serve/search/2026-11-08/docs_structure/
 SQL templates are ddl/<table>.sql; the CREATE TABLE statements are saved beside them as ddl/<athena table>.table.sql.
 """
@@ -345,14 +346,16 @@ def endf(releases, fresh):
     manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (nine ENDF/B releases)"]}, t)
 
 
-POINT_MAX = 20000  # most points a POINT-release chart row keeps
+POINT_STEPS = 20000  # log-energy steps for thinning a POINT section; a thinned row keeps at most 2 per step
+POINT_MAX = 2 * POINT_STEPS  # sections with more points than this are thinned
 
 
 def endf_point(rel):
     """A POINT release (NNDC's reconstructed, linearized MF3; parsed into endfb_* by scripts/parse/endfb/parse.py, whose
     local output must still be on the box): materials by UNLOAD as for any release; xs built here with DuckDB from the
-    parsed points, every section with more than POINT_MAX points thinned to the lowest and highest point in each of
-    POINT_MAX/2 equal steps of log energy plus both ends (so resonance peaks and dips stay), written in row groups of 32
+    parsed points (the local parse output when it is still on the box, else nsr.endfb_xs_points in S3), every section
+    with more than POINT_MAX points thinned to the lowest and highest point in each of POINT_STEPS equal steps of log
+    energy plus both ends (so resonance peaks and dips stay), written in row groups of 32
     rows so the API reads only the rows it asks for. Every point stays in nsr.endfb_xs_points."""
     import duckdb
     t = {f"materials/{rel}": build("endf_materials", "endf_serve_materials", f"{ENDF}/{rel}/materials",
@@ -368,14 +371,24 @@ def endf_point(rel):
     os.makedirs(xdir, exist_ok=True)
     for f in os.listdir(xdir):
         os.remove(os.path.join(xdir, f))
-    half = POINT_MAX // 2
-    c = duckdb.connect(config={"temp_directory": f"{TMP}/duckdb", "memory_limit": "5GB", "threads": 2})
+    half = POINT_STEPS
+    c = duckdb.connect(config={"temp_directory": f"{TMP}/duckdb", "memory_limit": "5GB", "threads": 2,
+                               "extension_directory": "/opt/duckdb_ext"})
+    if os.path.isdir(f"{out}/xs_points"):
+        xs_src, sec_src = f"{out}/xs_points/*.parquet", f"{out}/sections/*.parquet"
+    else:
+        cr = lake.boto3.Session().get_credentials().get_frozen_credentials()
+        c.execute("INSTALL httpfs")
+        c.execute("LOAD httpfs")
+        c.execute(f"CREATE SECRET lake (TYPE s3, KEY_ID '{cr.access_key}', SECRET '{cr.secret_key}', "
+                  f"SESSION_TOKEN '{cr.token}', REGION 'us-east-2')")
+        xs_src, sec_src = (f"s3://{B}/lake/endfb/{rel}/xs_points/*.parquet", f"s3://{B}/lake/endfb/{rel}/sections/*.parquet")
     c.execute(f"""
 COPY (
 WITH m AS (SELECT file_name, mat, sublibrary, name, z, a, liso, za FROM read_parquet('{mdir}/*')),
 p AS (SELECT file_name, mat, mt, point_seq, energy_ev, xs_barn, interpolation_region, interpolation
-      FROM read_parquet('{out}/xs_points/*.parquet')),
-sec AS (SELECT file_name, mat, mt, qm, qi, lr FROM read_parquet('{out}/sections/*.parquet') WHERE mf = 3),
+      FROM read_parquet('{xs_src}')),
+sec AS (SELECT file_name, mat, mt, qm, qi, lr FROM read_parquet('{sec_src}') WHERE mf = 3),
 s AS (SELECT file_name, mat, mt, count(*) AS n, min(energy_ev) AS e0, max(energy_ev) AS e1,
              count(DISTINCT interpolation_region) AS n_reg, max(interpolation) AS law
       FROM p GROUP BY ALL),
@@ -421,10 +434,60 @@ ORDER BY m.sublibrary, m.z, m.a, m.liso, agg.mt
     t[f"xs/{rel}"] = {"athena_table": "nsr.endf_serve_xs", "location": f"s3://{B}/{prefix}", "rows": n,
                       "bytes": os.path.getsize(f"{xdir}/part-00000.parquet"), "files": 1,
                       "columns": [f"{f.name} {athena_type(f.type)}" for f in schema],
-                      "built_with": f"DuckDB on the box from the parsed points; sections over {POINT_MAX} points thinned",
+                      "built_with": f"DuckDB on the box from the parsed points; sections over {POINT_MAX} points thinned "
+                                    f"to the lowest and highest point in each of {POINT_STEPS} log-energy steps",
                       "thinned_sections": int(thin[1]), "points": int(thin[2]), "points_served": int(thin[3])}
     print("endf_serve_xs", rel, n, thin, flush=True)
     manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (nine ENDF/B releases)"]}, t)
+    point_files(rel)
+
+
+def point_files(rel):
+    """Two files for the API beside a POINT release's xs table (not registered; nsr.endf_serve_xs holds the same rows):
+    xs_index/part-00000.parquet (every column but the arrays, plus sid and the section's byte_offset and n_bytes; the API
+    holds it in memory) and xs_series/series.bin (each section's energy then cross-section values as little-endian
+    float64, in sid order), so one chart read is a single S3 byte-range request."""
+    import array
+    import duckdb
+    cr = lake.boto3.Session().get_credentials().get_frozen_credentials()
+    c = duckdb.connect(config={"temp_directory": f"{TMP}/duckdb", "memory_limit": "5GB", "extension_directory": "/opt/duckdb_ext"})
+    c.execute("INSTALL httpfs")
+    c.execute("LOAD httpfs")
+    c.execute(f"CREATE SECRET lake (TYPE s3, KEY_ID '{cr.access_key}', SECRET '{cr.secret_key}', SESSION_TOKEN '{cr.token}', "
+              "REGION 'us-east-2')")
+    c.execute(f"CREATE TABLE x AS SELECT CAST(row_number() OVER (ORDER BY sublibrary, z, a, liso, mt, mat) AS INTEGER) AS sid, * "
+              f"FROM read_parquet('s3://{B}/{ENDF}/{rel}/xs/*')")
+    sdir, idir = f"{TMP}/xs_series-{rel}", f"{TMP}/xs_index-{rel}"
+    for d in (sdir, idir):
+        os.makedirs(d, exist_ok=True)
+        for f in os.listdir(d):
+            os.remove(os.path.join(d, f))
+    sids, offs, sizes, pos = [], [], [], 0
+    cur = c.cursor().execute("SELECT sid, energy_ev, xs_barn FROM x ORDER BY sid")
+    with open(f"{sdir}/series.bin", "wb") as fh:
+        while True:
+            batch = cur.fetchmany(500)
+            if not batch:
+                break
+            for sid, e, xv in batch:
+                b = array.array("d", e).tobytes() + array.array("d", xv).tobytes()
+                fh.write(b)
+                sids.append(sid); offs.append(pos); sizes.append(len(b))
+                pos += len(b)
+    off = pa.table({"sid": pa.array(sids, pa.int32()), "byte_offset": pa.array(offs, pa.int64()),
+                    "n_bytes": pa.array(sizes, pa.int64())})
+    c.register("off", off)
+    c.execute(f"COPY (SELECT x.* EXCLUDE (energy_ev, xs_barn), off.byte_offset, off.n_bytes FROM x JOIN off USING (sid) "
+              f"ORDER BY sid) TO '{idir}/part-00000.parquet' (FORMAT PARQUET, COMPRESSION SNAPPY)")
+    out = {}
+    for name, d in [("xs_index", idir), ("xs_series", sdir)]:
+        clear(f"{ENDF}/{rel}/{name}/")
+        lake.sync(d, f"{ENDF}/{rel}/{name}/")
+        out[name] = sum(os.path.getsize(os.path.join(d, f)) for f in os.listdir(d))
+    print("point_files", rel, out, flush=True)
+    manifest(f"{ENDF}/manifest.json", {"set": "endf"}, {f"api_files/{rel}": {
+        "location": f"s3://{B}/{ENDF}/{rel}/", "files": out,
+        "note": "xs_index and xs_series/series.bin: the same rows as nsr.endf_serve_xs for this release, split for the API"}})
 
 
 def docs():
@@ -452,6 +515,9 @@ if __name__ == "__main__":
     elif step == "endf_point":
         for r in rest:
             endf_point(r)
+    elif step == "point_files":
+        for r in rest:
+            point_files(r)
     elif step == "docs":
         docs()
     elif step == "render":  # print a rendered template, for checking

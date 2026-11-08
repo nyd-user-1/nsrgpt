@@ -11,6 +11,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `endf_serve_materials` (
   `awr` double,
   `temp_k` double,
   `nsub` int,
+  `lrp` int,
   `file_name` string,
   `n_mf3_sections` bigint,
   `n_points` bigint,
@@ -32,3 +33,7 @@ ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-V') L
 ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-IV') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-IV/materials/';
 ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-III') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-III/materials/';
 ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-II') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-II/materials/';
+ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.1-point-293.6K/materials/';
+ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.1-point-0K/materials/';
+ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.0-point-293.6K/materials/';
+ALTER TABLE `endf_serve_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.0-point-0K/materials/';

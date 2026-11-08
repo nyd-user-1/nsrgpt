@@ -14,7 +14,10 @@ for path, q in [("/nuclide/137Cs", {}), ("/nuclide/cs-137", {"levels": "5"}), ("
                 ("/endf/materials", {"release": "B-VIII.1", "sublibrary": "neutrons", "z": "92"}),
                 ("/endf/xs", {"name": "U-235", "mt": "18"}), ("/endf/xs", {"name": "U-235", "mt": "18"}),
                 ("/endf/xs", {"name": "u235", "mt": "18", "compare": "B-VIII.0,B-VII.1"}),
-                ("/endf/xs", {"name": "Fe-56", "mt": "102", "compare": "JEFF-3.3"}), ("/endf/mt", {})]:
+                ("/endf/xs", {"name": "Fe-56", "mt": "102", "compare": "JEFF-3.3"}), ("/endf/mt", {}),
+                ("/endf/xs", {"name": "U-235", "mt": "18", "temp": "293.6K"}),
+                ("/endf/xs", {"name": "U-238", "mt": "102", "temp": "293.6K", "compare": "B-VII.1"}),
+                ("/endf/xs", {"name": "U-235", "mt": "18", "point": "0"})]:
     t = time.time()
     status, b = S.route(path, q)
     ms = (time.time() - t) * 1000
@@ -23,7 +26,7 @@ for path, q in [("/nuclide/137Cs", {}), ("/nuclide/cs-137", {"levels": "5"}), ("
     print(path, q, status, f"{ms:.0f} ms", f"{len(body)} bytes", json.dumps(summary, default=str)[:300])
     if path.startswith("/endf/xs"):
         for s in b.get("series", []):
-            print("   ", s.get("release"), s.get("held"), s.get("n_points"), s.get("e_min"), s.get("e_max"),
+            print("   ", s.get("release"), s.get("release_served"), s.get("thinned"), s.get("n_served"), s.get("held"), s.get("n_points"), s.get("e_min"), s.get("e_max"),
                   (s.get("energy_ev") or [])[:2], (s.get("xs_barn") or [])[:2], s.get("note", ""))
     if path == "/nuclide/137Cs":
         print("   ", json.dumps(b["nuclide"], default=str)[:400])

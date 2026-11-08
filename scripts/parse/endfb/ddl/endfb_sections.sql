@@ -28,3 +28,7 @@ ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-V') LOCATIO
 ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-IV') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-IV/sections/';
 ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-III') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-III/sections/';
 ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-II') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-II/sections/';
+ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.1-point-293.6K/sections/';
+ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.1-point-0K/sections/';
+ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.0-point-293.6K/sections/';
+ALTER TABLE `endfb_sections` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.0-point-0K/sections/';

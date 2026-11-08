@@ -49,3 +49,7 @@ ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-V') LOCATI
 ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-IV') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-IV/materials/';
 ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-III') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-III/materials/';
 ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-II') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-II/materials/';
+ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.1-point-293.6K/materials/';
+ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.1-point-0K/materials/';
+ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.0-point-293.6K/materials/';
+ALTER TABLE `endfb_materials` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.0-point-0K/materials/';
