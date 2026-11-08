@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, Panel, Handle, Position,
   useNodesState, useEdgesState, useReactFlow, addEdge,
-  SelectionMode, ConnectionMode, ConnectionLineType, PanOnScrollMode,
+  SelectionMode, ConnectionMode, ConnectionLineType, PanOnScrollMode, MarkerType,
   type Node, type Edge, type NodeProps, type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -57,6 +57,13 @@ export interface GNode {
   e?: number;
   /** The nuclide's decay family (lib/nuclide.ts FAMILY): the card wears its colour, as every chart does. */
   family?: Family;
+  /** Figure-faithful drawings (Brendan, 2026-11-08): "glyph" is the actinide build-up's bare "238 U" with its fission share;
+   *  "bubble" the decay-series circle with A, Z, symbol and half-life. `pos` is the figure's own column and row. */
+  style?: "glyph" | "bubble";
+  cls?: "fissile" | "fertile" | "less" | "short";
+  fission?: number;
+  hl?: string;
+  pos?: [number, number];
   /** Paper cards: the entity rows shown inside the card (op=cards). */
   rows?: CardRows;
   /** "+N more" overflow supernodes: whose overflow, which relation. */
@@ -129,6 +136,21 @@ function layout(nodes: Node[], edges: Edge[], rankdir: "LR" | "TB" = "LR"): Node
 /* ── node cards ───────────────────────────────────────────────────────────── */
 
 const CARD = "rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] px-3 py-2 text-xs shadow-sm";
+// The actinide build-up figure's classes (Sasahara): fissile dark red, fertile blue, less fertile grey, short-lived light grey;
+// its arrows: capture blue, α magenta, β and EC green.
+const GLYPH_COLOR: Record<"fissile" | "fertile" | "less" | "short", string> = { fissile: "#a0352c", fertile: "#1f4fd6", less: "#6b6b6b", short: "#aaaaaa" };
+const ARROW_COLOR = { capture: "#1f4fd6", alpha: "#e22bd0", beta: "#1b8c3a" } as const;
+/** The decay-series figure's bubble fills by the element's class (periodic-table colours). */
+function bubbleFill(z: number): string {
+  if (z >= 89 && z <= 103) return "#bcd8ff"; // actinides
+  if (z === 87 || z === 55 || z === 37 || z === 19 || z === 11 || z === 3) return "#ffb3b3"; // alkali metals
+  if (z === 88 || z === 56 || z === 38 || z === 20 || z === 12 || z === 4) return "#ffe0b8"; // alkaline earth metals
+  if (z === 85 || z === 53 || z === 35 || z === 17 || z === 9) return "#ffff99"; // halogens
+  if (z === 84 || z === 52 || z === 51 || z === 33 || z === 32 || z === 14 || z === 5) return "#d8dcae"; // metalloids
+  if (z === 86 || z === 54 || z === 36 || z === 18 || z === 10 || z === 2) return "#c8f8ff"; // noble gases
+  if ((z >= 21 && z <= 30) || (z >= 39 && z <= 48) || (z >= 72 && z <= 80)) return "#ffd0d0"; // transition metals
+  return "#dedede"; // post-transition metals and the rest
+}
 
 type EntityData = GNode & {
   onExpand: (node: GNode, rel: string) => void;
@@ -199,6 +221,48 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
   const d = data;
   const accent = selected ? "border-nuclear ring-1 ring-nuclear" : "";
   const dim = d.dimmed ? "opacity-30" : "";
+
+  // Eight quiet handles so an arrow can leave or enter any side; the edge picks the pair by direction.
+  const sides = (
+    <>
+      {([["t", Position.Top], ["b", Position.Bottom], ["l", Position.Left], ["r", Position.Right]] as const).map(([id, p]) => (
+        <Fragment key={id}>
+          <Handle type="source" id={id} position={p} className="!h-1 !w-1 !border-0 !bg-transparent" />
+          <Handle type="target" id={`${id}t`} position={p} className="!h-1 !w-1 !border-0 !bg-transparent" />
+        </Fragment>
+      ))}
+    </>
+  );
+  if (d.style === "glyph") {
+    // The actinide build-up's glyph: mass number small, symbol large, in the class colour; the fission share in red beneath.
+    const color = GLYPH_COLOR[d.cls ?? "less"];
+    const a = d.label.match(/^\d+m?/)?.[0] ?? "";
+    const el = d.label.replace(/^\d+m?/, "");
+    return (
+      <div className={`relative flex flex-col items-center px-2 py-1 ${accent ? "rounded-md ring-1 ring-nuclear" : ""} ${dim}`} style={{ width: NODE_W.nuclide }} title={d.sub}>
+        {sides}
+        <p className="font-mono leading-none" style={{ color }}><span className="text-sm">{a}</span> <span className="text-xl font-semibold">{el}</span></p>
+        {d.fission !== undefined && <p className="mt-0.5 font-mono text-sm font-semibold leading-none text-[#d1242f]">{d.fission}%</p>}
+      </div>
+    );
+  }
+  if (d.style === "bubble") {
+    // The decay-series bubble: A over Z at the left, the symbol large, the half-life beneath, filled in the element's class colour.
+    const fill = bubbleFill(d.z ?? 0);
+    const a = d.z !== undefined && d.n !== undefined ? d.z + d.n : "";
+    const [hlValue, hlUnit] = (d.hl ?? "").split("|");
+    return (
+      <div className={`relative flex flex-col items-center justify-center rounded-full border border-[#333] text-[#16181d] ${accent ? "ring-2 ring-nuclear" : ""} ${dim}`} style={{ width: 112, height: 112, background: `radial-gradient(circle at 35% 30%, #fff 0%, ${fill} 70%)` }} title={d.sub}>
+        {sides}
+        <p className="flex items-center leading-none">
+          <span className="mr-0.5 flex flex-col items-end font-mono text-[11px] leading-[1.05]"><span>{a}</span><span>{d.z}</span></span>
+          <span className="text-3xl font-bold tracking-tight">{d.label.replace(/^\d+m?/, "")}</span>
+        </p>
+        <p className="mt-0.5 font-mono text-[11px] leading-tight">{hlValue}</p>
+        {hlUnit && <p className="text-[11px] leading-tight">{hlUnit}</p>}
+      </div>
+    );
+  }
 
   if (d.type === "prompt") {
     const busy = d.running === keyOf(d);
@@ -689,7 +753,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
           <span>{c.label}</span>
         </button>
       ))}
-      {DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
+      {ALL_DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
         <button key={d.id} onClick={() => onLoadDemo(d.id)} className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]">
           <Atom className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
           <span>{d.label}</span>
@@ -698,7 +762,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       {DEMO_SECTIONS.map((section) => (
         <div key={section} className="flex flex-col">
           <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">{section}</p>
-          {DEMOS.filter((d) => d.section === section).map((d) => (
+          {ALL_DEMOS.filter((d) => d.section === section).map((d) => (
             <button
               key={d.id}
               onClick={() => onLoadDemo(d.id)}
@@ -747,8 +811,27 @@ const CHAINS: { id: string; label: string; head: readonly [number, number] }[] =
 /** The grids the reference figures use (Brendan, 2026-11-08): "ZA" is the decay-series drawing (columns Z, rows A down the page,
  *  α steps down-left, β− steps right); "NZ" the chart of nuclides (x N, y Z: (n,γ) right, β− up-left); "AZ" the actinide
  *  build-up (x A, y Z: capture right, β− up, α down-left); "levels" a level scheme (the parent top-left, levels a ladder by energy). */
-type Grid = "ZA" | "NZ" | "AZ" | "levels";
-type Demo = { section: string; id: string; label: string; layout: "LR" | "TB"; grid?: Grid; nodes: GNode[]; edges: { s: string; t: string; label: string; kind: EdgeMeta["kind"] }[] };
+type Grid = "ZA" | "NZ" | "AZ" | "levels" | "figure";
+type DemoEdge = { s: string; t: string; label: string; kind: EdgeMeta["kind"]; curve?: boolean; arrow?: keyof typeof ARROW_COLOR | "ink" };
+type Demo = { section: string; id: string; label: string; layout: "LR" | "TB"; grid?: Grid; cell?: [number, number]; nodes: GNode[]; edges: DemoEdge[] };
+/** A glyph of the actinide figure: "239Pu" at column c, row r, in a class, with its fission share. */
+const glyph = (id: string, label: string, cls: GNode["cls"], c: number, r: number, fission?: number, sub = ""): GNode => ({ ...nuc(id, label, sub), style: "glyph", cls, fission, pos: [c, r] });
+/** A bubble of the decay-series figure: half-life as "value|unit". */
+const bubble = (id: string, label: string, hl: string, c: number, r: number): GNode => ({ ...nuc(id, label, hl.replace("|", " ")), style: "bubble", hl, pos: [c, r] });
+const FIGURES: Demo[] = [
+  { section: "Decay chains", id: "thorium-figure", label: "Thorium series, as the figure", layout: "TB", grid: "figure", cell: [210, 150],
+    nodes: [bubble("232TH", "232Th", "1.41e+10|Years", 0, 0), bubble("228RA", "228Ra", "5.7|Years", 0, 2), bubble("228AC", "228Ac", "6.1|Hours", 1, 1), bubble("228TH", "228Th", "1.9|Years", 2, 0), bubble("224RA", "224Ra", "3.6|Days", 2, 2), bubble("220RN", "220Rn", "55|Seconds", 2, 4), bubble("216PO", "216Po", "0.14|Seconds", 2, 6), bubble("212PB", "212Pb", "10.6|Hours", 2, 8), bubble("212BI", "212Bi", "61|Minutes", 3, 7), bubble("212PO", "212Po", "3e-07|Seconds", 4, 6), bubble("208PB", "208Pb", "Stable|", 4, 8), bubble("208TL", "208Tl", "3.1|Minutes", 3, 9)],
+    edges: [["232TH", "228RA", "α"], ["228RA", "228AC", "β−"], ["228AC", "228TH", "β−"], ["228TH", "224RA", "α"], ["224RA", "220RN", "α"], ["220RN", "216PO", "α"], ["216PO", "212PB", "α"], ["212PB", "212BI", "β−"], ["212BI", "212PO", "β−"], ["212PO", "208PB", "α"], ["212BI", "208TL", "α"], ["208TL", "208PB", "β−"]].map(([s, t, label]) => ({ s, t, label, kind: "decay" as const, arrow: "ink" as const })) },
+  { section: "Actinide build-up", id: "sasahara-figure", label: "U-238 to Cm-245, as the figure", layout: "LR", grid: "figure", cell: [230, 170],
+    nodes: [glyph("238U", "238U", "fertile", 0, 0), glyph("239PU", "239Pu", "fissile", 1, 0, 64), glyph("240PU", "240Pu", "fertile", 2, 0), glyph("238PU", "238Pu", "fertile", 0, 1, 9), glyph("241PU", "241Pu", "fissile", 1, 2, 72), glyph("242PU", "242Pu", "less", 2, 2), glyph("243PU", "243Pu", "short", 3, 2), glyph("241AM", "241Am", "less", 0, 3.6, 10), glyph("242AM", "242Am", "short", 1, 3.6), glyph("243AM", "243Am", "less", 2, 3.6, 1), glyph("244AM", "244Am", "short", 3, 3.6), glyph("242AMM", "242mAm", "fissile", 1.5, 4.4, 84), glyph("242CM", "242Cm", "short", 0, 5.4, 1), glyph("243CM", "243Cm", "fissile", 1, 5.4, 85), glyph("244CM", "244Cm", "fertile", 2, 5.4, 4), glyph("245CM", "245Cm", "fissile", 3, 5.4, 85)],
+    edges: [
+      { s: "238U", t: "239PU", label: "91%", kind: "reaction", arrow: "capture", curve: true }, { s: "239PU", t: "240PU", label: "36%", kind: "reaction", arrow: "capture" }, { s: "240PU", t: "241PU", label: "", kind: "reaction", arrow: "capture" }, { s: "241PU", t: "242PU", label: "25%", kind: "reaction", arrow: "capture" }, { s: "242PU", t: "243PU", label: "", kind: "reaction", arrow: "capture" },
+      { s: "241PU", t: "241AM", label: "β 3%", kind: "decay", arrow: "beta" }, { s: "243PU", t: "243AM", label: "β", kind: "decay", arrow: "beta" },
+      { s: "241AM", t: "242AM", label: "79%", kind: "reaction", arrow: "capture" }, { s: "241AM", t: "242AMM", label: "10%", kind: "reaction", arrow: "capture", curve: true }, { s: "242AM", t: "242CM", label: "β 81%", kind: "decay", arrow: "beta" }, { s: "242AM", t: "242PU", label: "EC 17%", kind: "decay", arrow: "beta" }, { s: "242AM", t: "243AM", label: "1%", kind: "reaction", arrow: "capture" }, { s: "242AMM", t: "243AM", label: "16%", kind: "reaction", arrow: "capture" }, { s: "243AM", t: "244AM", label: "99%", kind: "reaction", arrow: "capture" }, { s: "244AM", t: "244CM", label: "β", kind: "decay", arrow: "beta" },
+      { s: "242CM", t: "238PU", label: "α 96%", kind: "decay", arrow: "alpha", curve: true }, { s: "243CM", t: "239PU", label: "α 2%", kind: "decay", arrow: "alpha", curve: true }, { s: "244CM", t: "240PU", label: "α 15%", kind: "decay", arrow: "alpha", curve: true },
+      { s: "242CM", t: "243CM", label: "3%", kind: "reaction", arrow: "capture" }, { s: "243CM", t: "244CM", label: "13%", kind: "reaction", arrow: "capture" }, { s: "244CM", t: "245CM", label: "81%", kind: "reaction", arrow: "capture" },
+    ] },
+];
 const ZS: Record<string, number> = { CO: 27, NI: 28, SR: 38, Y: 39, ZR: 40, NB: 41, MO: 42, TC: 43, RU: 44, AG: 47, CD: 48, IN: 49, SN: 50, SB: 51, TE: 52, I: 53, XE: 54, CS: 55, BA: 56, LA: 57, CE: 58, PR: 59, ND: 60, YB: 70, LU: 71, HF: 72, HG: 80, TL: 81, PB: 82, BI: 83, PO: 84, AT: 85, RN: 86, FR: 87, RA: 88, AC: 89, TH: 90, PA: 91, U: 92, NP: 93, PU: 94, AM: 95, CM: 96 };
 /** "107AG" → Z 47, N 60; "137BAM" (an isomer) the same as 137BA; "60NI-2505" → Z 28, N 32, level 2505 keV. */
 const nuc = (id: string, label: string, sub: string): GNode => {
@@ -808,7 +891,8 @@ const DEMOS: Demo[] = [
     nodes: [nuc("137CS", "137Cs", "7/2+ · 30.08 y · ground state"), nuc("137BA-661", "137Ba 661.7 keV", "11/2− · 2.55 min · 137mBa"), nuc("137BA", "137Ba 0 keV", "3/2+ · stable")],
     edges: [["137CS", "137BA-661", "β− 94.7% · 514 keV"], ["137CS", "137BA", "β− 5.3% · 1176 keV"], ["137BA-661", "137BA", "γ 661.7 keV · M4 · 85.1"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
 ];
-const DEMO_SECTIONS = [...new Set(DEMOS.map((d) => d.section))].filter((s) => s !== "Decay chains");
+const ALL_DEMOS: Demo[] = [...FIGURES, ...DEMOS];
+const DEMO_SECTIONS = [...new Set(ALL_DEMOS.map((d) => d.section))].filter((s) => s !== "Decay chains");
 
 /** Seed canvases for the props panel — each one centers a real entity. */
 const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
@@ -1449,11 +1533,27 @@ function GraphPageInner() {
     loadGraph(all, edges, "TB", gridPositions(all, "ZA"));
   }, [loadGraph]);
 
-  /** A sample canvas (DEMOS): the layout review's hand-typed graphs. */
+  /** A sample canvas (DEMOS and FIGURES): the layout review's hand-typed graphs. */
   const loadDemo = useCallback((id: string) => {
-    const d = DEMOS.find((x) => x.id === id);
+    const d = ALL_DEMOS.find((x) => x.id === id);
     if (!d) return;
-    const edges: Edge[] = d.edges.map((e) => ({ id: `nuclide:${e.s}->nuclide:${e.t}`, source: `nuclide:${e.s}`, target: `nuclide:${e.t}`, label: e.label, data: { kind: e.kind, mode: e.label } as EdgeMeta }));
+    // The figure grid: each node's own column and row, scaled by the demo's cell size.
+    const figurePos = d.grid === "figure" ? new Map(d.nodes.map((g) => [keyOf(g), { x: (g.pos?.[0] ?? 0) * (d.cell?.[0] ?? 200), y: (g.pos?.[1] ?? 0) * (d.cell?.[1] ?? 150) }])) : undefined;
+    const byId = new Map(d.nodes.map((g) => [g.id, g]));
+    const dark = isDark();
+    const edges: Edge[] = d.edges.map((e) => {
+      const base: Edge = { id: `nuclide:${e.s}->nuclide:${e.t}`, source: `nuclide:${e.s}`, target: `nuclide:${e.t}`, label: e.label || undefined, data: { kind: e.kind, mode: e.label } as EdgeMeta };
+      if (!figurePos || !e.arrow) return base;
+      // Figure arrows: coloured, arrow-headed, leaving and entering the sides that face each other.
+      const color = e.arrow === "ink" ? (dark ? "#f0e9d8" : "#16181d") : ARROW_COLOR[e.arrow];
+      const sp = figurePos.get(`nuclide:${e.s}`)!, tp = figurePos.get(`nuclide:${e.t}`)!;
+      const dx = tp.x - sp.x, dy = tp.y - sp.y;
+      const horizontal = Math.abs(dx) >= Math.abs(dy);
+      const sourceHandle = horizontal ? (dx > 0 ? "r" : "l") : dy > 0 ? "b" : "t";
+      const targetHandle = horizontal ? (dx > 0 ? "lt" : "rt") : dy > 0 ? "tt" : "bt";
+      void byId;
+      return { ...base, type: e.curve ? "default" : "straight", sourceHandle, targetHandle, style: { stroke: color, strokeWidth: 2.2 }, markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 }, labelStyle: { fill: color, fontWeight: 600, fontSize: 12 }, labelBgStyle: { fill: "transparent" } };
+    });
     // A sample card's family from its first decay edge out (β−, α, EC, IT), or "stable" from its text.
     const fam = (g: GNode): Family => {
       if (/stable/.test(g.sub ?? "")) return "stable";
@@ -1463,7 +1563,7 @@ function GraphPageInner() {
       return m.startsWith("β−") || m.startsWith("β-") ? "b-" : m.startsWith("α") ? "a" : m.startsWith("EC") || m.startsWith("β+") ? "ec" : m.startsWith("IT") || m.startsWith("γ") ? "unknown" : m.startsWith("SF") ? "sf" : "unknown";
     };
     const nodes = d.nodes.map((g) => ({ ...g, family: g.family ?? fam(g) }));
-    loadGraph(nodes, edges, d.layout, d.grid ? gridPositions(nodes, d.grid) : undefined);
+    loadGraph(nodes, edges, d.layout, figurePos ?? (d.grid ? gridPositions(nodes, d.grid) : undefined));
   }, [loadGraph]);
 
   const applyDataset = useCallback((id: string) => {
