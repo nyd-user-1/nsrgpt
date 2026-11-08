@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/nova/skeleton";
 
 const FIELD = "w-full rounded-xl border bg-background px-4 py-3 text-[15px] outline-none transition-shadow placeholder:text-muted-foreground focus:ring-2 focus:ring-ring";
 
@@ -42,5 +45,47 @@ export function InviteForm({ id }: { id: string }) {
         {busy ? "One moment…" : "Create account"} <ArrowRight className="size-4" aria-hidden />
       </button>
     </form>
+  );
+}
+
+const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
+
+/** An invite link (2026-11-08: the page is a static shell; whether the invite is open comes from /api/invite/<id>
+ *  after it paints). Opening it only reads the invite; the form is what spends it. */
+export function Invite() {
+  const { id } = useParams<{ id: string }>();
+  const [open, setOpen] = useState<boolean | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/invite/${id}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .catch(() => ({}))
+      .then((j: { open?: boolean }) => live && setOpen(!!j.open));
+    return () => {
+      live = false;
+    };
+  }, [id]);
+  if (open === null)
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <Skeleton className="mb-4 h-10 w-48" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+      </div>
+    );
+  if (!open)
+    return (
+      <div className="text-center">
+        <h1 className="m-0 mb-3 text-4xl font-normal" style={SERIF}>This invite has been used</h1>
+        <p className="m-0 mb-6 text-muted-foreground">Or it has expired. An account made with it signs in as usual.</p>
+        <Link href="/signin" className="text-sm font-medium underline underline-offset-4">Sign in</Link>
+      </div>
+    );
+  return (
+    <>
+      <h1 className="m-0 mb-2 text-center text-4xl font-normal" style={SERIF}>Welcome</h1>
+      <p className="m-0 mb-8 text-center text-muted-foreground">Choose the email and password for this invitation.</p>
+      <InviteForm id={id} />
+    </>
   );
 }

@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { WaveLoader } from "./WaveLoader";
+import { useProductStatus } from "@/components/ProductStatus";
 
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 
@@ -27,6 +29,13 @@ const LINE_MS = 5_000;
 export function Welcome() {
   const [line, setLine] = useState(0);
   const { resolvedTheme } = useTheme();
+  const { email, checked } = useProductStatus();
+  const router = useRouter();
+
+  // Signed out, there is nothing to welcome: on to sign in, decided in the browser (2026-11-08).
+  useEffect(() => {
+    if (checked && email === null) router.replace("/signin");
+  }, [checked, email, router]);
 
   useEffect(() => {
     const timers = LINES.slice(1).map((_, i) => setTimeout(() => setLine(i + 1), (i + 1) * LINE_MS));

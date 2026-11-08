@@ -1,20 +1,18 @@
-import { redirect } from "next/navigation";
 import { AccountShell, Section } from "@/components/AccountShell";
 import { DeleteForm, PasswordForm } from "@/components/AccountForms";
-import { currentUser } from "@/lib/auth";
+import { SignedIn } from "@/components/SignedIn";
 
-export const dynamic = "force-dynamic";
-
-export default async function Account() {
-  if (!(await currentUser())) redirect("/signin?next=/account");
+export default function Account() {
   return (
     <AccountShell title="Account">
-      <Section title="Password">
-        <PasswordForm />
-      </Section>
-      <Section title="Delete account">
-        <DeleteForm />
-      </Section>
+      <SignedIn next="/account" sections={["Password", "Delete account"]}>
+        <Section title="Password">
+          <PasswordForm />
+        </Section>
+        <Section title="Delete account">
+          <DeleteForm />
+        </Section>
+      </SignedIn>
     </AccountShell>
   );
 }

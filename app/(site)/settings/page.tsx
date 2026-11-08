@@ -1,17 +1,15 @@
-import { redirect } from "next/navigation";
 import { AccountShell, Section } from "@/components/AccountShell";
 import { AppearanceForm } from "@/components/AccountForms";
-import { currentUser } from "@/lib/auth";
+import { SignedIn } from "@/components/SignedIn";
 
-export const dynamic = "force-dynamic";
-
-export default async function Settings() {
-  if (!(await currentUser())) redirect("/signin?next=/settings");
+export default function Settings() {
   return (
     <AccountShell title="Settings">
-      <Section title="Appearance">
-        <AppearanceForm />
-      </Section>
+      <SignedIn next="/settings" sections={["Appearance"]}>
+        <Section title="Appearance">
+          <AppearanceForm />
+        </Section>
+      </SignedIn>
     </AccountShell>
   );
 }

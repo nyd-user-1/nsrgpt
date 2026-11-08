@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { BUTTON, FIELD } from "@/components/AccountShell";
+import { BUTTON, FIELD, Section } from "@/components/AccountShell";
+import { useProductStatus } from "@/components/ProductStatus";
+import { Skeleton } from "@/components/ui/nova/skeleton";
 
 const post = async (action: string, body: object) => {
   const r = await fetch(`/api/account/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -14,6 +16,38 @@ function Outcome({ error, done }: { error: string | null; done: string | null })
   if (error) return <p className="m-0 text-sm font-medium text-red-600">{error}</p>;
   if (done) return <p className="m-0 text-sm text-emerald-700 dark:text-emerald-400">{done}</p>;
   return null;
+}
+
+const DATE = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+/** /profile's sections, filled from /api/account/profile after the page's shell paints (2026-11-08). The email is
+ *  the session's, so it shows at once; the name waits on the pool. */
+export function ProfileSections() {
+  const { email } = useProductStatus();
+  const [account, setAccount] = useState<{ name: string; createdAt: string | null } | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch("/api/account/profile", { cache: "no-store" })
+      .then((r) => r.json())
+      .catch(() => ({}))
+      .then((j: { name?: string; createdAt?: string | null }) => live && setAccount({ name: j.name ?? "", createdAt: j.createdAt ?? null }));
+    return () => {
+      live = false;
+    };
+  }, []);
+  return (
+    <>
+      <Section title="Name">{account ? <NameForm initial={account.name} /> : <Skeleton className="h-11 w-full rounded-xl" />}</Section>
+      <Section title="Email">
+        <p className="m-0 text-[15px]">{email}</p>
+      </Section>
+      {account?.createdAt && (
+        <Section title="Member since">
+          <p className="m-0 text-[15px]">{DATE.format(new Date(account.createdAt))}</p>
+        </Section>
+      )}
+    </>
+  );
 }
 
 export function NameForm({ initial }: { initial: string }) {

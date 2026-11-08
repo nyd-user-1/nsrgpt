@@ -20,13 +20,15 @@ type LinkProps = { href: string; onClick?: (e: React.MouseEvent) => void };
 type Ctx = {
   /** The signed-in reader's email; null while signed out or not yet known. */
   email: string | null;
+  /** True once /api/auth/me has answered: from then on a null email means signed out, not unknown. */
+  checked: boolean;
   /** "idle" while signed out (or not yet known); then loading → ready per product. */
   statusOf: (url: string) => Status;
   /** Where a product link goes and what a click does, given the reader and the product's state. */
   linkProps: (url: string) => LinkProps;
 };
 
-const ProductStatusContext = createContext<Ctx>({ email: null, statusOf: () => "idle", linkProps: (url) => ({ href: gated(url) }) });
+const ProductStatusContext = createContext<Ctx>({ email: null, checked: false, statusOf: () => "idle", linkProps: (url) => ({ href: gated(url) }) });
 
 export const useProductStatus = () => useContext(ProductStatusContext);
 
@@ -49,6 +51,7 @@ const hostOf = (url: string) => {
 /** The cards come from lib/home-data here rather than as props, so no page carries them in its HTML (2026-11-04). */
 export function ProductStatusProvider({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
   const signedIn = email !== null;
   const [status, setStatus] = useState<Record<string, Status>>({});
   const [notice, setNotice] = useState<string | null>(null);
@@ -75,7 +78,9 @@ export function ProductStatusProvider({ children }: { children: React.ReactNode 
 
     (async () => {
       const me = (await fetch("/api/auth/me", { cache: "no-store" }).then((r) => r.json()).catch(() => ({}))) as { user?: { email?: string } | null };
-      if (!live || !me.user) return;
+      if (!live) return;
+      setChecked(true);
+      if (!me.user) return;
       setEmail(me.user.email ?? "");
       setStatus(Object.fromEntries(products.map((c) => [hostOf(c.href), "loading" as Status])));
       products.forEach((c) => void watch(c));
@@ -106,7 +111,7 @@ export function ProductStatusProvider({ children }: { children: React.ReactNode 
   );
 
   return (
-    <ProductStatusContext.Provider value={{ email, statusOf, linkProps }}>
+    <ProductStatusContext.Provider value={{ email, checked, statusOf, linkProps }}>
       {children}
       <AnimatePresence>
         {notice && (

@@ -20,6 +20,12 @@ const FRIENDLY: Record<string, string> = {
   LimitExceededException: "Too many tries. Wait a minute and try again.",
 };
 
+/** Whether the invite can still be used; the invite page asks after its shell paints (2026-11-08). Reading doesn't spend it. */
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return NextResponse.json({ open: usable(await readInvite(id)) }, { headers: { "cache-control": "no-store" } });
+}
+
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const invite = await readInvite(id);
