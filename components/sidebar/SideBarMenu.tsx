@@ -7,6 +7,7 @@ import { Activity } from "@/components/animate-ui/icons/activity"
 import { Blocks } from "@/components/animate-ui/icons/blocks"
 import { BookOpen } from "@/components/animate-ui/icons/book-open"
 import { Database } from "@/components/animate-ui/icons/database"
+import { Layers } from "@/components/animate-ui/icons/layers"
 import { MessagesSquare } from "@/components/animate-ui/icons/messages-square"
 import { Radar } from "@/components/animate-ui/icons/radar"
 import { SearchBar } from "@/components/search/SearchBar"
@@ -30,6 +31,7 @@ const ALL: NavEntry[] = [
   ...TABLES.map((c) => ({ ...c, group: "Data" })),
   { href: "/docs", label: "Docs", group: "Main" },
   { href: "/graph", label: "Graph", group: "Main" },
+  { href: "/pipeline", label: "Pipeline", group: "Main" },
   { href: "/search", label: "Search", group: "Main" },
 ]
 
@@ -51,6 +53,7 @@ export function SideBarMenu() {
         <SideBarMenuGroup label="Data" icon={Database} items={TABLES} isOn={isOn} place={place} />
         {place("/docs") && <SideBarMenuItem href="/docs" label="Docs" icon={BookOpen} on={path === "/docs" || path.startsWith("/docs/")} />}
         {place("/graph") && <SideBarMenuItem href="/graph" label="Graph" icon={Blocks} on={path === "/graph"} />}
+        {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={Layers} on={path === "/pipeline"} />}
         {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={Radar} on={path === "/search"} />}
         <SideBarMenuFoot archived={archived} hiddenCount={hiddenCount} showHidden={showHidden} onShowHidden={setShowHidden} isOn={isOn} />
       </nav>
