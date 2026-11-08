@@ -250,9 +250,8 @@ function RowIcon({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** The row's arrow: up-right, nudging further up-right on hover. The row is `group/row`. /graph's right inset panel's
- *  menu rows wear it too (components/nsr/graph/RightInsetPanel.tsx). */
-export function RowArrow() {
+/** The row's arrow: up-right, nudging further up-right on hover. */
+function RowArrow() {
   return <ArrowUpRight className={`${GLYPH} transition-transform duration-200 ease-out group-hover/row:-translate-y-0.5 group-hover/row:translate-x-0.5`} />
 }
 

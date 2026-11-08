@@ -5,14 +5,14 @@ import { useEffect, type ReactNode } from "react";
 import { FileText } from "@/components/animate-ui/icons/file-text";
 import { ListOrdered } from "@/components/animate-ui/icons/list-ordered";
 import { Settings2 } from "@/components/animate-ui/icons/settings-2";
-import { INSET, IconRow, InsetBody, InsetIcon, InsetLayers, InsetPanel } from "@/components/nsr/graph/InsetPanel";
-import { BackButton, RowArrow } from "@/components/SwitchboardPanel";
-import type { SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
+import { INSET, InsetBody, InsetLayers, InsetPanel } from "@/components/nsr/graph/InsetPanel";
+import { BackButton } from "@/components/SwitchboardPanel";
+import { SideBarMenuItem, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
 
 /** The right inset panel's layers: the menu on top, and the three views a row drills down to. */
 export type RightView = "menu" | "papers" | "config" | "features";
 
-const VIEWS: { key: Exclude<RightView, "menu">; label: string; icon: SideBarIcon }[] = [
+export const RIGHT_VIEWS: { key: Exclude<RightView, "menu">; label: string; icon: SideBarIcon }[] = [
   { key: "papers", label: "Papers", icon: FileText },
   { key: "config", label: "Config", icon: Settings2 },
   { key: "features", label: "Features", icon: ListOrdered },
@@ -28,9 +28,9 @@ export function RightViewHeader({ onBack, children }: { onBack: () => void; chil
   );
 }
 
-/** /graph's right inset panel (Brendan, 2026-11-08): it opens on a menu, one row per view in the panel's row style with
- *  the sidebar's icon and the switchboard's drill-down arrow; a row drills down to its view, which pushes in from the
- *  right (InsetLayers), and the view's back arrow returns to the menu. */
+/** /graph's right inset panel (Brendan, 2026-11-08): it opens on a menu, one sidebar row per view (SideBarMenuItem, as
+ *  the left rail's rows), acting instead of navigating; a row drills down to its view, which pushes in from the right
+ *  (InsetLayers), and the view's back arrow returns to the menu. A row's link, /graph?panel=<view>, opens /graph there. */
 export function RightInsetPanel({ view, onView, papers, config, features }: {
   view: RightView;
   onView: (v: RightView) => void;
@@ -48,14 +48,8 @@ export function RightInsetPanel({ view, onView, papers, config, features }: {
         <h2 className={INSET.title}>Canvas</h2>
       </div>
       <InsetBody className="pt-1.5">
-        {VIEWS.map((v) => (
-          <IconRow key={v.key}>
-            <button type="button" onClick={() => onView(v.key)} className={INSET.row}>
-              <InsetIcon icon={v.icon} />
-              <span className="min-w-0 flex-1 truncate">{v.label}</span>
-              <RowArrow />
-            </button>
-          </IconRow>
+        {RIGHT_VIEWS.map((v) => (
+          <SideBarMenuItem key={v.key} href={`/graph?panel=${v.key}`} label={v.label} icon={v.icon} on={false} group="Canvas" onSelect={() => onView(v.key)} tip={{ name: v.label, side: "right" }} />
         ))}
       </InsetBody>
     </>

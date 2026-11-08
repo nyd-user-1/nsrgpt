@@ -35,7 +35,7 @@ import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
 import { SideBarMenuItem } from "@/components/sidebar/SideBarMenuItem";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
-import { RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
+import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
 import { decayIndex, halfLifeText, loadDecay, seriesFrom, FAMILY, familyOf, familyOfMode, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
@@ -1568,6 +1568,9 @@ function GraphPageInner() {
       bootSelection.current = true;
       center({ type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" });
     }
+    // A right panel row's link (/graph?panel=config) opens the panel on that view.
+    const panel = RIGHT_VIEWS.find((v) => v.key === params.get("panel"));
+    if (panel) { setRightView(panel.key); setRail("right", false); }
     // the boot itself is not an undo step
     past.current = [];
   }, [params, center, loadView]);
