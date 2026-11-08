@@ -465,7 +465,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
       .filter((v) => isRecipe(v) === wantRecipes)
       .filter((v) => !filter.trim() || `${v.name} ${v.saved_by}`.toLowerCase().includes(filter.trim().toLowerCase()));
     return (
-      <div className="hidden w-64 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -513,7 +513,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
       (f) => !filter.trim() || f.name.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden w-64 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -559,7 +559,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
       (it) => !filter.trim() || `${it.label} ${it.title ?? ""}`.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden w-64 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+      <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
         <div className="flex items-center gap-2 border-b p-3">
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
@@ -607,7 +607,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate }: 
   }
 
   return (
-    <div className="hidden w-56 shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
+    <div className="hidden w-[284px] shrink-0 flex-col border-r bg-[var(--paper)] lg:flex">
       <p className="px-3 pb-1 pt-3 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Corpus</p>
       {CATALOG_TYPES.map(({ key, label, icon: Icon }) => (
         <button
@@ -956,7 +956,8 @@ function GraphPageInner() {
       }
       fetchCards((json.nodes as GNode[]).map(keyOf));
     } catch (e) {
-      toast.error(`Expand failed: ${(e as Error).message}`);
+      // On dev no session is signed in, so every expand fails with "Sign in."; the toast is noise there (Brendan, 2026-11-08). Production keeps it.
+      if (process.env.NODE_ENV !== "development") toast.error(`Expand failed: ${(e as Error).message}`);
     } finally {
       setExpanding(null);
     }
@@ -1391,8 +1392,8 @@ function GraphPageInner() {
     <div className="flex h-full min-h-0">
       {/* The docs panel's rail tab (components/docs/DocsNav.tsx), on the catalog rail (Brendan, 2026-11-08): the chevron tab on the
           panel's edge closes and opens it; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-left>,
-          the same memory as /docs. The rail's own panels keep their w-64; the clip box hides them as the column narrows. */}
-      <div className="relative hidden h-full w-64 shrink-0 transition-[width] duration-[500ms] ease-in-out lg:block [[data-rail-left=closed]_&]:w-0">
+          the same memory as /docs. The rail's panels are 284px wide, as the docs panel; the clip box hides them as the column narrows. */}
+      <div className="relative hidden h-full w-[284px] shrink-0 transition-[width] duration-[500ms] ease-in-out lg:block [[data-rail-left=closed]_&]:w-0">
         <RailToggle side="left" className="top-24 right-0 w-[22px] border border-l-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
         <div className="flex h-full w-full overflow-hidden">
           <CatalogRail
