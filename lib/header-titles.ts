@@ -22,6 +22,7 @@ export const HEADER_TITLES: Record<string, string> = {
   "/viz/decay": "Radioactive Decay Simulation",
   "/viz/decay2": "Decay Populations Over Time",
   "/viz/decay-chain": "Decay Chain Activity",
+  "/viz/chart": "Chart of Nuclides",
   "/viz/particles": "Nuclide Decay Heat",
   "/viz/fission-yields": "Fission Product Yields",
   "/viz/explorer": "Ground-State Properties",

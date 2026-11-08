@@ -1460,7 +1460,7 @@ function GraphPageInner() {
       const out = d.edges.find((e) => e.s === g.id && e.kind !== "reaction" && !e.label.startsWith("("));
       if (!out) return "unknown";
       const m = out.label.split(/\s/)[0];
-      return m.startsWith("β−") || m.startsWith("β-") ? "b-" : m.startsWith("α") ? "a" : m.startsWith("EC") || m.startsWith("β+") ? "ec" : m.startsWith("IT") || m.startsWith("γ") ? familyOfMode("IT") : m.startsWith("SF") ? "sf" : "unknown";
+      return m.startsWith("β−") || m.startsWith("β-") ? "b-" : m.startsWith("α") ? "a" : m.startsWith("EC") || m.startsWith("β+") ? "ec" : m.startsWith("IT") || m.startsWith("γ") ? "unknown" : m.startsWith("SF") ? "sf" : "unknown";
     };
     const nodes = d.nodes.map((g) => ({ ...g, family: g.family ?? fam(g) }));
     loadGraph(nodes, edges, d.layout, d.grid ? gridPositions(nodes, d.grid) : undefined);
