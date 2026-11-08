@@ -103,7 +103,6 @@ function SourcesNode({ id }: NodeProps) {
                 ))}
               </SideBarFold>
             ))}
-            {s.note && <p className="px-3 pb-1.5 pt-1 text-[12px] text-[var(--paper-muted)]">{s.note}</p>}
           </div>
         </Card>
       ))}

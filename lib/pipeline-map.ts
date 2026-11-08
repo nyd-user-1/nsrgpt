@@ -5,7 +5,7 @@
 export type Status = "held" | "partly" | "toget" | "blocked"
 export type Leaf = { name: string; status: Status; pill?: string }
 export type Fold = { label: string; items: Leaf[] }
-export type Source = { id: string; title: string; folds: Fold[]; note?: string }
+export type Source = { id: string; title: string; folds: Fold[] }
 
 const held = (name: string, pill?: string): Leaf => ({ name, status: "held", pill })
 const toget = (name: string, pill?: string): Leaf => ({ name, status: "toget", pill })
@@ -31,7 +31,6 @@ export const SOURCES: Source[] = [
       { label: "Codes", items: [held("endf-parserpy, exforparser, ndlab", "Python"), held("PREPRO, ACEMAKER", "Fortran"), held("EMPIRE, TALYS", "Fortran"), held("GANDR, GRUCON, DICEBOX"), held("ENSDF programs", "31 NSDD repos")] },
       { label: "Frameworks", items: [held("NRDC network (EXFOR)"), held("NSDD network (ENSDF)")] },
     ],
-    note: "nds.iaea.org answers scripts with a bot check; real Chrome on an AWS box, through residential proxies, gets past it.",
   },
   {
     id: "nea",
