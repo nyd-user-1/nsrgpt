@@ -13975,36 +13975,6 @@
     "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
   },
   {
-    "url": "https://www-nds.iaea.org/public/download-endf/PRONDOS/mat/",
-    "size": 1513,
-    "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
-  },
-  {
-    "url": "https://www-nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_1721.txt",
-    "size": 2581,
-    "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
-  },
-  {
-    "url": "https://www-nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_2511.txt",
-    "size": 9353,
-    "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
-  },
-  {
-    "url": "https://www-nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_2911.txt",
-    "size": 11512,
-    "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
-  },
-  {
-    "url": "https://www-nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_5711.txt",
-    "size": 11005,
-    "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
-  },
-  {
-    "url": "https://www-nds.iaea.org/public/download-endf/PRONDOS/mat/prondos_7451.txt",
-    "size": 8959,
-    "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
-  },
-  {
     "url": "https://nds.iaea.org/amdc/ens/",
     "size": 20000,
     "reason": "proxy budget (2026-11-08): the Webshare allowance ran out before this file; resumable from _work/box/proxy-window-8/queue.json. size is the list estimate"
