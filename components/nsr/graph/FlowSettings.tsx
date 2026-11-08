@@ -3,12 +3,15 @@
 
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { INSET, InsetBody, InsetTip } from "@/components/nsr/graph/InsetPanel";
+import { cn } from "@/lib/utils";
 
 /**
  * The canvas control panel — reactflow.dev's props playground, rebuilt in our
  * skin and bound to the REAL canvas: every row maps to a live <ReactFlow />
- * prop (or our dataset/layout machinery). Hovering a label shows the prop
- * tooltip, name and description, like the original.
+ * prop (or our dataset/layout machinery). Hovering a row shows the prop's
+ * tooltip, name and description, like the original. It is the Config view of
+ * /graph's right inset panel (RightInsetPanel.tsx).
  */
 
 export interface FlowProps {
@@ -195,18 +198,9 @@ const SECTIONS: Section[] = [
   },
 ];
 
-const ROW = "flex items-center justify-between gap-3 py-1";
-const LABEL = "text-xs text-[var(--paper-muted)]";
-
-function Tip({ tip }: { tip: string }) {
-  const [name, ...rest] = tip.split(" — ");
-  return (
-    <span className="pointer-events-none absolute right-full top-0 z-20 mr-2 hidden w-56 rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] p-2.5 shadow-md group-hover:block">
-      <span className="block font-mono text-[10px] text-[var(--paper-muted)]">{name} #</span>
-      <span className="mt-1 block text-xs leading-snug text-[var(--paper-text)]">{rest.join(" — ")}</span>
-    </span>
-  );
-}
+// The rows take the left inset panel's type, spacing and hover (InsetPanel.tsx INSET, Brendan, 2026-11-08).
+const ROW = cn(INSET.row, "justify-between gap-3");
+const LABEL = "min-w-0 truncate";
 
 export function FlowSettingsPanel({
   value, onChange, dataset, onDataset, datasets, layoutMode, onLayoutMode, onClose, onReset,
@@ -225,16 +219,16 @@ export function FlowSettingsPanel({
   const SELECT = "h-7 rounded-md border bg-[var(--paper)] px-2 font-mono text-xs text-[var(--paper-text)]";
 
   return (
-    <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[var(--paper-text)]">{"<ReactFlow /> Props"}</h2>
-        <div className="flex items-center gap-3">
+    <>
+      <div className={INSET.header}>
+        <h2 className={INSET.title}>{"<ReactFlow /> Props"}</h2>
+        <div className="ml-auto flex items-center gap-3">
           <button onClick={onReset} className="text-xs text-[var(--paper-muted)] hover:text-[var(--paper-text)]">Reset</button>
-          <button onClick={onClose} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} aria-label="Close the panel" className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
         </div>
       </div>
-
-      <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Nodes &amp; Edges</p>
+      <InsetBody>
+      <p className={cn(INSET.section, "pt-3")}>Nodes &amp; Edges</p>
       <div className={ROW}>
         <span className={LABEL}>Dataset</span>
         <select value={dataset} onChange={(e) => onDataset(e.target.value)} className={SELECT}>
@@ -242,7 +236,7 @@ export function FlowSettingsPanel({
         </select>
       </div>
 
-      <p className="mb-1 mt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Layouting algorithms</p>
+      <p className={INSET.section}>Layouting algorithms</p>
       <div className={ROW}>
         <span className={LABEL}>Library</span>
         <select value={layoutMode} onChange={(e) => onLayoutMode(e.target.value)} className={SELECT}>
@@ -253,12 +247,14 @@ export function FlowSettingsPanel({
       </div>
 
       {SECTIONS.map((s) => (
-        <div key={s.title} className="mt-4">
-          <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">{s.title}</p>
-          {s.rows.map((r) => (
-            <div key={String(r.key)} className={`${ROW} group relative`}>
+        <div key={s.title}>
+          <p className={INSET.section}>{s.title}</p>
+          {s.rows.map((r) => {
+            const [name, ...rest] = r.tip.split(" — ");
+            return (
+            <InsetTip key={String(r.key)} name={`${name} #`} text={rest.join(" — ")} side="right">
+            <div className={ROW}>
               <span className={LABEL}>{r.label}</span>
-              <Tip tip={r.tip} />
               {r.kind === "bool" && (
                 <button
                   onClick={() => set(r.key, !value[r.key])}
@@ -295,9 +291,12 @@ export function FlowSettingsPanel({
                 </select>
               )}
             </div>
-          ))}
+            </InsetTip>
+            );
+          })}
         </div>
       ))}
-    </div>
+      </InsetBody>
+    </>
   );
 }

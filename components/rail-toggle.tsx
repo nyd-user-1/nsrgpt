@@ -86,6 +86,31 @@ export function useReached(sides: Side[]) {
   return reached
 }
 
+/**
+ * Rails closed for as long as the page that calls this is mounted, without changing what this browser remembers
+ * (Brendan, 2026-11-08: /graph opens with both inset panels closed, and /docs, which shares the left rail, keeps its own
+ * memory). Call it in the page's top component: the first render closes them, so its rails paint closed and never slide
+ * shut; leaving the page puts the remembered state back. A rail opened on the page is remembered as usual.
+ */
+export function useRailsClosedWhileMounted(sides: Side[]) {
+  const key = sides.join(",")
+  React.useState(() => {
+    if (typeof document !== "undefined") for (const side of sides) document.documentElement.setAttribute(attr(side), "closed")
+    return null
+  })
+  React.useLayoutEffect(() => {
+    const set = (closed: (side: Side) => boolean) => {
+      for (const side of key.split(",") as Side[]) {
+        if (closed(side)) document.documentElement.setAttribute(attr(side), "closed")
+        else document.documentElement.removeAttribute(attr(side))
+      }
+      listeners.forEach((l) => l())
+    }
+    set(() => true)
+    return () => set((side) => remembered(side) === "closed")
+  }, [key])
+}
+
 /** Whether a rail is closed, live; the page renders open and the remembered state lands on mount. */
 export function useRailClosed(side: Side) {
   const closed = React.useSyncExternalStore(subscribe, () => isClosed(side), () => false)

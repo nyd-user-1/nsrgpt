@@ -23,7 +23,11 @@ import { Input } from "@/components/ui/input";
 import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
-import { RailToggle, useRailClosed } from "@/components/rail-toggle";
+import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
+import { INSET, InsetBody, InsetTip } from "@/components/nsr/graph/InsetPanel";
+import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
+import { RightInsetPanel, type RightView } from "@/components/nsr/graph/RightInsetPanel";
+import { cn } from "@/lib/utils";
 import { decayIndex, halfLifeText, loadDecay, seriesFrom, FAMILY, familyOf, familyOfMode, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
@@ -548,12 +552,12 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       .filter((v) => isRecipe(v) === wantRecipes)
       .filter((v) => !filter.trim() || `${v.name} ${v.saved_by}`.toLowerCase().includes(filter.trim().toLowerCase()));
     return (
-      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
-        <div className="flex items-center gap-2 border-b p-3">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className={INSET.header}>
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm font-semibold text-[var(--paper-text)]">{wantRecipes ? "Recipes" : "Views"}</span>
+          <span className={INSET.title}>{wantRecipes ? "Recipes" : "Views"}</span>
           <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">{views.data ? items.length : ""}</span>
         </div>
         <div className="border-b p-2">
@@ -562,7 +566,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
             {wantRecipes ? "Saved canvases with prompt steps — click to load, then Run." : "Saved canvases, exactly as arranged. Click to load onto this one."}
           </p>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <InsetBody>
           {views.isLoading && <p className="p-3 text-xs text-[var(--paper-muted)]">Loading…</p>}
           {views.data && items.length === 0 && (
             <p className="p-3 text-xs text-[var(--paper-muted)]">
@@ -570,11 +574,10 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
             </p>
           )}
           {items.map((v) => (
+            <InsetTip key={v.id} name={v.name} text="Loads onto the canvas." side="left">
             <button
-              key={v.id}
               onClick={() => onLoadView(v.id)}
               className="flex w-full flex-col gap-0.5 border-b border-[var(--paper-rule-soft)] px-3 py-2 text-left transition-colors hover:bg-[var(--paper-quiet)]"
-              title="load onto the canvas"
             >
               <span className="flex w-full items-baseline justify-between gap-2">
                 <span className="truncate text-xs font-semibold text-[var(--paper-text)]">{v.name}</span>
@@ -582,8 +585,9 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
               </span>
               <span className="text-[10px] text-[var(--paper-muted)]">{v.saved_by} · {String(v.created_at).slice(0, 10)}</span>
             </button>
+            </InsetTip>
           ))}
-        </div>
+        </InsetBody>
         <button onClick={() => navigate("/community")} className="border-t px-3 py-2 text-left text-[10px] text-[var(--paper-muted)] hover:text-[var(--paper-text)]">
           Open Community ↗
         </button>
@@ -596,12 +600,12 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       (f) => !filter.trim() || f.name.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
-        <div className="flex items-center gap-2 border-b p-3">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className={INSET.header}>
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm font-semibold text-[var(--paper-text)]">Library</span>
+          <span className={INSET.title}>Library</span>
           <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">
             {files.data ? files.data.files.length : ""}
           </span>
@@ -610,17 +614,16 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
           <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter files…" className="h-8 text-xs" />
           <p className="mt-1 text-[10px] text-[var(--paper-muted)]">Everything ever dropped on a canvas. Click to add to this one.</p>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <InsetBody>
           {files.isLoading && <p className="p-3 text-xs text-[var(--paper-muted)]">Loading…</p>}
           {files.data && items.length === 0 && (
             <p className="p-3 text-xs text-[var(--paper-muted)]">Nothing here yet — drop a file anywhere on the canvas.</p>
           )}
           {items.map((f) => (
+            <InsetTip key={f.key} name={f.name} text="Adds to the canvas." side="left">
             <button
-              key={f.key}
               onClick={() => onAddFile(f)}
               className="flex w-full items-center gap-2 border-b border-[var(--paper-rule-soft)] px-3 py-2 text-left transition-colors hover:bg-[var(--paper-quiet)]"
-              title="add to the canvas"
             >
               <FileText className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
               <span className="min-w-0 flex-1">
@@ -630,8 +633,9 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
                 </span>
               </span>
             </button>
+            </InsetTip>
           ))}
-        </div>
+        </InsetBody>
       </div>
     );
   }
@@ -642,12 +646,12 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
       (it) => !filter.trim() || `${it.label} ${it.title ?? ""}`.toLowerCase().includes(filter.trim().toLowerCase()),
     );
     return (
-      <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
-        <div className="flex items-center gap-2 border-b p-3">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className={INSET.header}>
           <button onClick={() => { setBrowse(null); setFilter(""); }} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm font-semibold text-[var(--paper-text)]">{meta.label}</span>
+          <span className={INSET.title}>{meta.label}</span>
           <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">
             {data ? data.counts[browse]?.toLocaleString() : ""}
           </span>
@@ -656,17 +660,17 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
           <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter the top 50…" className="h-8 text-xs" />
           <p className="mt-1 text-[10px] text-[var(--paper-muted)]">Most-studied first — the search bar covers the full corpus.</p>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <InsetBody>
           {items.map((it) => {
             const g = toGNode(browse, it);
             return (
               <div key={it.id} className="group/row relative border-b border-[var(--paper-rule-soft)]">
+                <InsetTip name={it.label} text="Centres on the canvas. Drag onto the canvas or into the chat." side="left">
                 <button
                   onClick={() => onPick(g)}
                   draggable
                   onDragStart={(e) => setDragEntity(e.dataTransfer, g)}
                   className="flex w-full flex-col gap-0.5 px-3 py-2 pr-7 text-left transition-colors hover:bg-[var(--paper-quiet)]"
-                  title="center on the canvas · drag onto the canvas or into the chat"
                 >
                   <span className="flex w-full items-baseline justify-between gap-2">
                     <span className="truncate font-mono text-xs font-semibold text-[var(--paper-text)]">
@@ -680,101 +684,89 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
                   </span>
                   {it.title && <span className="line-clamp-2 text-[10px] leading-snug text-[var(--paper-muted)]">{it.title}</span>}
                 </button>
+                </InsetTip>
                 <RowMenu g={g} onPick={onPick} onAdd={onAdd} onAsk={onAsk} />
               </div>
             );
           })}
-        </div>
+        </InsetBody>
       </div>
     );
   }
 
+  // The main view. Its type, spacing and hover are the standard both inset panels share (InsetPanel.tsx INSET).
+  const demoTip = (d: Demo) => (d.grid === "figure" ? "Drawn to its reference figure." : "Hand-typed sample values, in the shape the real data will take.");
   return (
-    <div className="hidden h-full min-h-0 w-[284px] shrink-0 flex-col overflow-y-auto border-r bg-[var(--paper)] lg:flex">
-      <p className="px-3 pb-1 pt-3 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Corpus</p>
+    <InsetBody>
+      <p className={cn(INSET.section, "pt-3")}>Corpus</p>
       {CATALOG_TYPES.map(({ key, label, icon: Icon }) => (
-        <button
-          key={key}
-          onClick={() => setBrowse(key)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
-        >
-          <Icon className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
-          <span>{label}</span>
-          <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">
-            {data ? data.counts[key]?.toLocaleString() : "…"}
-          </span>
-        </button>
+        <InsetTip key={key} name={key} text="Most studied first. The search bar covers the full corpus." side="left">
+          <button onClick={() => setBrowse(key)} className={INSET.row}>
+            <Icon className={INSET.icon} />
+            <span>{label}</span>
+            <span className={INSET.count}>{data ? data.counts[key]?.toLocaleString() : "…"}</span>
+          </button>
+        </InsetTip>
       ))}
-      <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Workspace</p>
-      <button
-        onClick={() => setBrowse("files")}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
-      >
-        <FileText className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
-        <span>Library</span>
-      </button>
-      {([["views", "Views", Layers], ["recipes", "Recipes", BookOpen]] as const).map(([key, label, Icon]) => (
-        <button
-          key={key}
-          onClick={() => setBrowse(key)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
-        >
-          <Icon className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
-          <span>{label}</span>
-          {views.data && (
-            <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">
-              {views.data.views.filter((v) => isRecipe(v) === (key === "recipes")).length}
-            </span>
-          )}
+      <p className={INSET.section}>Workspace</p>
+      <InsetTip name="library" text="Everything ever dropped on a canvas. Click a file to add it to this one." side="left">
+        <button onClick={() => setBrowse("files")} className={INSET.row}>
+          <FileText className={INSET.icon} />
+          <span>Library</span>
         </button>
+      </InsetTip>
+      {([["views", "Views", Layers, "Saved canvases, exactly as arranged. Click one to load it onto this one."], ["recipes", "Recipes", BookOpen, "Saved canvases with prompt steps. Click one to load it, then Run."]] as const).map(([key, label, Icon, tip]) => (
+        <InsetTip key={key} name={key} text={tip} side="left">
+          <button onClick={() => setBrowse(key)} className={INSET.row}>
+            <Icon className={INSET.icon} />
+            <span>{label}</span>
+            {views.data && (
+              <span className={INSET.count}>{views.data.views.filter((v) => isRecipe(v) === (key === "recipes")).length}</span>
+            )}
+          </button>
+        </InsetTip>
       ))}
-      <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Datasets</p>
+      <p className={INSET.section}>Datasets</p>
       {CATALOG_LINKS.map(({ key, label, icon: Icon, href }) => (
-        <button
-          key={key}
-          onClick={() => navigate(href)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
-        >
-          <Icon className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
-          <span>{label}</span>
-          <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">
-            {data ? data.counts[key]?.toLocaleString() : "…"}
-          </span>
-        </button>
+        <InsetTip key={key} name={href} text={`Opens the ${label} page.`} side="left">
+          <button onClick={() => navigate(href)} className={INSET.row}>
+            <Icon className={INSET.icon} />
+            <span>{label}</span>
+            <span className={INSET.count}>{data ? data.counts[key]?.toLocaleString() : "…"}</span>
+          </button>
+        </InsetTip>
       ))}
-      <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Decay chains</p>
+      <p className={INSET.section}>Decay chains</p>
       {CHAINS.map((c) => (
-        <button
-          key={c.id}
-          onClick={() => onLoadChain(c.id)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
-        >
-          <Atom className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
-          <span>{c.label}</span>
-        </button>
+        <InsetTip key={c.id} name={c.id} text="Loads the series onto a fresh canvas from ENSDF's decay modes." side="left">
+          <button onClick={() => onLoadChain(c.id)} className={INSET.row}>
+            <Atom className={INSET.icon} />
+            <span>{c.label}</span>
+          </button>
+        </InsetTip>
       ))}
       {ALL_DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
-        <button key={d.id} onClick={() => onLoadDemo(d.id)} className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]">
-          <Atom className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
-          <span>{d.label}</span>
-        </button>
+        <InsetTip key={d.id} name={d.id} text={demoTip(d)} side="left">
+          <button onClick={() => onLoadDemo(d.id)} className={INSET.row}>
+            <Atom className={INSET.icon} />
+            <span>{d.label}</span>
+          </button>
+        </InsetTip>
       ))}
       {DEMO_SECTIONS.map((section) => (
-        <div key={section} className="flex flex-col">
-          <p className="px-3 pb-1 pt-4 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">{section}</p>
+        <div key={section}>
+          <p className={INSET.section}>{section}</p>
           {ALL_DEMOS.filter((d) => d.section === section).map((d) => (
-            <button
-              key={d.id}
-              onClick={() => onLoadDemo(d.id)}
-              className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]"
-            >
-              <Atom className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
-              <span>{d.label}</span>
-            </button>
+            <InsetTip key={d.id} name={d.id} text={demoTip(d)} side="left">
+              <button onClick={() => onLoadDemo(d.id)} className={INSET.row}>
+                <Atom className={INSET.icon} />
+                <span>{d.label}</span>
+              </button>
+            </InsetTip>
           ))}
         </div>
       ))}
-    </div>
+    </InsetBody>
   );
 }
 
@@ -905,9 +897,8 @@ const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
 
 /* ── page ─────────────────────────────────────────────────────────────────── */
 
-// The right inset panel's rail tab (Brendan, 2026-11-08): the same chevron tab the docs panel and the catalog rail wear, on the
-// panel's left edge; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-right>.
-// What the lake makes possible, ranked by Brendan (2026-11-08, night shift). Shown in the right panel while nothing is selected.
+// Graph Features (Brendan, 2026-11-08; "Ideas, ranked" until then): what the lake makes possible, ranked by Brendan on the
+// night shift. One of the right inset panel's three views (RightInsetPanel.tsx), the one it shows first.
 const IDEAS: { title: string; text: string; href?: string }[] = [
   { title: "Our own evaluated library", text: "Fit all 19 million EXFOR points with their covariances (IAEA's GMAP code is in the lake) across every reaction at once on GPUs; publish NSRgpt-1.0, rebuilt whenever EXFOR changes, every number traceable to its measurements." },
   { title: "A nuclear data model", text: "Train on every measured and evaluated point, level and decay record, TENDL as the prior for all 2,800 nuclides. It predicts unmeasured cross sections with calibrated uncertainty and flags measurements that don't fit." },
@@ -929,67 +920,6 @@ const IDEAS: { title: string; text: string; href?: string }[] = [
   { title: "EXFOR formats manual, IAEA WP2007-23 (PDF)", text: "", href: "https://nds.iaea.org/exfor/x4guide/manuals/wp2007-23.pdf" },
   { title: "NuDat at USNDP 2022, BNL (PDF)", text: "", href: "https://indico.bnl.gov/event/15497/contributions/70076/attachments/44350/74834/NUDAT_USNDP2022.pdf" },
 ];
-
-// The panel is draggable (Brendan, 2026-11-08): the gripper is the shell's (components/shell.tsx, pax-trinity's
-// src/components/shell.tsx), an 18px separator with a 1×8 pill on the panel's left edge; drag, arrow keys (24px),
-// double-click to reset. The width is remembered per browser. 500 ms slide, as the sidebar menu; none while dragging.
-const RIGHT_W_KEY = "graph:right-w";
-const RIGHT_W_DEFAULT = 320, RIGHT_W_MIN = 280, RIGHT_W_MAX = 720;
-function RightRail({ children }: { children: ReactNode }) {
-  const closed = useRailClosed("right");
-  const [w, setW] = useState(RIGHT_W_DEFAULT);
-  const [dragging, setDragging] = useState(false);
-  const box = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    try { const v = Number(localStorage.getItem(RIGHT_W_KEY)); if (v >= RIGHT_W_MIN && v <= RIGHT_W_MAX) setW(v); } catch {}
-  }, []);
-  useEffect(() => {
-    if (dragging) return;
-    try { localStorage.setItem(RIGHT_W_KEY, String(w)); } catch {}
-  }, [w, dragging]);
-  useEffect(() => {
-    if (!dragging) return;
-    const s = document.body.style;
-    const prev = [s.cursor, s.userSelect];
-    s.cursor = "col-resize"; s.userSelect = "none";
-    return () => { s.cursor = prev[0]; s.userSelect = prev[1]; };
-  }, [dragging]);
-  // The panel's left edge follows the pointer; the canvas keeps at least 480px.
-  const resizeTo = (x: number) => {
-    const right = box.current?.getBoundingClientRect().right ?? window.innerWidth;
-    setW(Math.max(RIGHT_W_MIN, Math.min(right - x, RIGHT_W_MAX, window.innerWidth - 480)));
-  };
-  return (
-    <div ref={box} style={{ width: closed ? 0 : w }} className={`relative hidden h-full shrink-0 md:block ${dragging ? "" : "transition-[width] duration-[500ms] ease-in-out"}`}>
-      <RailToggle side="right" className="top-24 left-0 w-[22px] border border-r-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
-      {!closed && (
-        <div
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Resize the panel"
-          tabIndex={0}
-          onPointerDown={(e) => { if (e.button !== 0) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); setDragging(true); }}
-          onPointerMove={(e) => e.currentTarget.hasPointerCapture(e.pointerId) && resizeTo(e.clientX)}
-          onPointerUp={() => setDragging(false)}
-          onPointerCancel={() => setDragging(false)}
-          onLostPointerCapture={() => setDragging(false)}
-          onDoubleClick={() => setW(RIGHT_W_DEFAULT)}
-          onKeyDown={(e) => {
-            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-            e.preventDefault();
-            setW((v) => Math.max(RIGHT_W_MIN, Math.min(RIGHT_W_MAX, v + (e.key === "ArrowLeft" ? 24 : -24))));
-          }}
-          className="group absolute top-1/2 left-0 z-40 flex h-16 w-[18px] -translate-x-1/2 -translate-y-1/2 cursor-col-resize touch-none items-center justify-center outline-none"
-        >
-          <span className={`h-8 w-1 rounded-full transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] ${dragging ? "bg-[#033882]" : "bg-[rgba(22,24,29,0.18)] dark:bg-[rgba(240,233,216,0.2)]"}`} />
-        </div>
-      )}
-      <div className="flex h-full w-full justify-end overflow-hidden">
-        <div style={{ width: w }} className="flex h-full shrink-0">{children}</div>
-      </div>
-    </div>
-  );
-}
 
 function GraphPageInner() {
   const router = useRouter();
@@ -1049,7 +979,12 @@ function GraphPageInner() {
   useEffect(() => {
     try { localStorage.setItem("graph-flow-props", JSON.stringify(flowProps)); } catch { /* quota */ }
   }, [flowProps]);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  // The right inset panel's view (RightInsetPanel.tsx): `chosen` is the one last picked from its tabs, Graph Features
+  // until one is; selecting a node or an edge shows the papers, and selecting nothing goes back to `chosen`.
+  const [chosen, setChosen] = useState<RightView>("features");
+  const [rightView, setRightView] = useState<RightView>("features");
+  const pickView = useCallback((v: RightView) => { setChosen(v); setRightView(v); }, []);
+  const rightClosed = useRailClosed("right");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
     const m = localStorage.getItem("graph-layout-mode") as LayoutMode | null;
     return m && LAYOUT_MODES.includes(m) ? m : "dagre-lr";
@@ -1152,6 +1087,7 @@ function GraphPageInner() {
     setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60);
   }, [setEdges, syncNodes, fitView]);
 
+  const loadFit = useRef(true);
   const addNodes = useCallback((items: GNode[], from?: string, relayout = true, kind?: EdgeMeta["kind"], at?: { x: number; y: number }) => {
     snapshot();
     for (const it of items) store.current.set(keyOf(it), it);
@@ -1172,8 +1108,13 @@ function GraphPageInner() {
         : [];
       const all = [...prev, ...added];
       syncNodes(all, relayout);
-      // the relayout can push new nodes off-viewport — follow them
-      if (relayout) setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60);
+      // the relayout can push new nodes off-viewport — follow them. The first, the load's own neighbourhood, fits as the
+      // controls' fit button does (Brendan, 2026-11-08: the canvas loads fitted the way the button fits it).
+      if (relayout) setTimeout(() => {
+        const onLoad = loadFit.current;
+        loadFit.current = false;
+        fitView(onLoad ? undefined : { padding: 0.15, duration: 400 });
+      }, 60);
       return all;
     });
   }, [setEdges, setNodes, syncNodes, fitView, snapshot]);
@@ -1622,11 +1563,16 @@ function GraphPageInner() {
           ? { id: `${e.s}->${e.t}`, source: e.s, target: e.t, data: { kind: "similar", cos: e.cos } as EdgeMeta, label: e.cos != null ? `${e.cos.toFixed(2)} cos` : undefined }
           : { id: `${e.s}->${e.t}`, source: e.s, target: e.t }));
         toast.success(`Loaded: ${view.name}`);
-        setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 60);
+        setTimeout(() => {
+          const onLoad = loadFit.current;
+          loadFit.current = false;
+          fitView(onLoad ? undefined : { padding: 0.15, duration: 400 });
+        }, 60);
       })
       .catch(() => toast.error("View not found"));
   }, [setNodes, setEdges, fitView, snapshot]);
 
+  const bootSelection = useRef(false);
   const booted = useRef(false);
   useEffect(() => {
     if (booted.current) return;
@@ -1638,13 +1584,26 @@ function GraphPageInner() {
     } else if (c?.includes(":")) {
       const [type, ...rest] = c.split(":");
       const id = rest.join(":");
+      bootSelection.current = true;
       center({ type: type as GNode["type"], id, label: id });
     } else {
+      bootSelection.current = true;
       center({ type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" });
     }
     // the boot itself is not an undo step
     past.current = [];
   }, [params, center, loadView]);
+
+  // Selecting a node or an edge, or opening a run's trace, shows the papers; selecting nothing shows the view last
+  // picked. The node the load centres (137Cs) is selected by the boot, not the reader, so Graph Features stays.
+  const subject = selectedKey ?? (edgeInfo ? `${keyOf(edgeInfo.source)}->${keyOf(edgeInfo.target)}` : traceOpen ? `run:${traceOpen}` : null);
+  const lastSubject = useRef<string | null>(null);
+  useEffect(() => {
+    if (subject === lastSubject.current) return;
+    lastSubject.current = subject;
+    if (bootSelection.current) { bootSelection.current = false; return; }
+    setRightView(subject ? "papers" : chosen);
+  }, [subject, chosen]);
 
   const saveView = async () => {
     if (!viewName.trim()) return;
@@ -1760,14 +1719,165 @@ function GraphPageInner() {
     return () => window.removeEventListener("open-entity", h);
   }, [center]);
 
+  // The right inset panel's papers: the selected node's record or a step's output, else the selected edge's receipt,
+  // else a run's trace. The panel's header and lists take the left panel's type and spacing (InsetPanel.tsx INSET).
+  const closeButton = (onClose: () => void) => (
+    <button onClick={onClose} aria-label="Close" className="ml-auto shrink-0 text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
+  );
+  const traceRun = traceOpen ? runs.find((r) => r.id === traceOpen) : undefined;
+  let papersView: ReactNode;
+  if (sel) {
+    const record = sel.type !== "prompt" && sel.type !== "file" && sel.type !== "more";
+    papersView = (
+      <>
+        <div className={INSET.header}>
+          <Badge variant="secondary" className="shrink-0 text-[10px]">{sel.type === "prompt" ? "step output" : sel.type}</Badge>
+          {sel.type !== "prompt" && (
+            <h2
+              draggable
+              onDragStart={(e) => setDragEntity(e.dataTransfer, sel)}
+              className="min-w-0 cursor-grab truncate font-mono text-sm font-semibold text-nuclear"
+              title="drag into the chat to attach as context"
+            >
+              {sel.label}
+            </h2>
+          )}
+          {closeButton(() => setSelectedKey(null))}
+        </div>
+        {record && (
+          <InsetBody className="px-3 pt-3">
+            {!detail && <p className="text-xs text-[var(--paper-muted)]">Loading…</p>}
+            {detail && !detail.error && (
+              <DetailBody type={sel.type} detail={detail} navigate={navigate} onCanvas={(g) => expand(g as GNode, "papers")} />
+            )}
+          </InsetBody>
+        )}
+        {sel.type === "prompt" && sel.output && (
+          <InsetBody className="px-3 pt-3">
+            <p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{sel.output}</p>
+          </InsetBody>
+        )}
+      </>
+    );
+  } else if (edgeInfo) {
+    const r = edgeReceipt(edgeInfo.source, edgeInfo.target, edgeInfo.meta);
+    papersView = (
+      <>
+        <div className={INSET.header}>
+          <Badge variant={edgeInfo.meta?.kind === "similar" ? "outline" : "secondary"} className="shrink-0 text-[10px]">
+            {edgeInfo.meta?.kind === "similar" ? "inference" : "edge"}
+          </Badge>
+          <h2 className={INSET.title}>Edge information</h2>
+          {closeButton(() => setEdgeInfo(null))}
+        </div>
+        <InsetBody>
+          <div className="pt-1.5">
+            {([["Source", edgeInfo.source], ["Target", edgeInfo.target]] as const).map(([role, g]) => (
+              <div key={role} className={cn(INSET.row, "justify-between")}>
+                <span>{role}</span>
+                <button onClick={() => setSelectedKey(keyOf(g))} className="truncate font-mono text-xs font-medium text-nuclear hover:underline" title={`open ${g.label}`}>
+                  {g.label}
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="px-3 pt-3">
+            {"table" in r && (
+              <p className="mb-1.5 font-mono text-[10px] text-[var(--paper-muted)]">record in <span className="text-[var(--paper-text)]">{r.table}</span></p>
+            )}
+            <p className="text-xs leading-relaxed text-[var(--paper-muted)]">{r.text}</p>
+            {"table" in r && (
+              <p className="mt-3 border-t pt-2 text-[10px] leading-relaxed text-[var(--paper-muted)]">
+                Every data edge on this canvas is a database record. Nothing is inferred.
+              </p>
+            )}
+          </div>
+        </InsetBody>
+      </>
+    );
+  } else if (traceRun) {
+    const dur = (traceRun.finishedAt ?? Date.now()) - traceRun.startedAt;
+    const step = traceStep != null ? traceRun.steps[traceStep] : null;
+    papersView = (
+      <>
+        <div className={INSET.header}>
+          <Badge variant="secondary" className="shrink-0 text-[10px]">run</Badge>
+          {runs.length > 1 && (
+            <select
+              value={traceOpen ?? ""}
+              onChange={(e) => { setTraceOpen(e.target.value); setTraceStep(null); }}
+              className="h-6 min-w-0 flex-1 rounded border bg-[var(--paper)] px-1 text-[10px] text-[var(--paper-muted)]"
+            >
+              {runs.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {new Date(r.startedAt).toLocaleTimeString()} — {r.label}
+                </option>
+              ))}
+            </select>
+          )}
+          {closeButton(() => setTraceOpen(null))}
+        </div>
+        <InsetBody>
+          <div className="px-3 pt-3">
+            <h2 className={INSET.title}>{traceRun.label}</h2>
+            <p className="mt-0.5 text-[10px] text-[var(--paper-muted)]">
+              {new Date(traceRun.startedAt).toLocaleString()} · {traceRun.finishedAt ? `${(dur / 1000).toFixed(1)}s total` : "running…"}
+            </p>
+          </div>
+          <div className="mt-2">
+            {traceRun.steps.map((s, i) => (
+              <button
+                key={`${s.key}-${i}`}
+                onClick={() => setTraceStep(traceStep === i ? null : i)}
+                className={cn(INSET.row, traceStep === i && "bg-[var(--paper-quiet)]")}
+              >
+                {s.status === "running"
+                  ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[var(--paper-muted)]" />
+                  : s.status === "done"
+                    ? <Check className="h-3.5 w-3.5 shrink-0 text-nuclear" />
+                    : <X className="h-3.5 w-3.5 shrink-0 text-red-500" />}
+                <span className="truncate">{s.prompt || "(empty prompt)"}</span>
+                {s.ms != null && <span className={INSET.count}>{(s.ms / 1000).toFixed(1)}s</span>}
+              </button>
+            ))}
+            {traceRun.steps.length === 0 && <p className={INSET.note}>No steps recorded.</p>}
+          </div>
+          {step && (
+            <div className="mx-3 mt-3 space-y-3 border-t pt-3">
+              {step.error && <p className="text-xs text-red-500">{step.error}</p>}
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Input · assembled context</p>
+                <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-md border bg-[var(--paper-quiet)] p-2 text-[10px] leading-snug text-[var(--paper-muted)]">
+                  {step.input || "(no wired context — the prompt ran bare)"}
+                </pre>
+              </div>
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Output · {(step.output?.length ?? 0).toLocaleString()} chars</p>
+                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md border bg-[var(--paper-quiet)] p-2 text-[10px] leading-snug text-[var(--paper-text)]">
+                  {step.output || "(no output)"}
+                </pre>
+              </div>
+            </div>
+          )}
+        </InsetBody>
+      </>
+    );
+  } else {
+    papersView = (
+      <>
+        <div className={INSET.header}>
+          <h2 className={INSET.title}>Papers</h2>
+        </div>
+        <p className={INSET.note}>Select a node or an edge on the canvas.</p>
+      </>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0">
-      {/* The docs panel's rail tab (components/docs/DocsNav.tsx), on the catalog rail (Brendan, 2026-11-08): the chevron tab on the
-          panel's edge closes and opens it; the column slides to 0 and the tab rides its edge. Open or closed is <html data-rail-left>,
-          the same memory as /docs. The rail's panels are 284px wide, as the docs panel; the clip box hides them as the column narrows. */}
-      <div className="relative hidden h-full w-[284px] shrink-0 transition-[width] duration-[500ms] ease-in-out lg:block [[data-rail-left=closed]_&]:w-0">
-        <RailToggle side="left" className="top-24 right-0 w-[22px] border border-l-0 border-[#033882] bg-[var(--paper-text)] text-[#033882] shadow-[0_2px_10px_rgba(3,56,130,0.22)] hover:w-[30.25px] hover:text-[#033882]" />
-        <div className="flex h-full w-full overflow-hidden">
+      {/* The catalog in the left inset panel (LeftInsetPanel.tsx): open or closed is <html data-rail-left>, the same memory as
+          /docs, closed on load (GraphPage below). */}
+      <LeftInsetPanel>
           <CatalogRail
             onPick={center}
             onAdd={(g) => { if (store.current.has(keyOf(g))) toast.info(`${g.label} is already on the canvas`); else { addNodes([g]); if (g.type === "paper") fetchCards([keyOf(g)]); } }}
@@ -1781,8 +1891,7 @@ function GraphPageInner() {
             onLoadDemo={loadDemo}
             navigate={navigate}
           />
-        </div>
-      </div>
+      </LeftInsetPanel>
       <div className="relative min-w-0 flex-1" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
         <ReactFlow
           nodes={rfNodes}
@@ -1911,16 +2020,20 @@ function GraphPageInner() {
                   variant="outline"
                   className="h-8 w-8 rounded-full p-0"
                   title="Run history"
-                  onClick={() => { setTraceOpen(runs[0].id); setTraceStep(null); setSelectedKey(null); setEdgeInfo(null); }}
+                  onClick={() => { setTraceOpen(runs[0].id); setTraceStep(null); setSelectedKey(null); setEdgeInfo(null); setRail("right", false); }}
                 >
                   <History className="h-4 w-4" />
                 </Button>
               )}
+              {/* The right inset panel's Config view: opens the panel on it, or closes the panel when it already shows it. */}
               <Button
                 variant="outline"
-                className={`h-8 w-8 rounded-full p-0 ${settingsOpen ? "bg-[var(--paper-quiet)]" : ""}`}
+                className={`h-8 w-8 rounded-full p-0 ${rightView === "config" && !rightClosed ? "bg-[var(--paper-quiet)]" : ""}`}
                 title="Canvas settings — <ReactFlow /> props"
-                onClick={() => setSettingsOpen((v) => !v)}
+                onClick={() => {
+                  if (rightView === "config" && !rightClosed) setRail("right", true);
+                  else { pickView("config"); setRail("right", false); }
+                }}
               >
                 <Settings2 className="h-4 w-4" />
               </Button>
@@ -1949,179 +2062,54 @@ function GraphPageInner() {
         </Dialog>
       </div>
 
-      {settingsOpen && (
-        <FlowSettingsPanel
-          value={flowProps}
-          onChange={setFlowProps}
-          dataset={dataset}
-          onDataset={applyDataset}
-          datasets={DATASETS.map(({ id, label }) => ({ id, label }))}
-          layoutMode={layoutMode}
-          onLayoutMode={changeLayoutMode}
-          onClose={() => setSettingsOpen(false)}
-          onReset={() => setFlowProps(DEFAULT_FLOW_PROPS)}
-        />
-      )}
-      {!settingsOpen && traceOpen && !sel && !edgeInfo && (() => {
-        const run = runs.find((r) => r.id === traceOpen);
-        if (!run) return null;
-        const dur = (run.finishedAt ?? Date.now()) - run.startedAt;
-        const step = traceStep != null ? run.steps[traceStep] : null;
-        return (
-          <div className="hidden w-96 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <Badge variant="secondary" className="text-[10px]">run</Badge>
-              {runs.length > 1 && (
-                <select
-                  value={traceOpen}
-                  onChange={(e) => { setTraceOpen(e.target.value); setTraceStep(null); }}
-                  className="h-6 min-w-0 flex-1 rounded border bg-[var(--paper)] px-1 text-[10px] text-[var(--paper-muted)]"
-                >
-                  {runs.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {new Date(r.startedAt).toLocaleTimeString()} — {r.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <button onClick={() => setTraceOpen(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
+      <RightInsetPanel
+        view={rightView}
+        onView={pickView}
+        papers={papersView}
+        config={
+          <FlowSettingsPanel
+            value={flowProps}
+            onChange={setFlowProps}
+            dataset={dataset}
+            onDataset={applyDataset}
+            datasets={DATASETS.map(({ id, label }) => ({ id, label }))}
+            layoutMode={layoutMode}
+            onLayoutMode={changeLayoutMode}
+            onClose={() => setRail("right", true)}
+            onReset={() => setFlowProps(DEFAULT_FLOW_PROPS)}
+          />
+        }
+        features={
+          <>
+            <div className={INSET.header}>
+              <h2 className={INSET.title}>Graph Features</h2>
             </div>
-            <h2 className="text-sm font-semibold text-[var(--paper-text)]">{run.label}</h2>
-            <p className="mt-0.5 text-[10px] text-[var(--paper-muted)]">
-              {new Date(run.startedAt).toLocaleString()} · {run.finishedAt ? `${(dur / 1000).toFixed(1)}s total` : "running…"}
-            </p>
-            <div className="mt-3 space-y-0.5">
-              {run.steps.map((s, i) => (
-                <button
-                  key={`${s.key}-${i}`}
-                  onClick={() => setTraceStep(traceStep === i ? null : i)}
-                  className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition-colors hover:bg-[var(--paper-quiet)] ${traceStep === i ? "bg-[var(--paper-quiet)]" : ""}`}
-                >
-                  {s.status === "running"
-                    ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[var(--paper-muted)]" />
-                    : s.status === "done"
-                      ? <Check className="h-3.5 w-3.5 shrink-0 text-nuclear" />
-                      : <X className="h-3.5 w-3.5 shrink-0 text-red-500" />}
-                  <span className="truncate text-[var(--paper-text)]">{s.prompt || "(empty prompt)"}</span>
-                  {s.ms != null && (
-                    <span className="ml-auto shrink-0 font-mono text-[10px] text-[var(--paper-muted)]">{(s.ms / 1000).toFixed(1)}s</span>
-                  )}
-                </button>
-              ))}
-              {run.steps.length === 0 && <p className="px-2 text-xs text-[var(--paper-muted)]">No steps recorded.</p>}
-            </div>
-            {step && (
-              <div className="mt-3 space-y-3 border-t pt-3">
-                {step.error && <p className="text-xs text-red-500">{step.error}</p>}
-                <div>
-                  <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Input · assembled context</p>
-                  <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-md border bg-[var(--paper-quiet)] p-2 text-[10px] leading-snug text-[var(--paper-muted)]">
-                    {step.input || "(no wired context — the prompt ran bare)"}
-                  </pre>
-                </div>
-                <div>
-                  <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Output · {(step.output?.length ?? 0).toLocaleString()} chars</p>
-                  <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md border bg-[var(--paper-quiet)] p-2 text-[10px] leading-snug text-[var(--paper-text)]">
-                    {step.output || "(no output)"}
-                  </pre>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-      {!settingsOpen && !traceOpen && !sel && !edgeInfo && (
-        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
-          <h2 className="text-sm font-semibold text-[var(--paper-text)]">Ideas, ranked</h2>
-          <ol className="mt-3 space-y-3">
-            {IDEAS.map((i, n) => (
-              <li key={i.title} className="flex gap-2 text-xs leading-relaxed">
-                <span className="w-5 shrink-0 font-mono text-[var(--paper-muted)]">{n + 1}</span>
-                <span>
-                  {i.href ? <a href={i.href} target="_blank" rel="noreferrer" className="font-semibold text-nuclear hover:underline">{i.title}</a> : <span className="font-semibold text-[var(--paper-text)]">{i.title}</span>}
-                  {i.text && <span className="text-[var(--paper-muted)]"> {i.text}</span>}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div></RightRail>
-      )}
-      {!settingsOpen && !sel && edgeInfo && (
-        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
-          <div className="mb-2 flex items-start justify-between">
-            <Badge variant={edgeInfo.meta?.kind === "similar" ? "outline" : "secondary"} className="text-[10px]">
-              {edgeInfo.meta?.kind === "similar" ? "inference" : "edge"}
-            </Badge>
-            <button onClick={() => setEdgeInfo(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
-          </div>
-          <h2 className="text-sm font-semibold text-[var(--paper-text)]">Edge information</h2>
-          <div className="mt-3 space-y-2">
-            {([["Source", edgeInfo.source], ["Target", edgeInfo.target]] as const).map(([role, g]) => (
-              <div key={role} className="flex items-center justify-between gap-2 text-xs">
-                <span className="text-[var(--paper-muted)]">{role}</span>
-                <button
-                  onClick={() => setSelectedKey(keyOf(g))}
-                  className="truncate font-mono font-medium text-nuclear hover:underline"
-                  title={`open ${g.label}`}
-                >
-                  {g.label}
-                </button>
-              </div>
-            ))}
-          </div>
-          {(() => {
-            const r = edgeReceipt(edgeInfo.source, edgeInfo.target, edgeInfo.meta);
-            return (
-              <div className="mt-4">
-                {"table" in r && (
-                  <p className="mb-1.5 font-mono text-[10px] text-[var(--paper-muted)]">record in <span className="text-[var(--paper-text)]">{r.table}</span></p>
-                )}
-                <p className="text-xs leading-relaxed text-[var(--paper-muted)]">{r.text}</p>
-                {"table" in r && (
-                  <p className="mt-3 border-t pt-2 text-[10px] leading-relaxed text-[var(--paper-muted)]">
-                    Every data edge on this canvas is a database record. Nothing is inferred.
-                  </p>
-                )}
-              </div>
-            );
-          })()}
-        </div></RightRail>
-      )}
-      {!settingsOpen && sel && sel.type !== "prompt" && sel.type !== "file" && sel.type !== "more" && (
-        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
-          <div className="mb-2 flex items-start justify-between">
-            <Badge variant="secondary" className="text-[10px]">{sel.type}</Badge>
-            <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
-          </div>
-          <h2
-            draggable
-            onDragStart={(e) => setDragEntity(e.dataTransfer, sel)}
-            className="cursor-grab font-mono text-sm font-semibold text-nuclear"
-            title="drag into the chat to attach as context"
-          >
-            {sel.label}
-          </h2>
-          {!detail && <p className="mt-3 text-xs text-[var(--paper-muted)]">Loading…</p>}
-          {detail && !detail.error && (
-            <DetailBody type={sel.type} detail={detail} navigate={navigate} onCanvas={(g) => expand(g as GNode, "papers")} />
-          )}
-        </div></RightRail>
-      )}
-      {!settingsOpen && sel && sel.type === "prompt" && sel.output && (
-        <RightRail><div className="w-full overflow-y-auto border-l bg-[var(--paper)] p-4">
-          <div className="mb-2 flex items-start justify-between">
-            <Badge variant="secondary" className="text-[10px]">step output</Badge>
-            <button onClick={() => setSelectedKey(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]"><X className="h-4 w-4" /></button>
-          </div>
-          <p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{sel.output}</p>
-        </div></RightRail>
-      )}
+            <InsetBody>
+              <ol className="pt-1.5">
+                {IDEAS.map((i, n) => (
+                  <li key={i.title} className="flex gap-2 px-3 py-1.5 transition-colors hover:bg-[var(--paper-quiet)]">
+                    <span className="w-5 shrink-0 pt-0.5 font-mono text-xs text-[var(--paper-muted)]">{n + 1}</span>
+                    <span className="min-w-0">
+                      {i.href
+                        ? <a href={i.href} target="_blank" rel="noreferrer" className="text-sm text-nuclear hover:underline">{i.title}</a>
+                        : <span className="block text-sm text-[var(--paper-text)]">{i.title}</span>}
+                      {i.text && <span className="mt-0.5 block text-xs leading-relaxed text-[var(--paper-muted)]">{i.text}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </InsetBody>
+          </>
+        }
+      />
     </div>
   );
 }
 
 // The query cache is the app's one (components/DataProvider.tsx, 2026-11-08).
 export function GraphPage() {
+  // Both inset panels closed on load (Brendan, 2026-11-08), without changing what this browser remembers for /docs.
+  useRailsClosedWhileMounted(["left", "right"]);
   return (
     <ReactFlowProvider>
       <GraphPageInner />
