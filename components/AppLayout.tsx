@@ -65,7 +65,10 @@ export function AppLayout({
               <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={`${ICON_BUTTON} ${HEADER_GAP}`}>
                 <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
               </button>
-              <TitleText text="NSRgpt" className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
+              {/* The name is the way home: a link to the root with the chart headers' hover (Brendan, 2026-11-09). */}
+              <Link href="/" aria-label="NSRgpt home" className={`-ml-2.5 flex items-center rounded-lg px-2.5 py-1.5 outline-none transition-colors ${HOVER}`}>
+                <TitleText text="NSRgpt" className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
+              </Link>
             </div>
             <div className="min-h-0 flex-1">
               <SideBarMenu />
