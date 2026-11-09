@@ -47,7 +47,7 @@ export const U235_NF_CANVAS: Canvas = {
   blocks: [
     block("exfor", "data", "EXFOR: U-235 (n,f)", 0, 0, { source: "exfor", target: "U-235", reaction: "N,F", quantity: "SIG", emin: EMIN, emax: EMAX }),
     block("endf", "data", "ENDF: U-235 MT18", 0, 340, { source: "endf", name: "U-235", mt: 18, releases: RELEASES, emin: EMIN, emax: EMAX }),
-    block("cov", "data", "Covariance: U-235 MT18", 0, 680, { source: "cov", name: "U-235", mt: 18, releases: RELEASES }),
+    block("cov", "data", "Covariance: U-235 MT18", 0, 680, { source: "cov", name: "U-235", mt: 18, releases: RELEASES, emin: EMIN, emax: EMAX }),
     block("broaden", "process", "Broaden to 300 K", 360, 100, { op: "broaden", name: "U-235", mt: 18, releases: RELEASES, temperatures: [300], emin: EMIN, emax: EMAX }),
     block("compare", "compare", "Measured against evaluated", 360, 430, { binsPerDecade: 20, emin: EMIN, emax: EMAX, highlight: WINDOW }),
     block("plot", "plot", "σ against energy", 720, 0, { mode: "both", highlight: WINDOW }),
