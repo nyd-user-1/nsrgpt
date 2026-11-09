@@ -581,6 +581,8 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onNewCanvas,
   // Favorites (Brendan, 2026-11-09): every rail row a reader has starred from its menu (lib/nav-rows.ts, keyed by the
   // row's address), in the rail's own order. Workspace shows the first three and a See more; the layer lists them all.
   const { rows: navRows } = useNavRows();
+  // Favorites folds open and shut like the sidebar's groups, shut on every load (Brendan, 2026-11-09).
+  const [favOpen, setFavOpen] = useState(false);
   const favorites = useMemo(() => {
     const all: { href: string; label: string; icon: SideBarIcon; group: string; onSelect: () => void }[] = [
       { href: "/graph?browse=files", label: "Library", icon: FileText, group: "Workspace", onSelect: () => setBrowse("files") },
@@ -798,8 +800,8 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onNewCanvas,
         <div className="flex flex-col">
           {/* Favorites: an item with sub-items on the sidebar's tree lines (SideBarMenuGroup's trunk and elbows): the
               row opens them all; beneath it the first three, and See more when there are more (Brendan, 2026-11-09). */}
-          <SideBarMenuItem href="/graph?browse=favorites" label="Favorites" icon={Star} on={false} group="Workspace" onSelect={() => setBrowse("favorites")} tip={{ name: "Favorites", side: "left" }} />
-          {(() => {
+          <SideBarGroupHeader label="Favorites" icon={Star} open={favOpen} onToggle={() => setFavOpen((v) => !v)} />
+          {favOpen && (() => {
             const shown = favorites.slice(0, 3).map((f) => ({ key: f.href, row: <SideBarMenuItem href={f.href} label={f.label} icon={f.icon} on={false} small group="Favorites" onSelect={f.onSelect} tip={{ name: f.label, side: "left" }} /> }));
             if (favorites.length > 3) shown.push({ key: "more", row: <SideBarMenuItem href="/graph?browse=favorites" label={`See more (${favorites.length - 3})`} icon={ChevronRight} on={false} small group="Favorites" onSelect={() => setBrowse("favorites")} tip={{ name: "All favorites", side: "left" }} /> });
             return shown.map((s, k) => (
