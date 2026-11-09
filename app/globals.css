@@ -686,3 +686,13 @@ html .react-flow__controls-button svg { fill: currentColor !important; }
 
 /* /pipeline's connectors (2026-11-08): the arrowheads take the palette's faint ink, matching the lines; React Flow colours them inline, so the rule carries !important. */
 html .pipeline-flow .react-flow__arrowhead polyline { fill: var(--paper-faint) !important; stroke: var(--paper-faint) !important; }
+
+/* /factory's highlight (pax-trinity src/app/pax2.css, brief 32): a lit box glows, a lit line carries a light. The glow takes the palette's strong ink. */
+@keyframes erd-glow {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--paper-strong) 30%, transparent), 0 0 16px color-mix(in oklab, var(--paper-strong) 25%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--paper-strong) 45%, transparent), 0 0 28px color-mix(in oklab, var(--paper-strong) 40%, transparent); }
+}
+.erd-lit { animation: erd-glow 1.6s ease-in-out infinite; }
+@keyframes erd-travel { to { stroke-dashoffset: -420; } }
+.erd-travel { stroke-dasharray: 3 417; stroke-linecap: round; animation: erd-travel 2.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .erd-lit, .erd-travel { animation: none; } }
