@@ -50,8 +50,9 @@ export async function api(path) {
 
 export const num = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
 
-/** Write public/viz-data/diagram/<name>, upload it to the CDN folder and the lake, record it in the lake manifest. */
-export function publish(name, obj, sources) {
+/** Write public/viz-data/diagram/<name>, upload it to the CDN folder and the lake, record it in the lake manifest
+ *  (sources, plus any `extra` fields for that entry). */
+export function publish(name, obj, sources, extra = {}) {
   const local = join(ROOT, "public", "viz-data", "diagram", name);
   mkdirSync(dirname(local), { recursive: true });
   const body = JSON.stringify(obj);
@@ -65,7 +66,7 @@ export function publish(name, obj, sources) {
   try {
     manifest = JSON.parse(execFileSync("aws", ["s3", "cp", `s3://${BUCKET}/lake/serve/diagram/manifest.json`, "-", ...PROFILE], { encoding: "utf8" }));
   } catch { /* first file */ }
-  manifest.files[name] = { bytes: Buffer.byteLength(body), written: new Date().toISOString().slice(0, 19) + "Z", sources };
+  manifest.files[name] = { bytes: Buffer.byteLength(body), written: new Date().toISOString().slice(0, 19) + "Z", sources, ...extra };
   const mpath = join(ROOT, "public", "viz-data", "diagram", "manifest.json");
   writeFileSync(mpath, JSON.stringify(manifest, null, 1));
   aws("s3", "cp", mpath, `s3://${BUCKET}/lake/serve/diagram/manifest.json`, "--content-type", "application/json", "--only-show-errors");

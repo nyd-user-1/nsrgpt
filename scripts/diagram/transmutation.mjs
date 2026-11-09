@@ -8,15 +8,29 @@
 //   node scripts/diagram/transmutation.mjs
 // Output: { energy_ev, release, nuclides: [{ id, name, z, a, liso, sigmaCapture, sigmaFission, capturePct, fissionPct,
 //   halfLife: {s, text}, decay: {alpha, betaMinus, ec, it, sf}, class }], rule, sources }
-//   class by brief 29's rule: fissionPct ≥ 50 fissile; else half-life under 1 year shortlived; else capturePct ≥ 50
-//   fertile; else less fertile.
+// The class (lead-agent's ruling on brief 29, 2026-11-08):
+//   1. half-life under 1 year: shortlived;
+//   2. else fissionPct ≥ 50: fissile;
+//   3. else fertile when the capture product (Z, A+1 ground state), or what it β−-decays to, is fissile (the β− steps are
+//      followed while the main decay is β−: U-239 → Np-239 → Pu-239);
+//   4. else less fertile.
+// "Fissile" in step 3 is the class from steps 1–2, so a short-lived product (Pu-243, Am-242, Am-244) doesn't count.
+// The manifest entry keeps the comparison with the Sasahara figure (as hand-typed in lib/diagram/library/activation.ts);
+// the numbers here are the lake's, pointwise at 0.0253 eV, and the figure's look spectrum-averaged.
 import { athena, num, publish } from "./lib.mjs";
 
 const E = 0.0253;
 const RELEASE = "B-VIII.1-point-293.6K";
 const YEAR = 365.2422 * 86400;
 const LIST = ["U-238", "Pu-238", "Pu-239", "Pu-240", "Pu-241", "Pu-242", "Pu-243", "Am-241", "Am-242", "Am-242m", "Am-243",
-  "Cm-242", "Cm-243", "Cm-244", "Cm-245"];
+  "Am-244", "Cm-242", "Cm-243", "Cm-244", "Cm-245"];
+// The Sasahara figure's classes and fission percent, as hand-typed in lib/diagram/library/activation.ts (2026-11-08)
+const FIGURE = {
+  "U-238": ["fertile"], "Pu-238": ["fertile", 9], "Pu-239": ["fissile", 64], "Pu-240": ["fertile"], "Pu-241": ["fissile", 72],
+  "Pu-242": ["less fertile"], "Pu-243": ["shortlived"], "Am-241": ["less fertile", 10], "Am-242": ["shortlived"],
+  "Am-242m": ["fissile", 84], "Am-243": ["less fertile", 1], "Am-244": ["shortlived"], "Cm-242": ["shortlived", 1],
+  "Cm-243": ["fissile", 85], "Cm-244": ["fertile", 4], "Cm-245": ["fissile", 85],
+};
 
 // σ at 0.0253 eV: i = number of points at or below E (arrays ascend, 1-based), then the points i and i+1
 const xs = athena(`
@@ -34,9 +48,12 @@ for (const r of xs) {
 }
 
 const ensdfName = (n) => n.replace(/^([A-Z][a-z]?)-(\d+)m?$/, "$2$1");
-const names = [...new Set(LIST.map(ensdfName))];
-const summary = Object.fromEntries(athena(`SELECT name, half_life_s, half_life_text, decay_modes FROM nuclide_serve_summary
-  WHERE name IN (${names.map((n) => `'${n}'`).join(",")})`).map((r) => [r.name, r]));
+// the listed nuclides and the β− chains of their capture products (U-239, Np-239 …), Z 92–97, A 238–247
+const sumRows = athena(`SELECT name, z, a, half_life_s, half_life_text, decay_modes FROM nuclide_serve_summary
+  WHERE z BETWEEN 92 AND 97 AND a BETWEEN 238 AND 247`);
+const summary = Object.fromEntries(sumRows.map((r) => [r.name, r]));
+const byZA = Object.fromEntries(sumRows.map((r) => [`${r.z},${r.a}`, r]));
+const mainMode = (r) => (JSON.parse(r?.decay_modes || "[]").filter((m) => m.pct !== null).sort((x, y) => y.pct - x.pct)[0] || {}).mode;
 const am242m = athena(`SELECT energy_kev, half_life_s, half_life_text, decay_modes_text FROM nuclide_serve_levels
   WHERE name = '242Am' AND energy_kev BETWEEN 40 AND 60 AND half_life_s IS NOT NULL`)[0];
 
@@ -61,20 +78,43 @@ const nuclides = LIST.map((id) => {
     : { s: num(sum.half_life_s), text: sum.half_life_text };
   const decay = meta ? modes(parseText(am242m.decay_modes_text)) : modes(JSON.parse(sum.decay_modes || "[]"));
   const fissionPct = 100 - capturePct;
-  const cls = fissionPct >= 50 ? "fissile" : halfLife.s !== null && halfLife.s < YEAR ? "shortlived"
-    : capturePct >= 50 ? "fertile" : "less fertile";
+  // steps 1 and 2 here; 3 and 4 below, once every nuclide's steps 1–2 class is known
+  const cls = halfLife.s !== null && halfLife.s < YEAR ? "shortlived" : fissionPct >= 50 ? "fissile" : null;
   return { id, name: ensdfName(id) + (meta ? "m" : ""), z: s.z, a: s.a, liso: s.liso,
     sigmaCapture: round(s.capture), sigmaFission: round(s.fission),
     capturePct: round(capturePct, 3), fissionPct: round(fissionPct, 3), halfLife,
     decay: Object.fromEntries(Object.entries(decay).map(([k, v]) => [k, round(v, 5)])), class: cls };
 });
+// steps 3 and 4: the capture product (ground state) and its β− descendants, while the main decay is β−
+const fissile = new Set(nuclides.filter((n) => n.class === "fissile" && n.liso === 0).map((n) => `${n.z},${n.a}`));
+for (const n of nuclides.filter((x) => x.class === null)) {
+  const chain = [];
+  let z = n.z, a = n.a + 1;
+  for (let r = byZA[`${z},${a}`]; r; r = mainMode(r) === "B-" ? byZA[`${++z},${a}`] : null) chain.push(r);
+  const hit = chain.find((r) => fissile.has(`${r.z},${r.a}`));
+  n.class = hit ? "fertile" : "less fertile";
+  n.classPath = chain.map((r) => r.name).join(" → ");
+}
 
+const RULE = "half-life under 1 year: shortlived; else fissionPct ≥ 50: fissile; else fertile when the capture product "
+  + "(Z, A+1 ground state) or what it β−-decays to (following β− while it is the main decay) is fissile; else less fertile";
+const comparison = nuclides.map((n) => ({ id: n.id, class: n.class, figureClass: FIGURE[n.id][0],
+  fissionPct: n.fissionPct, figureFissionPct: FIGURE[n.id][1] ?? null }));
 publish("transmutation-u238-cm244.json", {
   energy_ev: E, release: RELEASE, units: { sigma: "barn", pct: "percent of absorptions (capture + fission)" },
-  rule: "fissionPct ≥ 50 fissile; else half-life under 1 year shortlived; else capturePct ≥ 50 fertile; else less fertile",
+  rule: RULE,
   nuclides,
   sources: [`nsr.endf_serve_xs release ${RELEASE} (NNDC ENDF/B-VIII.1 POINT2025, 293.6 K), MT 102 and MT 18 at ${E} eV`,
     "nsr.nuclide_serve_summary and nsr.nuclide_serve_levels (ENSDF 2026-11-05 adopted levels)"],
-}, [`nsr.endf_serve_xs (${RELEASE})`, "nsr.nuclide_serve_summary", "nsr.nuclide_serve_levels"]);
+}, [`nsr.endf_serve_xs (${RELEASE})`, "nsr.nuclide_serve_summary", "nsr.nuclide_serve_levels"], {
+  rule: RULE,
+  figureComparison: {
+    note: "Against the Sasahara figure as hand-typed in lib/diagram/library/activation.ts. Our numbers are the lake's: "
+      + "σ(n,f)/(σ(n,γ)+σ(n,f)) pointwise at 0.0253 eV from B-VIII.1-point-293.6K; the figure's percentages look "
+      + "spectrum-averaged, so they differ where the cross sections change across the thermal range.",
+    nuclides: comparison,
+  },
+});
+for (const c of comparison) if (c.class !== c.figureClass) console.log("CLASS DIFFERS", c.id, c.class, "figure", c.figureClass);
 for (const n of nuclides) console.log(n.id.padEnd(8), String(n.sigmaCapture).padStart(9), String(n.sigmaFission).padStart(9),
-  String(n.capturePct).padStart(7), n.halfLife.text.padEnd(14), n.class, JSON.stringify(n.decay));
+  String(n.capturePct).padStart(7), n.halfLife.text.padEnd(14), n.class.padEnd(13), n.classPath ?? "");
