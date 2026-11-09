@@ -2,7 +2,7 @@ import { VizBoxMenu } from "./viz/box-menu";
 import { ExpandBox } from "./viz/expand-box";
 import { PaneButton } from "./viz/pane-button";
 import { PlateKeys } from "./viz/plate-keys";
-import { VIZ_CHARTS, type VizChart } from "@/lib/viz-charts";
+import { PLATE_TABLES, VIZ_CHARTS, type VizChart } from "@/lib/viz-charts";
 import { HEADER_TITLES } from "@/lib/header-titles";
 import { PLATE_H } from "@/lib/plate";
 import { PlateGrid } from "@/app/PlateGrid";
@@ -13,8 +13,10 @@ export const metadata = {
 };
 
 // The boxes A to Z by the name each one shows, left to right and top to bottom across the frames (Brendan, 2026-11-07).
-const nameOf = (c: VizChart) => HEADER_TITLES[c.href] ?? c.title;
-const BY_NAME = [...VIZ_CHARTS].sort((a, b) => nameOf(a).localeCompare(nameOf(b), "en", { sensitivity: "base", numeric: true }));
+// The charts, and the tables that have a box of their own (brief 35: the nuclides table).
+type PlateBox = VizChart & { name?: string };
+const nameOf = (c: PlateBox) => c.name ?? HEADER_TITLES[c.href] ?? c.title;
+const BY_NAME = [...VIZ_CHARTS, ...PLATE_TABLES].sort((a, b) => nameOf(a).localeCompare(nameOf(b), "en", { sensitivity: "base", numeric: true }));
 
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const;
@@ -45,19 +47,24 @@ export default function HomePage() {
 }
 
 /** A contents-plate cell at rest: the chart's type, its variables, and its number. */
-function VizBox({ chart, index }: { chart: VizChart; index: number }) {
+function VizBox({ chart, index }: { chart: PlateBox; index: number }) {
   // The source sits after the box's number, "02 • ENSDF"; the axes are the description (Brendan, 2026-11-06).
   const source = chart.lines.find((l) => l.startsWith("Source: "))?.slice("Source: ".length);
   const axes = chart.lines.filter((l) => !l.startsWith("Source: "));
+  const name = nameOf(chart);
+  // Every box the same shape (brief 35, Part 4, 2026-11-09): the grid cell's height, the same padding, its content
+  // clipped. The description takes what the title and the foot leave and clips; the foot (number, source, pane button)
+  // always shows, the source cut with an ellipsis when long. Before, a box kept a 210 px floor taller than a short
+  // plate's cells, so the plate cut off its foot, and a long source pushed the pane button into the next box.
   const body = (
     <>
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex items-start justify-between gap-3">
           {/* Every box's title the same shape (Brendan, 2026-11-06): two lines, always, a longer name ending in "…";
               hovering shows it whole. The chart type sits beneath. */}
           <div className="min-w-0">
-            <h3 title={HEADER_TITLES[chart.href] ?? chart.title} className="m-0 line-clamp-2 min-h-[2.2em] text-[20px] leading-[1.1]" style={{ ...SERIF, color: "var(--paper-text)" }}>
-              {HEADER_TITLES[chart.href] ?? chart.title}
+            <h3 title={name} className="m-0 line-clamp-2 min-h-[2.2em] text-[20px] leading-[1.1]" style={{ ...SERIF, color: "var(--paper-text)" }}>
+              {name}
             </h3>
             <p className="m-0 mt-1.5 text-[11px] text-[var(--paper-faint)]" style={SANS}>
               {chart.title}
@@ -68,14 +75,14 @@ function VizBox({ chart, index }: { chart: VizChart; index: number }) {
           </span>
         </div>
         {/* The description: the axes, one a line (Brendan, 2026-11-06). */}
-        <div className="mt-2 flex-1 text-[12px] leading-[1.5] text-[var(--paper-muted)]" style={SANS}>
+        <div className="mt-2 min-h-0 flex-1 overflow-hidden text-[12px] leading-[1.5] text-[var(--paper-muted)]" style={SANS}>
           {axes.map((l) => (
-            <p key={l} className="m-0">{l}</p>
+            <p key={l} className="m-0 truncate" title={l}>{l}</p>
           ))}
         </div>
       </div>
-      <div className="relative mt-4 flex items-end justify-between gap-3">
-        <span className="shrink-0 text-[10px] tabular-nums tracking-[0.2em] text-[var(--paper-faint)]" style={MONO}>
+      <div className="relative mt-3 flex min-w-0 shrink-0 items-end justify-between gap-3">
+        <span className="min-w-0 truncate text-[10px] tabular-nums tracking-[0.2em] text-[var(--paper-faint)]" style={MONO} title={source}>
           {String(index + 1).padStart(2, "0")}
           {source && ` • ${source}`}
         </span>
@@ -83,7 +90,7 @@ function VizBox({ chart, index }: { chart: VizChart; index: number }) {
       </div>
     </>
   );
-  const cls = "flex min-h-[210px] flex-col border-b border-r border-[var(--paper-rule)] px-5 py-5 transition-colors hover:bg-[var(--paper-quiet)] [-webkit-tap-highlight-color:transparent]";
+  const cls = "flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-b border-r border-[var(--paper-rule)] px-5 py-5 transition-colors hover:bg-[var(--paper-quiet)] [-webkit-tap-highlight-color:transparent]";
   // Every chart box grows into its page (Brendan, 2026-11-04).
   return (
     <ExpandBox href={chart.href} className={cls}>

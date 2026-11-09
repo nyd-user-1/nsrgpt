@@ -46,6 +46,12 @@ export const VIZ_CHARTS: VizChart[] = [
   { href: "https://en.wikipedia.org/wiki/Decay_chain#/media/File:Radioactive_decay_chains_diagram.svg", title: "Placeholder", body: "The four decay series on one Z against N grid, α and β steps as arrows: the Flow Map's data in the textbook form. To build, beside the Flow Map, not instead of it.", lines: ["Placeholder", "Source: Wikipedia, Decay chain"] },
 ]
 
+/** Tables with a box of their own on the contents plate (brief 35, 2026-11-09). Not charts: they stay out of the chart
+ *  list's prev and next and the header's switcher; the sidebar and search list them with the other tables. */
+export const PLATE_TABLES: (VizChart & { name: string })[] = [
+  { href: "/viz/data/nuclides", name: "Nuclides Table", title: "Table", body: "One row per ground state: Z, N, A, Jπ, half-life, decay modes, mass excess, binding per nucleon and abundance, with the ENSDF and XUNDL datasets, NSR papers and EXFOR entries held for each. Sorts on every column; a row opens its nuclide on the chart.", lines: ["Rows: Ground States", "Columns: Properties and Counts", "Source: IAEA Live Chart, ENSDF, XUNDL, NSR, EXFOR"] },
+]
+
 /** The chart before and after `path` in box order, wrapping at the ends; null off the list. */
 export function vizNeighbours(path: string | null): { prev: VizChart; next: VizChart } | null {
   const i = VIZ_CHARTS.findIndex((c) => c.href === path)

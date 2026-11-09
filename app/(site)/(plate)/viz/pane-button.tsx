@@ -24,7 +24,7 @@ export function PaneButton({ href, title }: { href: string; title: string }) {
         e.stopPropagation()
         openPane(href)
       }}
-      className="-mr-1.5 -mb-1 flex h-7 w-7 items-center justify-center rounded-md text-[var(--paper-faint)] transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))] hover:text-[var(--paper-text)]"
+      className="-mr-1.5 -mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--paper-faint)] transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))] hover:text-[var(--paper-text)]"
     >
       <PanelRight className="h-4 w-4" />
     </span>
