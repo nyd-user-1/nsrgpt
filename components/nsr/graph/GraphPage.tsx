@@ -2020,11 +2020,11 @@ function GraphPageInner() {
         {!dockOpen && (
           <div className="absolute bottom-4 right-4 z-10 flex max-w-[calc(100%-6rem)] items-center gap-1.5 rounded-full border bg-[var(--paper)] p-1 pl-3.5 shadow-sm backdrop-blur-sm">
             <span className="min-w-0 truncate text-[13px] text-[var(--paper-text)]">{canvasTitle}</span>
-            <Button variant="outline" className="h-8 shrink-0 rounded-full px-3.5 text-[13px]" onClick={shareDiagram} disabled={!diagram} title={diagram ? `/graph?diagram=${diagram.spec.id}` : undefined}>
-              <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
+            <Button variant="outline" aria-label="Share" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={shareDiagram} disabled={!diagram} title={diagram ? `/graph?diagram=${diagram.spec.id}` : undefined}>
+              <Share2 className="h-4 w-4" />
             </Button>
-            <Button variant="outline" className="h-8 shrink-0 rounded-full px-3.5 text-[13px]" onClick={copyCanvas}>
-              <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy
+            <Button variant="outline" aria-label="Copy the canvas" title="Copy" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={copyCanvas}>
+              <Copy className="h-4 w-4" />
             </Button>
           </div>
         )}
