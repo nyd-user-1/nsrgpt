@@ -95,7 +95,16 @@ function mapper(flow: HTMLElement) {
 
 type Mapper = ReturnType<typeof mapper>
 
-/** An element's background and border as one rect (a circle when it is round), or a fill and per-side strips. */
+/** A rounded rectangle as path data. */
+function roundRect(x: number, y: number, w: number, h: number, radius: number): string {
+  if (w <= 0 || h <= 0) return ""
+  const r = Math.min(radius, w / 2, h / 2)
+  if (r <= 0) return `M${num(x)},${num(y)}h${num(w)}v${num(h)}h${num(-w)}Z`
+  const a = (dx: number, dy: number) => `a${num(r)},${num(r)} 0 0 1 ${num(dx)},${num(dy)}`
+  return `M${num(x + r)},${num(y)}h${num(w - 2 * r)}${a(r, r)}v${num(h - 2 * r)}${a(-r, r)}h${num(-(w - 2 * r))}${a(-r, -r)}v${num(-(h - 2 * r))}${a(r, -r)}Z`
+}
+
+/** An element's background and border as one rect (a circle when it is round), or a fill and its border drawn apart. */
 function boxOf(cs: CSSStyleDeclaration, b: Box): string {
   const bg = paint(cs.backgroundColor)
   const sides = (["Top", "Right", "Bottom", "Left"] as const).map((s) => ({
@@ -117,9 +126,16 @@ function boxOf(cs: CSSStyleDeclaration, b: Box): string {
     const rx = Math.max(0, rad - sw / 2)
     return `<rect x="${num(x)}" y="${num(y)}" width="${num(w)}" height="${num(h)}"${rx ? ` rx="${num(rx)}"` : ""} ${fill}${stroke}/>`
   }
-  // mixed borders (a card's family edge, a ladder's rung): the fill, then each side as its own strip
+  // mixed borders (a card's family edge, a ladder's rung): the fill, then the border
   let out = bg ? `<rect x="${num(b.x)}" y="${num(b.y)}" width="${num(b.w)}" height="${num(b.h)}"${rad ? ` rx="${num(rad)}"` : ""} fill="${bg.c}"${bg.a < 1 ? ` fill-opacity="${num(bg.a)}"` : ""}/>` : ""
   const [t, r, bt, l] = sides
+  if (painted.every((s) => s.c === painted[0].c)) {
+    // one colour, widths differ: the ring between the outer outline and the inner one, rounded as the page rounds it
+    const w = (s: typeof t) => (painted.includes(s) ? s.w : 0)
+    const inner = Math.max(0, rad - Math.min(...sides.map(w)))
+    const d = roundRect(b.x, b.y, b.w, b.h, rad) + roundRect(b.x + w(l), b.y + w(t), b.w - w(l) - w(r), b.h - w(t) - w(bt), inner)
+    return `${out}<path d="${d}" fill-rule="evenodd" ${fillAttr(painted[0].c)}/>`
+  }
   const strip = (s: typeof t, x: number, y: number, w: number, h: number) => (s.w > 0 && paint(s.c) ? `<rect x="${num(x)}" y="${num(y)}" width="${num(w)}" height="${num(h)}" ${fillAttr(s.c)}/>` : "")
   out += strip(t, b.x, b.y, b.w, t.w) + strip(bt, b.x, b.y + b.h - bt.w, b.w, bt.w) + strip(l, b.x, b.y, l.w, b.h) + strip(r, b.x + b.w - r.w, b.y, r.w, b.h)
   return out
@@ -137,17 +153,20 @@ function clipOf(el: Element, root: Element): { r: DOMRect; ellipsis: boolean } |
   return null
 }
 
-/** Which end of its box a line keeps when another font is wider: the nearest container with room tells. */
+/** Which end of its box a line keeps when another font is wider: the nearest container with room tells. Centred text
+ *  keeps its middle; text set against the right edge of a wide box (a band's element name, a rung's energy) its end;
+ *  the rest, the longest row of a shrink-wrapped legend among them, its start. */
 function anchorOf(el: Element, root: Element, left: number, right: number): "start" | "middle" | "end" {
   for (let e: Element | null = el; e && e !== root.parentElement; e = e.parentElement) {
     const cs = getComputedStyle(e)
     if (cs.display === "inline") continue
     const r = e.getBoundingClientRect()
-    const l = left - (r.left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft))
-    const rt = r.right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight) - right
+    const x0 = r.left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft)
+    const x1 = r.right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight)
+    const l = left - x0, rt = x1 - right
     if (l < 1 && rt < 1) continue
     if (Math.abs(l - rt) < 1.5) return "middle"
-    return rt < 1 ? "end" : "start"
+    return rt < 1 && l > (x1 - x0) / 2 ? "end" : "start"
   }
   return "start"
 }
