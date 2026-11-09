@@ -1,5 +1,6 @@
 import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { cookies } from "next/headers";
+import { DEV_SIGNED_IN, DEV_USER } from "@/lib/dev-session";
 
 /**
  * The signed-in reader, from the Cognito ID token in the nysgpt_session
@@ -52,13 +53,16 @@ async function verifyIdToken(token: string): Promise<Record<string, unknown> | n
 export const SESSION_COOKIE = "nysgpt_session";
 
 /** admin / superAdmin / demo are what trinity's housekeeping routes read (ported 2026-11-04). nysgpt.com has no
- *  roles yet, so every reader is none of them — the same falsy value those routes already saw at runtime. */
-export type SessionUser = { email: string; admin: boolean; superAdmin: boolean; demo: boolean };
+ *  roles yet, so every reader is none of them — the same falsy value those routes already saw at runtime. id and name
+ *  are the dev box's fixed reader's (lib/dev-session.ts). */
+export type SessionUser = { email: string; admin: boolean; superAdmin: boolean; demo: boolean; id?: string; name?: string };
 
 /** Demo accounts don't exist here; the housekeeping routes (ported from pax-trinity) call this guard. */
 export function forbidDemo(_user: unknown) {}
 
 export async function currentUser(): Promise<SessionUser | null> {
+  // The dev box's reader (brief 33): never in a production build, see lib/dev-session.ts.
+  if (DEV_SIGNED_IN) return { ...DEV_USER, admin: false, superAdmin: false, demo: false };
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token || !POOL || !CLIENT) return null;
   try {

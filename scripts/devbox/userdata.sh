@@ -45,6 +45,9 @@ After=network-online.target
 WorkingDirectory=/srv/nsrgpt
 Environment=NEXT_PUBLIC_DATA_BASE=https://dcl3kyt3ynmb2.cloudfront.net
 Environment=NODE_OPTIONS=--max-old-space-size=4096
+# The dev reader (brief 33, lib/dev-session.ts): chat answers and saves carry its name. Set here and nowhere else;
+# it does nothing under next build.
+Environment=NEXT_PUBLIC_DEV_SIGNED_IN=1
 ExecStart=/usr/bin/pnpm exec next dev --turbopack -H 0.0.0.0 -p 3000
 Restart=always
 RestartSec=3

@@ -47,6 +47,7 @@ import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@
 import { cn } from "@/lib/utils";
 import { copyPng, copyText, elementToPng } from "@/lib/canvas-png";
 import { canvasToSvg, downloadSvg, svgFileName } from "@/lib/canvas-svg";
+import { DEV_SIGNED_IN, DEV_USER } from "@/lib/dev-session";
 import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
@@ -863,7 +864,8 @@ function GraphPageInner() {
   const [saveOpen, setSaveOpen] = useState(false);
   const [edgeInfo, setEdgeInfo] = useState<{ source: GNode; target: GNode; meta?: EdgeMeta } | null>(null);
   const [viewName, setViewName] = useState("");
-  const [savedBy, setSavedBy] = useState(() => localStorage.getItem("display-name") ?? "");
+  // On the dev box (brief 33) saves carry the dev reader's name unless one was typed before.
+  const [savedBy, setSavedBy] = useState(() => localStorage.getItem("display-name") || (DEV_SIGNED_IN ? DEV_USER.name : ""));
 
   /* ── <ReactFlow /> props panel: every row is a live prop ────────────────── */
   const [flowProps, setFlowProps] = useState<FlowProps>(() => {
