@@ -19,6 +19,9 @@ U
 systemctl daemon-reload
 systemctl enable --now nsrgpt-stop
 
+# A Next project watches more files than Ubuntu's default allows; when the watches run out the server misses edits and
+# serves stale pages (seen 2026-11-09). Raise the limit before anything else.
+echo fs.inotify.max_user_watches=524288 > /etc/sysctl.d/60-nsrgpt-watches.conf && sysctl -q --system
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y git curl ca-certificates jq
