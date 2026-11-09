@@ -94,3 +94,81 @@ The POINT rows are read through `lake/serve/endf/<release>/xs_index/` (held in m
 byte-range request a section). Measured through CloudFront on 2026-11-08 with a warm Lambda: first requests 0.17–0.40 s
 (a POINT cross section 0.27–0.34 s; a two-release POINT compare 0.82 s while it loads the second index), cached
 0.05–0.13 s. A container's first nuclide request loads the nuclide tables (about 1 s); a cold start is about 4–5 s.
+
+## Dataset records (brief 34, dataset.py)
+
+One record per dataset, for the dataset pages (brief 33). Every record carries `graph`: the node Graph draws for it and
+its links, so "Open in Graph" needs nothing else:
+`{"node": {"type", "id", "label", "sub"}, "links": [{"type", "id", "label", "rel"}]}`. Node types are Graph's own
+(`nuclide` id = NUCID as 60CO, `paper` id = NSR key number, `exfor` id = entry number) plus `dataset` (id = source:NUCID:DSID)
+and `material` (id = release:MAT). `rel` says what the link is: `nuclide`, `reference`, `parent`, `subentry`.
+
+| Route | Example |
+| --- | --- |
+| `GET /dataset/{source}` | `/dataset/ensdf?nucid=60CO`, `/dataset/xundl?mass=60` |
+| `GET /dataset/{source}/{id}` | `/dataset/ensdf/60CO:ADOPTED%20LEVELS,%20GAMMAS` |
+| `GET /dataset/{source}/{id}/text` | the same dataset's cards as `text/plain` |
+| `GET /dataset/{source}/{id}/md` | the same as Markdown (`text/markdown`) |
+| `GET /dataset/{source}/{id}/pdf` | the same as a PDF (`application/pdf`) |
+| `GET /exfor/entry/{id}` | `/exfor/entry/10001`; `/exfor/entry/10001/text` is its X4 text |
+| `GET /endf/material/{release}/{mat}` | `/endf/material/B-VIII.1/9228?sub=neutrons&mf=3&mt=18`; `/text` is that section as plain text |
+| `GET /nsr/{key}/text` | `/nsr/2011CH57/text` |
+
+`source` is `ensdf` (2026-11-05) or `xundl` (2026-10-01). A dataset's `id` is its NUCID and DSID joined by a colon,
+URL-encoded, as Search's ids are (`60CO:ADOPTED LEVELS, GAMMAS`); NUCID and DSID name one dataset in a release.
+
+`/dataset/{source}?nucid=` or `?mass=` lists datasets as NNDC's index pages do:
+`{source, release, nucid, mass, total, rows: [{id, nucid, dsid, type, date, publication, levels, gammas, cards, graph}]}`,
+`type` being ENSDF's dataset type (adopted, decay, reaction, …), `date` its yyyymm.
+
+`/dataset/{source}/{id}` returns
+`{source, release, id, header, qvalue, parents, normalization, levels, gammas, other, comments, references, cards, graph}`:
+- `header`: `{nucid, dsid, type, date, publication, authors, citation, cutoff, history: [{TYP, AUT, CIT, CUT, …}], dsref: [keys]}`
+- `qvalue`: `{q_minus, sn, sp, qa, … each with _unc, qref}` or null; `parents` and `normalization`: their cards' fields
+- `levels`: `[{seq, energy_kev, energy, unc, jpi, half_life, l, s, flag, ms, band, comments: [text]}]`; `energy` and
+  `half_life` as the card writes them, `energy_kev` a number
+- `gammas`: `[{level_seq, from_kev, to_kev, energy_kev, energy, unc, ri, ri_unc, mult, mr, cc, ti, flag, comments: [text]}]`;
+  `from_kev` is the level the gamma leaves; `to_kev` the level it reaches where the energy difference picks one, else null
+- `other`: `{betas, ec, alphas, delayed, xrefs, records}`, each a list of its cards' fields
+- `comments`: the dataset's general comments `[{card_seq, type, rtype, text}]` (level and gamma comments sit on those rows)
+- `references`: `[{key, reference}]`, the NSR keys the dataset cites (`nsr.ensdf_refs`, `xundl_refs`) with the
+  reference as ENSDF's references dataset writes it where it has one
+- `cards`: the dataset's lines exactly as held (`nsr.ensdf_cards`, `xundl_cards`), in order
+
+`/text` is those cards, one per line. `/md` renders the header as a list, levels and gammas as tables, comments as quoted
+blocks and the references as a list linking each key to `/nsr/{key}`. `/pdf` renders the same in the paper palette's
+print form, as NNDC's "PDF Version" does (Part C; the library is named in "Packages" below). Until the page switches to it,
+the page's PDF button is the browser's print of the page.
+
+`/exfor/entry/{id}`: `{id, entry: {title, year, authors, institutes, references, date, n_subentries}, subentries:
+[{subent, title, reaction, quantity, target, n_data_rows}], x4, x4_source, graph}`. `x4` is the entry's X4 text from the
+X4Pro database (`nsr.exfor_x4src`, release 2023-07-14); entries compiled since then have `x4: null` and
+`x4_source: null`. The subentries come from the J4 tables (2026-10-28); `/exfor/subentry/{id}` has their data.
+
+`/endf/material/{release}/{mat}?sub=neutrons&mf=1&mt=451`: `{release, mat, sublibrary, material: {za, zsymam, awr,
+temp_k, alab, edate, auth, ref, description, …}, sections: [{mf, mt, reaction, line_count}], text: {mf, mt, lines},
+graph}`. `sub` defaults to `neutrons`, `mf` and `mt` to 1 and 451 (the material's description); `text.lines` is that
+section's lines from `nsr.endfb_records`. `/text` returns them as plain text. A whole material can run past the 6 MB a
+Lambda response holds, so the text goes one section at a time.
+
+`/nsr/{key}/text` is the reference in NSR's exchange layout (`<KEYNO   >`, `<REFRENCE>`, `<AUTHORS >`, `<TITLE   >`,
+`<KEYWORDS>`, `<SELECTRS>`, `<DOI     >`), written from `search_nsr`'s fields: the lake holds NSR's fields, not its
+exchange files, so the `<HISTORY >` and `<CODEN   >` lines are missing.
+
+## Saved views and files (brief 34, community.py)
+
+Behind the app's `/api/community` and `/api/upload`. These routes are not cached: the app calls the API Gateway origin
+for them, not CloudFront (which passes GET and HEAD only). A write sends `x-nsr-write-key`, the value of SSM
+`/nsrgpt/devbox/nsr-api-write-key`, which the Lambda holds as `NSR_WRITE_KEY` and the app as `NSR_API_WRITE_KEY`.
+
+| Route | Does |
+| --- | --- |
+| `GET /community` | every saved view and recipe, newest first: `{views: [{id, name, saved_by, created_at, kind, state}]}`; `?kind=view` or `recipe` for one kind |
+| `GET /community/{id}` | `{view}` |
+| `POST /community` | `{name, saved_by, state}` saves one; `kind` is recipe when the state holds a prompt step, else view; returns `{view}` |
+| `DELETE /community/{id}` | removes one; `{deleted: id}` |
+| `GET /files` | `{files: [{key, name, size, modified}]}` under `files/pdfs/workspace/` |
+| `POST /files` | `{name, type}` returns `{key, url}`: the key `files/pdfs/workspace/<yyyy-mm>/<name>` (a number added if taken) and a PUT URL good for 10 minutes |
+
+The store is DynamoDB `nsrgpt-views` (on demand; key `id`; index `kind-created_at`). The seeds are rows written once by
+`scripts/community/seed.mjs`.
