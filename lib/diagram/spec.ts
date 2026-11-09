@@ -38,6 +38,8 @@ export interface DiagramNode {
   jpi?: string
   pos?: { x: number; y: number }
   faint?: boolean
+  /** The transmutation figure: the share of absorptions that end in fission, printed under the glyph. */
+  fissionPct?: number
 }
 
 export interface DiagramEdge {
