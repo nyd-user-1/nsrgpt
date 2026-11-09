@@ -38,6 +38,8 @@ import { listCanvases, loadCanvas, saveCanvas, type SavedCanvas } from "@/lib/la
 // run log. /lab opens the default canvas (lib/lab/default.ts), /lab?canvas=<id> a saved one.
 
 const nodeTypes = { block: BlockNode }
+/** The fit leaves the toolbar its strip at the top, so it never covers a block's header. */
+const FIT = { padding: { top: "64px", right: "32px", bottom: "32px", left: "32px" }, maxZoom: 1 } as const
 
 const fresh = (): Canvas => {
   const now = new Date().toISOString()
@@ -45,7 +47,7 @@ const fresh = (): Canvas => {
 }
 
 function LabInner() {
-  const lab = useLab(structuredClone(DEFAULT_CANVAS))
+  const lab = useLab(DEFAULT_CANVAS)
   const { canvas, outputs } = lab
   const router = useRouter()
   const params = useSearchParams()
@@ -71,16 +73,16 @@ function LabInner() {
     setSubentry(null)
     if (isNew) {
       lab.open(fresh())
-      requestAnimationFrame(() => flow.fitView({ padding: 0.4, maxZoom: 1 }))
+      requestAnimationFrame(() => flow.fitView(FIT))
       return
     }
     if (!canvasParam) {
       lab.open(structuredClone(DEFAULT_CANVAS))
-      requestAnimationFrame(() => flow.fitView({ padding: 0.15 }))
+      requestAnimationFrame(() => flow.fitView(FIT))
       return
     }
     loadCanvas(canvasParam)
-      .then((c) => { lab.open(c); requestAnimationFrame(() => flow.fitView({ padding: 0.15 })) })
+      .then((c) => { lab.open(c); requestAnimationFrame(() => flow.fitView(FIT)) })
       .catch((e) => toast.error((e as Error).message))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasParam, isNew])
@@ -156,7 +158,7 @@ function LabInner() {
     setSelected(null)
     setSubentry(null)
     lab.open(fresh())
-    requestAnimationFrame(() => flow.fitView({ padding: 0.4, maxZoom: 1 }))
+    requestAnimationFrame(() => flow.fitView(FIT))
   }, [lab, router, flow, isNew])
 
   // A Prompt's follow-up: the prompt, its answer and the conversation so far, with the block's inputs as context.
@@ -224,7 +226,7 @@ function LabInner() {
               onNodesDelete={(del) => { for (const n of del) lab.remove(n.id); if (del.some((n) => n.id === selected)) setSelected(null) }}
               deleteKeyCode={["Backspace", "Delete"]}
               fitView
-              fitViewOptions={{ padding: 0.15 }}
+              fitViewOptions={FIT}
               minZoom={0.2}
               proOptions={{ hideAttribution: true }}
             >

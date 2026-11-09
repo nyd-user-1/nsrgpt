@@ -57,7 +57,8 @@ export type Inputs = Record<string, AnyValue[]>
 export type RunContext = {
   /** GET or POST to the API (lib/api-url.ts): ctx.api("/endf/xs?…"). */
   api: (path: string, init?: RequestInit) => Promise<Response>
-  /** The job proxy (app/api/jobs/route.ts): ctx.jobs("", { method: "POST", body }) or ctx.jobs(`/${id}`). */
+  /** The job proxy (app/api/jobs/route.ts): ctx.jobs("", { method: "POST", body }) or ctx.jobs(`/${id}`). Cancelled with the
+   *  block unless the call passes its own `signal` (null: never, for a POST that must reach the runner once sent). */
   jobs: (path: string, init?: RequestInit) => Promise<Response>
   /** Cancelled when the block is stopped, rerun or deleted. */
   signal: AbortSignal

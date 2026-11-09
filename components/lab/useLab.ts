@@ -68,7 +68,7 @@ export function useLab(initial: Canvas) {
     setState(id, { status: "running", startedAt })
     const ctx: RunContext = {
       api: (path, init) => fetch(apiUrl(path), { ...init, signal: ctrl.signal }),
-      jobs: (path, init) => fetch(path.length > 1 ? `/api/jobs?id=${encodeURIComponent(path.replace(/^\//, ""))}` : "/api/jobs", { ...init, signal: ctrl.signal }),
+      jobs: (path, init) => fetch(path.length > 1 ? `/api/jobs?id=${encodeURIComponent(path.replace(/^\//, ""))}` : "/api/jobs", { ...init, signal: init && "signal" in init ? init.signal : ctrl.signal }),
       signal: ctrl.signal,
       progress: (detail) => { if (!ctrl.signal.aborted) setState(id, { status: "running", startedAt, detail }) },
       partial: (o) => { if (!ctrl.signal.aborted) setOut(id, o) },
