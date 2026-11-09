@@ -58,6 +58,14 @@ export function AppLayout({
           }`}
         >
           <div className="flex h-full flex-col">
+            {/* The sidebar's header matches the app header: the same height and rule, the toggle where the app header keeps it,
+                the name in the display face (Brendan, 2026-11-09). */}
+            <div className={`${HEADER} ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
+              <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={ICON_BUTTON}>
+                <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
+              </button>
+              <TitleText text="NSRgpt" className="ml-5 text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
+            </div>
             <div className="min-h-0 flex-1">
               <SideBarMenu />
             </div>
@@ -79,25 +87,17 @@ export function AppLayout({
       >
         {/* A click on any part of the header that isn't a control opens the Nav (components/shell.tsx). */}
         {/* The header wears trinity's shadow by default — not scroll-gated (Brendan, 2026-11-04). */}
-        <div data-chrome data-main-header {...headerMenu("main")} className={`relative z-10 flex items-center border-b px-5 pt-5 pb-5 shadow-header ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
-          <button
-            onClick={() => setSidebarOpen((v) => !v)}
-            aria-label="Toggle sidebar"
-            className={`hidden sm:flex h-10 w-10 items-center justify-center rounded-full shadow-md outline-none transition-colors ${
-              paperMode
-                ? `border border-[var(--paper-rule)] hover:border-2 bg-[var(--paper)] ${HOVER}`
-                : "border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--inp-bg)]"
-            }`}
-          >
-            {sidebarOpen ? (
-              <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
-            ) : (
+        <div data-chrome data-main-header {...headerMenu("main")} className={`${HEADER} ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
+          {/* The sidebar toggle keeps one place on the screen (Brendan, 2026-11-09, as Claude's does): here while the sidebar is
+              shut, in the sidebar's own header while it is open. A bare icon with the muted hover says it is a control. */}
+          {!sidebarOpen && (
+            <button onClick={() => setSidebarOpen(true)} aria-label="Open the sidebar" className={`hidden sm:flex `}>
               <PanelLeftOpen className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
-            )}
-          </button>
+            </button>
+          )}
 
           {title && (VIZ_CHARTS.some((c) => c.href === path) ? <ChartSwitcher path={path} title={title} /> : (
-            <span className="group/title ml-5 hidden items-center gap-1 sm:flex">
+            <span className={`group/title hidden items-center gap-1 sm:flex `}>
               <TitleText text={title} className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
               <CopyTitle title={title} />
             </span>
@@ -146,6 +146,10 @@ export function AppLayout({
 /** A hover that shows on the paper in light and dark (Brendan, 2026-11-06): the ink at 14% over the paper. The paper
  *  "quiet" tone it replaces was all but invisible on the dark paper. */
 const HOVER = "hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]";
+/** The three headers share this (app, sidebar, right panel; Brendan, 2026-11-09): one height, one rule, the display title. */
+export const HEADER = "relative z-10 flex h-[81px] shrink-0 items-center border-b px-5 shadow-header";
+/** A bare icon control in a header: no circle, the muted hover says it is clickable. */
+export const ICON_BUTTON = `flex h-10 w-10 shrink-0 items-center justify-center rounded-lg outline-none transition-colors ${HOVER}`;
 
 /** A chart page's previous and next chart, in the index's order, as circle buttons in the header (2026-11-06). */
 function ChartNav({ path }: { path: string }) {

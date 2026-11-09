@@ -17,9 +17,10 @@ export function DiscussionHeaderButton({ paperMode, bare }: { paperMode?: boolea
     ? `mr-2 ${paperMode
         ? (open ? 'text-[var(--paper-strong)]' : 'text-[var(--paper-faint)] hover:text-[var(--paper-text)]')
         : (open ? 'text-[var(--paper-strong)]' : 'text-[var(--muted)] hover:text-[var(--txt)]')}`
-    : `h-10 w-10 rounded-full shadow-md mr-2 ${paperMode
-        ? `border bg-[var(--paper)] ${open ? 'border-[var(--paper-strong)] text-[var(--paper-strong)]' : 'border-[var(--paper-rule)] hover:border-2 text-[var(--paper-faint)] hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))] hover:text-[var(--paper-text)]'}`
-        : `border bg-[var(--surface)] ${open ? 'border-[var(--paper-strong)] text-[var(--paper-strong)]' : 'border-[var(--border)] text-[var(--muted)] hover:bg-[var(--inp-bg)] hover:text-[var(--txt)]'}`}`
+    // A bare icon in the header, no circle; the muted hover says it is a control, the tint while open says the panel is out (Brendan, 2026-11-09).
+    : `h-10 w-10 rounded-lg ${paperMode
+        ? (open ? 'bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]' : 'hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]')
+        : (open ? 'bg-[var(--inp-bg)]' : 'hover:bg-[var(--inp-bg)]')}`
 
   return (
     <button

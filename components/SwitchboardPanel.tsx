@@ -407,26 +407,27 @@ function SwitchboardPanel() {
 
           {/* Header — the dot becomes a back arrow one level down, and the title
               becomes the product name. That IS the navigation affordance. */}
-          <div className="flex shrink-0 items-center gap-2 border-b border-[var(--paper-rule)] px-5 py-4">
+          {/* The same header as the app and the sidebar (AppLayout HEADER, Brendan, 2026-11-09): one height, the display title, bare icon controls. */}
+          <div className="relative z-10 flex h-[81px] shrink-0 items-center gap-3 border-b border-[var(--paper-rule)] px-5">
             {deep ? (
               <BackButton onClick={back} label={view.kind === 'vizControls' ? 'Back to the Viz list' : 'Back to the switchboard'} />
             ) : (
               <span className="shrink-0 pl-1"><LiveDot /></span>
             )}
-            <span className="min-w-0 flex-1 truncate text-[var(--paper-text)]" style={{ ...SERIF, fontSize: 17 }}>
+            <span className="min-w-0 flex-1 truncate text-[var(--paper-text)] leading-none" style={{ ...SERIF, fontSize: 24 }}>
               {title}
             </span>
             <button
               onClick={() => (full ? setFull(false) : setExpanded(v => !v))}
               aria-label={full || expanded ? 'Narrow the panel' : 'Widen the panel'}
-              className="hidden shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)] sm:flex"
+              className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--paper-faint)] transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))] hover:text-[var(--paper-text)] sm:flex"
             >
               {full || expanded ? <Columns3 className="h-4 w-4" /> : <Columns2 className="h-4 w-4" />}
             </button>
             <button
               onClick={close}
               aria-label="Close the panel"
-              className="shrink-0 rounded-lg p-1.5 text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--paper-faint)] transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))] hover:text-[var(--paper-text)]"
             >
               <X className="h-4 w-4" />
             </button>
