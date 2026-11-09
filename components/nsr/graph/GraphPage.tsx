@@ -1848,7 +1848,7 @@ function GraphPageInner() {
             <div className="relative">
               {/* Outer shell + 4px inset around the bordered inner bar — per the mock. */}
               <div className="rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
-                <div className={`flex h-8 items-center gap-2 overflow-hidden rounded-full border bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out ${searchOpen ? "w-96 px-3" : "w-8 justify-center px-0"}`}>
+                <div className={`flex h-8 items-center overflow-hidden rounded-full border bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out ${searchOpen ? "w-96 gap-2 px-3" : "w-8 justify-center gap-0 px-0"}`}>
                   <button type="button" aria-label="Search" aria-expanded={searchOpen} onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }} className="flex h-full shrink-0 items-center text-[var(--paper-muted)]">
                     <Search className="h-4 w-4 shrink-0" />
                   </button>
