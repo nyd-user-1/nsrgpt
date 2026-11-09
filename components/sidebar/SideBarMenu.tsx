@@ -6,10 +6,14 @@ import { usePathname } from "next/navigation"
 import { Activity } from "@/components/animate-ui/icons/activity"
 import { Blocks } from "@/components/animate-ui/icons/blocks"
 import { BookOpen } from "@/components/animate-ui/icons/book-open"
+import { Boxes } from "@/components/animate-ui/icons/boxes"
 import { Database } from "@/components/animate-ui/icons/database"
 import { Layers } from "@/components/animate-ui/icons/layers"
+import { LayoutDashboard } from "@/components/animate-ui/icons/layout-dashboard"
 import { MessagesSquare } from "@/components/animate-ui/icons/messages-square"
+import { NotebookPen } from "@/components/animate-ui/icons/notebook-pen"
 import { Radar } from "@/components/animate-ui/icons/radar"
+import { ScrollText } from "@/components/animate-ui/icons/scroll-text"
 import { SearchBar } from "@/components/search/SearchBar"
 import { SidebarChats } from "@/components/sidebar/SidebarChats"
 import { SideBarMenuFoot, SideBarMenuGroup, SideBarMenuItem, SideBarMenuPinned } from "@/components/sidebar/SideBarMenuItem"
@@ -29,9 +33,13 @@ const ALL: NavEntry[] = [
   { href: "/chat", label: "Chat", group: "Main" },
   ...CHARTS.map((c) => ({ ...c, group: "Charts" })),
   ...TABLES.map((c) => ({ ...c, group: "Data" })),
+  { href: "/data-dictionary", label: "Data dictionary", group: "Main" },
   { href: "/docs", label: "Docs", group: "Main" },
+  { href: "/factory", label: "Factory", group: "Main" },
+  { href: "/glossary", label: "Glossary", group: "Main" },
   { href: "/graph", label: "Graph", group: "Main" },
   { href: "/pipeline", label: "Pipeline", group: "Main" },
+  { href: "/schema", label: "Schema", group: "Main" },
   { href: "/search", label: "Search", group: "Main" },
 ]
 
@@ -51,9 +59,13 @@ export function SideBarMenu() {
         {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={MessagesSquare} on={path === "/chat"} />}
         <SideBarMenuGroup label="Charts" icon={Activity} items={CHARTS} isOn={isOn} place={place} />
         <SideBarMenuGroup label="Data" icon={Database} items={TABLES} isOn={isOn} place={place} />
+        {place("/data-dictionary") && <SideBarMenuItem href="/data-dictionary" label="Data dictionary" icon={ScrollText} on={path === "/data-dictionary"} />}
         {place("/docs") && <SideBarMenuItem href="/docs" label="Docs" icon={BookOpen} on={path === "/docs" || path.startsWith("/docs/")} />}
+        {place("/factory") && <SideBarMenuItem href="/factory" label="Factory" icon={Boxes} on={path === "/factory"} />}
+        {place("/glossary") && <SideBarMenuItem href="/glossary" label="Glossary" icon={NotebookPen} on={path === "/glossary"} />}
         {place("/graph") && <SideBarMenuItem href="/graph" label="Graph" icon={Blocks} on={path === "/graph"} />}
         {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={Layers} on={path === "/pipeline"} />}
+        {place("/schema") && <SideBarMenuItem href="/schema" label="Schema" icon={LayoutDashboard} on={path === "/schema"} />}
         {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={Radar} on={path === "/search"} />}
         <SideBarMenuFoot archived={archived} hiddenCount={hiddenCount} showHidden={showHidden} onShowHidden={setShowHidden} isOn={isOn} />
       </nav>

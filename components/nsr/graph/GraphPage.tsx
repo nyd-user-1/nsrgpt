@@ -11,7 +11,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import dagre from "@dagrejs/dagre";
 import {
-  ArrowLeft, Check, ChevronRight, Copy, Crosshair, History, Redo2, RotateCcw, Share2, Undo2,
+  ArrowLeft, Check, ChevronRight, Copy, Crosshair, Download, History, Redo2, RotateCcw, Share2, Undo2,
   GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, X,
 } from "lucide-react";
 import { Atom } from "@/components/animate-ui/icons/atom";
@@ -46,6 +46,7 @@ import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
 import { copyPng, copyText, elementToPng } from "@/lib/canvas-png";
+import { canvasToSvg, downloadSvg, svgFileName } from "@/lib/canvas-svg";
 import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
@@ -783,7 +784,7 @@ const OLD_LINKS: Record<string, string> = {
 
 // Graph Features (Brendan, 2026-11-08; "Ideas, ranked" until then): what the lake makes possible, ranked by Brendan on the
 // night shift. One of the right inset panel's three views (RightInsetPanel.tsx), the one it shows first.
-const IDEAS: { title: string; text: string; href?: string }[] = [
+const IDEAS: { title: string; text: string; href?: string; soon?: boolean }[] = [
   { title: "Our own evaluated library", text: "Fit all 19 million EXFOR points with their covariances (IAEA's GMAP code is in the lake) across every reaction at once on GPUs; publish NSRgpt-1.0, rebuilt whenever EXFOR changes, every number traceable to its measurements." },
   { title: "A nuclear data model", text: "Train on every measured and evaluated point, level and decay record, TENDL as the prior for all 2,800 nuclides. It predicts unmeasured cross sections with calibrated uncertainty and flags measurements that don't fit." },
   { title: "The validation fleet", text: "OpenMC on thousands of ICSBEP and CoNDERC benchmarks times every library, plus total Monte Carlo with TENDL's random files: a standing scoreboard of which library gets which benchmark right, and which cross sections drive the misses." },
@@ -800,6 +801,9 @@ const IDEAS: { title: string; text: string; href?: string }[] = [
   { title: "Measured against evaluated, everywhere", text: "EXFOR points over every library: residuals per reaction, a ranked map of where libraries disagree with experiment." },
   { title: "The nuclide as the hub", text: "Z, A joins levels, gammas, decay radiation, cross sections, measurements, evaluations and papers, with provenance to the record." },
   { title: "Answers that cite the card", text: "The ENSDF line, the EXFOR subentry, the ENDF MAT and MT section, quoted for every number in a chat." },
+  // Brief 33: for Brendan to rank; not built yet.
+  { title: "Build one for a nuclide", text: "Type a nuclide and get its decay chain, capture chain or level scheme drawn from the lake, not only from the library's figures.", soon: true },
+  { title: "Compare two diagrams side by side", text: "Two canvases of the same type for two nuclides, panning and zooming together.", soon: true },
   // Reading, to go over together (Brendan, 2026-11-08).
   { title: "EXFOR formats manual, IAEA WP2007-23 (PDF)", text: "", href: "https://nds.iaea.org/exfor/x4guide/manuals/wp2007-23.pdf" },
   { title: "NuDat at USNDP 2022, BNL (PDF)", text: "", href: "https://indico.bnl.gov/event/15497/contributions/70076/attachments/44350/74834/NUDAT_USNDP2022.pdf" },
@@ -1392,7 +1396,7 @@ function GraphPageInner() {
     setDiagram({ spec: cur.spec, config: to });
   }, []);
   // The bottom-right group (Brendan, 2026-11-08): what the canvas shows, then Share (the diagram's link, through the
-  // browser's share sheet where it has one) and Copy (the canvas as a PNG).
+  // browser's share sheet where it has one), Export (the canvas as an SVG file, brief 33) and Copy (the canvas as a PNG).
   const canvasTitle = diagram?.spec.title ?? loadedView ?? "Canvas";
   const shareDiagram = useCallback(async () => {
     const cur = diagramNow.current;
@@ -1418,6 +1422,16 @@ function GraphPageInner() {
       toast.error("Couldn't copy the canvas");
     }
   }, []);
+  const exportSvg = useCallback(() => {
+    const flow = document.querySelector<HTMLElement>(".react-flow");
+    if (!flow) return;
+    try {
+      downloadSvg(canvasToSvg(flow, canvasTitle), svgFileName(canvasTitle));
+      toast.success("Canvas saved as an SVG");
+    } catch {
+      toast.error("Couldn't export the canvas");
+    }
+  }, [canvasTitle]);
   // Every config change redraws the canvas; a new diagram or a new grid fits the view again.
   const lastGrid = useRef<string | null>(null);
   useEffect(() => {
@@ -2023,6 +2037,9 @@ function GraphPageInner() {
             <Button variant="outline" aria-label="Share" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={shareDiagram} disabled={!diagram} title={diagram ? `/graph?diagram=${diagram.spec.id}` : undefined}>
               <Share2 className="h-4 w-4" />
             </Button>
+            <Button variant="outline" aria-label="Export the canvas as SVG" title="Export SVG" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={exportSvg}>
+              <Download className="h-4 w-4" />
+            </Button>
             <Button variant="outline" aria-label="Copy the canvas" title="Copy" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={copyCanvas}>
               <Copy className="h-4 w-4" />
             </Button>
@@ -2079,7 +2096,10 @@ function GraphPageInner() {
                     <span className="min-w-0">
                       {i.href
                         ? <a href={i.href} target="_blank" rel="noreferrer" className="text-sm text-nuclear hover:underline">{i.title}</a>
-                        : <span className="block text-sm text-[var(--paper-text)]">{i.title}</span>}
+                        : <span className="block text-sm text-[var(--paper-text)]">
+                            {i.title}
+                            {i.soon && <span className="ml-1.5 rounded-full border border-[var(--paper-rule)] px-1.5 py-px align-middle text-[10px] text-[var(--paper-muted)]">soon</span>}
+                          </span>}
                       {i.text && <span className="mt-0.5 block text-xs leading-relaxed text-[var(--paper-muted)]">{i.text}</span>}
                     </span>
                   </li>
