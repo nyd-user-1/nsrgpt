@@ -28,7 +28,10 @@ function parseGround(f: GroundFile): Ground {
 }
 export const loadGround = () => fetchData<Ground, GroundFile>('livechart-ground.json', parseGround)
 
-/** One element's decay radiation: per nuclide, lines by type ([keV, % per decay, note?]). */
+/**
+ * One element's decay radiation: per nuclide, lines by type. β− and β+ lines are [mean keV, endpoint keV, % per decay,
+ * ν mean keV]; e− lines are [keV, %, "Auger" or "CE <shell>"]; α, γ, X, EC and the rest are [keV, %].
+ */
 export type Radiation = { z: number; el: string; nuclides: { n: number; t: number | null; lines: Record<string, (number | string)[][]> }[] }
 export const loadRadiation = (z: number) => fetchData<Radiation>(`radiation/${z}.json`)
 

@@ -184,9 +184,14 @@ function NuclideCard({ x, d, ground: r, onClose }: { x: DecayNuclide; d: Decay; 
   const kev = (v: number | null | undefined, digits = 3) => (v == null ? '—' : v.toFixed(digits))
   const lines = rad?.nuclides.find((y) => y.n === x.n)?.lines ?? {}
   const rows: { type: string; kev: number; pct: number | null; note?: string }[] = []
+  // β− and β+ lines are [mean keV, endpoint keV, %, ν mean keV]; the others are [keV, %] or [keV, %, note].
+  const pctOf = (type: string, l: (number | string)[]) => {
+    const v = l[type === 'bm' || type === 'bp' ? 2 : 1]
+    return v == null ? null : Number(v)
+  }
   for (const [type, list] of Object.entries(lines)) {
-    const top = [...list].sort((p, q) => (Number(q[1]) || 0) - (Number(p[1]) || 0)).slice(0, 3)
-    for (const l of top) rows.push({ type, kev: Number(l[0]), pct: l[1] == null ? null : Number(l[1]), note: typeof l[2] === 'string' ? l[2] : undefined })
+    const top = [...list].sort((p, q) => (pctOf(type, q) || 0) - (pctOf(type, p) || 0)).slice(0, 3)
+    for (const l of top) rows.push({ type, kev: Number(l[0]), pct: pctOf(type, l), note: typeof l[2] === 'string' ? l[2] : undefined })
   }
   const field = (label: string, value: React.ReactNode) => (
     <div className="flex justify-between gap-3 border-t border-[var(--paper-rule-soft)] py-1 text-xs">
