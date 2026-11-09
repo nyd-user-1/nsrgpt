@@ -40,6 +40,7 @@ export type WindowSummary = {
   /** Weighted by 1/σ² of each ratio, from the points' dxs; null when no point in the window carries one. */
   weighted_ratio: number | null
   sd: number | null
+  /** The evaluation's MF33 relative sd averaged over the window (log-energy weighted). */
   rel_sd_eval: number | null
   per_dataset: DatasetRatio[]
 }
@@ -73,11 +74,18 @@ export function logBins(emin: number, emax: number, perDecade = 20): [number, nu
   return out
 }
 
-/** The relative sd of the group holding energy `e`; null where the groups don't reach. */
-export function relSdAt(groups: CovGroup[] | undefined, e: number): number | null {
-  if (!groups?.length) return null
-  const g = groups.find((x) => e >= x.e_lo_ev && e < x.e_hi_ev) ?? (e === groups[groups.length - 1].e_hi_ev ? groups[groups.length - 1] : undefined)
-  return g ? g.rel_sd : null
+/** The groups' relative sd averaged over [lo, hi], each weighted by its share of the log-energy span; null where none reach. */
+export function relSdOver(groups: CovGroup[] | undefined, lo: number, hi: number): number | null {
+  if (!groups?.length || !(hi > lo)) return null
+  let sum = 0, span = 0
+  for (const g of groups) {
+    const a = Math.max(lo, g.e_lo_ev), b = Math.min(hi, g.e_hi_ev)
+    if (b <= a) continue
+    const w = Math.log(b / a)
+    sum += g.rel_sd * w
+    span += w
+  }
+  return span > 0 ? sum / span : null
 }
 
 const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length
@@ -121,7 +129,7 @@ function windowFor(name: string, rs: Ratio[], lo: number, hi: number, groups: Co
     mean_ratio: rv.length ? mean(rv) : null,
     weighted_ratio: wsum > 0 ? weighted.reduce((a, x) => a + x.r / x.dr! ** 2, 0) / wsum : null,
     sd: sampleSd(rv),
-    rel_sd_eval: relSdAt(groups, Math.sqrt(lo * hi)),
+    rel_sd_eval: relSdOver(groups, lo, hi),
     per_dataset,
   }
 }
@@ -152,7 +160,7 @@ export function compare(
       while (j < sorted.length && (sorted[j].e < hi || (hi === opts.emax && sorted[j].e === hi))) inBin.push(sorted[j++].r)
       if (!inBin.length) continue
       const mid = Math.sqrt(lo * hi)
-      const relSd = relSdAt(groups, mid)
+      const relSd = relSdOver(groups, lo, hi)
       const m = mean(inBin)
       bins.push({ evaluation: c.name, e_lo: lo, e_hi: hi, n_points: inBin.length, mean_ratio: m, sd: sampleSd(inBin), rel_sd_eval: relSd })
       s.x.push(mid)
