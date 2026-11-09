@@ -5,7 +5,7 @@ import { PlateKeys } from "./viz/plate-keys";
 import { PLATE_TABLES, VIZ_CHARTS, type VizChart } from "@/lib/viz-charts";
 import { HEADER_TITLES } from "@/lib/header-titles";
 import { PLATE_H } from "@/lib/plate";
-import { PlateGrid } from "@/app/PlateGrid";
+import { PlateArrange } from "./viz/plate-arrange";
 
 export const metadata = {
   title: "NSRgpt",
@@ -36,11 +36,11 @@ export default function HomePage() {
       <div className="relative mt-[72px] flex min-h-0 flex-1 flex-col">
         {/* The plate as / has it (HomeContents): a fixed height, an even grid from its own measured size. */}
         <div className={`isolate flex flex-col overflow-hidden rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] ${PLATE_H}`}>
-          <PlateGrid className="-m-px min-h-0 flex-1" minW={220} maxCols={4}>
+          <PlateArrange hrefs={BY_NAME.map((c) => c.href)}>
             {BY_NAME.map((chart, i) => (
               <VizBox key={chart.href} chart={chart} index={i} />
             ))}
-          </PlateGrid>
+          </PlateArrange>
         </div>
       </div>
     </div>
