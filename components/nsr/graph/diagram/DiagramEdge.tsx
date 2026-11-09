@@ -48,7 +48,8 @@ export function DiagramEdge({ id, sourceX, sourceY, targetX, targetY, data, styl
   const head = 11, wing = 5;
   const back = [tx - head * Math.cos(ang), ty - head * Math.sin(ang)];
   const tri = `M${tx},${ty} L${back[0] - wing * Math.sin(ang)},${back[1] + wing * Math.cos(ang)} L${back[0] + wing * Math.sin(ang)},${back[1] - wing * Math.cos(ang)} Z`;
-  const opacity = typeof style?.opacity === "number" ? style.opacity : 1;
+  // the canvas gives every edge 0.6 by default and 0.15 to edges a selection leaves out: a figure's arrows stay solid but dim for a selection
+  const opacity = typeof style?.opacity === "number" && style.opacity < 0.5 ? style.opacity : 1;
   const dashed = (d.kind === "beta-" && d.palette === "chart") || d.kind === "sf";
   return (
     <>
