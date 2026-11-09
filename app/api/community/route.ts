@@ -1,50 +1,66 @@
-// The old nsr app's saved canvases ("views" and "recipes") lived in its database. NSRgpt holds no writable store for them
-// yet (2026-11-07), so saving still says so. The lists answer with the seeds below (Brendan, 2026-11-08, brief 30): three
-// views and three recipes, so the Views and Recipes lists show what they are for. A seed's state is what the Save button
-// would store (nodes and edges), or a library diagram to open (`diagram`), or a node to centre and expand once (`center`).
+import { SEEDS } from "@/lib/community-seeds"
+import { signedInName, store, storeConfigured } from "@/lib/community"
 
-type SeedNode = { type: string; id: string; label: string; sub?: string; title?: string; prompt?: string; x: number; y: number }
-type SeedState = { nodes: SeedNode[]; edges: { s: string; t: string }[]; diagram?: string; center?: { type: string; id: string; label: string; sub?: string } }
-type Seed = { id: number; name: string; saved_by: string; created_at: string; state: SeedState }
+// Saved canvases, "views" and "recipes" (a recipe is a view with prompt steps). Since brief 34 they live in the store
+// (DynamoDB nsrgpt-views behind Lambda nsr-api's /community, lib/community.ts); the seeds are rows in it, written by
+// scripts/community/seed.mjs. Where the store isn't set up (no NSR_API_WRITE_KEY) the lists answer with the seeds and a
+// save says so. A save is stamped server-side with the signed-in reader's name, whatever the page sends; a reader
+// deletes only their own saves.
 
-const key = (n: { type: string; id: string }) => `${n.type}:${n.id}`
-
-/** A recipe: its context nodes in a column on the left, wired into one prompt step on the right. */
-function recipe(id: number, name: string, prompt: string, context: Omit<SeedNode, "x" | "y">[]): Seed {
-  const nodes: SeedNode[] = context.map((n, i) => ({ ...n, x: 0, y: i * 120 }))
-  const step: SeedNode = { type: "prompt", id: `seed${id}`, label: "Prompt step", prompt, x: 420, y: ((context.length - 1) * 120) / 2 }
-  return { id, name, saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [...nodes, step], edges: nodes.map((n) => ({ s: key(n), t: key(step) })) } }
-}
-
-const SEEDS: Seed[] = [
-  { id: 1, name: "Thorium series, discs", saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [], edges: [], diagram: "thorium-series" } },
-  { id: 2, name: "s-process, Ag to Sb", saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [], edges: [], diagram: "s-process-ag-sb" } },
-  { id: 3, name: "137Cs neighbourhood", saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [], edges: [], center: { type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" } } },
-  recipe(4, "Summarise the papers on this canvas", "Summarise the papers on this canvas: for each, what was measured, by what method, and the result with its uncertainty; then say where they agree and where they differ.", [
-    { type: "paper", id: "1965GI06", label: "1965GI06", title: "Half-Life of Cesium-137", sub: "1965" },
-    { type: "paper", id: "1973CO39", label: "1973CO39", title: "Radiometric Measurement of the Half-Life of Caesium-137", sub: "1973" },
-    { type: "paper", id: "1978GR08", label: "1978GR08", title: "Determination of the Half-Life of 137Cs by a New Method", sub: "1978" },
-  ]),
-  recipe(5, "Measured against evaluated for the selected reaction", "For this reaction on this target, compare the measured cross sections (EXFOR) with the evaluated ones (ENDF/B-VIII.1): where they agree, where they differ and by how much, and which measurements the evaluation leans on.", [
-    { type: "nuclide", id: "235U", label: "235U", sub: "Z=92 N=143" },
-    { type: "reaction", id: "(N,F)", label: "(N,F)", sub: "neutron-induced fission" },
-  ]),
-  recipe(6, "Trace this decay chain and list the half-lives", "Trace the decay chain from this nuclide to its stable end. List every member in order with its half-life and the decay mode that leads to the next, and give the branching where the chain splits.", [
-    { type: "nuclide", id: "232TH", label: "232Th", sub: "Z=90 N=142" },
-  ]),
-]
+type View = { id: string; name: string; saved_by: string; created_at: string; kind?: string; state: unknown }
 
 export async function GET(req: Request) {
   const params = new URL(req.url).searchParams
   const tab = params.get("tab")
   if (tab === "view") {
-    const view = SEEDS.find((s) => String(s.id) === params.get("id"))
+    const id = params.get("id") ?? ""
+    if (storeConfigured() && /^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+      try {
+        return Response.json(await store<{ view: View }>(`/community/${id}`))
+      } catch {
+        // not in the store, or the store is down: try the seeds
+      }
+    }
+    const view = SEEDS.find((s) => s.id === id)
     return view ? Response.json({ view }) : Response.json({ error: "not found" }, { status: 404 })
   }
-  if (tab === "views") return Response.json({ views: SEEDS })
+  if (tab === "views") {
+    if (storeConfigured()) {
+      try {
+        return Response.json(await store<{ views: View[] }>("/community"))
+      } catch {
+        // the store is down: the seeds keep the lists useful
+      }
+    }
+    return Response.json({ views: SEEDS })
+  }
   return Response.json({ views: [], issues: [], posts: [], threads: [] })
 }
 
-export async function POST() {
-  return Response.json({ error: "Saving to Community isn't available yet." }, { status: 501 })
+export async function POST(req: Request) {
+  if (!storeConfigured()) return Response.json({ error: "Saving to Community isn't set up on this server." }, { status: 503 })
+  const by = await signedInName()
+  if (!by) return Response.json({ error: "Sign in to save to Community." }, { status: 401 })
+  const body = (await req.json().catch(() => null)) as { name?: string; state?: unknown } | null
+  if (!body?.name?.trim() || typeof body.state !== "object" || body.state === null) return Response.json({ error: "A save needs a name and a canvas." }, { status: 400 })
+  try {
+    return Response.json(await store<{ view: View }>("/community", { method: "POST", body: { name: body.name.trim(), saved_by: by, state: body.state } }))
+  } catch (e) {
+    return Response.json({ error: (e as Error).message }, { status: (e as { status?: number }).status ?? 502 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  if (!storeConfigured()) return Response.json({ error: "Community isn't set up on this server." }, { status: 503 })
+  const by = await signedInName()
+  if (!by) return Response.json({ error: "Sign in to delete a save." }, { status: 401 })
+  const id = new URL(req.url).searchParams.get("id") ?? ""
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) return Response.json({ error: "Give the save's id." }, { status: 400 })
+  try {
+    const { view } = await store<{ view: View }>(`/community/${id}`)
+    if (view.saved_by !== by) return Response.json({ error: `Only ${view.saved_by} can delete this save.` }, { status: 403 })
+    return Response.json(await store<{ deleted: string }>(`/community/${id}`, { method: "DELETE" }))
+  } catch (e) {
+    return Response.json({ error: (e as Error).message }, { status: (e as { status?: number }).status ?? 502 })
+  }
 }

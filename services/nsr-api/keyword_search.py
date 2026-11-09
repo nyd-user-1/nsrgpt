@@ -6,7 +6,9 @@
 #                                                                  total, took_ms}; limit default 25, max 200
 #   GET /suggest?q=Cs-1                                            up to 10 names starting with q (nuclides, reactions,
 #                                                                  authors), most-cited first
-#   GET /nsr/{key}                                                 one NSR reference (lake/serve/search/<version>/nsr/)
+#   GET /nsr/{key}                                                 one NSR reference (lake/serve/search/<version>/nsr/),
+#                                                                  with graph: its node and links (brief 34)
+#   GET /nsr/{key}/text                                            the same in NSR's exchange layout, as text/plain
 import os, re, time
 import boto3
 import duckdb
@@ -128,7 +130,41 @@ def nsr(key):
     rows = cur.fetchall()
     if not rows:
         return 404, {"error": f"no NSR reference {key}"}
-    return 200, dict(zip(names, rows[0]))
+    rec = dict(zip(names, rows[0]))
+    return 200, rec | {"graph": nsr_graph(rec)}
+
+
+def nsr_graph(rec):
+    """The paper node and its links: the nuclides it reports and the EXFOR entries compiled from it."""
+    links = []
+    for t in sorted(set(re.findall(r"\b(\d{1,3})([A-Z][A-Z]?)\b", (rec.get("nuclides") or "").upper()))):
+        links.append({"type": "nuclide", "id": f"{t[0]}{t[1]}", "label": f"{t[0]}{t[1][0]}{t[1][1:].lower()}", "rel": "nuclide"})
+    for e in re.findall(r"\b[0-9A-Z]\d{4}\b", (rec.get("exfor_keys") or "").upper()):
+        links.append({"type": "exfor", "id": e, "label": f"EXFOR {e}", "rel": "exfor"})
+    title = rec.get("title") or ""
+    return {"node": {"type": "paper", "id": rec["key_number"], "label": rec["key_number"],
+                     "sub": title[:120]}, "links": links[:80]}
+
+
+def nsr_text(key):
+    """NSR's exchange layout, written from the fields the lake holds; <HISTORY > and <CODEN   > are not among them."""
+    status, rec = nsr(key)
+    if status != 200:
+        return status, rec
+    tags = (("KEYNO", "key_number"), ("REFRENCE", "reference"), ("AUTHORS", "authors"), ("TITLE", "title"),
+            ("KEYWORDS", "keywords"), ("SELECTRS", None), ("DOI", "doi"))
+    lines = []
+    for tag, field in tags:
+        if field is None:
+            sel = "; ".join(x for x in ((rec.get("nuclides") or "").strip(), (rec.get("reactions") or "").strip()) if x)
+            v = sel
+        else:
+            v = str(rec.get(field) or "").strip()
+        if v:
+            lines.append(f"<{tag:<8}>{v}")
+    return {"statusCode": 200, "body": "\n".join(lines) + "\n",
+            "headers": {"Content-Type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*",
+                        "Cache-Control": "public, max-age=3600"}}
 
 
 def route(path, q):
@@ -137,7 +173,10 @@ def route(path, q):
         return search(q)
     if p == "/suggest":
         return suggest(q)
+    m = re.fullmatch(r"/nsr/([^/]+)/text", p)
+    if m:
+        return nsr_text(m.group(1))
     m = re.fullmatch(r"/nsr/([^/]+)", p)
     if m:
         return nsr(m.group(1))
-    return 404, {"error": "routes here: /search?q=, /suggest?q=, /nsr/{key}"}
+    return 404, {"error": "routes here: /search?q=, /suggest?q=, /nsr/{key}, /nsr/{key}/text"}

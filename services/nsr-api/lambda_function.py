@@ -8,7 +8,8 @@
 #   GET /exfor/subentry/{id}      id = subentry (10003002) or dataset (subentry + pointer): bib and data points
 #   GET /exfor/pickers/{name}     targets, reactions or quantities, with counts
 # Other routes live in their own files (MODULES below): /search, /suggest and /nsr/{key} in keyword_search.py (brief 18),
-# /nuclide and /endf in structure.py (brief 17). README.md lists every route.
+# /nuclide and /endf in structure.py (brief 17), /dataset, /exfor/entry and /endf/material in dataset.py and /community
+# and /files in community.py (brief 34). README.md lists every route.
 import json, os, re, time
 import duckdb
 
@@ -203,18 +204,23 @@ def respond(status, body, t0):
 
 # Routes kept in other files of this folder, each with its own DuckDB connection: path prefix -> module. A module has
 # route(path, query) returning (status, body) or a full Lambda response; it is imported on first use, so a cold start
-# loads only what its route needs. structure.py is parsing-1's (brief 17), keyword_search.py parsing-2's (brief 18).
-MODULES = {"/nuclide": "structure", "/endf": "structure", "/search": "keyword_search", "/suggest": "keyword_search",
-           "/nsr": "keyword_search"}
+# loads only what its route needs. A module that writes has handle(event) instead and answers with a full response.
+# The first prefix that matches wins, so /endf/material comes before /endf. structure.py is parsing-1's (brief 17),
+# keyword_search.py parsing-2's (brief 18), dataset.py and community.py ui-layer's (brief 34).
+MODULES = {"/nuclide": "structure", "/endf/material": "dataset", "/endf": "structure", "/search": "keyword_search",
+           "/suggest": "keyword_search", "/nsr": "keyword_search", "/dataset": "dataset", "/exfor/entry": "dataset",
+           "/community": "community", "/files": "community"}
 
 
-def module_route(path, q, t0):
+def module_route(path, q, t0, event=None):
     for prefix, name in MODULES.items():
         if path == prefix or path.startswith(prefix + "/"):
             try:
                 mod = __import__(name)
             except ImportError:
                 return respond(404, {"error": f"{prefix} is not deployed yet"}, t0)
+            if hasattr(mod, "handle"):
+                return mod.handle(event or {})
             out = mod.route(path, q)
             return out if isinstance(out, dict) and "statusCode" in out else respond(*out, t0)
     return None
@@ -225,7 +231,7 @@ def lambda_handler(event, context):
     path = event.get("rawPath") or event.get("path") or "/"
     q = event.get("queryStringParameters") or {}
     try:
-        out = module_route(path, q, t0)
+        out = module_route(path, q, t0, event)
         if out:
             return out
         if path.rstrip("/") == "/exfor/search":
@@ -237,6 +243,7 @@ def lambda_handler(event, context):
         if m:
             return respond(*picker(m.group(1)), t0)
         return respond(404, {"error": "routes: /exfor/search, /exfor/subentry/{id}, /exfor/pickers/{name}, /search, "
-                                      "/suggest, /nsr/{key}, /nuclide/{name}, /endf/…; see services/nsr-api/README.md"}, t0)
+                                      "/suggest, /nsr/{key}, /nuclide/{name}, /endf/…, /dataset/…, /exfor/entry/{id}, "
+                                      "/endf/material/…; see services/nsr-api/README.md"}, t0)
     except (ValueError, duckdb.Error) as e:
         return respond(400, {"error": str(e)[:500]}, t0)

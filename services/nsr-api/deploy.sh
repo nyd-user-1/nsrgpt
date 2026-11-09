@@ -41,6 +41,17 @@ else
     --role arn:aws:iam::$ACCT:role/$ROLE --memory-size $MEM --timeout 30 --code S3Bucket=$BUCKET,S3Key=$KEY \
     --tags project=nsr "${A[@]}" --query FunctionArn --output text
 fi
+# Brief 34: the dataset routes read the parsed lake, /community and /files write the views table and the uploads folder
+# (store-policy.json), and those two answer only a caller holding the write key (SSM, merged into the variables kept).
+aws iam put-role-policy --role-name $ROLE --policy-name nsr-api-store --policy-document file://services/nsr-api/store-policy.json "${A[@]}"
+WK=$(aws ssm get-parameter --name /nsrgpt/devbox/nsr-api-write-key --with-decryption --query Parameter.Value --output text "${A[@]}")
+ENV=$(aws lambda get-function-configuration --function-name $FN "${A[@]}" --query 'Environment.Variables' --output json)
+if [ "$(echo "$ENV" | jq -r '.NSR_WRITE_KEY // ""')" != "$WK" ]; then
+  aws lambda wait function-updated --function-name $FN "${A[@]}"
+  aws lambda update-function-configuration --function-name $FN "${A[@]}" --query LastUpdateStatus --output text \
+    --environment "$(echo "$ENV" | jq -c --arg k "$WK" '{Variables: ((. // {}) + {NSR_WRITE_KEY: $k})}')"
+fi
+unset WK
 API=$(aws apigatewayv2 get-apis "${A[@]}" --query "Items[?Name=='$FN'].ApiId | [0]" --output text)
 if [ "$API" = "None" ] || [ -z "$API" ]; then
   # quick create: one $default route to the Lambda (payload 2.0) and a $default stage that deploys itself
