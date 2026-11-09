@@ -38,7 +38,8 @@ export function EntitySearch({ className = '' }: { className?: string }) {
   const mostStudied = useMostStudied(wanted)
   const typed = q.trim().length >= 2
   const suggestions = typed ? results : mostStudied.slice(0, visible)
-  const showList = focused && (suggestions.length > 0 || searching)
+  const [failed, setFailed] = useState(false)
+  const showList = focused && (suggestions.length > 0 || searching || typed)
 
   useEffect(() => {
     if (!typed) { setResults([]); return }
@@ -47,8 +48,10 @@ export function EntitySearch({ className = '' }: { className?: string }) {
       try {
         const r = await fetch(`/api/graph?op=search&q=${encodeURIComponent(q)}`)
         const json = await r.json()
+        setFailed(!r.ok)
         setResults((json.results ?? []).map((x: Entity) => (x.type === 'nuclide' && x.code ? { ...x, id: x.code } : x)))
       } catch {
+        setFailed(true)
         setResults([])
       } finally {
         setSearching(false)
@@ -123,6 +126,9 @@ export function EntitySearch({ className = '' }: { className?: string }) {
         >
           {!typed && <p className="m-0 px-2.5 pb-1 pt-2 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Most studied</p>}
           {searching && suggestions.length === 0 && <p className="m-0 px-2.5 py-2 text-xs text-[var(--paper-muted)]">Searching…</p>}
+          {typed && !searching && suggestions.length === 0 && (
+            <p className="m-0 px-2.5 py-2 text-xs text-[var(--paper-muted)]">{failed ? 'The search could not reach the corpus.' : 'No matches.'}</p>
+          )}
           {suggestions.map((r) => (
             <button
               key={keyOf(r)}
