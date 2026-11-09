@@ -114,34 +114,33 @@ export function StructureView() {
         {tab === 'chart' && <Pills label="Colour by" options={MODES} value={mode} onChange={setMode} />}
       </div>
 
-      {tab === 'chart' && (
-        <div ref={frame} className={`relative min-h-0 flex-1 bg-[var(--paper)] ${expanded ? 'p-2' : ''}`}>
-          {data ? (
-            <div className="relative h-full w-full">
-              <ChartOfNuclides grid={data.grid} mode={mode} focus={focus} onSelect={open} />
-              {/* Top left: the expand toggle, then the quick search (typing zooms; Enter opens). */}
-              <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
-                <button
-                  type="button"
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 text-[var(--paper-text)] shadow-sm backdrop-blur transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_10%,var(--paper))]"
-                  title={expanded ? 'Collapse (Esc)' : 'Expand to fill the screen'}
-                  aria-label={expanded ? 'Collapse' : 'Expand'}
-                  onClick={toggleExpand}
-                >
-                  {expanded ? <Minimize2 className="h-4 w-4 -scale-x-100" /> : <Maximize2 className="h-4 w-4 -scale-x-100" />}
-                </button>
-                {/* Three boxes, one applied value: Nuclide is live (typing zooms), Mass and Symbol apply on pick. */}
-                <ChartCombobox placeholder="Nuclide, Mass, or Symbol" className="w-[200px]" options={nuclideCombo} applied={cq} onApply={setCq} live clearable onEnter={goTo} />
-                <ChartCombobox placeholder="Mass" className="hidden w-[100px] sm:block" options={massCombo} applied={cq} appliedMatches={(v) => /^\d{1,3}$/.test(v)} onApply={setCq} />
-                <ChartCombobox placeholder="Symbol" className="hidden w-[100px] sm:block" options={symbolCombo} applied={cq} appliedMatches={(v) => /^[A-Za-z]{1,2}$/.test(v)} onApply={setCq} />
-              </div>
-              <div className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-[var(--paper)]/85 p-1.5 backdrop-blur">
-                <LegendBar title={legend.title} segments={legend.segments} none={legend.none} />
-              </div>
+      {/* The chart stays mounted under the index, so its view is kept and the frame's skeleton stays away. */}
+      <div ref={frame} className={`relative min-h-0 flex-1 bg-[var(--paper)] ${expanded ? 'p-2' : ''} ${tab === 'chart' ? '' : 'hidden'}`}>
+        {data ? (
+          <div className="relative h-full w-full">
+            <ChartOfNuclides grid={data.grid} mode={mode} focus={focus} onSelect={open} />
+            {/* Top left: the expand toggle, then the quick search (typing zooms; Enter opens). */}
+            <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 text-[var(--paper-text)] shadow-sm backdrop-blur transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_10%,var(--paper))]"
+                title={expanded ? 'Collapse (Esc)' : 'Expand to fill the screen'}
+                aria-label={expanded ? 'Collapse' : 'Expand'}
+                onClick={toggleExpand}
+              >
+                {expanded ? <Minimize2 className="h-4 w-4 -scale-x-100" /> : <Maximize2 className="h-4 w-4 -scale-x-100" />}
+              </button>
+              {/* Three boxes, one applied value: Nuclide is live (typing zooms), Mass and Symbol apply on pick. */}
+              <ChartCombobox placeholder="Nuclide, Mass, or Symbol" className="w-[200px]" options={nuclideCombo} applied={cq} onApply={setCq} live clearable onEnter={goTo} />
+              <ChartCombobox placeholder="Mass" className="hidden w-[100px] sm:block" options={massCombo} applied={cq} appliedMatches={(v) => /^\d{1,3}$/.test(v)} onApply={setCq} />
+              <ChartCombobox placeholder="Symbol" className="hidden w-[100px] sm:block" options={symbolCombo} applied={cq} appliedMatches={(v) => /^[A-Za-z]{1,2}$/.test(v)} onApply={setCq} />
             </div>
-          ) : null}
-        </div>
-      )}
+            <div className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-[var(--paper)]/85 p-1.5 backdrop-blur">
+              <LegendBar title={legend.title} segments={legend.segments} none={legend.none} />
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       {tab === 'index' && (data ? (
         <EvaluationIndex data={data} onShowChain={(a) => { setCq(String(a)); setTab('chart') }} />
