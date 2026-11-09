@@ -22,6 +22,8 @@
   //   NSR_ATHENA_SECRET          the chat's NSR tools query nsr-lake through Athena (us-east-2)
   //   NSR_DATABASE_URL         — unused since 2026-11-04 (the NSR corpus left Neon for the lake)
 //   NSR_API_WRITE_KEY        — the write key for Lambda nsr-api's /community and /files (SSM /nsrgpt/devbox/nsr-api-write-key; set 2026-11-09)
+  //   NYSGPT_COGNITO_POOL_ID   — NSRgpt's own pool `nsrgpt`, us-east-1_i2dgOXMsI (Old account, brief 45; set 2026-11-09)
+  //   NYSGPT_COGNITO_CLIENT_ID — its app client `nsrgpt-web`, 3mqp5dmd7s16hd4v4e0h5a9c34 (no client secret)
   // NYSGPT_CHAT_OPEN is gone (2026-11-07): the chat requires a signed-in reader. Set it to "1"
   // in "vars" to answer without a session again.
   // NEXT_PUBLIC_DATA_BASE: the chart data's CloudFront distribution (EDQ9A6XJBYEH5, New account), read by

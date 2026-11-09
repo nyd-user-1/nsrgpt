@@ -64,3 +64,19 @@ be zero).
 
 ## Kickoff
 `Read ~/Code/nsrgpt/docs/briefs/45-nsrgpt-cognito-pool.md and do it; report to lead-agent after each step.`
+
+## Result (2026-11-09)
+- **Account:** Old account 638175140432 (profile `default`), us-east-1. The New account's service control policy
+  `p-qbiznb5q` denies `cognito-idp:CreateUserPool` (explicit deny; nothing was created there).
+- **Pool:** `nsrgpt`, `us-east-1_i2dgOXMsI`. The NYSgpt pool's settings (`45-source-pool.json`) with the name, the
+  message text ("NSRgpt"), tag `project=nsr` and deletion protection on as the only differences. Like the NYSgpt pool it
+  is admin-create-only: the app's self sign-up route is refused by Cognito; accounts come from invites or by hand.
+- **Client:** `nsrgpt-web`, `3mqp5dmd7s16hd4v4e0h5a9c34`, no secret, `USER_PASSWORD_AUTH` and refresh.
+- **IAM:** the existing user `nsrgpt-worker`, inline policy `nsrgpt-worker-limits-and-account`: AdminGetUser,
+  AdminCreateUser, AdminUpdateUserAttributes, AdminSetUserPassword, AdminDeleteUser on the new pool only;
+  `dynamodb:UpdateItem` on `nysgpt-limits` unchanged. No new user or access key.
+- **Worker:** secrets `NYSGPT_COGNITO_POOL_ID` and `NYSGPT_COGNITO_CLIENT_ID` replaced.
+- **Dev box:** SecureStrings `/nsrgpt/devbox/cognito-pool-id` and `cognito-client-id` (us-east-2, New account), read by
+  `scripts/devbox/userdata.sh` into the drop-in `cognito.conf`; applied to the running box.
+- **Code:** unchanged.
+- **NYSgpt pool:** untouched.
