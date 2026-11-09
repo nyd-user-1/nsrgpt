@@ -805,6 +805,7 @@ const IDEAS: { title: string; text: string; href?: string; soon?: boolean }[] = 
   // Brief 33: for Brendan to rank; not built yet.
   { title: "Build one for a nuclide", text: "Type a nuclide and get its decay chain, capture chain or level scheme drawn from the lake, not only from the library's figures.", soon: true },
   { title: "Compare two diagrams side by side", text: "Two canvases of the same type for two nuclides, panning and zooming together.", soon: true },
+  { title: "An editable legend", text: "Click a family to hide or recolour its nuclides, click an arrow kind to show or hide those edges; the legend prints with the export.", soon: true },
   // Reading, to go over together (Brendan, 2026-11-08).
   { title: "EXFOR formats manual, IAEA WP2007-23 (PDF)", text: "", href: "https://nds.iaea.org/exfor/x4guide/manuals/wp2007-23.pdf" },
   { title: "NuDat at USNDP 2022, BNL (PDF)", text: "", href: "https://indico.bnl.gov/event/15497/contributions/70076/attachments/44350/74834/NUDAT_USNDP2022.pdf" },
