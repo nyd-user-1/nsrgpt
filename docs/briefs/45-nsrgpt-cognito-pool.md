@@ -80,3 +80,11 @@ be zero).
   `scripts/devbox/userdata.sh` into the drop-in `cognito.conf`; applied to the running box.
 - **Code:** unchanged.
 - **NYSgpt pool:** untouched.
+- **Verified on production:** with an admin-created throwaway user, sign-in, `/api/auth/me`, rename (AdminUpdateUserAttributes),
+  `/api/account/profile` (AdminGetUser), `/profile`, password change (AdminSetUserPassword), sign-out, sign-in with the new
+  password and delete (AdminDeleteUser) all answered through the Worker with no credentials error. Self sign-up passed the
+  daily cap (`nysgpt-limits` reachable) and Cognito refused it, as on the NYSgpt pool.
+- **Verified on the dev box:** sign-in against the new pool sets the session cookie; the box's reader stays the dev bypass
+  (`NEXT_PUBLIC_DEV_SIGNED_IN=1`). Admin calls from the box run as its role in the New account, which can't reach the pool,
+  so `/profile`'s rename, password and delete forms fail there (before this they answered "Accounts aren't configured here").
+- **Users in the new pool after the checks:** 0. The NYSgpt pool still holds 3, last modified 2026-10-15.
