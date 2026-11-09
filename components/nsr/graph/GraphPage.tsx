@@ -22,6 +22,8 @@ import { FileText } from "@/components/animate-ui/icons/file-text";
 import { FlaskConical } from "@/components/animate-ui/icons/flask-conical";
 import { Layers } from "@/components/animate-ui/icons/layers";
 import { Users } from "@/components/animate-ui/icons/users";
+import { Settings2 as Settings2Icon } from "@/components/animate-ui/icons/settings-2";
+import { KINDS, KIND_LABEL, SUBTYPES, SUBTYPE_LABEL, type DiagramKind } from "@/lib/diagram/spec";
 import { FlowSettingsPanel, DEFAULT_FLOW_PROPS, type FlowProps } from "@/components/nsr/graph/FlowSettings";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -513,7 +515,67 @@ function RowMenu({ g, onPick, onAdd, onAsk }: {
   );
 }
 
-function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, onLoadDemo, navigate, initialBrowse = null }: {
+/** A diagram the rail lists: a spec from the library (brief 28), or one of today's chains and samples until it lands. */
+export type RailDiagram = { id: string; title: string; kind: DiagramKind; subtype: string; href: string; onSelect: () => void };
+
+/** Today's samples, filed under the six diagram kinds and a subtype until the library replaces them (brief 27). */
+const SAMPLE_KIND: Record<string, [DiagramKind, string]> = {
+  "thorium-figure": ["decay-chain", "thorium-series"],
+  pu241: ["decay-chain", "single-chain"],
+  "s-ag-sb": ["reaction-network", "s-process"],
+  "mass-201-210": ["reaction-network", "s-process"],
+  "sasahara-figure": ["activation-burnup", "transmutation-flow"],
+  sasahara: ["activation-burnup", "transmutation-flow"],
+  mo99: ["production-route", "medical-isotope"],
+  lu177: ["production-route", "medical-isotope"],
+  "u235-fan": ["fission-fan", "fan"],
+  co60: ["level-scheme", "decay-scheme"],
+  cs137: ["level-scheme", "decay-scheme"],
+};
+
+/** One diagram kind in the rail (Brendan, 2026-11-08): its section header, then a Type row whose picker narrows the rows
+ *  beneath to one subtype ("All" shows the kind's every diagram), then the kind's diagrams. */
+function DiagramSection({ kind, diagrams }: { kind: DiagramKind; diagrams: RailDiagram[] }) {
+  const [type, setType] = useState("all");
+  const picker = useRef<HTMLSelectElement>(null);
+  const shown = type === "all" ? diagrams : diagrams.filter((d) => d.subtype === type);
+  return (
+    <SideBarSection label={KIND_LABEL[kind]} storageKey={`graph:section:${kind}`}>
+      <SideBarMenuItem
+        href={`/graph?kind=${kind}`}
+        label="Type"
+        icon={Settings2Icon}
+        on={false}
+        group={KIND_LABEL[kind]}
+        onSelect={() => {
+          const s = picker.current;
+          if (!s) return;
+          s.focus();
+          try { (s as HTMLSelectElement & { showPicker?: () => void }).showPicker?.(); } catch { /* older browsers: focus is enough */ }
+        }}
+        trailing={
+          <select
+            ref={picker}
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            aria-label={`${KIND_LABEL[kind]}: type`}
+            className="h-6 max-w-28 truncate rounded-md border border-[var(--paper-rule-soft)] bg-[var(--paper)] px-1 text-xs text-[var(--paper-text)]"
+          >
+            <option value="all">All</option>
+            {SUBTYPES[kind].map((s) => (
+              <option key={s} value={s}>{SUBTYPE_LABEL[s] ?? s}</option>
+            ))}
+          </select>
+        }
+      />
+      {shown.map((d) => (
+        <SideBarMenuItem key={d.id} href={d.href} label={d.title} icon={Atom} on={false} group={KIND_LABEL[kind]} onSelect={d.onSelect} tip={{ name: d.title, side: "left" }} />
+      ))}
+    </SideBarSection>
+  );
+}
+
+function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain, onLoadDemo, navigate, initialBrowse = null, railDiagrams }: {
   initialBrowse?: string | null;
   onPick: (g: GNode) => void;
   onAdd: (g: GNode) => void;
@@ -523,6 +585,8 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
   onLoadChain: (id: string) => void;
   onLoadDemo: (id: string) => void;
   navigate: (p: string) => void;
+  /** The diagrams the rail lists, from the library (brief 28); today's chains and samples until it is passed. */
+  railDiagrams?: RailDiagram[];
 }) {
   const { data } = useQuery({
     queryKey: ["catalog"],
@@ -556,6 +620,10 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
     staleTime: 60_000,
   });
 
+  const diagrams: RailDiagram[] = railDiagrams ?? [
+    ...CHAINS.map((c) => ({ id: c.id, title: c.label, kind: "decay-chain" as const, subtype: `${c.id}-series`, href: `/graph?chain=${c.id}`, onSelect: () => onLoadChain(c.id) })),
+    ...ALL_DEMOS.filter((d) => SAMPLE_KIND[d.id]).map((d) => ({ id: d.id, title: d.label, kind: SAMPLE_KIND[d.id][0], subtype: SAMPLE_KIND[d.id][1], href: `/graph?demo=${d.id}`, onSelect: () => onLoadDemo(d.id) })),
+  ];
   const layer = (() => {
   if (browse === "views" || browse === "recipes") {
     const wantRecipes = browse === "recipes";
@@ -726,20 +794,9 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onLoadChain,
         <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, sub: data ? data.counts[key]?.toLocaleString() : undefined, side: "left" }} />
       ))}
       </SideBarSection>
-      <SideBarSection label="Decay chains" storageKey="graph:section:decay-chains">
-      {CHAINS.map((c) => (
-        <SideBarMenuItem key={c.id} href={`/graph?chain=${c.id}`} label={c.label} icon={Atom} on={false} group="Decay chains" onSelect={() => onLoadChain(c.id)} tip={{ name: c.label, side: "left" }} />
-      ))}
-      {ALL_DEMOS.filter((d) => d.section === "Decay chains").map((d) => (
-        <SideBarMenuItem key={d.id} href={`/graph?demo=${d.id}`} label={d.label} icon={Atom} on={false} group="Decay chains" onSelect={() => onLoadDemo(d.id)} tip={{ name: d.label, side: "left" }} />
-      ))}
-      </SideBarSection>
-      {DEMO_SECTIONS.map((section) => (
-        <SideBarSection key={section} label={section} storageKey={`graph:section:${section}`}>
-          {ALL_DEMOS.filter((d) => d.section === section).map((d) => (
-            <SideBarMenuItem key={d.id} href={`/graph?demo=${d.id}`} label={d.label} icon={Atom} on={false} group={section} onSelect={() => onLoadDemo(d.id)} tip={{ name: d.label, side: "left" }} />
-          ))}
-        </SideBarSection>
+      {/* The six diagram kinds, each under its header with a Type row that narrows it to one subtype (brief 27). */}
+      {KINDS.map((kind) => (
+        <DiagramSection key={kind} kind={kind} diagrams={diagrams.filter((d) => d.kind === kind)} />
       ))}
     </InsetBody>
   );
@@ -862,7 +919,6 @@ const DEMOS: Demo[] = [
     edges: [["137CS", "137BA-661", "β− 94.7% · 514 keV"], ["137CS", "137BA", "β− 5.3% · 1176 keV"], ["137BA-661", "137BA", "γ 661.7 keV · M4 · 85.1"]].map(([s, t, label]) => ({ s, t, label, kind: label.startsWith("γ") ? "sample" as const : "decay" as const })) },
 ];
 const ALL_DEMOS: Demo[] = [...FIGURES, ...DEMOS];
-const DEMO_SECTIONS = [...new Set(ALL_DEMOS.map((d) => d.section))].filter((s) => s !== "Decay chains");
 
 /** Seed canvases for the props panel — each one centers a real entity. */
 const DATASETS: { id: string; label: string; seed: GNode | null }[] = [

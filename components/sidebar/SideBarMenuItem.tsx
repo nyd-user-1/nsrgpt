@@ -32,8 +32,9 @@ export const ROW_BUTTON =
 export const BRANCH = "color-mix(in oklab, var(--paper-text) 18%, var(--paper))"
 
 /** onSelect: the row acts instead of navigating (an inset rail's row loads something onto a canvas); `href` stays its identity for the
- *  menu, Open in panel and Copy link. tip: the row's tooltip, its name with a count beneath (RowTip). Brendan, 2026-11-08. */
-export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", onSelect, tip }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; onSelect?: () => void; tip?: { name: string; sub?: string; side: RowTipSide } }) {
+ *  menu, Open in panel and Copy link. tip: the row's tooltip, its name with a count beneath (RowTip). trailing: a control in
+ *  place of the row's arrow and kebab, such as the Type row's picker in /graph's rail. Brendan, 2026-11-08. */
+export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", onSelect, tip, trailing }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; onSelect?: () => void; tip?: { name: string; sub?: string; side: RowTipSide }; trailing?: React.ReactNode }) {
   const { openPane } = useShellPanel()
   const { rows, patch } = useNavRows()
   const row = rows[href] ?? {}
@@ -47,7 +48,8 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
   }
   // hq's inline editor (app/ui/sidebar-recents.tsx): the row becomes its name's field; Enter keeps it, Esc lets it go.
   const rowClass = cn(
-    "relative flex w-full items-center gap-3 rounded-xl px-3 pr-16 text-left outline-none transition-[color,background-color,box-shadow]",
+    "relative flex w-full items-center gap-3 rounded-xl px-3 text-left outline-none transition-[color,background-color,box-shadow]",
+    trailing ? "pr-32" : "pr-16",
     small ? "py-1.5 text-[13px]" : "py-2 text-sm",
     on ? ROW_ON : cn("text-[var(--paper-muted)]", ROW_HOVER),
   )
@@ -90,6 +92,8 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
       <div className={cn("group/item relative", row.hidden && "opacity-50")}>
         {tip ? <RowTip name={tip.name} sub={tip.sub} side={tip.side}>{main}</RowTip> : main}
         <span className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center">
+          {trailing ?? (
+          <>
           {row.favorite && <Star aria-label="Favorite" className="size-3 fill-amber-400 text-amber-400" />}
           {/* On hover, the row's page opens in Panel 2, as the Kebab's Open in panel does. */}
           <button type="button" aria-label={`Open ${name} in Panel 2`} title="Panel 2" onClick={() => openPane(href)} className={ROW_BUTTON}>
@@ -123,6 +127,8 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
             <MenuSeparator />
             <MenuFoot title={row.title ? `${name} (${label})` : name} sub={group} />
           </KebabMenu>
+          </>
+          )}
         </span>
       </div>
     </AnimateIcon>
