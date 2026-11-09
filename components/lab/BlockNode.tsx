@@ -55,7 +55,7 @@ function Status({ block, summary }: { block: Block; summary: string }) {
         <span className="truncate">{s.detail || "Running"}</span>
       </span>
     )
-  if (s.status === "failed") return <span className="min-w-0 break-words text-[#b42318] dark:text-[#f97066]">{s.error}</span>
+  if (s.status === "failed") return <span title={s.error} className="line-clamp-2 min-w-0 break-words text-[#b42318] dark:text-[#f97066]">{s.error}</span>
   if (s.status === "done")
     return <span className="truncate">{[summary, s.ms !== undefined ? `${s.ms < 1000 ? `${s.ms} ms` : `${(s.ms / 1000).toFixed(1)} s`}` : ""].filter(Boolean).join(" · ")}</span>
   return <span className="truncate">{summary ? `${summary} · not run since its change` : "Not run"}</span>

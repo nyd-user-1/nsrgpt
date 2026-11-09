@@ -231,7 +231,7 @@ function LabInner() {
               <Panel position="top-left">
                 <div className="flex items-center gap-1.5 rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] p-1 pl-3 shadow-sm">
                   <input
-                    className="w-64 min-w-0 bg-transparent text-[13px] text-[var(--paper-text)] outline-none"
+                    className="w-[26rem] min-w-0 bg-transparent text-[13px] text-[var(--paper-text)] outline-none"
                     defaultValue={canvas.name}
                     key={`${canvas.id}:${canvas.name}`}
                     aria-label="Canvas name"

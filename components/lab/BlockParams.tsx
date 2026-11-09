@@ -95,7 +95,11 @@ export function BlockParams({ block, onParams, full = false }: { block: Block; o
       const d = p as DataParams
       body = (
         <>
-          <Row label="Source"><Choice<DataSource> value={d.source} options={full ? DATA_SOURCES : DATA_SOURCES.map((s) => ({ ...s, label: s.label.split(" ")[0] }))} onPick={(source) => onParams({ source })} /></Row>
+          <Row label="Source">
+            <select className={FIELD} value={d.source} onChange={(e) => onParams({ source: e.target.value as DataSource })}>
+              {DATA_SOURCES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+            </select>
+          </Row>
           {d.source === "exfor" && (<>{text("target", "Target", "U-235")}{text("reaction", "Reaction", "N,F")}{text("quantity", "Quantity", "SIG")}{range()}</>)}
           {(d.source === "endf" || d.source === "cov") && (<>{text("name", "Material", "U-235")}{number("mt", "MT")}{list("releases", "Releases")}{range()}</>)}
           {d.source === "nuclide" && text("name", "Nuclide", "137Cs")}
