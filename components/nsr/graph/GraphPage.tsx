@@ -735,18 +735,18 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
     <InsetBody>
       <SideBarSection label="Corpus" storageKey="graph:section:corpus">
       {CATALOG_TYPES.map(({ key, label, icon }) => (
-        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Corpus" onSelect={() => setBrowse(key)} tip={{ name: label, sub: data ? data.counts[key]?.toLocaleString() : undefined, side: "left" }} />
+        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Corpus" onSelect={() => setBrowse(key)} tip={{ name: label, side: "left" }} />
       ))}
       </SideBarSection>
       <SideBarSection label="Workspace" storageKey="graph:section:workspace">
       <SideBarMenuItem href="/graph?browse=files" label="Library" icon={FileText} on={false} group="Workspace" onSelect={() => setBrowse("files")} tip={{ name: "Library", side: "left" }} />
       {([["views", "Views", Layers], ["recipes", "Recipes", BookOpen]] as const).map(([key, label, icon]) => (
-        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Workspace" onSelect={() => setBrowse(key)} tip={{ name: label, sub: views.data ? String(views.data.views.filter((v) => isRecipe(v) === (key === "recipes")).length) : undefined, side: "left" }} />
+        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Workspace" onSelect={() => setBrowse(key)} tip={{ name: label, side: "left" }} />
       ))}
       </SideBarSection>
       <SideBarSection label="Datasets" storageKey="graph:section:datasets">
       {CATALOG_LINKS.map(({ key, label, icon, href }) => (
-        <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, sub: data ? data.counts[key]?.toLocaleString() : undefined, side: "left" }} />
+        <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, side: "left" }} />
       ))}
       </SideBarSection>
       {/* The six diagram kinds, each under its header with a Type row that narrows it to one subtype (brief 27). */}

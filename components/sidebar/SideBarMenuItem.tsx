@@ -34,7 +34,7 @@ export const BRANCH = "color-mix(in oklab, var(--paper-text) 18%, var(--paper))"
 /** onSelect: the row acts instead of navigating (an inset rail's row loads something onto a canvas); `href` stays its identity for the
  *  menu, Open in panel and Copy link. tip: the row's tooltip, its name with a count beneath (RowTip). trailing: a control in
  *  place of the row's arrow and kebab, such as the Type row's picker in /graph's rail. Brendan, 2026-11-08. */
-export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", onSelect, tip, trailing }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; onSelect?: () => void; tip?: { name: string; sub?: string; side: RowTipSide }; trailing?: React.ReactNode }) {
+export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", onSelect, tip, trailing }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; onSelect?: () => void; tip?: { name: string; side: RowTipSide }; trailing?: React.ReactNode }) {
   const { openPane } = useShellPanel()
   const { rows, patch } = useNavRows()
   const row = rows[href] ?? {}
@@ -90,7 +90,7 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
   return (
     <AnimateIcon asChild animateOnHover>
       <div className={cn("group/item relative", row.hidden && "opacity-50")}>
-        {tip ? <RowTip name={tip.name} sub={tip.sub} side={tip.side}>{main}</RowTip> : main}
+        {tip ? <RowTip name={tip.name} side={tip.side}>{main}</RowTip> : main}
         <span className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center">
           {trailing ?? (
           <>

@@ -77,8 +77,8 @@ export function InsetLayers({ layerKey, depth, children }: { layerKey: string; d
 
 /** The settings panel's tooltip, for both panels: the row's name in a paper card beside the row, on the canvas's side
  *  (Brendan dropped the descriptions, 2026-11-08). It renders in a portal above the canvas, so no panel edge clips it. */
-export function InsetTip({ name, sub, side, children }: { name: string; sub?: string; side: InsetSide; children: ReactElement }) {
-  return <RowTip name={name} sub={sub} side={side}>{children}</RowTip>;
+export function InsetTip({ name, side, children }: { name: string; side: InsetSide; children: ReactElement }) {
+  return <RowTip name={name} side={side}>{children}</RowTip>;
 }
 
 /** One inset panel: the rail tab on its inner edge closes and opens it (<html data-rail-left|right>); the shell's
