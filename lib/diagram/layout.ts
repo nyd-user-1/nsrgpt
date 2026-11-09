@@ -13,11 +13,11 @@ type XY = { x: number; y: number }
  *  steps one row up and one column right, as Wikipedia's decay-series figures draw them. */
 export const ROW_H = 150, COL_W = 260
 /** nz: N across, Z up, the s-process figures' chart. */
-export const CELL = 80
+export const CELL = 80, CELL_SMALL = 120
 /** free: a spec's own positions, in these units. */
 export const FREE_X = 230, FREE_Y = 170
 /** ladder: the daughter's levels between these, highest at the top. */
-export const LADDER_TOP = 40, LADDER_H = 420, LADDER_X = 300, LEVEL_W = 520
+export const LADDER_TOP = 40, LADDER_H = 420, LADDER_X = 300, LEVEL_W = 520, RUNG_GAP = 44
 /** A ladder's left edge and width: rungs start near the left when there is no parent, and widen with the γ lines. */
 export function ladderGeometry(spec: DiagramSpec, edges: EdgeKind[] = ["gamma"]): { x: number; w: number } {
   const parent = spec.nodes.some((n) => n.energyKeV === undefined)
@@ -36,10 +36,14 @@ export function place(spec: DiagramSpec, config: Pick<DiagramConfig, "grid">): M
     const ladder = ladderGeometry(spec)
     const levels = nodes.filter((x) => x.energyKeV !== undefined)
     const maxE = Math.max(1, ...levels.map((x) => x.energyKeV as number))
-    nodes.forEach((x, i) => {
-      if (x.energyKeV === undefined) pos.set(x.id, { x: 60, y: LADDER_TOP + i * 120 })
-      else pos.set(x.id, { x: ladder.x + ladder.w / 2, y: LADDER_TOP + 60 + (1 - x.energyKeV / maxE) * LADDER_H })
-    })
+    nodes.forEach((x, i) => { if (x.energyKeV === undefined) pos.set(x.id, { x: 60, y: LADDER_TOP + i * 120 }) })
+    // rungs by energy, ground at the bottom, but never closer than RUNG_GAP so each keeps its labels (as drawn schemes do)
+    let above = Infinity
+    for (const x of [...levels].sort((p, q) => (p.energyKeV as number) - (q.energyKeV as number))) {
+      const y = Math.min(LADDER_TOP + 60 + (1 - (x.energyKeV as number) / maxE) * LADDER_H, above - RUNG_GAP)
+      pos.set(x.id, { x: ladder.x + ladder.w / 2, y })
+      above = y
+    }
     return pos
   }
   if (grid === "free") {
@@ -49,7 +53,9 @@ export function place(spec: DiagramSpec, config: Pick<DiagramConfig, "grid">): M
   const zMax = Math.max(...nodes.map((x) => x.z))
   if (grid === "nz") {
     const nMin = Math.min(...nodes.map(nOf))
-    for (const x of nodes) pos.set(x.id, { x: (nOf(x) - nMin) * CELL, y: (zMax - x.z) * CELL })
+    // a short chain gets wider cells, so its arrows have room to show
+    const cell = nodes.length <= 12 ? CELL_SMALL : CELL
+    for (const x of nodes) pos.set(x.id, { x: (nOf(x) - nMin) * cell, y: (zMax - x.z) * cell })
     return pos
   }
   const exMax = Math.max(...nodes.map((x) => nOf(x) - x.z))
