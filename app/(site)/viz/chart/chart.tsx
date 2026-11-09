@@ -9,7 +9,7 @@ import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, FAMILY, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, keyOf, type Decay, type DecayNuclide } from '@/lib/viz-physics'
 import { ELEMENTS, datasetsHref, inkOn, papersHref } from '@/lib/structure'
 import { ELEMENT_NAMES, RADIATION_LABEL, jpi, loadGround, loadRadiation, massMicroU, type Ground, type GroundRow, type Radiation } from './data'
-import { MODES, MODE_SOURCE, colouring, loadCounts, modeLine, type Counts, type Mode } from './colour'
+import { MODES, colouring, loadCounts, modeLine, type Counts, type Mode } from './colour'
 
 // The chart of nuclides (Brendan, 2026-11-08): every ENSDF nuclide a box at (N, Z) in its decay family's colour, the
 // palette every chart here uses (lib/nuclide.ts FAMILY), magic numbers ruled. Hover reads the box; a click opens the
@@ -145,9 +145,6 @@ export function NuclideChart() {
           <NuclideCard x={data.d.nuclides[pick]} d={data.d} ground={data.g.index.get(keyOf(data.d.nuclides[pick].z, data.d.nuclides[pick].n))} onClose={() => setPick(null)} />
         )}
       </div>
-      <p className="m-0 shrink-0 truncate px-1 pt-1.5 text-[11px] text-[var(--paper-faint)]">
-        Sources: NUBASE2020, AME2020, ENSDF, the IAEA Live Chart{MODE_SOURCE[mode] ? `, ${MODE_SOURCE[mode]}` : ''}
-      </p>
       <VizControls>
         <p className="m-0">
           Every ENSDF nuclide is a box at its N and Z; the dashed rules are the magic numbers. Colour by its decay family, its
