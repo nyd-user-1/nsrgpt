@@ -9,6 +9,7 @@ import os
 import sys
 import tarfile
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "box"))
 import lake  # noqa: E402
@@ -19,9 +20,6 @@ LICENCE = ("ICRP-07 data: copying permitted for educational, research and not-fo
            "(License_DECDATA.TXT beside the files)")
 SUPPL = "P107JAICRP_38_3_Nuclear_Decay_Data_suppl_data.zip"
 SUPPL_URL = f"https://journals.sagepub.com/doi/suppl/10.1177/ANIB_38_3/suppl_file/{SUPPL}"
-DECDATA_WEB = ("https://raw.githubusercontent.com/harvey/Decdata-Web/56ac52302b2ac0e8581dd9bad0ca47a7c54c8c81/"
-               "P107JAICRP_38_3_Nuclear_Decay_Data_suppl_data/P%20107%20JAICRP%2038(3)%20Nuclear%20Decay%20Data%20for%20"
-               "Dosimetric%20Calculations(supplementary%20data)/ICRP-07.NDX")
 CORR_URL = "https://www.icrp.org/docs/Corrigenda%20of%20Publication%20107.zip"
 
 # Archive key -> (source URL, how it got here, licence)
@@ -29,10 +27,8 @@ ARCHIVES = {
     f"{P}/corrigenda-2022/Corrigenda of Publication 107.zip": (CORR_URL, "uploaded from the Mac (Brendan's download, "
                                                                "same bytes as the URL)", LICENCE),
     f"{P}/icrp-org/ICRP-07.zip": ("https://www.icrp.org/docs/ICRP-07.zip", "Lambda nsr-fetch", LICENCE),
-    f"{P}/cd-ndx/ICRP-07.NDX": (DECDATA_WEB, "Lambda nsr-fetch; the CD's NDX as committed in github.com/harvey/"
-                                "Decdata-Web inside the publisher's folder (SAGE refuses scripts)", LICENCE),
     f"{P}/raddata/RadData_1.0.2.tar.gz": ("https://cran.r-project.org/src/contrib/RadData_1.0.2.tar.gz",
-                                          "Lambda nsr-fetch", "RadData package: GPL-2; its ICRP-07 data keep the ICRP "
+                                          "Lambda nsr-fetch; kept for reference beside the CD", "RadData package: GPL-2; its ICRP-07 data keep the ICRP "
                                           "notice (RadData/inst/license.txt)"),
     f"{P}/{SUPPL}": (SUPPL_URL, "Brendan's browser download, uploaded from the Mac", LICENCE),
 }
@@ -65,7 +61,13 @@ def main():
         files.append({"key": key, "bytes": len(body), "sha256": sha(body), "url": url, "via": via, "licence": lic})
         folder = key.rsplit("/", 1)[0]
         members = []
-        if key.endswith(".zip"):
+        if key.endswith(SUPPL):
+            # The CD keeps its own layout under cd/, its top folder dropped.
+            folder = f"{P}/cd"
+            with zipfile.ZipFile(io.BytesIO(body)) as z:
+                members = [(i.filename.split("/", 1)[1], z.read(i)) for i in z.infolist()
+                           if not i.is_dir() and "/" in i.filename and not i.filename.startswith("__MACOSX/")]
+        elif key.endswith(".zip"):
             with zipfile.ZipFile(io.BytesIO(body)) as z:
                 # __MACOSX/._* are the zipping Mac's resource forks, not data.
                 members = [(i.filename.rsplit("/", 1)[-1], z.read(i)) for i in z.infolist()
@@ -73,11 +75,11 @@ def main():
         elif key.endswith(".tar.gz"):
             with tarfile.open(fileobj=io.BytesIO(body)) as t:
                 members = [(m.name, t.extractfile(m).read()) for m in t.getmembers() if m.name in RADDATA_KEEP]
+        with ThreadPoolExecutor(16) as ex:
+            list(ex.map(lambda m: put(f"{folder}/{m[0]}", m[1]), members))
         for name, data in members:
-            k = f"{folder}/{name}"
-            put(k, data)
-            files.append({"key": k, "bytes": len(data), "sha256": sha(data), "url": url, "via": f"unpacked from {key}",
-                          "licence": lic})
+            files.append({"key": f"{folder}/{name}", "bytes": len(data), "sha256": sha(data), "url": url,
+                          "via": f"unpacked from {key}", "licence": lic})
             if name.endswith("License_DECDATA.TXT"):
                 notice = data
     # The notice beside every folder of ICRP-07 data that lacks its own copy.
@@ -100,8 +102,8 @@ def main():
         "prefix": P, "built": lake.now(),
         "how": "scripts/parse/icrp107/ingest.py in github.com/nyd-user-1/nsrgpt (Lambda nsr-fetch, the parse box)",
         "licence": LICENCE,
-        "ndx_note": "corrigenda-2022/ICRP-07.NDX (2021-12, same bytes as icrp-org/ICRP-07.NDX) supersedes cd-ndx/ICRP-07.NDX "
-                    "and is the one parsed",
+        "ndx_note": "corrigenda-2022/ICRP-07.NDX (2021-12, same bytes as icrp-org/ICRP-07.NDX) supersedes the CD's "
+                    "cd/ICRP-07.NDX and is the one parsed; RAD, BET, ACK and NSF are the CD's (cd/)",
         "counts": {"files": len(files), "bytes": sum(f["bytes"] for f in files)},
         "files": files, "not_taken": not_taken,
     }

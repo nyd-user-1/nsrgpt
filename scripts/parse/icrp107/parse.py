@@ -1,20 +1,22 @@
-"""ICRP Publication 107 as Parquet tables (brief 48, Part B). Runs on the parse box (/opt/parse/bin/python, pyreadr).
-Reads raw/icrp/2026-11-09/: the corrected ICRP-07.NDX (corrigenda-2022/) and, until the CD's own RAD and BET arrive,
-RadData 1.0.2's R copies of them. Writes lake/icrp107/2008/<table>/ and Athena nsr.icrp107_<table>:
-  nuclides      one row per NDX record (1,252)
-  daughters     one row per NDX progeny field: parent, daughter (stable ones carry pointer 0, SF 9999), branching, mode
-  radiations    one row per RAD record: nuclide, radiation code and type, yield per transformation, energy MeV
-  beta_spectra  one row per BET grid point: nuclide, energy MeV, beta particles per MeV per transformation
-auger_ck (ACK) and neutron_spectra (NSF) wait for the CD's files. Then the counts check and manifest.json.
+"""ICRP Publication 107 as Parquet tables (brief 48, Part B). Runs on the parse box (/opt/parse/bin/python).
+Reads raw/icrp/2026-11-09/: the corrected ICRP-07.NDX (corrigenda-2022/) and the CD's RAD, BET, ACK and NSF (cd/), in
+the layouts of the CD's USERGUIDE.pdf, Tables 1-6. Writes lake/icrp107/2008/<table>/ and Athena nsr.icrp107_<table>:
+  nuclides         one row per NDX record (1,252)
+  daughters        one row per NDX progeny field: parent, daughter (stable ones carry pointer 0, SF 9999), branching, mode
+  radiations       one row per RAD record: nuclide, radiation code and type, yield per transformation, energy MeV
+  beta_spectra     one row per BET grid point: nuclide, energy MeV, beta particles per MeV per transformation
+  auger_ck         one row per ACK line: nuclide, yield per transformation, electron energy eV, atomic transition
+  neutron_spectra  one row per NSF bin: nuclide, SF branching fraction, lower and upper energy MeV, neutrons per
+                   transformation in the bin
+Then the counts check and manifest.json.
   /opt/parse/bin/python parse.py"""
 import json
 import os
 import re
 import sys
-import tarfile
+from collections import defaultdict
 
 import pyarrow as pa
-import pyreadr
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "box"))
@@ -110,10 +112,29 @@ def parse_ndx(path):
     return header, nuclides, daughters
 
 
-def raddata(tar, name):
-    with tarfile.open(tar) as t:
-        t.extract(f"RadData/data/{name}.rda", os.path.join(LOCAL, "rd"), filter="data")
-    return list(pyreadr.read_r(os.path.join(LOCAL, "rd", "RadData", "data", f"{name}.rda")).values())[0]
+# Table 3 of the user guide.
+TYPE_NAME = {"G": "Gamma rays", "PG": "Prompt gamma rays (spontaneous fission)", "DG": "Delayed gamma rays "
+             "(spontaneous fission)", "X": "X rays", "AQ": "Annihilation photons", "B+": "Beta-plus particles",
+             "B-": "Beta-minus particles", "BD": "Delayed beta particles (spontaneous fission)",
+             "IE": "Internal conversion electrons", "AE": "Auger electrons", "A": "Alpha particles",
+             "AR": "Alpha recoil nuclei", "FF": "Fission fragments", "N": "Neutrons"}
+
+
+def blocks(path):
+    """The CD's spectral files: a header line per nuclide (it starts with the name; its last field is the number of
+    data lines), then its data lines. Yields (header line number, name, header fields, declared count, data lines)."""
+    lines = open(path, encoding="latin-1").read().splitlines()
+    i = 0
+    while i < len(lines):
+        h = lines[i]
+        if not h.strip(" \t\x1a"):  # \x1a: a DOS end-of-file byte
+            i += 1
+            continue
+        if not h[0].isalpha():
+            raise ValueError(f"{path} line {i + 1}: expected a nuclide header, got {h[:40]!r}")
+        n = int(h.split()[-1])
+        yield i + 1, h[0:7].strip(), h, n, lines[i + 1:i + 1 + n]
+        i += 1 + n
 
 
 NUCLIDES = pa.schema([("record", I), ("nuclide", S), ("element", S), ("z", I), ("a", I), ("isomer", S),
@@ -126,68 +147,77 @@ DAUGHTERS = pa.schema([("parent", S), ("parent_z", I), ("parent_a", I), ("parent
                        ("daughter", S), ("daughter_z", I), ("daughter_a", I), ("daughter_isomer", S),
                        ("daughter_record", I), ("daughter_stable", B), ("branching_fraction", D), ("mode", S)])
 RADIATIONS = pa.schema([("nuclide", S), ("seq", I), ("code", I), ("type", S), ("type_name", S),
-                        ("yield_per_transformation", D), ("energy_mev", D), ("is_photon", B), ("source", S)])
-BETA = pa.schema([("nuclide", S), ("seq", I), ("energy_mev", D), ("intensity_per_mev", D), ("source", S)])
-RD_SOURCE = "RadData 1.0.2 (R copy of ICRP-07.{})"
+                        ("yield_per_transformation", D), ("energy_mev", D), ("is_photon", B)])
+BETA = pa.schema([("nuclide", S), ("seq", I), ("energy_mev", D), ("intensity_per_mev", D)])
+AUGER = pa.schema([("nuclide", S), ("seq", I), ("yield_per_transformation", D), ("energy_ev", D), ("transition", S)])
+NEUTRON = pa.schema([("nuclide", S), ("seq", I), ("sf_branching_fraction", D), ("energy_low_mev", D),
+                     ("energy_high_mev", D), ("yield_per_transformation", D)])
 
 
 def main():
     raw = json.loads(lake.s3.get_object(Bucket=lake.BUCKET, Key=f"{RAW}/manifest.json")["Body"].read())
     sha = {f["key"]: f["sha256"] for f in raw["files"]}
-    ndx_key = f"{RAW}/corrigenda-2022/ICRP-07.NDX"
-    tar_key = f"{RAW}/raddata/RadData_1.0.2.tar.gz"
-    ndx = lake.download(ndx_key, os.path.join(LOCAL, ndx_key))
-    tar = lake.download(tar_key, os.path.join(LOCAL, tar_key))
+    keys = {"NDX": f"{RAW}/corrigenda-2022/ICRP-07.NDX"} | {x: f"{RAW}/cd/ICRP-07.{x}" for x in ("RAD", "BET", "ACK", "NSF")}
+    path = {x: lake.download(k, os.path.join(LOCAL, k)) for x, k in keys.items()}
 
-    header, nuclides, daughters = parse_ndx(ndx)
-    names = {n["nuclide"] for n in nuclides}
-    t = {k: lake.Table(WORK, k, s) for k, s in
-         (("nuclides", NUCLIDES), ("daughters", DAUGHTERS), ("radiations", RADIATIONS), ("beta_spectra", BETA))}
+    header, nuclides, daughters = parse_ndx(path["NDX"])
+    by = {n["nuclide"]: n for n in nuclides}
+    t = {k: lake.Table(WORK, k, s) for k, s in (("nuclides", NUCLIDES), ("daughters", DAUGHTERS),
+         ("radiations", RADIATIONS), ("beta_spectra", BETA), ("auger_ck", AUGER), ("neutron_spectra", NEUTRON))}
     for n in nuclides:
         t["nuclides"].add(n)
     for d in daughters:
         t["daughters"].add(d)
 
-    codes = raddata(tar, "rad_codes")
-    type_name = dict(zip(codes["code_AN"], codes["description"]))
-    rad = raddata(tar, "ICRP_07.RAD")
-    rad["seq"] = rad.groupby("RN", sort=False).cumcount() + 1
-    src = RD_SOURCE.format("RAD")
-    for r in rad.itertuples(index=False):
-        t["radiations"].append([r.RN, int(r.seq), int(r.code_num), r.code_AN, type_name.get(r.code_AN), float(r.prob),
-                                float(r.E_MeV), bool(r.is_photon), src])
-    bet = raddata(tar, "ICRP_07.BET")
-    bet["seq"] = bet.groupby("RN", sort=False).cumcount() + 1
-    src = RD_SOURCE.format("BET")
-    for r in bet.itertuples(index=False):
-        t["beta_spectra"].append([r.RN, int(r.seq), float(r.E_MeV), float(r.A), src])
+    seen = {x: {} for x in ("RAD", "BET", "ACK", "NSF")}  # nuclide -> header line number
+    counted = defaultdict(lambda: defaultdict(int))  # nuclide -> NDX count column -> RAD rows
+    for line, nm, _, n, data in blocks(path["RAD"]):
+        seen["RAD"][nm] = line
+        for seq, d in enumerate(data, 1):
+            code, y, e, jc = d.split()
+            code, y, e = int(code), float(y), float(e)
+            t["radiations"].append([nm, seq, code, jc, TYPE_NAME.get(jc), y, e, code <= 3])
+            col = ("n_photons_lt_10kev" if e < 0.01 else "n_photons_ge_10kev") if code <= 3 else \
+                {4: "n_betas", 5: "n_betas", 6: "n_mono_electrons", 7: "n_mono_electrons", 8: "n_alphas"}.get(code)
+            if col:
+                counted[nm][col] += 1
+        if len(data) != n:
+            raise ValueError(f"RAD {nm}: {len(data)} lines, header says {n}")
+    for line, nm, _, n, data in blocks(path["BET"]):
+        seen["BET"][nm] = line
+        for seq, d in enumerate(data, 1):
+            e, y = d[0:7], d[7:17]  # F7.0, E10.0: the 10 MeV points fill the energy field
+            t["beta_spectra"].append([nm, seq, float(e), float(y)])
+    for line, nm, _, n, data in blocks(path["ACK"]):
+        seen["ACK"][nm] = line
+        for seq, d in enumerate(data, 1):
+            p = d.split()
+            t["auger_ck"].append([nm, seq, float(p[0]), float(p[1]), " ".join(p[2:])])
+    for line, nm, h, n, data in blocks(path["NSF"]):
+        seen["NSF"][nm] = line
+        bf = float(h.replace("\x00", " ").split()[-2])  # the headers pad with NUL bytes
+        for seq, d in enumerate(data, 1):
+            lo, hi, y = d.split()
+            t["neutron_spectra"].append([nm, seq, bf, float(lo), float(hi), float(y)])
 
-    # Counts check: NDX size, RAD and BET nuclides all in the NDX, RAD rows per nuclide against the NDX's counts.
-    by = {n["nuclide"]: n for n in nuclides}
-    rad_names, bet_names = set(rad["RN"]), set(bet["RN"])
-    photon = rad["code_num"].isin([1, 2, 3])
-    groups = {
-        "n_photons_lt_10kev": rad[photon & (rad["E_MeV"] < 0.01)],
-        "n_photons_ge_10kev": rad[photon & (rad["E_MeV"] >= 0.01)],
-        "n_betas": rad[rad["code_num"].isin([4, 5])],
-        "n_mono_electrons": rad[rad["code_num"].isin([6, 7])],
-        "n_alphas": rad[rad["code_num"] == 8],
-    }
-    mismatch = {}
-    for col, g in groups.items():
-        have = g.groupby("RN").size().to_dict()
-        bad = sorted(n for n in names if (by[n][col] or 0) != have.get(n, 0))
-        mismatch[col] = {"nuclides_off": len(bad), "examples": [[n, by[n][col], have.get(n, 0)] for n in bad[:8]]}
-    check = {
-        "ndx_nuclides": len(nuclides), "ndx_expected": 1252, "ndx_header": header,
-        "daughters_rows": len(daughters),
-        "rad_nuclides": len(rad_names), "rad_not_in_ndx": sorted(rad_names - names),
-        "ndx_with_rad_record_but_no_rad_rows": sorted(n for n in names if by[n]["rad_record"] and n not in rad_names),
-        "bet_nuclides": len(bet_names), "bet_not_in_ndx": sorted(bet_names - names),
-        "ndx_with_bet_record_but_no_bet_rows": sorted(n for n in names if by[n]["bet_record"] and n not in bet_names),
-        "bet_rows_but_no_ndx_bet_record": sorted(n for n in bet_names & names if not by[n]["bet_record"]),
-        "rad_rows_against_ndx_counts": mismatch,
-    }
+    # Counts check: 1,252 nuclides; every nuclide in RAD, BET, ACK, NSF is in the NDX and sits at the line the NDX
+    # points to; RAD rows per nuclide equal the NDX's five counts.
+    names = set(by)
+    ptr = {"RAD": "rad_record", "BET": "bet_record", "ACK": "ack_record", "NSF": "nsf_record"}
+    files = {}
+    for x, col in ptr.items():
+        s = seen[x]
+        files[x] = {
+            "nuclides": len(s), "not_in_ndx": sorted(set(s) - names),
+            "ndx_pointer_mismatch": sorted(nm for nm in names & set(s) if by[nm][col] != s[nm]),
+            "ndx_points_but_absent": sorted(nm for nm in names if by[nm][col] and nm not in s),
+        }
+    off = {}
+    for col in ("n_photons_lt_10kev", "n_photons_ge_10kev", "n_betas", "n_mono_electrons", "n_alphas"):
+        bad = sorted(nm for nm in names if (by[nm][col] or 0) != counted[nm][col])
+        off[col] = {"nuclides_off": len(bad), "examples": [[nm, by[nm][col], counted[nm][col]] for nm in bad[:8]]}
+    check = {"ndx_nuclides": len(nuclides), "ndx_expected": 1252, "ndx_header": header, "daughters_rows": len(daughters),
+             "files": files, "rad_rows_against_ndx_counts": off}
 
     tables, scanned = {}, 0
     for name, tab in t.items():
@@ -198,14 +228,14 @@ def main():
         tables[name] = {**info, "athena": f"nsr.icrp107_{name}", "athena_count": count}
     lake.sync(DDL, "lake/_work/parse/icrp107/ddl/")
     manifest = {
-        "source": "ICRP Publication 107 (2008), the 2021 corrected NDX", "prefix": OUT, "built": lake.now(),
+        "source": "ICRP Publication 107 (2008): the 2021 corrected NDX and the CD's RAD, BET, ACK and NSF",
+        "prefix": OUT, "built": lake.now(),
         "how": "scripts/parse/icrp107/parse.py in github.com/nyd-user-1/nsrgpt, on the parse box",
-        "inputs": [{"key": ndx_key, "sha256": sha.get(ndx_key)},
-                   {"key": tar_key, "sha256": sha.get(tar_key), "note": "RAD and BET from RadData's R copies until the "
-                    "CD's ICRP-07.RAD and ICRP-07.BET are held; ACK and NSF not held, so no auger_ck or neutron_spectra"}],
+        "inputs": [{"key": k, "sha256": sha.get(k)} for k in keys.values()],
+        "formats": "raw/icrp/2026-11-09/cd/USERGUIDE.pdf, Tables 1-6",
         "half_life_s": "half_life x unit; a year is 365.2422 days (ICRP 107)",
         "tables": tables, "check": check,
-        "spend": {"athena_bytes_scanned": scanned, "note": "parse box m7i-flex.large (Free Tier), under an hour"},
+        "spend": {"athena_bytes_scanned": scanned, "note": "parse box m7i-flex.large; its run time and cost go in the brief's report"},
     }
     lake.put_json(f"{OUT}/manifest.json", manifest)
     print(json.dumps({k: {"rows": v["rows"], "athena": v["athena_count"], "bytes": v["bytes"]} for k, v in tables.items()}))
