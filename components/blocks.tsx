@@ -8,12 +8,13 @@ import { ChevronDown } from "lucide-react"
 import { AskChip, CardAnchor, CardTools, slug } from "@/components/dash/card-tools"
 import { Card, CardAction, CardContent, CardFooter, CardHeader } from "@/components/ui/nova/card"
 import { useHiddenBlocks } from "@/lib/home-blocks"
+import { SearchField, SearchScope } from "@/components/table-search"
 import { cn } from "@/lib/utils"
 
-// Ported from pax2 (src/components/blocks.tsx, 2026-11-07) for /pipeline. Dropped, having no NSRgpt counterpart:
-// the searchbar beside the title (pax2-table2) and the carousel chevrons; the footer link goes to /docs.
+// Ported from pax2 (src/components/blocks.tsx, 2026-11-07) for /pipeline; its searchbar beside the title (pax2-table2, now
+// components/table-search.tsx) came back with the Glossary (2026-11-08). The carousel chevrons have no NSRgpt counterpart.
 // The one block (Brendan, 2026-10-06): every dashboard block is the same card —
-// the title, the three-dot menu, the size chevron,
+// the title, the searchbar beside it, the three-dot menu, the size chevron,
 // and a body that scrolls inside its height. Three sizes (Brendan, 2026-10-23):
 // Half View, 420px; Full View, the content's own height up to 840px, where
 // the body scrolls, and every block's state on load; Collapse, the header alone. The chevron steps Half and Full; the menu
@@ -37,7 +38,12 @@ export const useBlockSize = () => React.useContext(SizeCtx)
 export type BlockProps = {
   title: string
   children: React.ReactNode
-  /** Controls beside the title (a refresh, a legend). */
+  /** Placeholder for the searchbar beside the title; omit it for no searchbar. */
+  search?: string
+  /** Searchbar state, for a block that filters its own rows instead of the DOM. */
+  searchValue?: string
+  onSearch?: (v: string) => void
+  /** Controls between the title and the searchbar (a refresh, a legend). */
   tools?: React.ReactNode
   /** Controls left of the three-dot menu (a view toggle). */
   actions?: React.ReactNode
@@ -52,7 +58,7 @@ export type BlockProps = {
   /** Half View's height when a page fills the viewport with one block (a height class). "auto" and "max"
    *  are retired: they read as the standard 420px. */
   height?: string
-  /** Ignored (Brendan, 2026-10-20): every block's footer is the Docs link alone. */
+  /** Ignored (Brendan, 2026-10-20): every block's footer is the Glossary link alone. */
   footer?: React.ReactNode
   /** What stays showing when the block is collapsed (the first rows of a stats grid); nothing by default. */
   peek?: React.ReactNode
@@ -63,11 +69,11 @@ export type BlockProps = {
   className?: string
   /** A SmallBlock (the aside column's): sized to its content, not the 420px standard. */
   small?: boolean
-  /** The footer link reads More and goes here (the block's own page) instead of Docs. */
+  /** The footer link reads More and goes here (the block's own page) instead of the Glossary. */
   more?: string
 }
 
-export function MainBlock({ title, children, tools, actions, rows, name, views, view, onView, defaultOpen = true, height, peek, id, menuItems, className, small, more }: BlockProps) {
+export function MainBlock({ title, children, search, searchValue, onSearch, tools, actions, rows, name, views, view, onView, defaultOpen = true, height, peek, id, menuItems, className, small, more }: BlockProps) {
   const [size, setSize] = React.useState<BlockSize>(defaultOpen ? "full" : "collapsed")
   const open = size !== "collapsed"
   const half = height && height !== "auto" && height !== "max" ? height : BLOCK_HEIGHT
@@ -76,18 +82,19 @@ export function MainBlock({ title, children, tools, actions, rows, name, views, 
   const { hidden } = useHiddenBlocks()
   if (title && hidden.includes(`${path}#${id ?? slug(title)}`)) return null
   return (
-    <>
+    <SearchScope value={searchValue} onChange={onSearch}>
       <Card className={cn("gap-4", open && (small ? (size === "full" ? SMALL_FULL : SMALL_HALF) : size === "full" ? BLOCK_FULL : half), className)}>
         <CardHeader className={cn((open || peek) && "border-b [.border-b]:pb-2")}>
           <div className="flex items-center gap-1">
             <CardAnchor id={id}>{title}</CardAnchor>
             {tools}
+            {search && <SearchField placeholder={search} />}
           </div>
           <CardAction>
             <CardTools rows={rows} name={name ?? title.toLowerCase()} views={views} view={view} onView={onView} size={size} onSize={setSize} menuItems={menuItems} title={title || undefined} anchor={title || id ? (id ?? slug(title)) : undefined}>
               {actions}
               <AskChip title={title || undefined} />
-              <button type="button" aria-label={size === "half" ? `Full view ${title}` : `Half view ${title}`} onClick={() => setSize(size === "half" ? "full" : "half")} className="inline-flex size-8 items-center justify-center rounded-md text-slate-800 hover:bg-muted hover:text-foreground">
+              <button type="button" aria-label={size === "half" ? `Full view ${title}` : `Half view ${title}`} onClick={() => setSize(size === "half" ? "full" : "half")} className="inline-flex size-8 items-center justify-center rounded-md text-[var(--paper-text)] hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-strong)]">
                 <ChevronDown className={cn("size-4 transition-transform", size === "full" && "rotate-180")} />
               </button>
             </CardTools>
@@ -100,12 +107,12 @@ export function MainBlock({ title, children, tools, actions, rows, name, views, 
           </CardContent>
         )}
         {open && (
-          <CardFooter className="bg-transparent py-3 text-xs text-slate-800">
-            <Link href={more ?? "/docs"} className="font-medium text-slate-800 underline underline-offset-2 hover:text-pax2-light-blue">{more ? "More" : "Docs"}</Link>
+          <CardFooter className="bg-transparent py-3 text-xs text-[var(--paper-text)]">
+            <Link href={more ?? "/glossary"} className="font-medium text-[var(--paper-text)] underline underline-offset-2 hover:text-[var(--paper-strong)]">{more ? "More" : "Glossary"}</Link>
           </CardFooter>
         )}
       </Card>
-    </>
+    </SearchScope>
   )
 }
 
