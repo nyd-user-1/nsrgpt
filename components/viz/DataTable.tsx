@@ -190,7 +190,8 @@ export function DataTable({ slug }: { slug: string }) {
 
   return (
     <div className="px-6 pb-8">
-      <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 bg-[var(--paper)] py-3">
+      {/* The count and the pager stick to the top, the column headings under them (brief 36). */}
+      <div className="sticky top-0 z-20 flex h-12 flex-wrap items-center justify-between gap-3 bg-[var(--paper)]">
         <p className="text-[12px] text-[var(--paper-muted)]" style={SANS}>
           Rows {fmt.format(from + 1)}–{fmt.format(from + rows.length)} of {fmt.format(table.rows.length)}
           {table.note ? ` · ${table.note}` : ''}
@@ -209,9 +210,9 @@ export function DataTable({ slug }: { slug: string }) {
       </div>
       <table className="w-full border-collapse text-[13px] text-[var(--paper-text)]" style={SANS}>
         <thead>
-          <tr className="border-b border-[var(--paper-rule)]">
+          <tr className="shadow-[inset_0_-1px_0_var(--paper-rule)]">
             {table.columns.map((c, i) => (
-              <th key={i} className={`py-2 pr-4 text-[10px] font-normal uppercase tracking-[0.18em] text-[var(--paper-faint)] ${i ? 'text-right' : 'text-left'}`} style={MONO}>
+              <th key={i} className={`sticky top-12 z-10 bg-[var(--paper)] py-2 pr-4 text-[10px] font-normal uppercase tracking-[0.18em] text-[var(--paper-faint)] ${i ? 'text-right' : 'text-left'}`} style={MONO}>
                 {c}
               </th>
             ))}
@@ -230,7 +231,7 @@ export function DataTable({ slug }: { slug: string }) {
                 }}
                 aria-selected={on}
                 onClick={() => press(at)}
-                className={`scroll-mt-12 cursor-pointer border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
+                className={`scroll-mt-20 cursor-pointer border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] text-[var(--paper-strong)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
               >
                 {r.map((v, i) => (
                   <td key={i} className={`py-1.5 pr-4 ${i ? 'text-right tabular-nums' : 'text-left'}`} style={typeof v === 'number' ? MONO : undefined}>

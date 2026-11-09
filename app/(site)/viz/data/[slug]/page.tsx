@@ -26,10 +26,8 @@ export default async function VizDataPage({ params }: { params: Promise<{ slug: 
   if (!t) notFound()
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar text-[var(--paper-text)]" style={{ backgroundColor: "var(--paper)", ...PAPER_BRIDGE }}>
-        {/* The second panel's header names the page; standalone, this does. */}
-        <h1 data-chrome className="px-6 pt-2 text-[26px] leading-[1.1]" style={{ fontFamily: "var(--font-display), Georgia, serif", letterSpacing: "-0.02em" }}>
-          {t.title}
-        </h1>
+      {/* No heading of its own (brief 36): the app header names the page, with the click-to-copy, as on the chart pages
+          (components/AppLayout.tsx); the second panel's header names it there. The column headings lead the pane. */}
       {/* The nuclides and reactions tables sort, filter and link (briefs 35, 36); the charts' tables are DataTable. */}
       {slug === "nuclides" ? <NuclidesTable /> : slug === "reactions" ? <ReactionsTable /> : <DataTable slug={slug} />}
     </div>
