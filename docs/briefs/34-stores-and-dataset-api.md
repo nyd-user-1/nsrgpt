@@ -45,3 +45,14 @@ Document each route in `services/nsr-api/README.md` with one example; keep the 1
 ## Done means
 Save, delete and upload work end to end on the box; the seeds listed from the store; the dataset routes live with
 examples; the README current; spend stated; one report.
+
+## Part C: a rendered PDF of a dataset (Brendan, 2026-11-09 00:05 ET: "do this now, or at least queue it")
+`GET /dataset/{source}/{id}/pdf` returns a real PDF, not the browser's print: the header block, the levels and gammas
+tables, the comments, the references, in the paper palette's print form, NNDC's "PDF Version" as the model. Build it in
+the Lambda with a pure-Python PDF writer already available there or vendorable without a native build (reportlab if its
+wheel fits the Lambda's size and runtime; otherwise fpdf2). Cache like the other GETs. The page's PDF button switches from
+print to this route once it answers. Say the library you chose and the Lambda's size after.
+
+## Owner
+parsing-1 was terminated before starting; this brief is ui-layer's after brief 32. Same rules; the AWS profile and the
+Lambda's deploy steps are in `services/nsr-api/README.md`.
