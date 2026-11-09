@@ -26,7 +26,7 @@ export type FissionFile = {
 /** The eight parents, in the API's order, each with a colour per theme. */
 export const PARENTS = [
   { id: '232th', light: '#7a6a55', dark: '#c9b89a' },
-  { id: '233u', light: '#0e8a96', dark: '#3fd0dc' },
+  { id: '233u', light: '#00a396', dark: '#3fd0dc' },
   { id: '235u', light: '#2f6fdc', dark: '#5b9cff' },
   { id: '238u', light: '#1f9d4c', dark: '#3ddc7a' },
   { id: '237np', light: '#8b3fd9', dark: '#b57bff' },

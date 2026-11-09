@@ -1,12 +1,12 @@
 import { VizShell } from "@/components/viz/VizShell"
-import { GammaLinesChart } from "./chart"
+import { GammaLinesView } from "./view"
 
-export const metadata = { title: "γ-line finder — Viz" }
+export const metadata = { title: "γ lines — Viz" }
 
 export default function Page() {
   return (
     <VizShell framed>
-      <GammaLinesChart />
+      <GammaLinesView />
     </VizShell>
   )
 }

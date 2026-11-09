@@ -38,7 +38,7 @@ const INTENSITIES = [
   { label: '10 %', i: 10 },
 ]
 
-export function GammaLinesChart() {
+export function GammaLinesChart({ switcher }: { switcher?: React.ReactNode } = {}) {
   const [energy, setEnergy] = React.useState('661.66')
   const [window_, setWindow] = React.useState('2')
   // An hour by default: a detector's peaks are mostly long-lived emitters, and the exotic short-lived ones crowd every energy.
@@ -138,6 +138,7 @@ export function GammaLinesChart() {
       <div ref={ref} className="min-h-0 w-full flex-1" />
 
       <VizControls>
+        {switcher}
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1">
             <span className="text-[var(--paper-muted)]">Energy, keV</span>

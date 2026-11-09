@@ -22,7 +22,8 @@ type View = { picked: number[]; energy: Energy; three: boolean; kind: 'ind' | 'c
 const code = (v: View) => v.picked.reduce((s, i) => s | (1 << i), 0) | (ENERGIES.findIndex((e) => e.id === v.energy) << 8) | ((v.kind === 'cum' ? 1 : 0) << 10) | ((v.log ? 1 : 0) << 11)
 
 export function FissionChart() {
-  const [picked, setPicked] = React.useState<number[]>([2, 5])
+  // Opens on Wikipedia's ThermalFissionYield.svg: U-233, U-235 and Pu-239 at thermal (brief 29).
+  const [picked, setPicked] = React.useState<number[]>([1, 2, 5])
   const [energy, setEnergy] = React.useState<Energy>('thermal')
   const [three, setThree] = React.useState(false)
   const [kind, setKind] = React.useState<'ind' | 'cum'>('ind')
@@ -119,7 +120,7 @@ function MassCurve({ view, code }: { view: React.RefObject<View>; code: number }
       return {
         backgroundColor: 'transparent',
         animation: false,
-        grid: { left: 72, right: 32, top: 24, bottom: 56 },
+        grid: { left: 72, right: 64, top: 24, bottom: 56 },
         tooltip: {
           trigger: 'axis',
           formatter: (ps: unknown) => {
@@ -138,6 +139,8 @@ function MassCurve({ view, code }: { view: React.RefObject<View>; code: number }
             showSymbol: false,
             lineStyle: { width: 1.8 },
             color: dark ? PARENTS[i].dark : PARENTS[i].light,
+            // The parent's name at the curve's end, in ink, so a curve never relies on colour alone.
+            endLabel: { show: true, formatter: '{a}', color: dark ? '#f0e9d8' : '#16181d', fontSize: 11, distance: 6 },
             // From A = 60: below it are only ternary fission's light particles (¹H to ¹⁰Be), off this axis.
             data: massCurve(files[i], v.energy).filter(([a, y]) => a >= 60 && y >= 1e-6),
           })),

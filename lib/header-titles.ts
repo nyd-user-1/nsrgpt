@@ -27,7 +27,7 @@ export const HEADER_TITLES: Record<string, string> = {
   "/viz/fission-yields": "Fission Product Yields",
   "/viz/explorer": "Ground-State Properties",
   "/viz/radiation": "Nuclide Decay Radiation",
-  "/viz/gamma-lines": "Decay γ-Ray Energies",
+  "/viz/gamma-lines": "Decay γ Lines",
   "/viz/knowledge": "ENSDF Evaluation Coverage",
   "/viz/levels": "Adopted Level Energies",
   "/viz/first-excited": "First 2⁺ Excitation Energies",
