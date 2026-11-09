@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { FileCode2, FileText, Printer, Waypoints } from "lucide-react";
+import { ArrowLeft, FileCode2, FileText, Printer, Waypoints } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/nova/skeleton";
@@ -75,9 +75,10 @@ function RecordPage({ source, id }: { source: SourceKey; id: string }) {
     <div className="dataset-print min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
       <div className="flex items-start gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-[var(--paper-muted)] print:hidden">
-            <Link href={`/datasets/${source}`} className="hover:text-[var(--paper-text)] hover:underline">{def.label}</Link>
-          </p>
+          {/* back to the index; the header already names the source */}
+          <Link href={`/datasets/${source}`} aria-label={`${def.label} index`} title={`${def.label} index`} className="inline-flex text-[var(--paper-muted)] hover:text-[var(--paper-text)] print:hidden">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
           {view ? (
             <>
               <h1 className="mt-1 text-xl font-semibold leading-snug text-[var(--paper-text)]">{view.title}</h1>
