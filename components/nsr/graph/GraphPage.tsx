@@ -916,6 +916,10 @@ function GraphPageInner() {
   const [results, setResults] = useState<(GNode & { code?: string })[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  // The search bar and the tools bar rest as circles and open to full width in the sidebar's 500 ms (Brendan, 2026-11-08).
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const catalog = useQuery({
     queryKey: ["catalog"],
     queryFn: async (): Promise<Catalog> => {
@@ -1938,15 +1942,20 @@ function GraphPageInner() {
             <div className="relative">
               {/* Outer shell + 4px inset around the bordered inner bar — per the mock. */}
               <div className="rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
-                <div className="flex h-8 w-96 items-center gap-2 overflow-hidden rounded-full border bg-[var(--paper)] px-3">
-                  <Search className="h-4 w-4 shrink-0 text-[var(--paper-muted)]" />
+                <div className={`flex h-8 items-center gap-2 overflow-hidden rounded-full border bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out `}>
+                  <button type="button" aria-label="Search" aria-expanded={searchOpen} onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }} className="flex h-full shrink-0 items-center text-[var(--paper-muted)]">
+                    <Search className="h-4 w-4 shrink-0" />
+                  </button>
                   <Input
+                    ref={searchRef}
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     onFocus={() => setSearchFocused(true)}
-                    onBlur={() => setTimeout(() => { setSearchFocused(false); setVisibleStarter(15); }, 150)}
+                    onBlur={(e) => { const empty = !e.currentTarget.value.trim(); setTimeout(() => { setSearchFocused(false); setVisibleStarter(15); if (empty) setSearchOpen(false); }, 150); }}
+                    onKeyDown={(e) => { if (e.key === "Escape") { setQ(""); setSearchOpen(false); e.currentTarget.blur(); } }}
                     placeholder="Center an author, paper, nuclide, reaction…"
-                    className="h-full flex-1 border-0 bg-transparent p-0 text-[13px] shadow-none focus-visible:ring-0"
+                    tabIndex={searchOpen ? 0 : -1}
+                    className={`h-full border-0 bg-transparent p-0 text-[13px] shadow-none transition-opacity duration-[500ms] focus-visible:ring-0 `}
                   />
                   {searching && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--paper-muted)]" />}
                 </div>
@@ -1987,20 +1996,24 @@ function GraphPageInner() {
             </div>
           </Panel>
           <Panel position="top-right">
-            <div className="flex items-center gap-1.5 rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
-              <Button variant="outline" className="h-8 rounded-full px-3.5 text-[13px]" onClick={() => addPromptNode()}>
+            <div className="flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
+              <Button variant="outline" aria-label={toolsOpen ? "Hide the tools" : "Show the tools"} aria-expanded={toolsOpen} className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => setToolsOpen((v) => !v)}>
+                <Plus className={`h-4 w-4 transition-transform duration-[500ms] ease-in-out `} />
+              </Button>
+              <div className={`flex items-center gap-1.5 overflow-hidden transition-[max-width,opacity,margin] duration-[500ms] ease-in-out `}>
+              <Button variant="outline" className="h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px]" onClick={() => addPromptNode()}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" /> Prompt
               </Button>
-              <Button variant="outline" className="h-8 rounded-full px-3.5 text-[13px]" onClick={runChain} disabled={!hasPrompts || !!running}>
+              <Button variant="outline" className="h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px]" onClick={runChain} disabled={!hasPrompts || !!running}>
                 {running ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Play className="mr-1.5 h-3.5 w-3.5" />} Run
               </Button>
-              <Button variant="outline" className="h-8 rounded-full px-3.5 text-[13px]" onClick={() => setSaveOpen(true)}>
+              <Button variant="outline" className="h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px]" onClick={() => setSaveOpen(true)}>
                 <Save className="mr-1.5 h-3.5 w-3.5" /> Save
               </Button>
               {runs.length > 0 && (
                 <Button
                   variant="outline"
-                  className="h-8 w-8 rounded-full p-0"
+                  className="h-8 w-8 shrink-0 rounded-full p-0"
                   title="Run history"
                   onClick={() => { setTraceOpen(runs[0].id); setTraceStep(null); setSelectedKey(null); setEdgeInfo(null); setRail("right", false); }}
                 >
@@ -2010,7 +2023,7 @@ function GraphPageInner() {
               {/* The right inset panel's Config view: opens the panel on it, or closes the panel when it already shows it. */}
               <Button
                 variant="outline"
-                className={`h-8 w-8 rounded-full p-0 ${rightView === "config" && !rightClosed ? "bg-[var(--paper-quiet)]" : ""}`}
+                className={`h-8 w-8 shrink-0 rounded-full p-0 ${rightView === "config" && !rightClosed ? "bg-[var(--paper-quiet)]" : ""}`}
                 title="Canvas settings — <ReactFlow /> props"
                 onClick={() => {
                   if (rightView === "config" && !rightClosed) setRail("right", true);
@@ -2019,6 +2032,7 @@ function GraphPageInner() {
               >
                 <Settings2 className="h-4 w-4" />
               </Button>
+              </div>
             </div>
           </Panel>
           <Background gap={24} size={1} />
