@@ -62,10 +62,10 @@ export function AppLayout({
             {/* The sidebar's header matches the app header: the same height and rule, the toggle where the app header keeps it,
                 the name in the display face (Brendan, 2026-11-09). */}
             <div className={`${HEADER} ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
-              <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={ICON_BUTTON}>
+              <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={`${ICON_BUTTON} ${HEADER_GAP}`}>
                 <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
               </button>
-              <TitleText text="NSRgpt" className="ml-5 text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
+              <TitleText text="NSRgpt" className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
             </div>
             <div className="min-h-0 flex-1">
               <SideBarMenu />
@@ -92,13 +92,13 @@ export function AppLayout({
           {/* The sidebar toggle keeps one place on the screen (Brendan, 2026-11-09, as Claude's does): here while the sidebar is
               shut, in the sidebar's own header while it is open. A bare icon with the muted hover says it is a control. */}
           {!sidebarOpen && (
-            <button onClick={() => setSidebarOpen(true)} aria-label="Open the sidebar" className={`hidden sm:flex ${ICON_BUTTON}`}>
+            <button onClick={() => setSidebarOpen(true)} aria-label="Open the sidebar" className={`hidden sm:flex ${ICON_BOX} ${HEADER_GAP}`}>
               <PanelLeftOpen className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
             </button>
           )}
 
           {title && (VIZ_CHARTS.some((c) => c.href === path) ? <ChartSwitcher path={path} title={title} /> : (
-            <span className={`group/title hidden items-center gap-1 sm:flex ${sidebarOpen ? "" : "ml-5"}`}>
+            <span className="group/title hidden items-center gap-1 sm:flex">
               <TitleText text={title} className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
               <CopyTitle title={title} />
             </span>
@@ -150,7 +150,12 @@ const HOVER = "hover:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]
 /** The three headers share this (app, sidebar, right panel; Brendan, 2026-11-09): one height, one rule, the display title. */
 export const HEADER = "relative z-10 flex h-[81px] shrink-0 items-center border-b px-5 shadow-header";
 /** A bare icon control in a header: no circle, the muted hover says it is clickable. */
-export const ICON_BUTTON = `flex h-10 w-10 shrink-0 items-center justify-center rounded-lg outline-none transition-colors ${HOVER}`;
+const ICON_BOX = `h-10 w-10 shrink-0 items-center justify-center rounded-lg outline-none transition-colors ${HOVER}`;
+export const ICON_BUTTON = `flex ${ICON_BOX}`;
+/** The one gap between a header's sidebar toggle and its title (brief 36), on the toggle itself: every page's title, the
+ *  chart switcher's included, and the sidebar's NSRgpt sit this far from it; with the sidebar open the app header has no
+ *  toggle and its title starts at the header's padding. Titles carry no margin of their own. */
+export const HEADER_GAP = "mr-5";
 
 /** A chart page's previous and next chart, in the index's order, as circle buttons in the header (2026-11-06). */
 function ChartNav({ path }: { path: string }) {
@@ -198,14 +203,14 @@ function ChartNav({ path }: { path: string }) {
 function ChartSwitcher({ path, title }: { path: string; title: string }) {
   const router = useRouter();
   return (
-    <span className="group/title ml-5 hidden items-center gap-1 sm:flex">
+    <span className="group/title hidden items-center gap-1 sm:flex">
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {/* The title opens the chart list; a muted ground on hover says it's pressable (2026-11-06). */}
         <button
           type="button"
           aria-label={`${title}: switch chart`}
-          className={`-ml-2 flex items-center rounded-lg px-2.5 py-1.5 outline-none transition-colors ${HOVER} focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)] data-[state=open]:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]`}
+          className={`-ml-2.5 flex items-center rounded-lg px-2.5 py-1.5 outline-none transition-colors ${HOVER} focus-visible:ring-2 focus-visible:ring-[var(--paper-faint)] data-[state=open]:bg-[color-mix(in_oklab,var(--paper-text)_14%,var(--paper))]`}
         >
           <TitleText text={title} className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
         </button>
