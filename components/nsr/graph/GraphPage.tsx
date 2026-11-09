@@ -22,8 +22,7 @@ import { FileText } from "@/components/animate-ui/icons/file-text";
 import { FlaskConical } from "@/components/animate-ui/icons/flask-conical";
 import { Layers } from "@/components/animate-ui/icons/layers";
 import { Users } from "@/components/animate-ui/icons/users";
-import { Settings2 as Settings2Icon } from "@/components/animate-ui/icons/settings-2";
-import { KINDS, KIND_LABEL, SUBTYPES, SUBTYPE_LABEL, type DiagramKind } from "@/lib/diagram/spec";
+import { KINDS, KIND_LABEL, SUBTYPE_LABEL, type DiagramKind } from "@/lib/diagram/spec";
 import { configFor, type DiagramConfig, type DiagramSpec } from "@/lib/diagram/spec";
 import { LIBRARY, loadSpec } from "@/lib/diagram/library";
 import { toFlow } from "@/lib/diagram/layout";
@@ -493,43 +492,13 @@ function RowMenu({ g, onPick, onAdd, onAsk }: {
 /** A diagram the rail lists: a spec from the library (lib/diagram/library, brief 28). */
 export type RailDiagram = { id: string; title: string; kind: DiagramKind; subtype: string; href: string; onSelect: () => void };
 
-/** One diagram kind in the rail (Brendan, 2026-11-08): its section header, then a Type row whose picker narrows the rows
- *  beneath to one subtype ("All" shows the kind's every diagram), then the kind's diagrams. */
+/** One diagram kind in the rail (Brendan, 2026-11-08): its section header and the kind's diagrams, each row's kebab
+ *  naming its subtype (the Type picker that stood under the header is gone). */
 function DiagramSection({ kind, diagrams }: { kind: DiagramKind; diagrams: RailDiagram[] }) {
-  const [type, setType] = useState("all");
-  const picker = useRef<HTMLSelectElement>(null);
-  const shown = type === "all" ? diagrams : diagrams.filter((d) => d.subtype === type);
   return (
     <SideBarSection label={KIND_LABEL[kind]} storageKey={`graph:section:${kind}`}>
-      <SideBarMenuItem
-        href={`/graph?kind=${kind}`}
-        label="Type"
-        icon={Settings2Icon}
-        on={false}
-        group={KIND_LABEL[kind]}
-        onSelect={() => {
-          const s = picker.current;
-          if (!s) return;
-          s.focus();
-          try { (s as HTMLSelectElement & { showPicker?: () => void }).showPicker?.(); } catch { /* older browsers: focus is enough */ }
-        }}
-        trailing={
-          <select
-            ref={picker}
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            aria-label={`${KIND_LABEL[kind]}: type`}
-            className="h-6 max-w-28 truncate rounded-md border border-[var(--paper-rule-soft)] bg-[var(--paper)] px-1 text-xs text-[var(--paper-text)]"
-          >
-            <option value="all">All</option>
-            {SUBTYPES[kind].map((s) => (
-              <option key={s} value={s}>{SUBTYPE_LABEL[s] ?? s}</option>
-            ))}
-          </select>
-        }
-      />
-      {shown.map((d) => (
-        <SideBarMenuItem key={d.id} href={d.href} label={d.title} icon={Atom} on={false} group={KIND_LABEL[kind]} onSelect={d.onSelect} tip={{ name: d.title, side: "left" }} />
+      {diagrams.map((d) => (
+        <SideBarMenuItem key={d.id} href={d.href} label={d.title} icon={Atom} on={false} group={KIND_LABEL[kind]} sub={SUBTYPE_LABEL[d.subtype] ?? d.subtype} onSelect={d.onSelect} tip={{ name: d.title, side: "left" }} />
       ))}
     </SideBarSection>
   );
@@ -1930,7 +1899,7 @@ function GraphPageInner() {
               <Button
                 variant="outline"
                 className={`h-8 w-8 shrink-0 rounded-full p-0 ${rightView === "config" && !rightClosed ? "bg-[var(--paper-quiet)]" : ""}`}
-                title="Canvas settings — <ReactFlow /> props"
+                title="Config"
                 onClick={() => {
                   if (rightView === "config" && !rightClosed) setRail("right", true);
                   else { setRightView("config"); setRail("right", false); }

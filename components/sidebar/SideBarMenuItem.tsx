@@ -32,9 +32,9 @@ export const ROW_BUTTON =
 export const BRANCH = "color-mix(in oklab, var(--paper-text) 18%, var(--paper))"
 
 /** onSelect: the row acts instead of navigating (an inset rail's row loads something onto a canvas); `href` stays its identity for the
- *  menu, Open in panel and Copy link. tip: the row's tooltip, its name with a count beneath (RowTip). trailing: a control in
- *  place of the row's arrow and kebab, such as the Type row's picker in /graph's rail. Brendan, 2026-11-08. */
-export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", onSelect, tip, trailing }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; onSelect?: () => void; tip?: { name: string; side: RowTipSide }; trailing?: React.ReactNode }) {
+ *  menu, Open in panel and Copy link. tip: the row's tooltip, its name (RowTip). sub: the line under the name in the kebab's
+ *  header, the row's type where it has one (a diagram's subtype), else its group. Brendan, 2026-11-08. */
+export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, group = "Main", onSelect, tip, sub }: { href: string; label: string; icon?: SideBarIcon; on: boolean; small?: boolean; group?: string; onSelect?: () => void; tip?: { name: string; side: RowTipSide }; sub?: string }) {
   const { openPane } = useShellPanel()
   const { rows, patch } = useNavRows()
   const row = rows[href] ?? {}
@@ -48,8 +48,7 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
   }
   // hq's inline editor (app/ui/sidebar-recents.tsx): the row becomes its name's field; Enter keeps it, Esc lets it go.
   const rowClass = cn(
-    "relative flex w-full items-center gap-3 rounded-xl px-3 text-left outline-none transition-[color,background-color,box-shadow]",
-    trailing ? "pr-32" : "pr-16",
+    "relative flex w-full items-center gap-3 rounded-xl px-3 pr-16 text-left outline-none transition-[color,background-color,box-shadow]",
     small ? "py-1.5 text-[13px]" : "py-2 text-sm",
     on ? ROW_ON : cn("text-[var(--paper-muted)]", ROW_HOVER),
   )
@@ -92,15 +91,14 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
       <div className={cn("group/item relative", row.hidden && "opacity-50")}>
         {tip ? <RowTip name={tip.name} side={tip.side}>{main}</RowTip> : main}
         <span className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center">
-          {trailing ?? (
-          <>
           {row.favorite && <Star aria-label="Favorite" className="size-3 fill-amber-400 text-amber-400" />}
           {/* On hover, the row's page opens in Panel 2, as the Kebab's Open in panel does. */}
           <button type="button" aria-label={`Open ${name} in Panel 2`} title="Panel 2" onClick={() => openPane(href)} className={ROW_BUTTON}>
             <ArrowUpRight className="size-4" />
           </button>
-          {/* hq's row menu: the identity to copy, where it opens, Favorite, Rename, Hide and Archive, its context at
-              the foot; with the chats' Pin to top and pax-trinity's Copy link. */}
+          {/* hq's row menu: its name with its type or group beneath leads (Brendan, 2026-11-08), then where it opens,
+              Favorite, Rename, Hide and Archive, the chats' Pin to top and pax-trinity's Copy link; the path, which a
+              click copies, at the foot. */}
           <KebabMenu
             label={`${name} options`}
             align="left"
@@ -108,7 +106,7 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
             trigger={<EllipsisVertical className="size-4" />}
             triggerClassName={cn(ROW_BUTTON, "aria-expanded:bg-[var(--paper)] aria-expanded:opacity-100")}
           >
-            <MenuHeader text={href} copy={href} />
+            <MenuFoot title={row.title ? `${name} (${label})` : name} sub={sub ?? group} />
             <MenuSeparator />
             <MenuRow icon={<PanelRight />} label="Open in panel" onClick={() => openPane(href)} />
             <MenuRow icon={<Star className={row.favorite ? "fill-amber-400 text-amber-400" : undefined} />} label={row.favorite ? "Unfavorite" : "Favorite"} onClick={() => patch(href, { favorite: !row.favorite })} />
@@ -125,10 +123,8 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
             <MenuRow icon={row.hidden ? <Eye /> : <EyeOff />} label={row.hidden ? "Unhide" : "Hide"} onClick={() => patch(href, { hidden: !row.hidden })} />
             <MenuRow icon={row.archived ? <ArchiveRestore /> : <Archive />} label={row.archived ? "Unarchive" : "Archive"} onClick={() => patch(href, { archived: !row.archived })} />
             <MenuSeparator />
-            <MenuFoot title={row.title ? `${name} (${label})` : name} sub={group} />
+            <MenuHeader text={href} copy={href} />
           </KebabMenu>
-          </>
-          )}
         </span>
       </div>
     </AnimateIcon>

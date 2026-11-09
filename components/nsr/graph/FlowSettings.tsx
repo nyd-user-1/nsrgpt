@@ -324,7 +324,7 @@ export function FlowSettingsPanel({
   return (
     <>
       <RightViewHeader onBack={onBack}>
-        <h2 className={INSET.title}>{"<ReactFlow /> Props"}</h2>
+        <h2 className={INSET.title}>Config</h2>
         <button onClick={onReset} className="ml-auto text-xs text-[var(--paper-muted)] hover:text-[var(--paper-text)]">Reset</button>
       </RightViewHeader>
       <InsetBody>
