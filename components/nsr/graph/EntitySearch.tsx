@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
 import { Loader2, Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { setDragEntity } from '@/lib/nsr-drag-entity'
 import { GRAPH_CENTER, graphHref, keyOf, useMostStudied, type Entity } from './entities'
 
@@ -88,12 +89,12 @@ export function EntitySearch({ className = '' }: { className?: string }) {
   return (
     // A click on the bar is the bar's, not the header's (the header opens the Nav on a click in its empty space).
     <div className={`relative hidden shrink-0 sm:block ${className}`} onClick={(e) => e.stopPropagation()}>
-      <div className="rounded-full border border-[var(--paper-rule)]/40 bg-[var(--paper)] p-1 shadow-sm">
-        <div ref={bar} className={`flex h-8 items-center overflow-hidden rounded-full border border-[var(--paper-rule)]/40 bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out ${open ? 'w-96 gap-2 px-3' : 'w-8 justify-center gap-0 px-0'}`}>
+      {/* The canvas tools' dress (GraphPage's plus and Config; Brendan, 2026-11-09): the same pill, the circle a Button in it. */}
+      <div ref={bar} className={`flex h-10 items-center overflow-hidden rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm transition-[width,gap,padding] duration-[500ms] ease-in-out ${open ? 'w-96 gap-2 pr-3' : 'w-10 gap-0'}`}>
           {/* The circle opens the bar without focusing it; open and empty, it closes it again. */}
-          <button type="button" aria-label="Search" aria-expanded={open} onClick={() => setOpen((v) => !(v && !q.trim()))} className="flex h-full shrink-0 items-center text-[var(--paper-muted)]">
+          <Button variant="outline" aria-label="Search" aria-expanded={open} onClick={() => setOpen((v) => !(v && !q.trim()))} className="h-8 w-8 shrink-0 rounded-full p-0">
             <Search className="h-4 w-4 shrink-0" />
-          </button>
+          </Button>
           <input
             ref={input}
             value={q}
@@ -110,7 +111,6 @@ export function EntitySearch({ className = '' }: { className?: string }) {
             className={`h-full min-w-0 border-0 bg-transparent p-0 text-[13px] text-[var(--paper-text)] outline-none transition-opacity duration-[500ms] placeholder:text-[var(--paper-faint)] ${open ? 'flex-1 opacity-100' : 'w-0 flex-none opacity-0'}`}
           />
           {searching && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--paper-muted)]" />}
-        </div>
       </div>
       {showList && at && createPortal(
         <div
