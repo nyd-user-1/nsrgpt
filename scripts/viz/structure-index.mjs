@@ -19,55 +19,11 @@
 //   keys      NSR key numbers for evaluation citations that match exactly one NSR reference (nsr.search_nsr).
 //
 // Publishes to the chart CDN (site/viz-data/v20261108/structure-index.json) and the lake (lake/serve/viz/), with the
-// file's row in lake/serve/viz/manifest.json.
-import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+// file's row in lake/serve/viz/manifest.json (scripts/viz/lib.mjs).
+import { athena, publish } from "./lib.mjs";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const BUCKET = "nsr-lake-613473203863";
-const VERSION = "v20261108";
-const CDN = "https://dcl3kyt3ynmb2.cloudfront.net";
 const NAME = "structure-index.json";
 const ENSDF_RELEASE = "2026-11-05"; // the lake's ENSDF tables (lake/ensdf/2026-11-05/)
-const PROFILE = ["--profile", "nysgpt-new", "--region", "us-east-2"];
-const aws = (...args) => execFileSync("aws", [...args, ...PROFILE, "--output", "json"], { encoding: "utf8", maxBuffer: 1 << 28 });
-
-// ── Athena: one query, waited on, its CSV read in one call ───────────────────────────────────────────────────────
-function parseCsv(text) {
-  const rows = [];
-  let row = [], field = "", q = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (q) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') q = false;
-      else field += c;
-    } else if (c === '"') q = true;
-    else if (c === ",") { row.push(field); field = ""; }
-    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
-    else if (c !== "\r") field += c;
-  }
-  if (field || row.length) { row.push(field); rows.push(row); }
-  return rows;
-}
-function athena(label, sql) {
-  const { QueryExecutionId: id } = JSON.parse(aws("athena", "start-query-execution", "--work-group", "nsrgpt",
-    "--query-execution-context", "Database=nsr", "--query-string", sql));
-  for (;;) {
-    const exec = JSON.parse(aws("athena", "get-query-execution", "--query-execution-id", id)).QueryExecution;
-    const s = exec.Status.State;
-    if (s === "SUCCEEDED") {
-      const csv = execFileSync("aws", ["s3", "cp", exec.ResultConfiguration.OutputLocation, "-", ...PROFILE], { encoding: "utf8", maxBuffer: 1 << 28 });
-      const [cols, ...rows] = parseCsv(csv);
-      console.log(`${label}: ${rows.length} rows, ${(exec.Statistics.DataScannedInBytes / 1e6).toFixed(1)} MB scanned`);
-      return rows.map((r) => Object.fromEntries(cols.map((c, i) => [c, r[i] === "" ? null : r[i]])));
-    }
-    if (s === "FAILED" || s === "CANCELLED") throw new Error(`${label}: ${s}: ${exec.Status.StateChangeReason}`);
-    execFileSync("sleep", ["1"]);
-  }
-}
 
 // ── ENSDF history records ────────────────────────────────────────────────────────────────────────────────────────
 const MONTHS = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6, JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12 };
@@ -292,31 +248,11 @@ out.exfor.sort((p, q) => p[0] - q[0] || p[1] - q[1]);
 out.source = `ENSDF ${ENSDF_RELEASE} (nsr.ensdf_cards, nsr.ensdf_datasets), XUNDL (nsr.xundl_datasets), ` +
   `EXFOR (nsr.exfor_serve_search_index), NSR (nsr.search_nsr); built ${GENERATED}`;
 
-const body = JSON.stringify(out);
-const local = join(ROOT, "public", "viz-data", NAME);
-mkdirSync(dirname(local), { recursive: true });
-writeFileSync(local, body);
 const noCut = out.masses.filter((m) => !m.cutoff).map((m) => m.a);
-console.log(`wrote ${local}: ${(body.length / 1024).toFixed(0)} KB · ${out.masses.length} chains (no cutoff: ${noCut.join(", ") || "none"}) · ` +
+console.log(`${out.masses.length} chains (no cutoff: ${noCut.join(", ") || "none"}) · ` +
   `${out.masses.reduce((s, m) => s + m.nuclideEvals.length, 0)} nuclide evaluations · ${out.nuclides.length} nuclides · ${out.exfor.length} EXFOR targets`);
-
-// ── Publish ──────────────────────────────────────────────────────────────────────────────────────────────────────
-if (!process.argv.includes("--no-publish")) {
-  aws("s3", "cp", local, `s3://${BUCKET}/site/viz-data/${VERSION}/${NAME}`, "--content-type", "application/json",
-    "--cache-control", "public, max-age=31536000, immutable", "--only-show-errors");
-  aws("s3", "cp", local, `s3://${BUCKET}/lake/serve/viz/${NAME}`, "--content-type", "application/json", "--only-show-errors");
-  let manifest = { description: `Chart data files kept in the lake as well as on the chart CDN (${CDN}/viz-data/${VERSION}/<name>). ` +
-    "Each file names its script and sources.", files: {} };
-  try {
-    manifest = JSON.parse(execFileSync("aws", ["s3", "cp", `s3://${BUCKET}/lake/serve/viz/manifest.json`, "-", ...PROFILE], { encoding: "utf8" }));
-  } catch { /* first file */ }
-  manifest.files[NAME] = {
-    bytes: Buffer.byteLength(body), written: new Date().toISOString().slice(0, 19) + "Z", script: "scripts/viz/structure-index.mjs",
-    sources: ["nsr.ensdf_cards", "nsr.ensdf_datasets", "nsr.xundl_datasets", "nsr.exfor_serve_search_index", "nsr.search_nsr"],
-    rows: { masses: out.masses.length, nuclides: out.nuclides.length, exfor: out.exfor.length },
-  };
-  const mpath = join(ROOT, "public", "viz-data", "viz-manifest.json");
-  writeFileSync(mpath, JSON.stringify(manifest, null, 1));
-  aws("s3", "cp", mpath, `s3://${BUCKET}/lake/serve/viz/manifest.json`, "--content-type", "application/json", "--only-show-errors");
-  console.log(`published → ${CDN}/viz-data/${VERSION}/${NAME} and s3://${BUCKET}/lake/serve/viz/${NAME}`);
-}
+publish(NAME, out, {
+  script: "scripts/viz/structure-index.mjs",
+  sources: ["nsr.ensdf_cards", "nsr.ensdf_datasets", "nsr.xundl_datasets", "nsr.exfor_serve_search_index", "nsr.search_nsr"],
+  rows: { masses: out.masses.length, nuclides: out.nuclides.length, exfor: out.exfor.length },
+});

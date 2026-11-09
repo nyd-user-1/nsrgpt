@@ -7,6 +7,7 @@ import { scopeCursor } from '@/lib/viz-cursor'
 
 import { useShellPanel } from '@/components/shell'
 import { inspectorOn } from '@/components/dev/inspector-state'
+import { tableOf } from '@/lib/viz-tables'
 import { isEngaged, isTyping, setCamera } from '@/lib/viz-engage'
 
 // The /viz pages' one shared mechanism: mount an ECharts canvas in a ref'd div, loading echarts
@@ -789,7 +790,8 @@ export function useEChart<D>(
             if (p) latest.current.onPick(p)
             return
           }
-          const slug = latest.current.path?.split('/').filter(Boolean).pop()
+          // the chart's table: its own slug, or the one lib/viz-tables.ts names for it (/viz/reactions → decay-steps)
+          const slug = tableOf(latest.current.path?.split('/').filter(Boolean).pop() ?? '')
           if (slug) latest.current.openPane(`/viz/data/${slug}${row !== null && row >= 0 ? `?row=${row}` : ''}`)
         }, 0)
       })
@@ -818,7 +820,7 @@ export function useEChart<D>(
       // The table's picked rows ride the same message (brief 06): `rows` is the whole selection, drawn as marks.
       const point = (d: { type?: string; slug?: string; row?: number; rows?: number[] } | null) => {
         if (!d || d.type !== VIZ_POINT) return
-        const slug = latest.current.path?.split('/').filter(Boolean).pop()
+        const slug = tableOf(latest.current.path?.split('/').filter(Boolean).pop() ?? '')
         if (d.slug && slug && d.slug !== slug) return
         if (Array.isArray(d.rows)) marked?.pick(d.rows, latest.current.point)
         if (typeof d.row !== 'number') return

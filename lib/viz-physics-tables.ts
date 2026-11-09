@@ -77,7 +77,8 @@ export const PHYSICS_TABLES: Record<string, () => Promise<PhysicsTable>> = {
         note: `${fmt.format(links.length)} decay links`,
       }
     }),
-  reactions: () =>
+  // /viz/reactions' table, at /viz/data/decay-steps (brief 36: decay steps are not reactions).
+  'decay-steps': () =>
     loadDecay().then(d => ({
       columns: ['Series', 'Parent', 'Daughter', 'Mode', 'Branch %', 'Parent half-life'],
       rows: decaySeries(d).map(s => [

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { PAPER_BRIDGE } from "@/components/editorial/PaperBridge"
 import { DataTable } from "@/components/viz/DataTable"
 import { NuclidesTable } from "./nuclides-table"
+import { ReactionsTable } from "./reactions-table"
 import { VIZ_TABLES } from "@/lib/viz-tables"
 
 // A chart's data, one table per /viz chart (2026-11-04): what a click on the chart opens in the second
@@ -29,8 +30,8 @@ export default async function VizDataPage({ params }: { params: Promise<{ slug: 
         <h1 data-chrome className="px-6 pt-2 text-[26px] leading-[1.1]" style={{ fontFamily: "var(--font-display), Georgia, serif", letterSpacing: "-0.02em" }}>
           {t.title}
         </h1>
-      {/* The nuclides table sorts, filters and links (brief 35); the charts' tables are DataTable. */}
-      {slug === "nuclides" ? <NuclidesTable /> : <DataTable slug={slug} />}
+      {/* The nuclides and reactions tables sort, filter and link (briefs 35, 36); the charts' tables are DataTable. */}
+      {slug === "nuclides" ? <NuclidesTable /> : slug === "reactions" ? <ReactionsTable /> : <DataTable slug={slug} />}
     </div>
   )
 }

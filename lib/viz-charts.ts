@@ -50,6 +50,7 @@ export const VIZ_CHARTS: VizChart[] = [
 /** Tables with a box of their own on the contents plate (brief 35, 2026-11-09). Not charts: they stay out of the chart
  *  list's prev and next and the header's switcher; the sidebar and search list them with the other tables. */
 export const PLATE_TABLES: (VizChart & { name: string })[] = [
+  { href: "/viz/data/reactions", name: "Reactions", title: "Table", body: "Every EXFOR target, reaction and quantity: the entries, subentries, datasets and data points measured for each. Sorts on every column; a row opens the EXFOR datasets for its target and reaction.", lines: ["Rows: Target, Reaction, Quantity", "Columns: Entries, Subentries, Data Points", "Source: EXFOR (IAEA X4Pro and J4)"] },
   { href: "/viz/data/nuclides", name: "Nuclides Table", title: "Table", body: "One row per ground state: Z, N, A, Jπ, half-life, decay modes, mass excess, binding per nucleon and abundance, with the ENSDF and XUNDL datasets, NSR papers and EXFOR entries held for each. Sorts on every column; a row opens its nuclide on the chart.", lines: ["Rows: Ground States", "Columns: Properties and Counts", "Source: IAEA Live Chart, ENSDF, XUNDL, NSR, EXFOR"] },
 ]
 

@@ -1,7 +1,7 @@
 import { CATEGORIES, DOCS } from "@/lib/docs"
 import { HEADER_TITLES } from "@/lib/header-titles"
 import { VIZ_CHARTS } from "@/lib/viz-charts"
-import { VIZ_TABLES } from "@/lib/viz-tables"
+import { VIZ_TABLES, tableName } from "@/lib/viz-tables"
 
 // What the ⌘K search (CommandPalette) searches (2026-11-06; the docs' articles, 2026-11-07). Charts, data tables, articles and pages are the site's own lists,
 // searched in the browser; chats come from the chat store when the search opens. Nothing here calls a server, so
@@ -41,7 +41,7 @@ const CHARTS: SearchItem[] = VIZ_CHARTS.map((c) => ({
 const TABLES: SearchItem[] = Object.entries(VIZ_TABLES).map(([slug, t]) => ({
   kind: "data",
   href: `/viz/data/${slug}`,
-  title: HEADER_TITLES[`/viz/${slug}`] ?? t.title,
+  title: tableName(slug),
   snippet: t.title,
   meta: "Data table",
   keywords: "table rows data",
