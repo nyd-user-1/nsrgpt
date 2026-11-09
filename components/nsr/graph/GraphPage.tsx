@@ -11,7 +11,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import dagre from "@dagrejs/dagre";
 import {
-  ArrowLeft, Check, ChevronRight, Crosshair, History,
+  ArrowLeft, Check, ChevronRight, Copy, Crosshair, History, Redo2, RotateCcw, Share2, Undo2,
   GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, X,
 } from "lucide-react";
 import { Atom } from "@/components/animate-ui/icons/atom";
@@ -45,6 +45,7 @@ import { SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
+import { copyPng, copyText, elementToPng } from "@/lib/canvas-png";
 import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
@@ -828,6 +829,8 @@ function GraphPageInner() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   // The library diagram on the canvas and its config (brief 28); null when the canvas holds anything else.
   const [diagram, setDiagram] = useState<{ spec: DiagramSpec; config: DiagramConfig } | null>(null);
+  // The saved view on the canvas, named in the bottom-right group while no diagram is loaded.
+  const [loadedView, setLoadedView] = useState<string | null>(null);
   const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const [expanding, setExpanding] = useState<string | null>(null);
   const [running, setRunning] = useState<string | null>(null);
@@ -1361,10 +1364,71 @@ function GraphPageInner() {
     setSelectedKey(null);
     setEdgeInfo(null);
     fitNext.current = true;
+    configHistory.current = { past: [], future: [] };
+    setLoadedView(null);
+    setHistoryTick((n) => n + 1);
     setDiagram({ spec, config: configFor(spec) });
   }, []);
+  // The loaded diagram's change history (Brendan, 2026-11-08): every Config change and every Reset is a step the
+  // toolbar's Back and Forward walk; a newly loaded diagram starts with none.
+  const diagramNow = useRef(diagram);
+  diagramNow.current = diagram;
+  const configHistory = useRef<{ past: DiagramConfig[]; future: DiagramConfig[] }>({ past: [], future: [] });
+  // The history lives in a ref; the tick re-renders the toolbar when it changes.
+  const [, setHistoryTick] = useState(0);
+  const changeDiagram = useCallback((config: DiagramConfig, fit = false) => {
+    const cur = diagramNow.current;
+    if (!cur) return;
+    configHistory.current.past.push(cur.config);
+    configHistory.current.future = [];
+    setHistoryTick((n) => n + 1);
+    if (fit) fitNext.current = true;
+    setDiagram({ spec: cur.spec, config });
+  }, []);
   const setDiagramConfig = useCallback((patch: Partial<DiagramConfig>) => {
-    setDiagram((cur) => (cur ? { ...cur, config: { ...cur.config, ...patch } } : cur));
+    const cur = diagramNow.current;
+    if (cur) changeDiagram({ ...cur.config, ...patch });
+  }, [changeDiagram]);
+  /** Reset: the loaded diagram as the page loaded it, its spec's own config and layout, fitted. */
+  const resetDiagram = useCallback(() => {
+    const cur = diagramNow.current;
+    if (cur) changeDiagram(configFor(cur.spec), true);
+  }, [changeDiagram]);
+  const stepDiagram = useCallback((back: boolean) => {
+    const cur = diagramNow.current;
+    const h = configHistory.current;
+    const to = back ? h.past.pop() : h.future.pop();
+    if (!cur || !to) return;
+    (back ? h.future : h.past).push(cur.config);
+    setHistoryTick((n) => n + 1);
+    setDiagram({ spec: cur.spec, config: to });
+  }, []);
+  // The bottom-right group (Brendan, 2026-11-08): what the canvas shows, then Share (the diagram's link, through the
+  // browser's share sheet where it has one) and Copy (the canvas as a PNG).
+  const canvasTitle = diagram?.spec.title ?? loadedView ?? "Canvas";
+  const shareDiagram = useCallback(async () => {
+    const cur = diagramNow.current;
+    if (!cur) return;
+    const url = `${window.location.origin}/graph?diagram=${cur.spec.id}`;
+    try {
+      if (window.isSecureContext && navigator.share) { await navigator.share({ title: cur.spec.title, url }); return; }
+      await copyText(url);
+      toast.success("Link copied");
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") toast.error("Couldn't share the link");
+    }
+  }, []);
+  const copyCanvas = useCallback(async () => {
+    const flow = document.querySelector<HTMLElement>(".react-flow");
+    if (!flow) return;
+    try {
+      const paper = getComputedStyle(flow).getPropertyValue("--paper").trim() || "#ffffff";
+      const blob = await elementToPng(flow, paper);
+      const how = await copyPng(blob, `${(diagramNow.current?.spec.id ?? "canvas")}.png`);
+      toast.success(how === "copied" ? "Canvas copied as a PNG" : "Canvas saved as a PNG");
+    } catch {
+      toast.error("Couldn't copy the canvas");
+    }
   }, []);
   // Every config change redraws the canvas; a new diagram or a new grid fits the view again.
   const lastGrid = useRef<string | null>(null);
@@ -1436,6 +1500,8 @@ function GraphPageInner() {
           ? { id: `${e.s}->${e.t}`, source: e.s, target: e.t, data: { kind: "similar", cos: e.cos } as EdgeMeta, label: e.cos != null ? `${e.cos.toFixed(2)} cos` : undefined }
           : { id: `${e.s}->${e.t}`, source: e.s, target: e.t }));
         toast.success(`Loaded: ${view.name}`);
+        setDiagram(null);
+        setLoadedView(view.name);
         setTimeout(() => {
           const onLoad = loadFit.current;
           loadFit.current = false;
@@ -1843,7 +1909,9 @@ function GraphPageInner() {
               {/* Outer shell + 4px inset around the bordered inner bar — per the mock. */}
               <div className="rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
                 <div className={`flex h-8 items-center overflow-hidden rounded-full border bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out ${searchOpen ? "w-96 gap-2 px-3" : "w-8 justify-center gap-0 px-0"}`}>
-                  <button type="button" aria-label="Search" aria-expanded={searchOpen} onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }} className="flex h-full shrink-0 items-center text-[var(--paper-muted)]">
+                  {/* The circle opens the bar without focusing it (Brendan, 2026-11-08): the reader clicks into the field, and
+                      only then does the list open. Open and empty, the circle closes it again. */}
+                  <button type="button" aria-label="Search" aria-expanded={searchOpen} onClick={() => setSearchOpen((v) => !(v && !q.trim()))} className="flex h-full shrink-0 items-center text-[var(--paper-muted)]">
                     <Search className="h-4 w-4 shrink-0" />
                   </button>
                   <Input
@@ -1895,14 +1963,20 @@ function GraphPageInner() {
               )}
             </div>
           </Panel>
+          {/* The tools (Brendan, 2026-11-08): at rest two circles, the plus that opens them and Config, which never moves;
+              open, between them: a plain plus (a prompt node), Prompt, Run, Save, Reset, and Back and Forward once the
+              diagram has a change to step through. The fold takes 500 ms; the plus turns into a cross while open. */}
           <Panel position="top-right">
             <div className="flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
               <Button variant="outline" aria-label={toolsOpen ? "Hide the tools" : "Show the tools"} aria-expanded={toolsOpen} className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => setToolsOpen((v) => !v)}>
                 <Plus className={`h-4 w-4 transition-transform duration-[500ms] ease-in-out ${toolsOpen ? "rotate-45" : ""}`} />
               </Button>
-              <div className={`flex items-center gap-1.5 overflow-hidden transition-[max-width,opacity,margin] duration-[500ms] ease-in-out ${toolsOpen ? "ml-1.5 max-w-[480px] opacity-100" : "ml-0 max-w-0 opacity-0"}`}>
+              <div className={`flex items-center gap-1.5 overflow-hidden transition-[max-width,opacity,margin] duration-[500ms] ease-in-out ${toolsOpen ? "ml-1.5 max-w-[720px] opacity-100" : "ml-0 max-w-0 opacity-0"}`}>
+              <Button variant="outline" aria-label="Add a prompt node" title="Add a prompt node" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => addPromptNode()}>
+                <Plus className="h-4 w-4" />
+              </Button>
               <Button variant="outline" className="h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px]" onClick={() => addPromptNode()}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> Prompt
+                Prompt
               </Button>
               <Button variant="outline" className="h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px]" onClick={runChain} disabled={!hasPrompts || !!running}>
                 {running ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Play className="mr-1.5 h-3.5 w-3.5" />} Run
@@ -1920,10 +1994,24 @@ function GraphPageInner() {
                   <History className="h-4 w-4" />
                 </Button>
               )}
+              <Button variant="outline" className="h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px]" onClick={resetDiagram} disabled={!diagram} title="The diagram as the page loaded it">
+                <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Reset
+              </Button>
+              {(configHistory.current.past.length > 0 || configHistory.current.future.length > 0) && (
+                <>
+                  <Button variant="outline" aria-label="Back" title="Back" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => stepDiagram(true)} disabled={!configHistory.current.past.length}>
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" aria-label="Forward" title="Forward" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => stepDiagram(false)} disabled={!configHistory.current.future.length}>
+                    <Redo2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+              </div>
               {/* The right inset panel's Config view: opens the panel on it, or closes the panel when it already shows it. */}
               <Button
                 variant="outline"
-                className={`h-8 w-8 shrink-0 rounded-full p-0 ${rightView === "config" && !rightClosed ? "bg-[var(--paper-quiet)]" : ""}`}
+                className={`ml-1.5 h-8 w-8 shrink-0 rounded-full p-0 ${rightView === "config" && !rightClosed ? "bg-[var(--paper-quiet)]" : ""}`}
                 title="Config"
                 onClick={() => {
                   if (rightView === "config" && !rightClosed) setRail("right", true);
@@ -1932,13 +2020,23 @@ function GraphPageInner() {
               >
                 <Settings2 className="h-4 w-4" />
               </Button>
-              </div>
             </div>
           </Panel>
           <Background gap={24} size={1} />
           <Controls showInteractive={false} />
         </ReactFlow>
-        <ChatDock context={canvasContext} open={dockOpen} onOpenChange={setDockOpen} attached={attached} onAttach={setAttached} />
+        <ChatDock context={canvasContext} open={dockOpen} onOpenChange={setDockOpen} attached={attached} onAttach={setAttached} launcher={false} />
+        {!dockOpen && (
+          <div className="absolute bottom-4 right-4 z-10 flex max-w-[calc(100%-6rem)] items-center gap-1.5 rounded-full border bg-[var(--paper)] p-1 pl-3.5 shadow-sm backdrop-blur-sm">
+            <span className="min-w-0 truncate text-[13px] text-[var(--paper-text)]">{canvasTitle}</span>
+            <Button variant="outline" className="h-8 shrink-0 rounded-full px-3.5 text-[13px]" onClick={shareDiagram} disabled={!diagram} title={diagram ? `/graph?diagram=${diagram.spec.id}` : undefined}>
+              <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
+            </Button>
+            <Button variant="outline" className="h-8 shrink-0 rounded-full px-3.5 text-[13px]" onClick={copyCanvas}>
+              <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy
+            </Button>
+          </div>
+        )}
         <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
           <DialogPopup className="max-w-md nysgpt-app border border-[var(--paper-rule)] bg-[var(--paper)] text-[var(--paper-text)]">
             <DialogHeader>

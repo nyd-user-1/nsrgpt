@@ -21,12 +21,15 @@ const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) 
 
 interface Msg { role: "user" | "assistant"; content: string }
 
-export function ChatDock({ context, open, onOpenChange, attached, onAttach }: {
+export function ChatDock({ context, open, onOpenChange, attached, onAttach, launcher = true }: {
   context: () => string;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   attached: DragEntity | null;
   onAttach: (g: DragEntity | null) => void;
+  /** The closed dock's own Chat button; /graph shows its diagram's title, Share and Copy there instead and opens the dock
+   *  from a node's Ask (2026-11-08). */
+  launcher?: boolean;
 }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
@@ -87,6 +90,7 @@ export function ChatDock({ context, open, onOpenChange, attached, onAttach }: {
   };
 
   if (!open) {
+    if (!launcher) return null;
     return (
       <Button
         variant="outline"
