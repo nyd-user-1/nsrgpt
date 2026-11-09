@@ -15,7 +15,8 @@ import { useShellPanel } from "@/components/shell";
 import { CopyTitle } from "@/components/CopyTitle";
 import { CornerClose } from "@/components/pane";
 import { TitleText } from "@/components/TitleText";
-import { HEADER_TITLES } from "@/lib/header-titles";
+import { datasetTitle, HEADER_TITLES } from "@/lib/header-titles";
+import { usePageTitle } from "@/lib/page-title";
 import { VIZ_TABLES } from "@/lib/viz-tables";
 import { chartForward, markBack } from "@/lib/viz-grow";
 
@@ -39,8 +40,10 @@ export function AppLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const path = usePathname();
-  // a dataset record wears its source's name, as a /docs article wears Docs (brief 33); a table page its table's (brief 36)
-  const title = headerTitle ?? HEADER_TITLES[path] ?? (path.startsWith("/docs/") ? HEADER_TITLES["/docs"] : path.startsWith("/datasets/") ? HEADER_TITLES[path.split("/").slice(0, 3).join("/")] : path.startsWith("/viz/data/") ? VIZ_TABLES[path.split("/")[3] ?? ""]?.title : undefined);
+  // Every page is named here, none draws its own name (brief 38): a page that sets one (a /docs article, lib/page-title.ts),
+  // else the path's: a dataset record its own (lib/header-titles.ts), a table page its table's (brief 36)
+  const pageTitle = usePageTitle();
+  const title = headerTitle ?? pageTitle ?? HEADER_TITLES[path] ?? (path.startsWith("/docs/") ? HEADER_TITLES["/docs"] : path.startsWith("/datasets/") ? datasetTitle(path) : path.startsWith("/viz/data/") ? VIZ_TABLES[path.split("/")[3] ?? ""]?.title : undefined);
   const { headerMenu, closePage } = useShellPanel();
 
   return (

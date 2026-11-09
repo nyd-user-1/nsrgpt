@@ -17,6 +17,7 @@ import {
   ApiError, apiBlob, apiJson, apiText, fileBase, graphNodeOf, idFromSegments, isSource, recordView, SOURCES,
   type RecordQuery, type RecordView, type SourceKey,
 } from "@/lib/datasets";
+import { datasetTitle } from "@/lib/header-titles";
 import { ApiErrorNote, cellText, DataTable, UnknownSource } from "./DatasetParts";
 import "./print.css";
 
@@ -79,13 +80,15 @@ function RecordPage({ source, id }: { source: SourceKey; id: string }) {
           <Link href={`/datasets/${source}`} aria-label={`${def.label} index`} title={`${def.label} index`} className="inline-flex text-[var(--paper-muted)] hover:text-[var(--paper-text)] print:hidden">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          {view ? (
+          {/* The header names the record (brief 38, lib/header-titles.ts datasetTitle); printed, the page carries it, since
+              the header doesn't print. An EXFOR entry's, a material's or a paper's own title is information the header's
+              name doesn't carry, so it stays as the first row, with the line under it. */}
+          <p className="hidden text-xl font-semibold print:block">{datasetTitle(`/datasets/${source}/${id}`)}</p>
+          {view && (
             <>
-              <h1 className="mt-1 text-xl font-semibold leading-snug text-[var(--paper-text)]">{view.title}</h1>
+              {source !== "ensdf" && source !== "xundl" && <p className="mt-1 text-base leading-snug text-[var(--paper-text)]">{view.title}</p>}
               {view.sub && <p className="mt-0.5 font-mono text-xs text-[var(--paper-muted)]">{view.sub}</p>}
             </>
-          ) : (
-            <h1 className="mt-1 break-words font-mono text-lg text-[var(--paper-text)]">{id}</h1>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1.5 print:hidden">

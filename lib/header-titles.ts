@@ -55,4 +55,43 @@ export const HEADER_TITLES: Record<string, string> = {
   "/datasets/exfor": "EXFOR",
   "/datasets/nsr": "NSR",
   "/datasets/xundl": "XUNDL",
+  // Brief 38 (2026-11-09): every page is named here or resolved below, none draws its own name.
+  "/": "Home",
+  "/chat": "Chat",
+  "/account": "Account",
+  "/profile": "Profile",
+  "/settings": "Settings",
+  "/notifications": "Notifications",
+}
+
+/** ENSDF writes a DSID in capitals; the header writes words in sentence case and nuclides as 60Fe, and leaves codes
+ *  (IT, EC, B-, 59CO(N,G), E=TH) as they are: "60FE B- DECAY" reads "60Fe B- decay". */
+function dsidTitle(dsid: string): string {
+  const out = dsid
+    .split(" ")
+    .map((w) => (/^\d+[A-Z]{1,2}$/.test(w) ? w.replace(/^(\d+)([A-Z])([A-Z]?)$/, (_, a, b, c) => `${a}${b}${c.toLowerCase()}`) : /^\(?[A-Z]{3,}[,.;:)]*$/.test(w) ? w.toLowerCase() : w))
+    .join(" ")
+  return out.charAt(0).toUpperCase() + out.slice(1)
+}
+
+const nuclide = (nucid: string) => nucid.trim().replace(/^(\d+)([A-Za-z])([A-Za-z]?)$/, (_, a, b, c) => `${a}${b.toUpperCase()}${c.toLowerCase()}`)
+
+/** A dataset page's name (brief 38): an index wears its source's name; a record its own, read from the path so the
+ *  header has it before the record loads. ENSDF and XUNDL "60Co · Adopted levels, gammas"; EXFOR "EXFOR 10001002";
+ *  ENDF/B "ENDF/B-VIII.1 · MAT 9228"; NSR the key number. */
+export function datasetTitle(path: string): string | undefined {
+  const [, , source, ...rest] = path.split("/")
+  const index = HEADER_TITLES[`/datasets/${source}`]
+  if (!rest.length || !index) return index
+  const id = rest.map((p) => { try { return decodeURIComponent(p) } catch { return p } }).join("/")
+  if (source === "ensdf" || source === "xundl") {
+    const [nucid, ...dsid] = id.split(":")
+    return dsid.length ? `${nuclide(nucid)} · ${dsidTitle(dsid.join(":"))}` : id
+  }
+  if (source === "exfor") return `EXFOR ${id}`
+  if (source === "endf") {
+    const [release, mat] = id.split("/")
+    return mat ? `ENDF/${release} · MAT ${mat}` : id
+  }
+  return id
 }

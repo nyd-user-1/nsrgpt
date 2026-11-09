@@ -6,10 +6,10 @@ import { PrevNext } from "@/components/docs/DocCards"
 import { DocMarkdown } from "@/components/docs/DocMarkdown"
 import { DocsToc } from "@/components/docs/DocsToc"
 import { categoryOf, DOCS, docBySlug, headingsOf, neighbors, readMinutes } from "@/lib/docs"
+import { PageTitle } from "@/lib/page-title"
 
 type Props = { params: Promise<{ slug: string }> }
 
-const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const
 
 export function generateStaticParams() {
   return DOCS.map((d) => ({ slug: d.slug }))
@@ -42,10 +42,9 @@ export default async function DocPage({ params }: Props) {
           </Link>
         </nav>
 
-        <h1 className="mt-6 text-[42px] leading-[1.12] font-normal text-balance text-[var(--paper-text)]" style={SERIF}>
-          {d.title}
-        </h1>
-        <p className="mt-5 text-[18px] leading-relaxed text-[var(--paper-muted)]">{d.summary}</p>
+        {/* The header names the article (brief 38); its summary stays as the first row under the breadcrumb. */}
+        <PageTitle title={d.title} />
+        <p className="mt-6 text-[18px] leading-relaxed text-[var(--paper-muted)]">{d.summary}</p>
         <div className="mt-6 flex flex-wrap items-center gap-2">
           {(d.tags ?? []).map((t) => (
             <span key={t} className="rounded-md bg-[var(--paper-quiet)] px-2 py-0.5 text-[12px] font-medium text-[var(--paper-muted)]">

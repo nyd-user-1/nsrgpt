@@ -1,14 +1,13 @@
 import { PAPER_BRIDGE } from "@/components/editorial/PaperBridge";
 
-const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const;
 
-/** The frame of the reader's own pages: a title and the page, inside the (site) layout's shell (2026-11-04). */
+/** The frame of the reader's own pages, inside the (site) layout's shell (2026-11-04). The header names the page (brief 38,
+ *  lib/header-titles.ts); `title` stays for the callers and names the main region for screen readers. */
 export function AccountShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar" style={{ backgroundColor: "var(--paper)", ...PAPER_BRIDGE }}>
-        <main className="mx-auto w-full max-w-xl px-6 pt-10 pb-24 text-[var(--paper-text)]" style={SANS}>
-          <h1 className="m-0 mb-10 text-4xl font-normal" style={SERIF}>{title}</h1>
+        <main aria-label={title} className="mx-auto w-full max-w-xl px-6 pt-6 pb-24 text-[var(--paper-text)]" style={SANS}>
           {children}
         </main>
     </div>

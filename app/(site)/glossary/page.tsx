@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GLOSSARY } from "@/lib/glossary"
 
 // pax2's /glossary (src/app/glossary/page.tsx), ported whole (2026-11-08, brief 32): the one table of every term the app
+// (the header names the page, so the card has no title of its own, brief 38)
 // shows, in a TableBlock with its search, in the paper palette. The terms are nuclear data's (lib/glossary.ts). A static
 // shell: the terms are in the bundle, nothing loads.
 
@@ -14,7 +15,7 @@ const SORTED = [...GLOSSARY].sort((a, b) => a.full.replace(/[^\p{L}\p{N} ]/gu, "
 export default function GlossaryPage() {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-      <TableBlock title="Glossary" search="Search terms…" rows={SORTED.map((t) => ({ term: t.full, definition: t.definition, group: t.group }))} name="glossary">
+      <TableBlock title="" search="Search terms…" rows={SORTED.map((t) => ({ term: t.full, definition: t.definition, group: t.group }))} name="glossary">
         <Table className="table-fixed">
           <TableHeader>
             <TableRow className="bg-[var(--paper-quiet)]">

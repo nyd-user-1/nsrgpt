@@ -46,7 +46,7 @@ export function DictionaryTable() {
       .filter((g) => g.rows.length)
   }, [q, sort])
   return (
-    <TableBlock title="Data dictionary" search="Search fields…" searchValue={q} onSearch={setQ} rows={DICTIONARY.map((f) => ({ field: f.field, type: f.type, dataset: f.dataset, table: f.table, description: f.description, pages: f.pages.join(" "), route: f.route }))} name="data-dictionary">
+    <TableBlock title="" search="Search fields…" searchValue={q} onSearch={setQ} rows={DICTIONARY.map((f) => ({ field: f.field, type: f.type, dataset: f.dataset, table: f.table, description: f.description, pages: f.pages.join(" "), route: f.route }))} name="data-dictionary">
       <Table className="table-fixed">
         <TableHeader>
           <TableRow className="bg-[var(--paper-quiet)]">
