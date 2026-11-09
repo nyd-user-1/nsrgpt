@@ -146,7 +146,7 @@ export function toFlow(spec: DiagramSpec, config: DiagramConfig): FlowOut {
   if (legend?.length && boxes.size) {
     const xs = [...boxes.values()]
     const left = Math.min(...xs.map((b) => b.x)), bottom = Math.max(...xs.map((b) => b.y + b.h))
-    nodes.push({ id: "diagram:legend", type: "legend", position: { x: left - (grid === "element-rows" ? 40 : 0), y: bottom + (grid === "nz" ? 90 : 40) },
+    nodes.push({ id: "diagram:legend", type: "legend", position: grid === "nz" ? { x: left + 130, y: bottom + 30 } : { x: left - (grid === "element-rows" ? 40 : 0), y: bottom + 40 },
       draggable: true, selectable: false, data: { items: legend, family: !spec.legend } })
   }
 
@@ -174,14 +174,18 @@ export function toFlow(spec: DiagramSpec, config: DiagramConfig): FlowOut {
     const sc = { x: sb.x + sb.w / 2, y: sb.y + sb.h / 2 }, tc = { x: tb.x + tb.w / 2, y: tb.y + tb.h / 2 }
     const dx = tc.x - sc.x, dy = tc.y - sc.y
     const horizontal = Math.abs(dx) >= Math.abs(dy)
-    const plainCard = config.shape === "rect" && grid !== "ladder" && !spec.nodes.find((x) => x.id === e.s)?.cls
-    const handles = plainCard ? {} : {
-      sourceHandle: horizontal ? (dx > 0 ? "r" : "l") : dy > 0 ? "b" : "t",
-      targetHandle: horizontal ? (dx > 0 ? "lt" : "rt") : dy > 0 ? "tt" : "bt",
+    // named handles only where the node has them: a plain card (EntityNode without the glyph) has just its own two
+    const named = (id: string) => {
+      const x = spec.nodes.find((n) => n.id === id)
+      return !(config.shape === "rect" && !(grid === "ladder" && x?.energyKeV !== undefined) && !x?.cls)
+    }
+    const handles = {
+      ...(named(e.s) ? { sourceHandle: horizontal ? (dx > 0 ? "r" : "l") : dy > 0 ? "b" : "t" } : {}),
+      ...(named(e.t) ? { targetHandle: horizontal ? (dx > 0 ? "lt" : "rt") : dy > 0 ? "tt" : "bt" } : {}),
     }
     edges.push({
       id: `diagram:${i}:${e.s}->${e.t}:${e.kind}`, source, target, type: "diagram", ...handles,
-      data: { kind: e.kind, pct: e.pct, curve: e.curve, palette, points, text: edgeText(e.kind, e.pct, e.label, config.labels), mode: EDGE_LABEL[e.kind],
+      data: { kind: e.kind, pct: e.pct, curve: e.curve, palette, points, text: grid === "nz" ? undefined : edgeText(e.kind, e.pct, e.label, config.labels), mode: EDGE_LABEL[e.kind],
         source: spec.source, receipt: receiptOf(spec, e.s, e.t, e.kind, e.pct, e.label) },
     })
   })
