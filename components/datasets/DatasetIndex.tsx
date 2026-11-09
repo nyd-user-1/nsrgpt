@@ -82,7 +82,8 @@ function Index({ def }: { def: SourceDef }) {
         {list && (
           <>
             <p className="mb-2 text-sm text-[var(--paper-text)]">
-              {list.total === 1 ? `1 ${one}` : `${short(list.total ?? list.rows.length)} ${many}`}
+              {/* a search capped below its total (NSR's 50) says how many of how many */}
+              {list.total === 1 ? `1 ${one}` : !(list.pages && list.pages > 1) && list.total && list.rows.length < list.total ? `${list.rows.length} of ${short(list.total)} ${many}` : `${short(list.total ?? list.rows.length)} ${many}`}
               {list.pages && list.pages > 1 ? <span className="text-[var(--paper-muted)]"> · page {list.page} of {list.pages}</span> : null}
             </p>
             {list.rows.length ? (
