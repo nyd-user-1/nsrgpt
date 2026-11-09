@@ -25,7 +25,8 @@ export const REACTION_SPECS: DiagramSpec[] = [
 
 // parsing-1's files (brief 29): nodes { id "Ag-107", z, n, a, symbol, halfLifeS, onPath, faint }, edges { from, to,
 // kind: capture, p-capture, beta-, beta+, alpha; process "s" or "r" }. Shown: the path, the stable isotopes off it
-// (faint) and anything an arrow touches; a proton capture is a capture labelled (p,γ), r-process feeding is labelled r.
+// and anything an arrow touches; only the path is solid yellow, the rest pale (stable off the path, the r-process
+// nuclides feeding it); a proton capture is a capture labelled (p,γ), r-process feeding is labelled r.
 type FileNode = { id: string; z: number; n?: number; a: number; symbol: string; halfLifeS?: number | null; onPath?: boolean; faint?: boolean }
 type FileEdge = { from: string; to: string; kind: string; process?: string }
 type FileShape = { nodes?: FileNode[]; edges?: FileEdge[] }
@@ -39,7 +40,7 @@ function fromFile(f: FileShape): { nodes: DiagramNode[]; edges: DiagramEdge[] } 
     .filter((x) => x.onPath || x.faint || touched.has(x.id) || x.onPath === undefined)
     .map((x): DiagramNode => ({
       id: ids.get(x.id) as string, z: x.z, a: x.a, n: x.n ?? x.a - x.z, symbol: x.symbol,
-      halfLife: halfLifeOf(x.halfLifeS), faint: !!x.faint && !touched.has(x.id),
+      halfLife: halfLifeOf(x.halfLifeS), faint: x.onPath === undefined ? !!x.faint : !x.onPath,
     }))
   const edges = f.edges
     .filter((e) => KINDS[e.kind] && ids.has(e.from) && ids.has(e.to))
