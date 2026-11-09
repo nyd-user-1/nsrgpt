@@ -166,57 +166,56 @@ export function NuclidesTable() {
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[1180px] border-collapse text-[13px] text-[var(--paper-text)]">
-          <thead>
-            <tr className="border-b border-[var(--paper-rule)]">
-              {COLS.map((c) => (
-                <th key={c.key} className={`py-2 pr-4 align-bottom text-[10px] font-normal uppercase tracking-[0.14em] text-[var(--paper-faint)] ${c.num ? 'text-right' : 'text-left'}`} style={MONO}>
-                  <button type="button" onClick={() => toggle(c.key)} title={`Sort by ${c.label}`} className={`inline-flex items-center gap-1 uppercase hover:text-[var(--paper-text)] ${sort.key === c.key ? 'text-[var(--paper-text)]' : ''}`}>
-                    {c.label}
-                    <span className="text-[9px]">{sort.key === c.key ? (sort.dir === 1 ? '▲' : '▼') : '↕'}</span>
-                  </button>
-                </th>
-              ))}
-              <th className="py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {view.map((r) => {
-              const on = r.code === mark
-              return (
-                <tr
-                  key={r.code}
-                  ref={(el) => { if (on) marked.current = el }}
-                  className={`border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
-                >
-                  {COLS.map((c) => {
-                    if (c.key === 'code')
-                      return (
-                        <td key="code" className="py-1.5 pr-4">
-                          <Link href={`/viz/chart?nuclide=${r.code}`} className="font-semibold underline decoration-[var(--paper-rule)]/25 underline-offset-2 hover:decoration-[var(--paper-text)]" style={MONO} title={`${r.code} on the chart of nuclides`}>
-                            <sup>{r.a}</sup>{r.el}
-                          </Link>
-                        </td>
-                      )
-                    const v = c.text ? c.text(r) : String(r[c.key] ?? '—')
+      {/* No scroll box of its own: the page scrolls both ways, so the headings can stick under the filter bar. */}
+      <table className="w-full min-w-[1180px] border-collapse text-[13px] text-[var(--paper-text)]">
+        <thead>
+          <tr className="shadow-[inset_0_-1px_0_var(--paper-rule)]">
+            {COLS.map((c) => (
+              <th key={c.key} className={`sticky top-14 z-10 bg-[var(--paper)] py-2 pr-4 align-bottom text-[10px] font-normal uppercase tracking-[0.14em] text-[var(--paper-faint)] ${c.num ? 'text-right' : 'text-left'}`} style={MONO}>
+                <button type="button" onClick={() => toggle(c.key)} title={`Sort by ${c.label}`} className={`inline-flex items-center gap-1 uppercase hover:text-[var(--paper-text)] ${sort.key === c.key ? 'text-[var(--paper-text)]' : ''}`}>
+                  {c.label}
+                  <span className="text-[9px]">{sort.key === c.key ? (sort.dir === 1 ? '▲' : '▼') : '↕'}</span>
+                </button>
+              </th>
+            ))}
+            <th className="sticky top-14 z-10 bg-[var(--paper)] py-2" />
+          </tr>
+        </thead>
+        <tbody>
+          {view.map((r) => {
+            const on = r.code === mark
+            return (
+              <tr
+                key={r.code}
+                ref={(el) => { if (on) marked.current = el }}
+                className={`border-b border-[var(--paper-rule-soft)] transition-colors hover:bg-[var(--paper-quiet)] ${on ? 'bg-[var(--paper-quiet)] shadow-[inset_2px_0_0_var(--paper-text)]' : ''}`}
+              >
+                {COLS.map((c) => {
+                  if (c.key === 'code')
                     return (
-                      <td key={c.key} className={`py-1.5 pr-4 ${c.num ? 'text-right tabular-nums' : 'text-left'} ${c.key === 'modes' ? 'max-w-[260px] truncate text-[12px]' : ''}`} style={c.num || c.key === 't' || c.key === 'jpi' ? MONO : undefined} title={c.key === 'modes' ? v : undefined}>
-                        {v || '—'}
+                      <td key="code" className="py-1.5 pr-4">
+                        <Link href={`/viz/chart?nuclide=${r.code}`} className="font-semibold underline decoration-[var(--paper-rule)]/25 underline-offset-2 hover:decoration-[var(--paper-text)]" style={MONO} title={`${r.code} on the chart of nuclides`}>
+                          <sup>{r.a}</sup>{r.el}
+                        </Link>
                       </td>
                     )
-                  })}
-                  <td className="py-1.5 text-right">
-                    <Link href={datasetsHref(r.a, r.el)} className="text-[12px] text-[var(--paper-muted)] underline decoration-[var(--paper-rule)]/25 underline-offset-2 hover:text-[var(--paper-text)]">
-                      Datasets
-                    </Link>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+                  const v = c.text ? c.text(r) : String(r[c.key] ?? '—')
+                  return (
+                    <td key={c.key} className={`py-1.5 pr-4 ${c.num ? 'text-right tabular-nums' : 'text-left'} ${c.key === 'modes' ? 'max-w-[260px] truncate text-[12px]' : ''}`} style={c.num || c.key === 't' || c.key === 'jpi' ? MONO : undefined} title={c.key === 'modes' ? v : undefined}>
+                      {v || '—'}
+                    </td>
+                  )
+                })}
+                <td className="py-1.5 text-right">
+                  <Link href={datasetsHref(r.a, r.el)} className="text-[12px] text-[var(--paper-muted)] underline decoration-[var(--paper-rule)]/25 underline-offset-2 hover:text-[var(--paper-text)]">
+                    Datasets
+                  </Link>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
       <p className="m-0 mt-3 text-[11px] text-[var(--paper-faint)]">Sources: NUBASE2020, AME2020, ENSDF, the IAEA Live Chart, XUNDL, NSR, EXFOR</p>
     </div>
   )
