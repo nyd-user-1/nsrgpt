@@ -8,7 +8,7 @@ import { compact } from '@/lib/compact'
  * The nysgpt.com masthead — nameplate cell plus the four-layer ledger, matched
  * to 44B's home masthead.
  *
- *  - the nameplate links to NYSgpt's AWS startup page.
+ *  - the nameplate opens /chat.
  *  - each ledger cell is a dataset, A to Z (ENDF/B, ENSDF, EXFOR, XUNDL; brief 36), and opens its dataset index;
  *    at rest it shows the dataset's name, on hover the figure, counted up from zero with its label (2026-10-08).
  */
@@ -20,9 +20,6 @@ const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 export type LedgerEntry = { word: string; value: number; unit: string; exact?: boolean; color: string; href: string }
 
 const FADE = 'transition-opacity duration-200'
-
-/** NYSgpt's page on the AWS Startups showcase. */
-const AWS_STARTUP = 'https://startups.aws.com/showcase/startup-details/ea42a691-3fe8-4572-8edf-70be4999ec83'
 
 /**
  * The cell width an exact figure needs before it is spelled out, by its length
@@ -45,25 +42,23 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
       {/* border-r closes the cell's right edge when the masthead stacks below lg.
           Side by side the ledger's own border-l closes that seam, so it is
           dropped at lg to avoid a double rule. */}
-      {/* The nameplate links to NYSgpt's AWS startup page (2026-10-08), in a new tab. On hover the wordmark zooms in
-          a little; the AWS mark no longer shows (Brendan, 2026-11-06). */}
-      <a
+      {/* The nameplate opens /chat (Brendan, 2026-11-09), with the dataset boxes' hover: the cell takes a 5% tint, here of
+          the ink, as they take their kind's colour. */}
+      <Link
         data-inspect="Wordmark"
         data-nav="masthead"
-        href={AWS_STARTUP}
-        target="_blank"
-        rel="noreferrer noopener"
-        aria-label="NSRgpt on AWS Startups"
-        className="@container group/name relative self-stretch flex items-center justify-center border-l border-r @min-[56rem]:border-r-0 border-[var(--paper-rule)] px-6 py-8 no-underline transition-colors hover:bg-[var(--paper-quiet)] @min-[56rem]:w-[clamp(260px,30cqw,360px)] @min-[56rem]:px-8"
+        href="/chat"
+        aria-label="NSRgpt chat"
+        className="@container group/name relative self-stretch flex items-center justify-center border-l border-r @min-[56rem]:border-r-0 border-[var(--paper-rule)] px-6 py-8 no-underline transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_5%,var(--paper))] @min-[56rem]:w-[clamp(260px,30cqw,360px)] @min-[56rem]:px-8"
       >
         <span
-          className="inline-block text-[var(--paper-text)] leading-[0.82] transition-transform duration-500 ease-out group-hover/name:scale-105"
+          className="inline-block text-[var(--paper-text)] leading-[0.82]"
           /* Sized to the nameplate (cqw), so the wordmark always fits its cell. */
           style={{ ...SERIF, fontSize: 'clamp(2rem, 22cqw, 4.5rem)', fontWeight: 400, letterSpacing: '-0.03em' }}
         >
           NSRgpt
         </span>
-      </a>
+      </Link>
 
       {/* Bottom-row cells drop border-b so it does not double with the
           container's own bottom rule. */}
