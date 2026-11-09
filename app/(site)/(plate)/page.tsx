@@ -1,6 +1,8 @@
 import { VizBoxMenu } from "./viz/box-menu";
 import { ExpandBox } from "./viz/expand-box";
 import { PaneButton } from "./viz/pane-button";
+import { BoxMarks } from "./viz/box-marks";
+import { BOX_CLASS, MONO, SANS, SERIF } from "./viz/box-style";
 import { PlateKeys } from "./viz/plate-keys";
 import { PLATE_TABLES, VIZ_CHARTS, type VizChart } from "@/lib/viz-charts";
 import { HEADER_TITLES } from "@/lib/header-titles";
@@ -19,9 +21,6 @@ type PlateBox = VizChart;
 const nameOf = (c: PlateBox) => c.name ?? HEADER_TITLES[c.href] ?? c.title;
 const BY_NAME = [...VIZ_CHARTS, ...PLATE_TABLES].sort((a, b) => nameOf(a).localeCompare(nameOf(b), "en", { sensitivity: "base", numeric: true }));
 
-const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const;
-const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const;
-const MONO = { fontFamily: "var(--font-mono), ui-monospace, monospace" } as const;
 
 
 
@@ -49,14 +48,13 @@ export default function HomePage() {
 
 /** A contents-plate cell at rest: the chart's type, its variables, and its number. */
 function VizBox({ chart, index }: { chart: PlateBox; index: number }) {
-  // The source sits after the box's number, "02 • ENSDF"; the axes are the description (Brendan, 2026-11-06).
-  const source = chart.lines.find((l) => l.startsWith("Source: "))?.slice("Source: ".length);
+  // The axes are the description (Brendan, 2026-11-06); the source no longer follows the number (brief 37).
   const axes = chart.lines.filter((l) => !l.startsWith("Source: "));
   const name = nameOf(chart);
   // Every box the same shape (brief 35, Part 4, 2026-11-09): the grid cell's height, the same padding, its content
-  // clipped. The description takes what the title and the foot leave and clips; the foot (number, source, pane button)
-  // always shows, the source cut with an ellipsis when long. Before, a box kept a 210 px floor taller than a short
-  // plate's cells, so the plate cut off its foot, and a long source pushed the pane button into the next box.
+  // clipped. The description takes what the title and the foot leave and clips; the foot (number, the pin when pinned,
+  // pane button) always shows. Before, a box kept a 210 px floor taller than a short plate's cells, so the plate cut
+  // off its foot.
   const body = (
     <>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -83,18 +81,19 @@ function VizBox({ chart, index }: { chart: PlateBox; index: number }) {
         </div>
       </div>
       <div className="relative mt-3 flex min-w-0 shrink-0 items-end justify-between gap-3">
-        <span className="min-w-0 truncate text-[10px] tabular-nums tracking-[0.2em] text-[var(--paper-faint)]" style={MONO} title={source}>
+        <span className="min-w-0 truncate text-[10px] tabular-nums tracking-[0.2em] text-[var(--paper-faint)]" style={MONO}>
           {String(index + 1).padStart(2, "0")}
-          {source && ` • ${source}`}
         </span>
-        <PaneButton href={chart.href} title={chart.title} />
+        <span className="flex shrink-0 items-end gap-0.5">
+          <BoxMarks href={chart.href} title={name} />
+          <PaneButton href={chart.href} title={chart.title} />
+        </span>
       </div>
     </>
   );
-  const cls = "flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-b border-r border-[var(--paper-rule)] px-5 py-5 transition-colors hover:bg-[var(--paper-quiet)] [-webkit-tap-highlight-color:transparent]";
   // Every chart box grows into its page (Brendan, 2026-11-04).
   return (
-    <ExpandBox href={chart.href} className={cls}>
+    <ExpandBox href={chart.href} className={BOX_CLASS}>
       {body}
     </ExpandBox>
   );
