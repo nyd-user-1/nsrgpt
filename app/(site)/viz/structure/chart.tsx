@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { usePaperTheme } from '@/lib/use-paper-theme'
-import { ELEMENTS, ageColor, ageLabel, inkOn, xundlColor } from '@/lib/structure'
+import { ELEMENTS, ageColor, inkOn, xundlColor } from '@/lib/structure'
 
 // The chart of nuclides as a canvas heatmap (brief 35, 2026-11-09), ported whole from the old nsr app's
 // src/components/ChartOfNuclides.tsx: N along x, Z along y, one cell per known nuclide, coloured by years since the
@@ -45,8 +45,9 @@ const MAX_A = 300
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace'
 
 const cellColor = (c: Cell, mode: ChartMode, dark: boolean) => (mode === 'age' ? ageColor(c[3], dark) : xundlColor(c[4], dark))
-export const cellValue = (c: Cell, mode: ChartMode) =>
-  mode === 'age' ? (c[3] >= 12 ? 'no cutoff' : `${ageLabel(c[3]).replace('y', '')} years since cutoff`) : `${c[4]} XUNDL ${c[4] === 1 ? 'set' : 'sets'} since cutoff`
+/** Bucket b holds b to b + 1 whole years since the cutoff. */
+const ageWords = (b: number) => (b >= 12 ? 'no cutoff' : b >= 11 ? '11 or more years since cutoff' : b <= 0 ? 'under a year since cutoff' : `${b}–${b + 1} years since cutoff`)
+export const cellValue = (c: Cell, mode: ChartMode) => (mode === 'age' ? ageWords(c[3]) : `${c[4]} XUNDL ${c[4] === 1 ? 'set' : 'sets'} since cutoff`)
 
 const ZOOM_BTN =
   'flex h-7 w-7 items-center justify-center rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 text-[var(--paper-text)] shadow-sm backdrop-blur transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_10%,var(--paper))]'
