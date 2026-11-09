@@ -20,7 +20,6 @@ import { RightViewHeader } from "@/components/nsr/graph/RightInsetPanel"
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle"
 import { SideBarMenuItem } from "@/components/sidebar/SideBarMenuItem"
 import { Button } from "@/components/ui/button"
-import { CORE, LAKE } from "@/lib/pipeline-map"
 import { cn } from "@/lib/utils"
 
 // /factory (Brendan, 2026-11-08, brief 32): pax-trinity's factory canvas (src/components/factory-canvas.tsx, pax2's /erd,
@@ -53,13 +52,12 @@ const MAKE: Record<Make, { icon: LucideIcon; label: string }> = {
 
 // The models and indexes NSRgpt runs, numbered as the Architecture panel lists them.
 const MODELS: Chip[] = [
-  { n: 1, name: "NSR-CPT encoder", status: "Live", make: "neural" },
-  { n: 2, name: "Keyword index", status: "Live", make: "statistical" },
-  { n: 3, name: "Chart data", status: "Live", make: "reference" },
-  { n: 4, name: "Diagram library", status: "Live", make: "reference" },
+  { n: 1, name: "NSR-CPT", status: "Live", make: "neural" },
+  { n: 2, name: "Keyword", status: "Live", make: "statistical" },
+  { n: 3, name: "Charts", status: "Live", make: "reference" },
+  { n: 4, name: "Diagrams", status: "Live", make: "reference" },
 ]
 const model = (n: number) => MODELS[n - 1]
-const coreCount = (id: string) => CORE.find((c) => c.id === id)?.count ?? ""
 
 // ---------------------------------------------------------------------------------------------
 // What's lit: the boxes and lines an Architecture entry points at. Everything else dims while one is.
@@ -481,12 +479,12 @@ function Architecture({ view, edges, focus, onFocus, onOpen }: { view: View; edg
 // The drawing's grid: the doors on the left, then the raw store, Parse, the parsed lake and its catalog, Serve, the
 // serving stores, the instruments and services, and the surfaces on the right. Every position derives from these.
 
-const GAP = 60 // between columns: room for a chip
-const W = { door: 130, store: 170, stage: 190, service: 150, surface: 150, chip: 180 }
+const GAP = 48 // between columns: room for a chip
+const W = { door: 120, store: 150, stage: 170, service: 140, surface: 130, chip: 140 }
 const DOOR_H = 44
-const STORE_H = 56
-const SURFACE_H = 52
-const ROW = 76 // one door, store or surface and the gap under it
+const STORE_H = 44
+const SURFACE_H = 48
+const ROW = 64 // one door, store or surface and the gap under it
 
 const X_DOOR = 0
 const X_RAW = X_DOOR + W.door + GAP
@@ -497,10 +495,10 @@ const X_SERVING = X_SERVE + W.stage + GAP
 const X_RUN = X_SERVING + W.store + GAP
 const X_SURFACE = X_RUN + W.chip + GAP
 
-const doorY = (i: number) => 60 + i * (DOOR_H + 24)
+const doorY = (i: number) => 60 + i * (DOOR_H + 16)
 const rowY = (i: number) => 40 + i * ROW
 const STAGE_Y = 40
-const STAGE_H = 6 * (DOOR_H + 24) + 40
+const STAGE_H = 6 * (DOOR_H + 16) + 40
 const STAGE_BOTTOM = STAGE_Y + STAGE_H
 const RAIL_BOTTOM = STAGE_BOTTOM + 40 // loop 1's rail, under everything
 // The surfaces sit level with what feeds them: Graph with Delivery, Charts with the chart data; Views and Pipeline under them.
@@ -538,7 +536,7 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     n("wayback", "door", X_DOOR, doorY(5), { w: W.door, h: DOOR_H, title: "Wayback lane", about: "the Internet Archive's copies of what a source no longer serves" }),
 
     // The raw layer
-    n("raw", "store", X_RAW, doorY(2) + (DOOR_H - STORE_H) / 2 + 34, { w: W.store, h: STORE_H, service: "Amazon S3", title: "raw/", count: `${LAKE.files} files`, about: "every file as its source served it, under the source's own paths" }),
+    n("raw", "store", X_RAW, doorY(2) + (DOOR_H - STORE_H) / 2 + 34, { w: W.store, h: STORE_H, service: "Amazon S3", title: "raw/", about: "every file as its source served it, under the source's own paths" }),
 
     // Parse
     n("parse", "stage", X_PARSE, STAGE_Y, {
@@ -551,12 +549,11 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
         ["NSR loader", "the references, their keywords, nuclides and reactions"],
         ["PDF worker", "the arXiv and APS papers the references point to"],
       ],
-      foot: [`${LAKE.size} in the lake`],
     }),
 
     // The parsed layer and its catalog
-    n("lake", "store", X_LAKE, rowY(1), { w: W.store, h: STORE_H, service: "Amazon S3", title: "lake/", count: `${LAKE.records} records`, about: "the parsed layer: one Parquet table per kind of record" }),
-    n("glue", "store", X_LAKE, rowY(3), { w: W.store, h: STORE_H, service: "AWS Glue", title: "nsr catalog", count: "297 tables", about: "the Glue database every table is named in, with its columns" }),
+    n("lake", "store", X_LAKE, rowY(1), { w: W.store, h: STORE_H, service: "Amazon S3", title: "lake/", about: "the parsed layer: one Parquet table per kind of record" }),
+    n("glue", "store", X_LAKE, rowY(3), { w: W.store, h: STORE_H, service: "AWS Glue", title: "nsr catalog", about: "the Glue database every table is named in, with its columns" }),
     n("athena", "service", X_LAKE + (W.store - W.service) / 2, rowY(5), { w: W.service, h: 48, title: "Queries", about: "Amazon Athena: SQL over the lake's tables where they sit" }),
 
     // Serve
@@ -569,7 +566,6 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
         ["Search index", "every dataset's words, into one DuckDB file"],
         ["Chart and diagram data", "the JSON the charts and the diagram library read"],
       ],
-      foot: [`NSR ${coreCount("nsr")}`, `ENSDF ${coreCount("ensdf")} · EXFOR ${coreCount("exfor")}`],
     }),
 
     // The serving layer
