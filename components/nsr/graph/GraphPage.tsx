@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, Panel, Handle, Position,
@@ -55,6 +55,10 @@ import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
 import { GRAPH_CENTER, STARTER, keyOf, toGNode, type Catalog } from "./entities";
+
+// Answers render as /chat renders them (brief 50), loaded with the first answer shown, as the dock loads them.
+const ChatMarkdown = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMarkdown })));
+const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMessage })));
 
 /**
  * The workspace canvas — OpenMetadata's lineage interaction model over our
@@ -288,9 +292,11 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
           className="nodrag mt-1.5 h-16 w-full resize-none rounded-md border bg-[var(--paper)] p-1.5 text-[11px] text-[var(--paper-text)] focus-visible:outline-none"
         />
         {d.output && (
-          <p className="mt-1.5 line-clamp-3 rounded bg-[var(--paper-quiet)] p-1.5 text-[10px] leading-snug text-[var(--paper-muted)]">
-            {d.output}
-          </p>
+          <div className="mt-1.5 max-h-[54px] overflow-hidden rounded bg-[var(--paper-quiet)] p-1.5">
+            <Suspense fallback={<p className="line-clamp-3 text-[10px] leading-snug text-[var(--paper-muted)]">{d.output}</p>}>
+              <ChatMarkdown content={d.output.slice(0, 600)} size="xs" />
+            </Suspense>
+          </div>
         )}
       </div>
     );
@@ -1837,7 +1843,9 @@ function GraphPageInner() {
         )}
         {sel.type === "prompt" && sel.output && (
           <InsetBody className="px-3 pt-3">
-            <p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{sel.output}</p>
+            <Suspense fallback={<p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{sel.output}</p>}>
+              <ChatMessage role="assistant" content={sel.output} size="sm" />
+            </Suspense>
           </InsetBody>
         )}
       </>
@@ -1934,9 +1942,15 @@ function GraphPageInner() {
               </div>
               <div>
                 <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">Output · {(step.output?.length ?? 0).toLocaleString()} chars</p>
-                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md border bg-[var(--paper-quiet)] p-2 text-[10px] leading-snug text-[var(--paper-text)]">
-                  {step.output || "(no output)"}
-                </pre>
+                <div className="max-h-64 overflow-auto rounded-md border bg-[var(--paper-quiet)] p-2">
+                  {step.output ? (
+                    <Suspense fallback={<p className="whitespace-pre-wrap text-[10px] leading-snug text-[var(--paper-text)]">{step.output}</p>}>
+                      <ChatMarkdown content={step.output} size="xs" />
+                    </Suspense>
+                  ) : (
+                    <p className="text-[10px] text-[var(--paper-muted)]">(no output)</p>
+                  )}
+                </div>
               </div>
             </div>
           )}
