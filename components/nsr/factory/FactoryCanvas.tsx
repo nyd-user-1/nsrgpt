@@ -503,8 +503,15 @@ const STAGE_Y = 40
 const STAGE_H = 6 * (DOOR_H + 24) + 40
 const STAGE_BOTTOM = STAGE_Y + STAGE_H
 const RAIL_BOTTOM = STAGE_BOTTOM + 40 // loop 1's rail, under everything
+// The surfaces sit level with what feeds them: Graph with Delivery, Charts with the chart data; Views and Pipeline under them.
+const GRAPH_Y = rowY(3) + 2
+const CHARTS_Y = rowY(4) + 1
+const VIEWS_Y = rowY(5) + 20
+const PIPELINE_Y = VIEWS_Y + SURFACE_H + 24
 /** Halfway between Graph's and Views' middles, where loop 2's chips sit on their rails. */
-const VIEWS_MID = (rowY(2) + SURFACE_H / 2 + rowY(5) + 20 + SURFACE_H / 2) / 2
+const VIEWS_MID = (GRAPH_Y + VIEWS_Y + SURFACE_H) / 2
+/** The middle of the gap between the instruments and the surfaces. */
+const RUN_GAP = X_RUN + W.chip + GAP / 2
 
 export function build(): { nodes: Node[]; edges: Edge[] } {
   const n = (id: string, type: string, x: number, y: number, data: Record<string, unknown>): Node => ({ id, type, position: { x, y }, data, selectable: false })
@@ -554,9 +561,9 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     }),
 
     // The serving layer
-    n("serving", "store", X_SERVING, rowY(0), { w: W.store, h: STORE_H, service: "Amazon S3", title: "lake/serve/", about: "the serving tables: nuclide, ENDF, EXFOR and search" }),
-    n("index", "store", X_SERVING, rowY(2), { w: W.store, h: STORE_H, service: "DuckDB file", title: "search.duckdb", about: "the keyword index, copied into the API on a cold start" }),
-    n("vizdata", "store", X_SERVING, rowY(4), { w: W.store, h: STORE_H, service: "Amazon S3", title: "site/viz-data/", about: "the charts' and diagrams' JSON, one version folder at a time" }),
+    n("serving", "store", X_SERVING, rowY(2), { w: W.store, h: STORE_H, service: "Amazon S3", title: "lake/serve/", about: "the serving tables: nuclide, ENDF, EXFOR and search" }),
+    n("index", "store", X_SERVING, rowY(1), { w: W.store, h: STORE_H, service: "DuckDB file", title: "search.duckdb", about: "the keyword index, copied into the API on a cold start" }),
+    n("vizdata", "store", X_SERVING, rowY(4), { w: W.store, h: STORE_H, extra: [{ id: "r-lib", side: "r", at: STORE_H - 10 }], service: "Amazon S3", title: "site/viz-data/", about: "the charts' and diagrams' JSON, one version folder at a time" }),
 
     // What runs: the instruments and the services
     n("i1", "instrument", X_RUN, rowY(0) + 10, { w: W.chip, n: 1 }),
@@ -569,10 +576,10 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     // Surfaces
     n("chat", "surface", X_SURFACE, rowY(0), { w: W.surface, h: SURFACE_H, title: "Chat", path: "/chat", about: "answers that cite the records", extra: [{ id: "l-q", side: "l", at: 44 }] }),
     n("search", "surface", X_SURFACE, rowY(1), { w: W.surface, h: SURFACE_H, title: "Search", path: "/search", about: "every dataset's records, by keyword" }),
-    n("graph", "surface", X_SURFACE, rowY(2), { w: W.surface, h: SURFACE_H, title: "Graph", path: "/graph", about: "the canvas and its diagram library" }),
-    n("charts", "surface", X_SURFACE, rowY(3), { w: W.surface, h: SURFACE_H, title: "Charts", path: "/viz", about: "the chart pages" }),
-    n("pipeline", "surface", X_SURFACE, rowY(4), { w: W.surface, h: SURFACE_H, title: "Pipeline", path: "/pipeline", about: "the sources, the lake and the pages" }),
-    n("views", "surface", X_SURFACE, rowY(5) + 20, { w: W.surface, h: SURFACE_H, title: "Views", path: "/graph", about: "saved canvases and recipes", planned: true }),
+    n("graph", "surface", X_SURFACE, GRAPH_Y, { w: W.surface, h: SURFACE_H, extra: [{ id: "l-lib", side: "l", at: 42 }], title: "Graph", path: "/graph", about: "the canvas and its diagram library" }),
+    n("charts", "surface", X_SURFACE, CHARTS_Y, { w: W.surface, h: SURFACE_H, title: "Charts", path: "/viz", about: "the chart pages" }),
+    n("pipeline", "surface", X_SURFACE, PIPELINE_Y, { w: W.surface, h: SURFACE_H, title: "Pipeline", path: "/pipeline", about: "the sources, the lake and the pages, with the lake's counts written in" }),
+    n("views", "surface", X_SURFACE, VIEWS_Y, { w: W.surface, h: SURFACE_H, title: "Views", path: "/graph", about: "saved canvases and recipes", planned: true }),
   ]
 
   /** A line between the facing sides; given handles and an offset, a line on a rail around the drawing, as pax-trinity's
@@ -615,7 +622,7 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     e("serving-api", "serving", "api", flow(Cpu, "read by the routes, held in memory")),
     e("index-i2", "index", "i2", flow(FileSearch, "loaded on a cold start")),
     e("vizdata-i3", "vizdata", "i3", flow(ChartLine, "one version folder")),
-    e("vizdata-i4", "vizdata", "i4", flow(Waypoints, "the diagram files")),
+    e("vizdata-i4", "vizdata", "i4", flow(Waypoints, "the diagram files", { offset: 16 }), "r-lib", "l"),
     e("api-cdn", "api", "cdn", flow(Cloud, "every route behind the edge cache")),
 
     // What feeds the surfaces
@@ -623,8 +630,9 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     e("i2-search", "i2", "search", flow(Search, "records by keyword")),
     e("cdn-graph", "cdn", "graph", flow(Network, "nuclides, papers and edges")),
     e("i3-charts", "i3", "charts", flow(ChartLine, "the charts' data")),
-    e("i4-graph", "i4", "graph", flow(Waypoints, "the reference figures, drawn from the data")),
-    e("serving-pipeline", "serving", "pipeline", flow(ScrollText, "the counts on the cards")),
+    e("i4-graph", "i4", "graph", flow(Waypoints, "the reference figures, drawn from the data", { offset: 16, at: [RUN_GAP, rowY(5) - 2] }), "r", "l-lib"),
+    // Under everything, below loop 1's rail
+    e("serve-pipeline", "serve", "pipeline", flow(ScrollText, "the lake's counts, written into the cards", { offset: PIPELINE_Y + SURFACE_H + 32 - STAGE_BOTTOM, at: [X_RUN + W.chip / 2, PIPELINE_Y + SURFACE_H + 32] }), "b", "b"),
 
     // Loop 1: a newer release comes in and runs through again. Under the stages, then up the left of the doors.
     e("serve-wayback", "serve", "wayback", loop(1, History, "each table names the release it was built from", { offset: RAIL_BOTTOM - STAGE_BOTTOM, at: [X_LAKE + W.store / 2, RAIL_BOTTOM] }), "b", "b"),
@@ -665,7 +673,7 @@ function Canvas({ nodes, edges, onNodesChange, onPane }: { nodes: Node[]; edges:
 }
 
 /** The canvas, with the Architecture panel in the right inset panel, which the gear at its top right opens. */
-const LAYOUT_KEY = "factory-layout-v1" // a new key whenever the default layout changes, so old moves don't stack on it
+const LAYOUT_KEY = "factory-layout-v2" // a new key whenever the default layout changes, so old moves don't stack on it
 
 export function FactoryCanvas() {
   // The panel starts closed, as /graph's do, without changing what this browser remembers elsewhere.
