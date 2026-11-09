@@ -1848,7 +1848,7 @@ function GraphPageInner() {
             <div className="relative">
               {/* Outer shell + 4px inset around the bordered inner bar — per the mock. */}
               <div className="rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
-                <div className={`flex h-8 items-center gap-2 overflow-hidden rounded-full border bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out `}>
+                <div className={`flex h-8 items-center gap-2 overflow-hidden rounded-full border bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out ${searchOpen ? "w-96 px-3" : "w-8 justify-center px-0"}`}>
                   <button type="button" aria-label="Search" aria-expanded={searchOpen} onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }} className="flex h-full shrink-0 items-center text-[var(--paper-muted)]">
                     <Search className="h-4 w-4 shrink-0" />
                   </button>
@@ -1861,7 +1861,7 @@ function GraphPageInner() {
                     onKeyDown={(e) => { if (e.key === "Escape") { setQ(""); setSearchOpen(false); e.currentTarget.blur(); } }}
                     placeholder="Center an author, paper, nuclide, reaction…"
                     tabIndex={searchOpen ? 0 : -1}
-                    className={`h-full border-0 bg-transparent p-0 text-[13px] shadow-none transition-opacity duration-[500ms] focus-visible:ring-0 `}
+                    className={`h-full border-0 bg-transparent p-0 text-[13px] shadow-none transition-opacity duration-[500ms] focus-visible:ring-0 ${searchOpen ? "flex-1 opacity-100" : "w-0 flex-none opacity-0"}`}
                   />
                   {searching && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--paper-muted)]" />}
                 </div>
@@ -1904,9 +1904,9 @@ function GraphPageInner() {
           <Panel position="top-right">
             <div className="flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
               <Button variant="outline" aria-label={toolsOpen ? "Hide the tools" : "Show the tools"} aria-expanded={toolsOpen} className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => setToolsOpen((v) => !v)}>
-                <Plus className={`h-4 w-4 transition-transform duration-[500ms] ease-in-out `} />
+                <Plus className={`h-4 w-4 transition-transform duration-[500ms] ease-in-out ${toolsOpen ? "rotate-45" : ""}`} />
               </Button>
-              <div className={`flex items-center gap-1.5 overflow-hidden transition-[max-width,opacity,margin] duration-[500ms] ease-in-out `}>
+              <div className={`flex items-center gap-1.5 overflow-hidden transition-[max-width,opacity,margin] duration-[500ms] ease-in-out ${toolsOpen ? "ml-1.5 max-w-[480px] opacity-100" : "ml-0 max-w-0 opacity-0"}`}>
               <Button variant="outline" className="h-8 shrink-0 whitespace-nowrap rounded-full px-3.5 text-[13px]" onClick={() => addPromptNode()}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" /> Prompt
               </Button>
