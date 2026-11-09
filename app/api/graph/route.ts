@@ -22,6 +22,8 @@ type Row = Record<string, unknown>
 const q = async (sql: string, maxRows = 200): Promise<Row[]> => (await athenaQuery(sql, { maxRows, timeoutMs: 30_000 })).rows
 const num = (v: unknown) => Number(v ?? 0)
 const initcap = (col: string) => `concat(upper(substr(lower(${col}), 1, 1)), substr(lower(${col}), 2))`
+// "60CO" -> "Co": the code's letters, so a nuclide reads "60Co", not "60Cobalt" (nuclide_dict.element is the full name).
+const symbol = (code: unknown) => String(code ?? "").replace(/^\d+/, "").replace(/^(.)(.*)$/, (_, h: string, t: string) => h.toUpperCase() + t.toLowerCase())
 const authorLabel = (r: Row) => `${r.initial1 ?? ""}${r.initial2 ? "." + r.initial2 : ""}.${r.last_name}`
 
 const paperNode = (r: Row) => ({
@@ -70,7 +72,7 @@ export async function GET(req: Request) {
       })
       return json({
         results: [
-          ...nuclides.map((r) => ({ type: "nuclide", id: r.nuclide_code, label: `${r.a}${String(r.element ?? "").charAt(0)}${String(r.element ?? "").slice(1).toLowerCase()}`, sub: `Z=${r.z} N=${r.n}` })),
+          ...nuclides.map((r) => ({ type: "nuclide", id: r.nuclide_code, label: `${r.a}${symbol(r.nuclide_code)}`, sub: `Z=${r.z} N=${r.n}` })),
           ...authors.map((r) => ({ type: "author", id: String(r.author_key), label: authorLabel(r), sub: `${r.papers} papers` })),
           ...papers.map(paperNode),
           ...reactions.map((r) => ({ type: "reaction", id: r.reaction_code, label: r.reaction_code, sub: "reaction" })),
