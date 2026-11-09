@@ -60,7 +60,7 @@ function whenSettled(fn: () => void) {
 
 /** A clone at `from`, moved to `to` on the next frame (or once the page settles, on a first load); `moved` runs as
  *  the move starts. */
-function clone(mark: string, from: Rect, to: Rect, start: object, end: object, first = false, moved?: () => void) {
+function clone(mark: string, from: Rect, to: Rect, start: object, end: object, first = false, moved?: (el: HTMLElement) => void) {
   const el = document.createElement('div')
   el.setAttribute('aria-hidden', 'true')
   el.setAttribute(mark, '')
@@ -71,7 +71,7 @@ function clone(mark: string, from: Rect, to: Rect, start: object, end: object, f
     void el.getBoundingClientRect()
     el.style.transition = [...['left', 'top', 'width', 'height', 'border-radius', 'border-color'].map((p) => `${p} ${GROW_MS}ms ${GROW_EASE}`), 'opacity 160ms ease-out'].join(', ')
     Object.assign(el.style, { ...at(to), ...end })
-    moved?.()
+    moved?.(el)
   }
   if (first) whenSettled(move)
   else move()
@@ -109,7 +109,7 @@ export function chartForwardFirst() {
   veil.className = 'nysgpt-app'
   Object.assign(veil.style, { position: 'fixed', zIndex: '89', background: 'var(--paper)', borderRadius: FULL.borderRadius, ...at(to) })
   document.body.appendChild(veil)
-  const el = clone('data-viz-first', originIn(to), to, SMALL, FULL, true, () =>
+  clone('data-viz-first', originIn(to), to, SMALL, FULL, true, (el) =>
     window.setTimeout(() => {
       veil.remove()
       el.remove()
@@ -127,8 +127,10 @@ export function chartRoot(first = false) {
   }
   const mark = document.querySelector<HTMLElement>('[data-inspect="Wordmark"]')
   const word = mark?.getBoundingClientRect()
-  const el: HTMLElement = clone('data-viz-root', to, word ?? originIn(to), FULL, SMALL, first, () => {
-    fadeAway(el)
+  // The clone comes to the callback as its argument: `move` runs at once when the page is not a first load, before
+  // `clone` has returned, so a `const` here would still be uninitialized (Brendan, 2026-11-09).
+  const el: HTMLElement = clone('data-viz-root', to, word ?? originIn(to), FULL, SMALL, first, (box) => {
+    fadeAway(box)
     // The masthead's wordmark draws once the clone has gone (app/HomeMasthead.tsx).
     window.setTimeout(landed, GROW_MS + 180)
   })
