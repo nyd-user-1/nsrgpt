@@ -1,9 +1,14 @@
 "use client";
 
 
+import type { ReactNode } from "react";
 import { RightViewHeader } from "@/components/nsr/graph/RightInsetPanel";
 import { Input } from "@/components/ui/input";
 import { INSET, InsetBody, InsetTip } from "@/components/nsr/graph/InsetPanel";
+import {
+  EDGE_KINDS, EDGE_LABEL, GRIDS, KIND_LABEL, LABEL_FIELDS, SHAPES, SUBTYPES, SUBTYPE_LABEL,
+  type DiagramConfig, type DiagramSpec, type EdgeKind, type GridKind, type LabelField, type NodeShape,
+} from "@/lib/diagram/spec";
 import { cn } from "@/lib/utils";
 
 /**
@@ -201,9 +206,105 @@ const SECTIONS: Section[] = [
 // The rows take the left inset panel's type, spacing and hover (InsetPanel.tsx INSET, Brendan, 2026-11-08).
 const ROW = cn(INSET.row, "justify-between gap-3");
 const LABEL = "min-w-0 truncate";
+const SELECT = "h-7 rounded-md border bg-[var(--paper)] px-2 font-mono text-xs text-[var(--paper-text)]";
+
+/** A row's on-or-off box, the accent filled when on. */
+function Check({ on, onClick, label }: { on: boolean; onClick: () => void; label?: string }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${on ? "border-nuclear bg-nuclear text-background" : "border-[var(--paper-rule)] bg-[var(--paper)]"}`}
+      aria-checked={on}
+      role="checkbox"
+    >
+      {on && (
+        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+      )}
+    </button>
+  );
+}
+
+/** One item of a checklist, as a chip: filled with the accent when on, as the boxes are. */
+function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn("rounded-full border px-2 py-0.5 text-[11px] transition-colors", on ? "border-nuclear bg-nuclear text-background" : "border-[var(--paper-rule)] text-[var(--paper-muted)] hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]")}
+    >
+      {children}
+    </button>
+  );
+}
+
+const SHAPE_LABEL: Record<NodeShape, string> = { disc: "Circle", square: "Square", rect: "Rectangle" };
+const GRID_LABEL: Record<GridKind, string> = { "element-rows": "Element rows", nz: "N by Z", free: "Free", ladder: "Ladder" };
+const FIELD_LABEL: Record<LabelField, string> = { A: "A", Z: "Z", symbol: "Symbol", halflife: "Half-life", jpi: "Jπ", energy: "Energy", percent: "Percent" };
+const ARROW_LABEL: Record<EdgeKind, string> = { ...EDGE_LABEL, capture: "Capture", fission: "Fission" };
+
+/** The loaded diagram's own settings (Brendan, 2026-11-08, brief 27): its kind and type, the node shape, the grid, bands,
+ *  the legend, which labels and which arrows show. Each change goes to the canvas at once (setDiagramConfig). */
+function DiagramRows({ diagram, setDiagramConfig }: { diagram: { spec: DiagramSpec; config: DiagramConfig } | null; setDiagramConfig?: (patch: Partial<DiagramConfig>) => void }) {
+  if (!diagram || !setDiagramConfig) return <p className={INSET.note}>Load a diagram from the rail.</p>;
+  const { config } = diagram;
+  const has = <T,>(list: T[], v: T) => list.includes(v);
+  const flip = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+  return (
+    <>
+      <div className={ROW}>
+        <span className={LABEL}>Diagram</span>
+        <span className="truncate text-xs text-[var(--paper-muted)]">{KIND_LABEL[diagram.spec.kind]}</span>
+      </div>
+      <div className={ROW}>
+        <span className={LABEL}>Type</span>
+        <select value={config.subtype} onChange={(e) => setDiagramConfig({ subtype: e.target.value })} className={SELECT}>
+          {SUBTYPES[diagram.spec.kind].map((s) => <option key={s} value={s}>{SUBTYPE_LABEL[s] ?? s}</option>)}
+        </select>
+      </div>
+      <div className={ROW}>
+        <span className={LABEL}>Shape</span>
+        <select value={config.shape} onChange={(e) => setDiagramConfig({ shape: e.target.value as NodeShape })} className={SELECT}>
+          {SHAPES.map((s) => <option key={s} value={s}>{SHAPE_LABEL[s]}</option>)}
+        </select>
+      </div>
+      <div className={ROW}>
+        <span className={LABEL}>Grid</span>
+        <select value={config.grid} onChange={(e) => setDiagramConfig({ grid: e.target.value as GridKind })} className={SELECT}>
+          {GRIDS.map((g) => <option key={g} value={g}>{GRID_LABEL[g]}</option>)}
+        </select>
+      </div>
+      <div className={ROW}>
+        <span className={LABEL}>Bands</span>
+        <Check on={config.bands} onClick={() => setDiagramConfig({ bands: !config.bands })} label="Bands" />
+      </div>
+      <div className={ROW}>
+        <span className={LABEL}>Legend</span>
+        <Check on={config.legend} onClick={() => setDiagramConfig({ legend: !config.legend })} label="Legend" />
+      </div>
+      <div className="px-3 py-1.5">
+        <p className="text-sm text-[var(--paper-text)]">Labels</p>
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {LABEL_FIELDS.map((f) => (
+            <Chip key={f} on={has(config.labels, f)} onClick={() => setDiagramConfig({ labels: flip(config.labels, f) })}>{FIELD_LABEL[f]}</Chip>
+          ))}
+        </div>
+      </div>
+      <div className="px-3 py-1.5">
+        <p className="text-sm text-[var(--paper-text)]">Arrows</p>
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {EDGE_KINDS.map((k) => (
+            <Chip key={k} on={has(config.edges, k)} onClick={() => setDiagramConfig({ edges: flip(config.edges, k) })}>{ARROW_LABEL[k]}</Chip>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
 export function FlowSettingsPanel({
-  value, onChange, dataset, onDataset, datasets, layoutMode, onLayoutMode, onBack, onReset,
+  value, onChange, dataset, onDataset, datasets, layoutMode, onLayoutMode, onBack, onReset, diagram = null, setDiagramConfig,
 }: {
   value: FlowProps;
   onChange: (p: FlowProps) => void;
@@ -214,9 +315,11 @@ export function FlowSettingsPanel({
   onLayoutMode: (m: string) => void;
   onBack: () => void;
   onReset: () => void;
+  /** The diagram on the canvas and its settings' setter (GraphPage, brief 28); none loaded, the Diagram section says so. */
+  diagram?: { spec: DiagramSpec; config: DiagramConfig } | null;
+  setDiagramConfig?: (patch: Partial<DiagramConfig>) => void;
 }) {
   const set = (key: keyof FlowProps, v: unknown) => onChange({ ...value, [key]: v });
-  const SELECT = "h-7 rounded-md border bg-[var(--paper)] px-2 font-mono text-xs text-[var(--paper-text)]";
 
   return (
     <>
@@ -225,7 +328,10 @@ export function FlowSettingsPanel({
         <button onClick={onReset} className="ml-auto text-xs text-[var(--paper-muted)] hover:text-[var(--paper-text)]">Reset</button>
       </RightViewHeader>
       <InsetBody>
-      <p className={cn(INSET.section, "pt-3")}>Nodes &amp; Edges</p>
+      <p className={cn(INSET.section, "pt-3")}>Diagram</p>
+      <DiagramRows diagram={diagram} setDiagramConfig={setDiagramConfig} />
+
+      <p className={INSET.section}>Nodes &amp; Edges</p>
       <div className={ROW}>
         <span className={LABEL}>Dataset</span>
         <select value={dataset} onChange={(e) => onDataset(e.target.value)} className={SELECT}>
@@ -252,20 +358,7 @@ export function FlowSettingsPanel({
             <InsetTip key={String(r.key)} name={`${name} #`} side="right">
             <div className={ROW}>
               <span className={LABEL}>{r.label}</span>
-              {r.kind === "bool" && (
-                <button
-                  onClick={() => set(r.key, !value[r.key])}
-                  className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${
-                    value[r.key] ? "border-nuclear bg-nuclear text-background" : "border-[var(--paper-rule)] bg-[var(--paper)]"
-                  }`}
-                  aria-checked={Boolean(value[r.key])}
-                  role="checkbox"
-                >
-                  {Boolean(value[r.key]) && (
-                    <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                  )}
-                </button>
-              )}
+              {r.kind === "bool" && <Check on={Boolean(value[r.key])} onClick={() => set(r.key, !value[r.key])} />}
               {r.kind === "number" && (
                 <Input
                   type="number"
