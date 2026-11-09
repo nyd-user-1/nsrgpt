@@ -19,6 +19,7 @@ import { datasetTitle, HEADER_TITLES } from "@/lib/header-titles";
 import { usePageTitle } from "@/lib/page-title";
 import { VIZ_TABLES } from "@/lib/viz-tables";
 import { chartForward, markBack } from "@/lib/viz-grow";
+import { EntitySearch } from "@/components/nsr/graph/EntitySearch";
 
 /**
  * The 44b app shell — a floating rounded content panel beside a collapsible
@@ -109,6 +110,10 @@ export function AppLayout({
               <CopyTitle title={title} />
             </span>
           ))}
+
+          {/* The corpus search, after the title and its click-to-copy, on every page (brief 36): the graph's search, lifted
+              into components/nsr/graph/EntitySearch.tsx; /graph has no search of its own now. */}
+          <EntitySearch className={title ? "ml-3" : ""} />
 
           {/* The header's empty space shows the hand: a click there opens the Nav (Brendan, 2026-11-06). It reaches
               into the header's padding so the whole empty area has it. */}

@@ -12,7 +12,7 @@ import "@xyflow/react/dist/style.css";
 import dagre from "@dagrejs/dagre";
 import {
   ArrowLeft, Check, ChevronRight, Copy, Crosshair, Download, History, Redo2, RotateCcw, Share2, Trash2, Undo2,
-  GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, X,
+  GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Settings2, X,
 } from "lucide-react";
 import { Atom } from "@/components/animate-ui/icons/atom";
 import { BookOpen } from "@/components/animate-ui/icons/book-open";
@@ -52,6 +52,7 @@ import { apiJson, apiText, fileBase, levelsOf, nuclideName, recordOfNode, record
 import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
+import { GRAPH_CENTER, STARTER, keyOf, toGNode, type Catalog } from "./entities";
 
 /**
  * The workspace canvas — OpenMetadata's lineage interaction model over our
@@ -104,7 +105,6 @@ export interface GNode {
 /** Edge provenance. Absent = a record from the join tables. */
 type EdgeMeta = { kind?: "similar" | "wired" | "decay" | "reaction" | "sample"; cos?: number; mode?: string; pct?: number | null } & Record<string, unknown>;
 const isSimilar = (e: Edge) => (e.data as EdgeMeta | undefined)?.kind === "similar";
-const keyOf = (n: { type: string; id: string }) => `${n.type}:${n.id}`;
 
 const RELS: Partial<Record<GNode["type"], { rel: string; label: string }[]>> = {
   paper: [
@@ -431,12 +431,6 @@ const edgeTypes = DIAGRAM_EDGE_TYPES;
 
 /* ── catalog rail: the workspace's asset inventory ────────────────────────── */
 
-interface CatalogItem { id: string; label: string; title?: string; pub_year?: number; citation_count?: number; papers?: number; z?: number; n?: number }
-interface Catalog {
-  counts: Record<string, number>;
-  top: Record<string, CatalogItem[]>;
-}
-
 const CATALOG_TYPES = [
   { key: "papers", label: "Papers", icon: FileText, type: "paper" as const },
   { key: "authors", label: "Authors", icon: Users, type: "author" as const },
@@ -457,19 +451,6 @@ const RECORD_PAGE: Record<string, number> = { references: 12, levels: 20, subent
 /** Saved canvases from Community. A saved state is a recipe iff it has prompt steps. */
 interface ViewRow { id: number | string; name: string; saved_by: string; created_at: string; state?: { nodes?: { type: string }[]; diagram?: string; center?: { label: string } } }
 const isRecipe = (v: ViewRow) => !!v.state?.nodes?.some((n) => n.type === "prompt");
-
-const toGNode = (typeKey: string, it: CatalogItem): GNode => {
-  const t = CATALOG_TYPES.find((c) => c.key === typeKey)!.type;
-  return {
-    type: t, id: it.id, label: it.label,
-    title: t === "paper" ? it.title : undefined,
-    sub: t === "paper"
-      ? `${it.pub_year ?? ""}${it.citation_count ? ` · ${Number(it.citation_count).toLocaleString()} cites` : ""}`
-      : t === "nuclide"
-        ? `Z=${it.z} N=${it.n}`
-        : t === "reaction" ? "reaction" : `${Number(it.papers ?? 0).toLocaleString()} papers`,
-  };
-};
 
 interface LibFile { key: string; name: string; size: number; modified: string | null }
 
@@ -790,25 +771,6 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
   return <InsetLayers layerKey={browse ?? "main"} depth={browse ? 1 : 0}>{layer}</InsetLayers>;
 }
 
-/** Preloaded combo-box suggestions — the most-studied entities in the corpus,
- *  baked in so the dropdown opens instantly on focus, before any network. */
-const STARTER: (GNode & { code?: string })[] = [
-  { type: "nuclide", id: "12C", label: "12C", sub: "Z=6 N=6 · 24,646 papers" },
-  { type: "nuclide", id: "208PB", label: "208Pb", sub: "Z=82 N=126 · 18,920 papers" },
-  { type: "nuclide", id: "1H", label: "1H", sub: "Z=1 N=0 · 17,181 papers" },
-  { type: "nuclide", id: "16O", label: "16O", sub: "Z=8 N=8 · 14,285 papers" },
-  { type: "nuclide", id: "40CA", label: "40Ca", sub: "Z=20 N=20 · 13,025 papers" },
-  { type: "reaction", id: "(N,G)", label: "(N,G)", sub: "7,723 papers" },
-  { type: "reaction", id: "(P,P)", label: "(P,P)", sub: "5,861 papers" },
-  { type: "reaction", id: "(N,F)", label: "(N,F)", sub: "5,547 papers" },
-  { type: "author", id: "33137", label: "R.V.JANSSENS", sub: "1,198 papers" },
-  { type: "author", id: "10834", label: "M.P.CARPENTER", sub: "1,020 papers" },
-  { type: "author", id: "9239", label: "B.A.BROWN", sub: "942 papers" },
-  { type: "paper", id: "2011CH57", label: "2011CH57", title: "ENDF/B-VII.1 Nuclear Data for Science and Technology: Cross Sections, Covariances, Fission Product Yields and Decay Data", sub: "2011 · 2,767 cites" },
-  { type: "paper", id: "1971JA07", label: "1971JA07", title: "Precision Measurement of Half-Lives and Specific Activities of $^{235}$U and $^{238}$U", sub: "1971 · 2,648 cites" },
-  { type: "paper", id: "2005AD25", label: "2005AD25", title: "Formation of dense partonic matter in relativistic nucleus-nucleus collisions at RHIC", sub: "2005 · 2,622 cites" },
-];
-
 /** Seed canvases for the props panel — each one centers a real entity. */
 const DATASETS: { id: string; label: string; seed: GNode | null }[] = [
   { id: "137CS", label: "137Cs nuclide", seed: { type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" } },
@@ -876,40 +838,9 @@ function GraphPageInner() {
   const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const [expanding, setExpanding] = useState<string | null>(null);
   const [running, setRunning] = useState<string | null>(null);
-  const [q, setQ] = useState("");
-  const [results, setResults] = useState<(GNode & { code?: string })[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
-  // The search bar and the tools bar rest as circles and open to full width in the sidebar's 500 ms (Brendan, 2026-11-08).
-  const [searchOpen, setSearchOpen] = useState(false);
+  // The tools bar rests as circles and opens to full width in the sidebar's 500 ms (Brendan, 2026-11-08). The search
+  // that sat beside it is the app header's now (brief 36, components/nsr/graph/EntitySearch.tsx).
   const [toolsOpen, setToolsOpen] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const catalog = useQuery({
-    queryKey: ["catalog"],
-    queryFn: async (): Promise<Catalog> => {
-      const r = await fetch("/data/catalog.json");
-      if (!r.ok) throw new Error(String(r.status));
-      return r.json();
-    },
-    staleTime: Infinity,
-  });
-  // the "Most studied" list: the baked-in starters, then the catalog's top
-  // lists — paged in as the dropdown scrolls, never rendered all at once
-  const mostStudied = useMemo(() => {
-    const out: (GNode & { code?: string })[] = [...STARTER];
-    const seen = new Set(out.map(keyOf));
-    if (catalog.data) {
-      for (const key of ["nuclides", "reactions", "authors", "papers", "exfor"]) {
-        for (const it of catalog.data.top[key] ?? []) {
-          const g = toGNode(key, it);
-          if (!seen.has(keyOf(g))) { seen.add(keyOf(g)); out.push(g); }
-        }
-      }
-    }
-    return out;
-  }, [catalog.data]);
-  const [visibleStarter, setVisibleStarter] = useState(15);
-  const suggestions = q.trim().length >= 2 ? results : mostStudied.slice(0, visibleStarter);
   const [saveOpen, setSaveOpen] = useState(false);
   const [edgeInfo, setEdgeInfo] = useState<{ source: GNode; target: GNode; meta?: EdgeMeta } | null>(null);
   const [viewName, setViewName] = useState("");
@@ -1374,8 +1305,6 @@ function GraphPageInner() {
     setEdges([]);
     setSelectedKey(keyOf(g));
     setNodes([{ id: keyOf(g), type: "entity", position: { x: 0, y: 0 }, data: { ...g } }]);
-    setResults([]);
-    setQ("");
     // a centered entity arrives WITH its neighborhood — the canvas is never
     // one lonely node sitting on 300k rows of relations
     if (g.type === "paper") fetchCards([keyOf(g)]);
@@ -1590,20 +1519,12 @@ function GraphPageInner() {
       .catch(() => setDetail({ error: true }));
   }, [selectedKey]);
 
+  // A pick in the header's search centres here, in place (brief 36).
   useEffect(() => {
-    if (q.trim().length < 2) { setResults([]); return; }
-    const t = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const r = await fetch(`/api/graph?op=search&q=${encodeURIComponent(q)}`);
-        const json = await r.json();
-        setResults((json.results ?? []).map((x: GNode & { code?: string }) => x.type === "nuclide" && x.code ? { ...x, id: x.code } : x));
-      } finally {
-        setSearching(false);
-      }
-    }, 250);
-    return () => clearTimeout(t);
-  }, [q]);
+    const on = (e: Event) => center((e as CustomEvent<GNode>).detail);
+    window.addEventListener(GRAPH_CENTER, on);
+    return () => window.removeEventListener(GRAPH_CENTER, on);
+  }, [center]);
 
   /** A saved view or recipe replaces the canvas — nothing on /graph navigates away. */
   const loadView = useCallback((viewId: number | string) => {
@@ -1654,7 +1575,7 @@ function GraphPageInner() {
       const id = rest.join(":");
       bootSelection.current = true;
       if (type === "dataset" || type === "material") centerRecord({ type, id, label: id });
-      else center({ type: type as GNode["type"], id, label: id });
+      else center({ type: type as GNode["type"], id, label: params.get("label") ?? id });
     } else {
       bootSelection.current = true;
       center({ type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" });
@@ -2039,65 +1960,6 @@ function GraphPageInner() {
           zoomActivationKeyCode={flowProps.zoomActivationKeyCode || null}
           panActivationKeyCode={flowProps.panActivationKeyCode || null}
         >
-          <Panel position="top-left">
-            <div className="relative">
-              {/* Outer shell + 4px inset around the bordered inner bar — per the mock. */}
-              <div className="rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
-                <div className={`flex h-8 items-center overflow-hidden rounded-full border bg-[var(--paper)] transition-[width,padding] duration-[500ms] ease-in-out ${searchOpen ? "w-96 gap-2 px-3" : "w-8 justify-center gap-0 px-0"}`}>
-                  {/* The circle opens the bar without focusing it (Brendan, 2026-11-08): the reader clicks into the field, and
-                      only then does the list open. Open and empty, the circle closes it again. */}
-                  <button type="button" aria-label="Search" aria-expanded={searchOpen} onClick={() => setSearchOpen((v) => !(v && !q.trim()))} className="flex h-full shrink-0 items-center text-[var(--paper-muted)]">
-                    <Search className="h-4 w-4 shrink-0" />
-                  </button>
-                  <Input
-                    ref={searchRef}
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    onFocus={() => setSearchFocused(true)}
-                    onBlur={(e) => { const empty = !e.currentTarget.value.trim(); setTimeout(() => { setSearchFocused(false); setVisibleStarter(15); if (empty) setSearchOpen(false); }, 150); }}
-                    onKeyDown={(e) => { if (e.key === "Escape") { setQ(""); setSearchOpen(false); e.currentTarget.blur(); } }}
-                    placeholder="Center an author, paper, nuclide, reaction…"
-                    tabIndex={searchOpen ? 0 : -1}
-                    className={`h-full border-0 bg-transparent p-0 text-[13px] shadow-none transition-opacity duration-[500ms] focus-visible:ring-0 ${searchOpen ? "flex-1 opacity-100" : "w-0 flex-none opacity-0"}`}
-                  />
-                  {searching && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--paper-muted)]" />}
-                </div>
-              </div>
-              {searchFocused && (suggestions.length > 0 || searching) && (
-                <div
-                  onScroll={(e) => {
-                    const el = e.currentTarget;
-                    if (q.trim().length < 2 && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) setVisibleStarter((v) => v + 15);
-                  }}
-                  className="absolute left-0 top-[48px] z-10 max-h-80 w-96 overflow-y-auto rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] shadow-md"
-                >
-                  {q.trim().length < 2 && (
-                    <p className="px-2.5 pb-1 pt-2 text-[10px] uppercase tracking-wide text-[var(--paper-muted)]">
-                      Most studied
-                    </p>
-                  )}
-                  {searching && suggestions.length === 0 && (
-                    <p className="px-2.5 py-2 text-xs text-[var(--paper-muted)]">Searching…</p>
-                  )}
-                  {suggestions.map((r) => (
-                    <button
-                      key={keyOf(r)}
-                      onClick={() => center(r)}
-                      draggable
-                      onDragStart={(e) => setDragEntity(e.dataTransfer, r)}
-                      className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-[var(--paper-quiet)]"
-                    >
-                      <Badge variant="outline" className="w-16 shrink-0 justify-center text-[9px]">{r.type}</Badge>
-                      <span className="truncate font-medium text-[var(--paper-text)]">
-                        {r.title ? <TexText text={String(r.title)} /> : r.label}
-                      </span>
-                      <span className="ml-auto shrink-0 text-[10px] text-[var(--paper-muted)]">{r.sub}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Panel>
           {/* The tools (Brendan, 2026-11-08): at rest two circles, the plus that opens them and Config, which never moves;
               open, between them: a plain plus (a prompt node), Prompt, Run, Save, Reset, and Back and Forward once the
               diagram has a change to step through. The fold takes 500 ms; the plus turns into a cross while open. */}
