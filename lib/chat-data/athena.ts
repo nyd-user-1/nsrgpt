@@ -10,25 +10,50 @@ import { AwsClient } from "aws4fetch"
 //
 // Credentials: NSR_ATHENA_KEY_ID / NSR_ATHENA_SECRET — an access key on IAM user
 // nsrgpt-chat-worker (New account), whose nsr-athena-read policy allows the nsrgpt workgroup, Glue
-// reads on nsr, reads on the lake, and the workgroup's results prefix. Nothing else.
+// reads on nsr, reads on the lake, and the workgroup's results prefix. Nothing else. Production (the
+// worker) runs on that key. Where it is unset outside a worker (the dev box, a local run), the SDK's
+// default credential chain answers instead, borrowed from a DynamoDB client the app already loads: the box's
+// instance role nsr-browser-box, whose nsr-devbox-athena policy (scripts/devbox/athena-policy.json) allows
+// the same (2026-11-09).
 
 const REGION = "us-east-2"
 const WORKGROUP = "nsrgpt"
 const DATABASE = "nsr"
 
+/** A Cloudflare Worker says so in its user agent; Node (the box, a local run) doesn't. */
+const onWorker = () => typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers"
+const keyed = () => !!(process.env.NSR_ATHENA_KEY_ID && process.env.NSR_ATHENA_SECRET)
+
 let client: AwsClient | null = null
-const aws = () => {
+let chained: { key: string; client: AwsClient } | null = null
+let chain: (() => Promise<{ accessKeyId: string; secretAccessKey: string; sessionToken?: string }>) | null = null
+const aws = async (): Promise<AwsClient | null> => {
   const accessKeyId = process.env.NSR_ATHENA_KEY_ID
   const secretAccessKey = process.env.NSR_ATHENA_SECRET
-  if (!accessKeyId || !secretAccessKey) return null
-  client ??= new AwsClient({ accessKeyId, secretAccessKey, region: REGION, service: "athena", retries: 2 })
-  return client
+  if (accessKeyId && secretAccessKey) {
+    client ??= new AwsClient({ accessKeyId, secretAccessKey, region: REGION, service: "athena", retries: 2 })
+    return client
+  }
+  if (onWorker()) return null
+  // The SDK's chain refreshes a role's credentials before they expire; a new set gets a new signer.
+  if (!chain) {
+    const { DynamoDBClient } = await import("@aws-sdk/client-dynamodb")
+    const config = new DynamoDBClient({ region: REGION }).config
+    chain = () => config.credentials()
+  }
+  const c = await chain()
+  const key = `${c.accessKeyId}:${c.sessionToken ?? ""}`
+  if (chained?.key !== key) {
+    chained = { key, client: new AwsClient({ accessKeyId: c.accessKeyId, secretAccessKey: c.secretAccessKey, sessionToken: c.sessionToken, region: REGION, service: "athena", retries: 2 }) }
+  }
+  return chained.client
 }
 
-export const athenaWired = () => !!(process.env.NSR_ATHENA_KEY_ID && process.env.NSR_ATHENA_SECRET)
+/** Athena answers here: the key is set, or this isn't a worker, so the default credential chain can. */
+export const athenaWired = () => keyed() || !onWorker()
 
 async function call<T>(action: string, body: Record<string, unknown>): Promise<T> {
-  const c = aws()
+  const c = await aws().catch((e: Error) => { throw new Error(`Athena credentials: ${e.message}`) })
   if (!c) throw new Error("Athena credentials are not set on this deployment.")
   const res = await c.fetch(`https://athena.${REGION}.amazonaws.com/`, {
     method: "POST",

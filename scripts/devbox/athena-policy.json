@@ -1,0 +1,6 @@
+{"Version":"2012-10-17","Statement":[
+ {"Sid":"Athena","Effect":"Allow","Action":["athena:StartQueryExecution","athena:GetQueryExecution","athena:GetQueryResults","athena:StopQueryExecution","athena:GetWorkGroup"],"Resource":"arn:aws:athena:us-east-2:613473203863:workgroup/nsrgpt"},
+ {"Sid":"Glue","Effect":"Allow","Action":["glue:GetDatabase","glue:GetDatabases","glue:GetTable","glue:GetTables","glue:GetPartition","glue:GetPartitions"],"Resource":["arn:aws:glue:us-east-2:613473203863:catalog","arn:aws:glue:us-east-2:613473203863:database/nsr","arn:aws:glue:us-east-2:613473203863:table/nsr/*"]},
+ {"Sid":"LakeRead","Effect":"Allow","Action":"s3:GetObject","Resource":["arn:aws:s3:::nsr-lake-613473203863/lake/*","arn:aws:s3:::nsr-lake-613473203863/raw/iaea-livechart/*"]},
+ {"Sid":"LakeList","Effect":"Allow","Action":["s3:ListBucket","s3:GetBucketLocation"],"Resource":"arn:aws:s3:::nsr-lake-613473203863"},
+ {"Sid":"Results","Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:AbortMultipartUpload","s3:ListMultipartUploadParts"],"Resource":"arn:aws:s3:::nsr-lake-613473203863/work/athena-results/*"}]}

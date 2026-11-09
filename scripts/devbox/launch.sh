@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Launch the nsrgpt dev box (2026-11-08): EC2 m7i-flex.large, Ubuntu 24.04, 30 GB gp3, in the default VPC of the new
 # account (us-east-2), security group nsr-devbox (port 3000 from Brendan's address only), role nsr-browser-box (SSM
-# Session Manager and the deploy key parameter). Shutdown behaviour stop: userdata.sh stops it 6 hours after every boot,
+# Session Manager and the deploy key parameter; its inline policies nsr-devbox-build, build-policy.json, for building
+# nsr-api here (brief 34), and nsr-devbox-athena, athena-policy.json, for the app's Athena reads through the role, set with
+# aws iam put-role-policy --role-name nsr-browser-box --policy-name <name> --policy-document file://<file>). Shutdown behaviour stop: userdata.sh stops it 6 hours after every boot,
 # and `aws ec2 start-instances` brings it back with everything installed. Prints the instance id and public address.
 #   ./scripts/devbox/launch.sh                      # new box
 #   ./scripts/devbox/launch.sh start i-0123…        # restart a stopped box, print its address
