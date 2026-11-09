@@ -1659,8 +1659,8 @@ function GraphPageInner() {
       if (type === "dataset" || type === "material") centerRecord({ type, id, label: id });
       else center({ type: type as GNode["type"], id, label: params.get("label") ?? id });
     } else {
-      bootSelection.current = true;
-      center({ type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" });
+      // The default load (Brendan, 2026-11-09): the library's "Mass 201 to 210, s and r" diagram.
+      loadDiagram("mass-201-210");
     }
     // A right panel row's link (/graph?panel=config) opens the panel on that view.
     const panel = RIGHT_VIEWS.find((v) => v.key === params.get("panel"));
