@@ -442,7 +442,7 @@ const CATALOG_LINKS = [
   { key: "xundl", label: "XUNDL", icon: Boxes, href: "/xundl" },
 ];
 /** Saved canvases from Community. A saved state is a recipe iff it has prompt steps. */
-interface ViewRow { id: number; name: string; saved_by: string; created_at: string; state?: { nodes?: { type: string }[] } }
+interface ViewRow { id: number; name: string; saved_by: string; created_at: string; state?: { nodes?: { type: string }[]; diagram?: string; center?: { label: string } } }
 const isRecipe = (v: ViewRow) => !!v.state?.nodes?.some((n) => n.type === "prompt");
 
 const toGNode = (typeKey: string, it: CatalogItem): GNode => {
@@ -567,17 +567,9 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
         </div>
         <div className="border-b p-2">
           <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder={wantRecipes ? "Filter recipes…" : "Filter views…"} className="h-8 text-xs" />
-          <p className="mt-1 text-[10px] text-[var(--paper-muted)]">
-            {wantRecipes ? "Saved canvases with prompt steps — click to load, then Run." : "Saved canvases, exactly as arranged. Click to load onto this one."}
-          </p>
         </div>
         <InsetBody>
           {views.isLoading && <p className="p-3 text-xs text-[var(--paper-muted)]">Loading…</p>}
-          {views.data && items.length === 0 && (
-            <p className="p-3 text-xs text-[var(--paper-muted)]">
-              {wantRecipes ? "No recipes yet — add a Prompt step and hit Save." : "No saved views yet — arrange a canvas and hit Save."}
-            </p>
-          )}
           {items.map((v) => (
             <InsetTip key={v.id} name={v.name} side="left">
             <button
@@ -586,7 +578,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
             >
               <span className="flex w-full items-baseline justify-between gap-2">
                 <span className="truncate text-xs font-semibold text-[var(--paper-text)]">{v.name}</span>
-                <span className="shrink-0 font-mono text-[10px] text-[var(--paper-muted)]">{v.state?.nodes?.length ?? 0} nodes</span>
+                <span className="shrink-0 font-mono text-[10px] text-[var(--paper-muted)]">{v.state?.diagram ? "diagram" : v.state?.center ? `${v.state.center.label} and its papers` : `${v.state?.nodes?.length ?? 0} nodes`}</span>
               </span>
               <span className="text-[10px] text-[var(--paper-muted)]">{v.saved_by} · {String(v.created_at).slice(0, 10)}</span>
             </button>
@@ -617,13 +609,9 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
         </div>
         <div className="border-b p-2">
           <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter files…" className="h-8 text-xs" />
-          <p className="mt-1 text-[10px] text-[var(--paper-muted)]">Everything ever dropped on a canvas. Click to add to this one.</p>
         </div>
         <InsetBody>
           {files.isLoading && <p className="p-3 text-xs text-[var(--paper-muted)]">Loading…</p>}
-          {files.data && items.length === 0 && (
-            <p className="p-3 text-xs text-[var(--paper-muted)]">Nothing here yet — drop a file anywhere on the canvas.</p>
-          )}
           {items.map((f) => (
             <InsetTip key={f.key} name={f.name} side="left">
             <button
@@ -1488,9 +1476,12 @@ function GraphPageInner() {
     fetch(`/api/community?tab=view&id=${viewId}`)
       .then((r) => r.json())
       .then(({ view }) => {
+        const state = view.state as { nodes: (GNode & { x: number; y: number })[]; edges: { s: string; t: string; k?: string; cos?: number }[]; diagram?: string; center?: GNode };
+        // A view of a library diagram opens it; a view of a node centres it and expands it once (brief 30's seeds).
+        if (state.diagram) { loadDiagram(state.diagram).then(() => setLoadedView(view.name)); toast.success(`Loaded: ${view.name}`); return; }
+        if (state.center) { center(state.center); setLoadedView(view.name); toast.success(`Loaded: ${view.name}`); return; }
         snapshot();
         setDiagram(null);
-        const state = view.state as { nodes: (GNode & { x: number; y: number })[]; edges: { s: string; t: string; k?: string; cos?: number }[] };
         store.current = new Map(state.nodes.map((n) => [keyOf(n), n]));
         expandState.current = new Map();
         setSelectedKey(null);
@@ -1509,7 +1500,7 @@ function GraphPageInner() {
         }, 60);
       })
       .catch(() => toast.error("View not found"));
-  }, [setNodes, setEdges, fitView, snapshot]);
+  }, [setNodes, setEdges, fitView, snapshot, loadDiagram, center]);
 
   const bootSelection = useRef(false);
   const booted = useRef(false);
