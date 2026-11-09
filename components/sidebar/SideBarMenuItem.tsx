@@ -133,8 +133,15 @@ export function SideBarMenuItem({ href, label, icon: Icon, on, small = false, gr
 
 /** A group's header row: the sidebar's hover and type, its icon if it has one, and the chevron (up when open, down when
  *  shut). SideBarMenuGroup and SideBarSection share it, so a section header in an inset rail is a sidebar group header. */
-export function SideBarGroupHeader({ label, icon: Icon, open, onToggle, holds = false }: { label: string; icon?: SideBarIcon; open: boolean; onToggle: () => void; holds?: boolean }) {
+export function SideBarGroupHeader({ label, icon: Icon, open = true, onToggle, holds = false }: { label: string; icon?: SideBarIcon; open?: boolean; onToggle?: () => void; holds?: boolean }) {
   const Chevron = open ? ChevronUp : ChevronDown
+  // Without onToggle, a fixed header: always open, no chevron, nothing to press (the graph rail's Workspace, brief 49).
+  if (!onToggle)
+    return (
+      <div className="flex w-full items-center gap-3 px-3 py-2 text-sm text-[var(--paper-muted)]">
+        <span className="flex-1">{label}</span>
+      </div>
+    )
   return (
     <AnimateIcon asChild animateOnHover>
       <button

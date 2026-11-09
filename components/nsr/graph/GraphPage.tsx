@@ -41,7 +41,7 @@ import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
-import { SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
+import { SideBarGroupHeader, SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
 import { PAGE_ICONS } from "@/components/sidebar/page-icons";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
@@ -501,8 +501,10 @@ const KIND_ICON: Record<DiagramKind, SideBarIcon> = {
   "level-scheme": ListOrdered,
 };
 
-function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, initialBrowse = null, railDiagrams }: {
+function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onNewCanvas, navigate, initialBrowse = null, railDiagrams }: {
   initialBrowse?: string | null;
+  /** Workspace's New canvas: an empty canvas, the rail where it is (brief 49). */
+  onNewCanvas: () => void;
   onPick: (g: GNode) => void;
   onAdd: (g: GNode) => void;
   onAsk: (g: GNode) => void;
@@ -740,32 +742,40 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
 
   // The main view. Every row is a sidebar row (SideBarMenuItem: its hover, the open-in-panel arrow, the kebab menu),
   // acting instead of navigating; its count rides in the tooltip beneath the name (Brendan, 2026-11-08). Each section's
-  // header is a sidebar group header that folds its rows, remembered per section (SideBarSection).
+  // header is a sidebar group header that folds its rows, remembered per section (SideBarSection). Workspace stands above
+  // them, fixed and always open, and the rest scroll beneath it (brief 49). New canvas's address is its own, so its marks
+  // (hide, rename) stay off the sidebar's Graph row; it opens /graph.
   return (
-    <InsetBody>
-      <SideBarSection label="Corpus" storageKey="graph:section:corpus">
-      {CATALOG_TYPES.map(({ key, label, icon }) => (
-        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Corpus" onSelect={() => setBrowse(key)} tip={{ name: label, side: "left" }} />
-      ))}
-      </SideBarSection>
-      <SideBarSection label="Workspace" storageKey="graph:section:workspace">
-      <SideBarMenuItem href="/graph?browse=files" label="Library" icon={FileText} on={false} group="Workspace" onSelect={() => setBrowse("files")} tip={{ name: "Library", side: "left" }} />
-      {([["views", "Views", Layers], ["recipes", "Recipes", BookOpen]] as const).map(([key, label, icon]) => (
-        <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Workspace" onSelect={() => setBrowse(key)} tip={{ name: label, side: "left" }} />
-      ))}
-      </SideBarSection>
-      <SideBarSection label="Datasets" storageKey="graph:section:datasets">
-      {CATALOG_LINKS.map(({ key, label, icon, href }) => (
-        <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, side: "left" }} />
-      ))}
-      </SideBarSection>
-      {/* One Diagrams section whose rows are the six kinds; a kind drills into its diagrams (Brendan, 2026-11-08). */}
-      <SideBarSection label="Diagrams" storageKey="graph:section:diagrams">
-        {KINDS.map((k) => (
-          <SideBarMenuItem key={k} href={`/graph?browse=kind:${k}`} label={KIND_LABEL[k]} icon={KIND_ICON[k]} on={false} group="Diagrams" onSelect={() => setBrowse(`kind:${k}`)} tip={{ name: KIND_LABEL[k], side: "left" }} />
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="shrink-0 border-b bg-[var(--paper)] pb-1 pt-2.5">
+        <SideBarGroupHeader label="Workspace" />
+        <div className="flex flex-col">
+          <SideBarMenuItem href="/graph?browse=files" label="Library" icon={FileText} on={false} group="Workspace" onSelect={() => setBrowse("files")} tip={{ name: "Library", side: "left" }} />
+          <SideBarMenuItem href="/graph?canvas=new" label="New canvas" icon={Plus} on={false} group="Workspace" onSelect={onNewCanvas} tip={{ name: "New canvas", side: "left" }} />
+          {([["recipes", "Recipes", BookOpen], ["views", "Views", Layers]] as const).map(([key, label, icon]) => (
+            <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Workspace" onSelect={() => setBrowse(key)} tip={{ name: label, side: "left" }} />
+          ))}
+        </div>
+      </div>
+      <InsetBody>
+        <SideBarSection label="Database" storageKey="graph:section:database">
+        {CATALOG_TYPES.map(({ key, label, icon }) => (
+          <SideBarMenuItem key={key} href={`/graph?browse=${key}`} label={label} icon={icon} on={false} group="Database" onSelect={() => setBrowse(key)} tip={{ name: label, side: "left" }} />
         ))}
-      </SideBarSection>
-    </InsetBody>
+        </SideBarSection>
+        <SideBarSection label="Datasets" storageKey="graph:section:datasets">
+        {CATALOG_LINKS.map(({ key, label, icon, href }) => (
+          <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, side: "left" }} />
+        ))}
+        </SideBarSection>
+        {/* One Diagrams section whose rows are the six kinds; a kind drills into its diagrams (Brendan, 2026-11-08). */}
+        <SideBarSection label="Diagrams" storageKey="graph:section:diagrams">
+          {KINDS.map((k) => (
+            <SideBarMenuItem key={k} href={`/graph?browse=kind:${k}`} label={KIND_LABEL[k]} icon={KIND_ICON[k]} on={false} group="Diagrams" onSelect={() => setBrowse(`kind:${k}`)} tip={{ name: KIND_LABEL[k], side: "left" }} />
+          ))}
+        </SideBarSection>
+      </InsetBody>
+    </div>
   );
   })();
   // The views push in from the right and slide back on the back arrow, in the sidebar's 500 ms (InsetPanel.tsx InsetLayers).
@@ -1508,6 +1518,18 @@ function GraphPageInner() {
     setSelectedKey(null);
     setEdgeInfo(null);
   }, [center, setEdges, setNodes, snapshot]);
+  // The rail's New canvas (brief 49): what the empty dataset does, and it also leaves a diagram or a loaded view.
+  const newCanvas = useCallback(() => {
+    snapshot();
+    setDiagram(null);
+    store.current = new Map();
+    expandState.current = new Map();
+    setEdges([]);
+    setNodes([]);
+    setSelectedKey(null);
+    setEdgeInfo(null);
+    setLoadedView(null);
+  }, [setEdges, setNodes, snapshot]);
 
   useEffect(() => {
     if (!selectedKey) { setDetail(null); return; }
@@ -1891,6 +1913,7 @@ function GraphPageInner() {
             onAdd={(g) => { if (store.current.has(keyOf(g))) toast.info(`${g.label} is already on the canvas`); else { addNodes([g]); if (g.type === "paper") fetchCards([keyOf(g)]); } }}
             onAsk={(g) => { setAttached(g); setDockOpen(true); }}
             onLoadView={loadView}
+            onNewCanvas={newCanvas}
             onAddFile={(f) => addNodes([{
               type: "file", id: f.key, label: f.name,
               sub: `${(f.size / 1024).toFixed(0)} kB`, fileKey: f.key,
