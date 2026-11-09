@@ -7,6 +7,8 @@ import { X } from 'lucide-react'
 import { BlockCard } from '@/components/ui/nova/block-card'
 import { useShelf, type ShelfItem } from '@/lib/home-blocks'
 import { cn } from '@/lib/utils'
+import { PLATE_TABLES, VIZ_CHARTS } from '@/lib/viz-charts'
+import { HEADER_TITLES } from '@/lib/header-titles'
 import { setShelfDrag } from '@/lib/shelf-drag'
 import { openDrawnNote } from '@/lib/drawn-notes'
 
@@ -19,6 +21,9 @@ import { openDrawnNote } from '@/lib/drawn-notes'
 
 const MIN_TILE = 104
 const GAP = 10
+// A plate box's name and chart type by its anchor (page.tsx's VizBoxMenu anchor), so a block shows the box's own name
+// whatever it stored (brief 40: older blocks read "Home" or the chart type).
+const PLATE_NAMES = new Map([...VIZ_CHARTS, ...PLATE_TABLES].map((c) => [c.href.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase(), { name: c.name ?? HEADER_TITLES[c.href] ?? c.title, type: c.title }]))
 const PLACE = (path: string) => (path === '/' ? 'Home' : path.slice(1).split('/')[0].replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase()))
 
 export function BlocksShelf() {
@@ -96,9 +101,9 @@ export function BlocksShelf() {
                 tabIndex={0}
                 onClick={() => open(it)}
                 onKeyDown={(e) => e.key === 'Enter' && open(it)}
-                aria-label={`Open ${it.block.title}`}
-                title={it.block.title}
-                sub={PLACE(it.block.path)}
+                aria-label={`Open ${PLATE_NAMES.get(it.block.anchor)?.name ?? it.block.title}`}
+                title={PLATE_NAMES.get(it.block.anchor)?.name ?? it.block.title}
+                sub={PLATE_NAMES.get(it.block.anchor)?.type ?? PLACE(it.block.path)}
                 dragging={dragging === it.key}
                 dropTarget={over === it.key}
               >
