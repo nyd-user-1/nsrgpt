@@ -42,7 +42,7 @@ import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
-import { SideBarGroupHeader, SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
+import { BRANCH, SideBarGroupHeader, SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
 import { PAGE_ICONS } from "@/components/sidebar/page-icons";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
@@ -787,14 +787,20 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onNewCanvas,
       <div className="shrink-0 border-b bg-[var(--paper)] pb-1 pt-2.5">
         <SideBarGroupHeader label="Workspace" />
         <div className="flex flex-col">
-          {/* Favorites: the row opens them all; beneath it the first three, and See more when there are more. */}
+          {/* Favorites: an item with sub-items on the sidebar's tree lines (SideBarMenuGroup's trunk and elbows): the
+              row opens them all; beneath it the first three, and See more when there are more (Brendan, 2026-11-09). */}
           <SideBarMenuItem href="/graph?browse=favorites" label="Favorites" icon={Star} on={false} group="Workspace" onSelect={() => setBrowse("favorites")} tip={{ name: "Favorites", side: "left" }} />
-          {favorites.slice(0, 3).map((f) => (
-            <SideBarMenuItem key={f.href} href={f.href} label={f.label} icon={f.icon} on={false} small group="Favorites" onSelect={f.onSelect} tip={{ name: f.label, side: "left" }} />
-          ))}
-          {favorites.length > 3 && (
-            <SideBarMenuItem href="/graph?browse=favorites" label={`See more (${favorites.length - 3})`} icon={ChevronRight} on={false} small group="Favorites" onSelect={() => setBrowse("favorites")} tip={{ name: "All favorites", side: "left" }} />
-          )}
+          {(() => {
+            const shown = favorites.slice(0, 3).map((f) => ({ key: f.href, row: <SideBarMenuItem href={f.href} label={f.label} icon={f.icon} on={false} small group="Favorites" onSelect={f.onSelect} tip={{ name: f.label, side: "left" }} /> }));
+            if (favorites.length > 3) shown.push({ key: "more", row: <SideBarMenuItem href="/graph?browse=favorites" label={`See more (${favorites.length - 3})`} icon={ChevronRight} on={false} small group="Favorites" onSelect={() => setBrowse("favorites")} tip={{ name: "All favorites", side: "left" }} /> });
+            return shown.map((s, k) => (
+              <div key={s.key} className="relative pl-8">
+                {k < shown.length - 1 && <span aria-hidden className="absolute bottom-0 left-[21px] top-0 w-px" style={{ background: BRANCH }} />}
+                <span aria-hidden className="absolute left-[21px] top-0 h-4 w-5 rounded-bl-[10px] border-b-[1.5px] border-l-[1.5px]" style={{ borderColor: BRANCH }} />
+                {s.row}
+              </div>
+            ));
+          })()}
           <SideBarMenuItem href="/graph?browse=files" label="Library" icon={FileText} on={false} group="Workspace" onSelect={() => setBrowse("files")} tip={{ name: "Library", side: "left" }} />
           <SideBarMenuItem href="/graph?canvas=new" label="New canvas" icon={Plus} on={false} group="Workspace" onSelect={onNewCanvas} tip={{ name: "New canvas", side: "left" }} />
           {([["recipes", "Recipes", BookOpen], ["views", "Views", Layers]] as const).map(([key, label, icon]) => (
