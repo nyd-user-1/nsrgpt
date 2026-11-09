@@ -91,13 +91,13 @@ export function AppLayout({
           {/* The sidebar toggle keeps one place on the screen (Brendan, 2026-11-09, as Claude's does): here while the sidebar is
               shut, in the sidebar's own header while it is open. A bare icon with the muted hover says it is a control. */}
           {!sidebarOpen && (
-            <button onClick={() => setSidebarOpen(true)} aria-label="Open the sidebar" className={`hidden sm:flex `}>
+            <button onClick={() => setSidebarOpen(true)} aria-label="Open the sidebar" className={`hidden sm:flex ${ICON_BUTTON}`}>
               <PanelLeftOpen className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
             </button>
           )}
 
           {title && (VIZ_CHARTS.some((c) => c.href === path) ? <ChartSwitcher path={path} title={title} /> : (
-            <span className={`group/title hidden items-center gap-1 sm:flex `}>
+            <span className={`group/title hidden items-center gap-1 sm:flex ${sidebarOpen ? "" : "ml-5"}`}>
               <TitleText text={title} className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
               <CopyTitle title={title} />
             </span>
