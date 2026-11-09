@@ -1,25 +1,23 @@
 'use client'
 
+import Link from 'next/link'
 import { CountUp } from '@/components/CountUp'
 import { compact } from '@/lib/compact'
-import { useSwitchboard } from '@/components/SwitchboardPanel'
 
 /**
  * The nysgpt.com masthead — nameplate cell plus the four-layer ledger, matched
  * to 44B's home masthead.
  *
- *  - the nameplate links to NYSgpt's AWS startup page: hover dissolves the
- *    wordmark into the AWS mark; the first ledger cell toggles the switchboard.
- *  - each ledger cell shows its layer's word at rest (Data, Models, Platforms,
- *    Tools); hovering swaps the word for the figure, counted up from zero with
- *    its label, and leaving resets it (2026-10-08).
+ *  - the nameplate links to NYSgpt's AWS startup page.
+ *  - each ledger cell is a dataset, A to Z (ENDF/B, ENSDF, EXFOR, XUNDL; brief 36), and opens its dataset index;
+ *    at rest it shows the dataset's name, on hover the figure, counted up from zero with its label (2026-10-08).
  */
 
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
 const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 
-export type LedgerEntry = { word: string; value: number; unit: string; exact?: boolean; color: string }
+export type LedgerEntry = { word: string; value: number; unit: string; exact?: boolean; color: string; href: string }
 
 const FADE = 'transition-opacity duration-200'
 
@@ -37,8 +35,6 @@ const SPELL = (chars: number) =>
   chars <= 9 ? ['@min-[12rem]:hidden', '@min-[12rem]:block'] : chars <= 13 ? ['@min-[20rem]:hidden', '@min-[20rem]:block'] : ['@min-[22rem]:hidden', '@min-[22rem]:block']
 
 export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
-  const { toggle } = useSwitchboard()
-
   return (
     // A rounded frame matching the app shell (2026-10-08); the grid inside sits
     // 1px outward so its own edge rules fall under the frame and are clipped.
@@ -50,7 +46,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
           Side by side the ledger's own border-l closes that seam, so it is
           dropped at lg to avoid a double rule. */}
       {/* The nameplate links to NYSgpt's AWS startup page (2026-10-08), in a new tab. On hover the wordmark zooms in
-          a little; the AWS mark no longer shows (Brendan, 2026-11-06). The Data cell opens the switchboard. */}
+          a little; the AWS mark no longer shows (Brendan, 2026-11-06). */}
       <a
         data-inspect="Wordmark"
         data-nav="masthead"
@@ -76,55 +72,14 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
           const fig = compact(l.value)
           const [short, full] = SPELL(l.value.toLocaleString('en-US').length)
           return (
-            <div
+            <Link
               key={l.word}
-              /* CountUp's hover trigger attaches to the nearest anchor by
-                 default; these cells link nowhere, so mark the scope explicitly. */
+              href={l.href}
+              aria-label={`${l.word} datasets`}
               data-countup-scope
               data-inspect="LedgerCell"
               data-nav="masthead"
-              /* The first cell toggles the switchboard. */
-              {...(i === 0
-                ? {
-                    role: 'button',
-                    tabIndex: 0,
-                    'aria-label': 'Open or close the switchboard',
-                    onClick: toggle,
-                    onKeyDown: (e: React.KeyboardEvent) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        toggle()
-                      }
-                    },
-                  }
-                : i === 1
-                ? {
-                    role: 'button',
-                    tabIndex: 0,
-                    'aria-label': 'Scroll to Models',
-                    onClick: () => window.dispatchEvent(new CustomEvent('scroll-to-models')),
-                    onKeyDown: (e: React.KeyboardEvent) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        window.dispatchEvent(new CustomEvent('scroll-to-models'))
-                      }
-                    },
-                  }
-                : i === 3
-                ? {
-                    role: 'button',
-                    tabIndex: 0,
-                    'aria-label': 'Scroll to Dev Tools',
-                    onClick: () => window.dispatchEvent(new CustomEvent('scroll-to-dev-tools')),
-                    onKeyDown: (e: React.KeyboardEvent) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        window.dispatchEvent(new CustomEvent('scroll-to-dev-tools'))
-                      }
-                    },
-                  }
-                : {})}
-              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${i < 2 ? 'border-b' : ''} ${i === 0 ? 'cursor-pointer' : ''}`}
+              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${i < 2 ? 'border-b' : ''} no-underline`}
               /* The word's kind colour, as the boxes of that kind wear it on hover. */
               style={{ '--kind': l.color, '--kind-tint': `color-mix(in oklab, ${l.color} 5%, var(--paper))` } as React.CSSProperties}
             >
@@ -158,7 +113,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
                   {l.unit}
                 </p>
               </div>
-            </div>
+            </Link>
           )
         })}
       </div>

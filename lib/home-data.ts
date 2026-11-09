@@ -953,17 +953,18 @@ export type Kind = keyof typeof KINDS;
  * Each cell shows its word at rest and counts its figure on hover; `exact`
  * marks a figure measured to the unit, which a wide cell spells out.
  */
-export const LEDGER: { word: string; value: number; unit: string; exact?: boolean; color: string }[] = [
-  // NSRgpt (2026-11-05): row counts from the NSR lake, Athena database nysgpt_nsr. XUNDL replaces NSR in the first
-  // cell (Brendan, 2026-11-06), counted in records: sum(num_cards) FROM xundl_archive_datasets (12,072 datasets).
-  { word: "XUNDL", value: 931_258, unit: "Records", exact: true, color: KINDS.Data },
-  { word: "Nuclides", value: 1_210_113, unit: "Nuclide links", exact: true, color: KINDS.Model },
-  // ENSDF in records too (2026-11-06): sum(num_cards) FROM ensdf_datasets (20,120 datasets).
-  { word: "ENSDF", value: 3_276_986, unit: "Records", exact: true, color: KINDS.Platform },
+export const LEDGER: { word: string; value: number; unit: string; exact?: boolean; color: string; href: string }[] = [
+  // The four parsed datasets A to Z, each opening its dataset index (brief 36, 2026-11-09: ENDF/B takes Nuclides' place).
+  // ENDF/B in cross-section points: endf_serve_xs over every release, 22,315 materials (lib/pipeline-map.ts).
+  { word: "ENDF/B", value: 9_127_277, unit: "Cross-section points", exact: true, color: KINDS.Model, href: "/datasets/endf" },
+  // ENSDF in records (2026-11-06): sum(num_cards) FROM ensdf_datasets (20,120 datasets).
+  { word: "ENSDF", value: 3_276_986, unit: "Records", exact: true, color: KINDS.Platform, href: "/datasets/ensdf" },
   // EXFOR in data points (2026-11-06): every measured cross-section value in barns at an incident energy, in the
   // IAEA's exfor_json export, commit 36b38778 (scripts/viz-exfor-snapshot.mjs, "candidates"). The lake holds
   // 27,070 entries and 200,465 subentries.
-  { word: "EXFOR", value: 4_344_595, unit: "Cross sections", exact: true, color: KINDS.Tool },
+  { word: "EXFOR", value: 4_344_595, unit: "Cross sections", exact: true, color: KINDS.Tool, href: "/datasets/exfor" },
+  // XUNDL in records (Brendan, 2026-11-06): sum(num_cards) FROM xundl_archive_datasets (12,072 datasets).
+  { word: "XUNDL", value: 931_258, unit: "Records", exact: true, color: KINDS.Data, href: "/datasets/xundl" },
 ];
 
 /**
