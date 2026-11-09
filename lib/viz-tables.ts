@@ -26,4 +26,6 @@ export const VIZ_TABLES: Record<string, { title: string }> = {
   "first-excited": { title: "First 2⁺ energies, even-even nuclides" },
   "level-spans": { title: "Level spans per nuclide" },
   "level-candles": { title: "Level energies per nuclide" },
+  // Not a chart's table: every ground state with its properties and the counts held for it (brief 35).
+  nuclides: { title: "Nuclides" },
 }
