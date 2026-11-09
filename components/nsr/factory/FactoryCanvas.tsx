@@ -349,7 +349,7 @@ const edgeTypes = { fx: FxEdge }
 const LOOPS: [number, string, string][] = [
   [1, "New releases", "Each serving table names the release it was built from; the fetch lanes look for a newer one at the sources and pull it, and it runs through Parse and Serve again."],
   [2, "Saved canvases", "A canvas saved on Graph becomes a View, and a View loads back onto Graph. Saving waits on a store for Community."],
-  [3, "Questions", "A question asked in Chat runs through the keyword index and the encoder; the records it finds come back as the answer's citations, each opening on Search or Graph."],
+  [3, "Questions", "A question asked in Chat runs through the keyword index; the records it finds come back as the answer's citations."],
 ]
 
 function Line({ kind }: { kind: Kindof }) {
@@ -501,6 +501,10 @@ const doorY = (i: number) => 60 + i * (DOOR_H + 24)
 const rowY = (i: number) => 40 + i * ROW
 const STAGE_Y = 40
 const STAGE_H = 6 * (DOOR_H + 24) + 40
+const STAGE_BOTTOM = STAGE_Y + STAGE_H
+const RAIL_BOTTOM = STAGE_BOTTOM + 40 // loop 1's rail, under everything
+/** Halfway between Graph's and Views' middles, where loop 2's chips sit on their rails. */
+const VIEWS_MID = (rowY(2) + SURFACE_H / 2 + rowY(5) + 20 + SURFACE_H / 2) / 2
 
 export function build(): { nodes: Node[]; edges: Edge[] } {
   const n = (id: string, type: string, x: number, y: number, data: Record<string, unknown>): Node => ({ id, type, position: { x, y }, data, selectable: false })
@@ -556,14 +560,14 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
 
     // What runs: the instruments and the services
     n("i1", "instrument", X_RUN, rowY(0) + 10, { w: W.chip, n: 1 }),
-    n("i2", "instrument", X_RUN, rowY(1) + 10, { w: W.chip, n: 2 }),
+    n("i2", "instrument", X_RUN, rowY(1) + 10, { w: W.chip, n: 2, extra: [{ id: "r-q", side: "r", at: 4 }] }),
     n("api", "service", X_RUN + (W.chip - W.service) / 2, rowY(2) + 4, { w: W.service, h: 48, title: "API", about: "AWS Lambda nsr-api: the nuclide, ENDF, EXFOR and search routes" }),
     n("i3", "instrument", X_RUN, rowY(4) + 10, { w: W.chip, n: 3 }),
     n("i4", "instrument", X_RUN, rowY(5) + 10, { w: W.chip, n: 4 }),
     n("cdn", "service", X_RUN + (W.chip - W.service) / 2, rowY(3) + 4, { w: W.service, h: 48, title: "Delivery", about: "Amazon CloudFront: the API and the chart data, cached at the edge" }),
 
     // Surfaces
-    n("chat", "surface", X_SURFACE, rowY(0), { w: W.surface, h: SURFACE_H, title: "Chat", path: "/chat", about: "answers that cite the records" }),
+    n("chat", "surface", X_SURFACE, rowY(0), { w: W.surface, h: SURFACE_H, title: "Chat", path: "/chat", about: "answers that cite the records", extra: [{ id: "l-q", side: "l", at: 44 }] }),
     n("search", "surface", X_SURFACE, rowY(1), { w: W.surface, h: SURFACE_H, title: "Search", path: "/search", about: "every dataset's records, by keyword" }),
     n("graph", "surface", X_SURFACE, rowY(2), { w: W.surface, h: SURFACE_H, title: "Graph", path: "/graph", about: "the canvas and its diagram library" }),
     n("charts", "surface", X_SURFACE, rowY(3), { w: W.surface, h: SURFACE_H, title: "Charts", path: "/viz", about: "the chart pages" }),
@@ -571,10 +575,12 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     n("views", "surface", X_SURFACE, rowY(5) + 20, { w: W.surface, h: SURFACE_H, title: "Views", path: "/graph", about: "saved canvases and recipes", planned: true }),
   ]
 
-  const e = (id: string, source: string, target: string, data: FxData): Edge => {
+  /** A line between the facing sides; given handles and an offset, a line on a rail around the drawing, as pax-trinity's
+   *  loops run. */
+  const e = (id: string, source: string, target: string, data: FxData, sourceHandle = "r", targetHandle = "l"): Edge => {
     const color = data.kind === "loop" ? LOOP : data.kind === "planned" ? PLANNED : FLOW
     return {
-      id, source, sourceHandle: "r", target, targetHandle: "l", type: "fx", data: { auto: true, ...data },
+      id, source, sourceHandle, target, targetHandle, type: "fx", data: { auto: data.offset === undefined, ...data },
       animated: data.kind === "loop",
       markerEnd: { type: MarkerType.ArrowClosed, color, width: 16, height: 16 },
       zIndex: data.kind === "loop" ? 1 : 0,
@@ -620,15 +626,14 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     e("i4-graph", "i4", "graph", flow(Waypoints, "the reference figures, drawn from the data")),
     e("serving-pipeline", "serving", "pipeline", flow(ScrollText, "the counts on the cards")),
 
-    // Loop 1: a newer release comes in and runs through again
-    e("serving-wayback", "serving", "wayback", loop(1, History, "each table names the release it was built from", { auto: true })),
-    e("wayback-nndc", "wayback", "nndc", loop(1, RefreshCw, "the lanes look for a newer release at the sources")),
-    // Loop 2: saved canvases
-    e("graph-views", "graph", "views", planned(Save, "a canvas saved on Graph becomes a View, once Community has a store")),
-    e("views-graph", "views", "graph", loop(2, BookOpen, "a View loads back onto Graph")),
-    // Loop 3: questions
-    e("chat-i2", "chat", "i2", loop(3, MessageCircleQuestionMark, "a question asked in Chat runs through the keyword index")),
-    e("i2-chat", "i2", "chat", loop(3, ScrollText, "the records it finds come back as citations")),
+    // Loop 1: a newer release comes in and runs through again. Under the stages, then up the left of the doors.
+    e("serve-wayback", "serve", "wayback", loop(1, History, "each table names the release it was built from", { offset: RAIL_BOTTOM - STAGE_BOTTOM, at: [X_LAKE + W.store / 2, RAIL_BOTTOM] }), "b", "b"),
+    e("wayback-nndc", "wayback", "nndc", loop(1, RefreshCw, "the lanes look for a newer release at the sources", { offset: 28, at: [X_DOOR - 28, (doorY(5) + doorY(1)) / 2 + DOOR_H / 2] }), "l", "l"),
+    // Loop 2: saved canvases, down the right of the surfaces
+    e("graph-views", "graph", "views", planned(Save, "a canvas saved on Graph becomes a View, once Community has a store", { offset: 64, at: [X_SURFACE + W.surface + 64, VIEWS_MID] }), "r", "r"),
+    e("views-graph", "views", "graph", loop(2, BookOpen, "a View loads back onto Graph", { offset: 28, at: [X_SURFACE + W.surface + 28, VIEWS_MID] }), "r", "r"),
+    // Loop 3: questions, in the gap beside Chat
+    e("i2-chat", "i2", "chat", loop(3, MessageCircleQuestionMark, "a question asked in Chat runs through the keyword index, and the records it finds come back as citations", { offset: 20 }), "r-q", "l-q"),
   ]
   return { nodes, edges }
 }
