@@ -18,6 +18,12 @@ export const CELL = 80
 export const FREE_X = 230, FREE_Y = 170
 /** ladder: the daughter's levels between these, highest at the top. */
 export const LADDER_TOP = 40, LADDER_H = 420, LADDER_X = 300, LEVEL_W = 520
+/** A ladder's left edge and width: rungs start near the left when there is no parent, and widen with the γ lines. */
+export function ladderGeometry(spec: DiagramSpec, edges: EdgeKind[] = ["gamma"]): { x: number; w: number } {
+  const parent = spec.nodes.some((n) => n.energyKeV === undefined)
+  const gammas = edges.includes("gamma") ? spec.edges.filter((e) => e.kind === "gamma").length : 0
+  return { x: parent ? LADDER_X : 60, w: Math.max(LEVEL_W, 180 + gammas * 48) }
+}
 
 const nOf = (x: DiagramNode) => x.n ?? x.a - x.z
 
@@ -27,11 +33,12 @@ export function place(spec: DiagramSpec, config: Pick<DiagramConfig, "grid">): M
   const grid = effectiveGrid(spec, config.grid)
   const nodes = spec.nodes
   if (grid === "ladder") {
+    const ladder = ladderGeometry(spec)
     const levels = nodes.filter((x) => x.energyKeV !== undefined)
     const maxE = Math.max(1, ...levels.map((x) => x.energyKeV as number))
     nodes.forEach((x, i) => {
       if (x.energyKeV === undefined) pos.set(x.id, { x: 60, y: LADDER_TOP + i * 120 })
-      else pos.set(x.id, { x: LADDER_X + LEVEL_W / 2, y: LADDER_TOP + 60 + (1 - x.energyKeV / maxE) * LADDER_H })
+      else pos.set(x.id, { x: ladder.x + ladder.w / 2, y: LADDER_TOP + 60 + (1 - x.energyKeV / maxE) * LADDER_H })
     })
     return pos
   }
@@ -97,15 +104,16 @@ export function toFlow(spec: DiagramSpec, config: DiagramConfig): FlowOut {
   const gnodes: FlowOut["gnodes"] = new Map()
   const boxes = new Map<string, { x: number; y: number; w: number; h: number }>()
   const palette = grid === "nz" ? "chart" : "figure"
+  const ladder = ladderGeometry(spec, config.edges)
 
   for (const x of spec.nodes) {
     const c = centres.get(x.id) ?? { x: 0, y: 0 }
     const g = gnodeOf(x)
     if (grid === "ladder" && x.energyKeV !== undefined) {
       const id = `diagram:level:${x.id}`
-      nodes.push({ id, type: "level", position: { x: LADDER_X, y: c.y - 14 }, width: LEVEL_W, height: 28, draggable: false, selectable: false,
+      nodes.push({ id, type: "level", position: { x: ladder.x, y: c.y - 14 }, width: ladder.w, height: 28, draggable: false, selectable: false,
         data: { node: x, labels: config.labels } })
-      boxes.set(x.id, { x: LADDER_X, y: c.y, w: LEVEL_W, h: 0 })
+      boxes.set(x.id, { x: ladder.x, y: c.y, w: ladder.w, h: 0 })
       continue
     }
     const id = `nuclide:${x.id}`
@@ -152,7 +160,7 @@ export function toFlow(spec: DiagramSpec, config: DiagramConfig): FlowOut {
 
   // arrows
   const edges: Edge[] = []
-  const gammaSlot = new Map<string, number>()
+  let gammaSlot = 0
   spec.edges.forEach((e, i) => {
     if (!config.edges.includes(e.kind)) return
     const sb = boxes.get(e.s), tb = boxes.get(e.t)
@@ -162,13 +170,11 @@ export function toFlow(spec: DiagramSpec, config: DiagramConfig): FlowOut {
     let points: [number, number][] | undefined
     if (grid === "ladder") {
       if (e.kind === "gamma") {
-        const k = gammaSlot.get(e.s) ?? 0
-        gammaSlot.set(e.s, k + 1)
-        const slot = [...gammaSlot.values()].reduce((a, b) => a + b, 0)
-        const x = LADDER_X + 120 + slot * 48
+        gammaSlot += 1
+        const x = ladder.x + 120 + gammaSlot * 48
         points = [[x, sb.y], [x, tb.y]]
       } else {
-        points = [[sb.x + sb.w, sb.y + sb.h / 2], [LADDER_X + 30 + (edges.length % 4) * 14, tb.y]]
+        points = [[sb.x + sb.w, sb.y + sb.h / 2], [ladder.x + 30 + (edges.length % 4) * 14, tb.y]]
       }
     }
     const sc = { x: sb.x + sb.w / 2, y: sb.y + sb.h / 2 }, tc = { x: tb.x + tb.w / 2, y: tb.y + tb.h / 2 }

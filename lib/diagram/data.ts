@@ -2,7 +2,8 @@
 // (livechart-ground.json) and parsing-1's diagram files (diagram/<name>.json, brief 29), all read through
 // lib/use-data.ts's one cache. Turns a nuclide into a DiagramNode and a decay mode into an EdgeKind.
 
-import { fetchData } from "@/lib/use-data"
+import { apiUrl } from "@/lib/api-url"
+import { fetchData, getQueryClient } from "@/lib/use-data"
 import { decayIndex, familyOf, keyOf, loadDecay, seriesFrom, type Decay, type DecayNuclide } from "@/lib/viz-physics"
 import type { DiagramEdge, DiagramNode, EdgeKind } from "./spec"
 
@@ -137,3 +138,62 @@ export async function sProcessWalk(start: readonly [number, number], keep: (z: n
 }
 
 export type { Decay }
+
+/** One API read (lib/api-url.ts), cached in the app's query client for the tab's life like the chart files. */
+export async function fetchApi<T>(path: string): Promise<T> {
+  const url = apiUrl(path)
+  return getQueryClient().fetchQuery({
+    queryKey: ["api", url],
+    queryFn: async (): Promise<T> => {
+      const r = await fetch(url)
+      if (!r.ok) throw new Error(`${path}: ${r.status}`)
+      return r.json()
+    },
+    staleTime: Infinity,
+    gcTime: 60 * 60 * 1000,
+    retry: 1,
+  })
+}
+
+/** β− chains from starting nuclides down to stability (a half-life over 1e20 s counts as stable), each step by the
+ *  nuclide's main decay mode from decay.json's mode table. Starts and stable ends come back solid, the steps between faint. */
+export async function decayChainsFrom(starts: [number, number][]): Promise<{ nodes: DiagramNode[]; edges: DiagramEdge[] }> {
+  const [d, ground] = await Promise.all([loadDecay(), loadGround()])
+  const index = decayIndex(d)
+  const at = (z: number, n: number): DecayNuclide | undefined => {
+    const i = index.get(keyOf(z, n))
+    return i === undefined ? undefined : d.nuclides[i]
+  }
+  const tOf = (z: number, n: number) => {
+    const g = ground.t.get(keyOf(z, n))
+    return g !== undefined ? g : at(z, n)?.t
+  }
+  const make = (z: number, n: number, faint: boolean): DiagramNode => {
+    const el = ground.els[z] ?? at(z, n)?.el ?? "?"
+    const x = at(z, n)
+    return { id: codeOf(z + n, el), z, a: z + n, n, symbol: el, halfLife: halfLifeOf(tOf(z, n)), family: x ? familyOf(x) : undefined, faint }
+  }
+  const nodes = new Map<string, DiagramNode>()
+  const edges: DiagramEdge[] = []
+  const seen = new Set<string>()
+  for (const [z0, n0] of starts) {
+    if (tOf(z0, n0) === undefined) continue
+    let [z, n] = [z0, n0]
+    nodes.set(make(z, n, false).id, make(z, n, false))
+    for (let step = 0; step < 20; step++) {
+      const t = tOf(z, n)
+      const id = make(z, n, false).id
+      if (t === null || (t !== undefined && t > 1e20)) { nodes.set(id, make(z, n, false)); break }
+      const mode = at(z, n)?.m[0]?.[0]
+      const m = mode ? d.modes[mode] : undefined
+      if (!mode || !m || m.dz === null || m.dn === null) break
+      const [nz, nn] = [z + m.dz, n + m.dn]
+      const next = make(nz, nn, true)
+      if (!nodes.has(next.id)) nodes.set(next.id, next)
+      if (!seen.has(`${id}>${next.id}`)) edges.push({ s: id, t: next.id, kind: edgeKindOf(mode) ?? "beta-", label: "r β−" })
+      seen.add(`${id}>${next.id}`)
+      ;[z, n] = [nz, nn]
+    }
+  }
+  return { nodes: [...nodes.values()], edges }
+}
