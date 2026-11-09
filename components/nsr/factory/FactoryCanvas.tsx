@@ -632,7 +632,7 @@ export function build(): { nodes: Node[]; edges: Edge[] } {
     e("i3-charts", "i3", "charts", flow(ChartLine, "the charts' data")),
     e("i4-graph", "i4", "graph", flow(Waypoints, "the reference figures, drawn from the data", { offset: 16, at: [RUN_GAP, rowY(5) - 2] }), "r", "l-lib"),
     // Under everything, below loop 1's rail
-    e("serve-pipeline", "serve", "pipeline", flow(ScrollText, "the lake's counts, written into the cards", { offset: PIPELINE_Y + SURFACE_H + 32 - STAGE_BOTTOM, at: [X_RUN + W.chip / 2, PIPELINE_Y + SURFACE_H + 32] }), "b", "b"),
+    e("serve-pipeline", "serve", "pipeline", flow(ScrollText, "the lake's counts, written into the cards", { offset: 32, at: [X_RUN + W.chip / 2, PIPELINE_Y + SURFACE_H + 32] }), "b", "b"),
 
     // Loop 1: a newer release comes in and runs through again. Under the stages, then up the left of the doors.
     e("serve-wayback", "serve", "wayback", loop(1, History, "each table names the release it was built from", { offset: RAIL_BOTTOM - STAGE_BOTTOM, at: [X_LAKE + W.store / 2, RAIL_BOTTOM] }), "b", "b"),
