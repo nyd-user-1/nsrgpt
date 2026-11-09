@@ -12,8 +12,9 @@ import "@xyflow/react/dist/style.css";
 import dagre from "@dagrejs/dagre";
 import {
   ArrowLeft, Check, ChevronRight, Copy, Crosshair, Download, History, Redo2, RotateCcw, Share2, Trash2, Undo2,
-  GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Settings2, X,
+  GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Settings2, Star, X,
 } from "lucide-react";
+import { useNavRows } from "@/lib/nav-rows";
 import { Atom } from "@/components/animate-ui/icons/atom";
 import { BookOpen } from "@/components/animate-ui/icons/book-open";
 import { Boxes } from "@/components/animate-ui/icons/boxes";
@@ -568,6 +569,21 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onNewCanvas,
   };
 
   const diagrams = railDiagrams;
+  // Favorites (Brendan, 2026-11-09): every rail row a reader has starred from its menu (lib/nav-rows.ts, keyed by the
+  // row's address), in the rail's own order. Workspace shows the first three and a See more; the layer lists them all.
+  const { rows: navRows } = useNavRows();
+  const favorites = useMemo(() => {
+    const all: { href: string; label: string; icon: SideBarIcon; group: string; onSelect: () => void }[] = [
+      { href: "/graph?browse=files", label: "Library", icon: FileText, group: "Workspace", onSelect: () => setBrowse("files") },
+      { href: "/graph?browse=recipes", label: "Recipes", icon: BookOpen, group: "Workspace", onSelect: () => setBrowse("recipes") },
+      { href: "/graph?browse=views", label: "Views", icon: Layers, group: "Workspace", onSelect: () => setBrowse("views") },
+      ...CATALOG_TYPES.map(({ key, label, icon }) => ({ href: `/graph?browse=${key}`, label, icon, group: "Database", onSelect: () => setBrowse(key) })),
+      ...CATALOG_LINKS.map(({ label, icon, href }) => ({ href, label, icon, group: "Datasets", onSelect: () => navigate(href) })),
+      ...KINDS.map((k) => ({ href: `/graph?browse=kind:${k}`, label: KIND_LABEL[k], icon: KIND_ICON[k], group: "Diagrams", onSelect: () => setBrowse(`kind:${k}`) })),
+      ...diagrams.map((d) => ({ href: d.href, label: d.title, icon: KIND_ICON[d.kind], group: KIND_LABEL[d.kind], onSelect: d.onSelect })),
+    ];
+    return all.filter((r) => navRows[r.href]?.favorite);
+  }, [navRows, diagrams, navigate]);
   const layer = (() => {
   if (browse === "views" || browse === "recipes") {
     const wantRecipes = browse === "recipes";
@@ -664,6 +680,27 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onNewCanvas,
     );
   }
 
+  // Favorites, drilled into from Workspace's See more (Brendan, 2026-11-09): every starred row, with its own icon.
+  if (browse === "favorites") {
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <div className={INSET.header}>
+          <button onClick={() => setBrowse(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <span className={INSET.title}>Favorites</span>
+          <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">{favorites.length}</span>
+        </div>
+        <InsetBody className="pt-1.5">
+          {favorites.length === 0 && <p className="px-3 py-3 text-xs text-[var(--paper-muted)]">Nothing starred yet. Favorite a row from its menu.</p>}
+          {favorites.map((f) => (
+            <SideBarMenuItem key={f.href} href={f.href} label={f.label} icon={f.icon} on={false} group={f.group} sub={f.group} onSelect={f.onSelect} tip={{ name: f.label, side: "left" }} />
+          ))}
+        </InsetBody>
+      </div>
+    );
+  }
+
   // A diagram kind, drilled into from the Diagrams section (Brendan, 2026-11-08): its diagrams, as Corpus > Papers drills.
   const kind = browse?.startsWith("kind:") ? KINDS.find((k) => `kind:${k}` === browse) : undefined;
   if (kind) {
@@ -750,6 +787,14 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, onNewCanvas,
       <div className="shrink-0 border-b bg-[var(--paper)] pb-1 pt-2.5">
         <SideBarGroupHeader label="Workspace" />
         <div className="flex flex-col">
+          {/* Favorites: the row opens them all; beneath it the first three, and See more when there are more. */}
+          <SideBarMenuItem href="/graph?browse=favorites" label="Favorites" icon={Star} on={false} group="Workspace" onSelect={() => setBrowse("favorites")} tip={{ name: "Favorites", side: "left" }} />
+          {favorites.slice(0, 3).map((f) => (
+            <SideBarMenuItem key={f.href} href={f.href} label={f.label} icon={f.icon} on={false} small group="Favorites" onSelect={f.onSelect} tip={{ name: f.label, side: "left" }} />
+          ))}
+          {favorites.length > 3 && (
+            <SideBarMenuItem href="/graph?browse=favorites" label={`See more (${favorites.length - 3})`} icon={ChevronRight} on={false} small group="Favorites" onSelect={() => setBrowse("favorites")} tip={{ name: "All favorites", side: "left" }} />
+          )}
           <SideBarMenuItem href="/graph?browse=files" label="Library" icon={FileText} on={false} group="Workspace" onSelect={() => setBrowse("files")} tip={{ name: "Library", side: "left" }} />
           <SideBarMenuItem href="/graph?canvas=new" label="New canvas" icon={Plus} on={false} group="Workspace" onSelect={onNewCanvas} tip={{ name: "New canvas", side: "left" }} />
           {([["recipes", "Recipes", BookOpen], ["views", "Views", Layers]] as const).map(([key, label, icon]) => (
