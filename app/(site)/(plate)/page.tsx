@@ -13,8 +13,9 @@ export const metadata = {
 };
 
 // The boxes A to Z by the name each one shows, left to right and top to bottom across the frames (Brendan, 2026-11-07).
-// The charts, and the tables that have a box of their own (brief 35: the nuclides table).
-type PlateBox = VizChart & { name?: string };
+// The charts, and the tables that have a box of their own (brief 35: the nuclides table). A box's own name, when it has
+// one, leads (brief 36: Nuclides opens /viz/chart).
+type PlateBox = VizChart;
 const nameOf = (c: PlateBox) => c.name ?? HEADER_TITLES[c.href] ?? c.title;
 const BY_NAME = [...VIZ_CHARTS, ...PLATE_TABLES].sort((a, b) => nameOf(a).localeCompare(nameOf(b), "en", { sensitivity: "base", numeric: true }));
 

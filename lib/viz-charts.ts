@@ -3,8 +3,9 @@
 // TYPE and describes its variables (Brendan, 2026-11-04). The header's own name for each page is
 // lib/header-titles.ts. Static pages, so the links prefetch: served as files, they cost the worker nothing.
 
-/** `lines`: the box's description on the index (Brendan, 2026-11-06): its axes, one a line, then its source. */
-export type VizChart = { href: string; title: string; body: string; lines: string[] }
+/** `lines`: the box's description on the index (Brendan, 2026-11-06): its axes, one a line, then its source. `name`: the
+ *  box's name on the contents plate where it differs from the page's header title (brief 36: /viz/chart's box reads Nuclides). */
+export type VizChart = { href: string; title: string; body: string; lines: string[]; name?: string }
 
 export const VIZ_CHARTS: VizChart[] = [
   { href: "/viz/nebula", title: "Scatter Plot", body: "x mass number A · y binding energy per nucleon: all 3,558 AME2020 nuclides, coloured by decay mode. The top of the curve is ⁶²Ni.", lines: ["X: Mass Number A", "Y: Binding Energy per Nucleon", "Source: AME2020"] },
@@ -17,7 +18,7 @@ export const VIZ_CHARTS: VizChart[] = [
   { href: "/viz/simplex", title: "Strip Plot", body: "x product nucleus by A · y γ energy: every thermal-capture γ line in CapGam, 78,746 over 260 nuclei, shaded by intensity.", lines: ["X: Product Nucleus by A", "Y: γ-Ray Energy", "Source: CapGam"] },
   { href: "/viz/surface", title: "3D Surface Plot", body: "x N · y Z · z binding energy per nucleon as terrain, from the AME2020 masses; the ridge is the valley of stability.", lines: ["X: Neutron Number N", "Y: Proton Number Z", "Z: Binding Energy per Nucleon", "Source: AME2020"] },
   { href: "/viz/graph", title: "Network Graph", body: "Nodes the 3,420 ENSDF nuclides, coloured by decay mode; 4,783 edges, each from a nuclide to the daughter of one of its decay modes.", lines: ["Nodes: Nuclides", "Edges: Parent to Daughter", "Source: ENSDF"] },
-  { href: "/viz/chart", title: "Nuclide Chart", body: "x N · y Z: every ENSDF nuclide as a box in its decay family's colour, the magic numbers ruled. Click a box for its card: Jπ, half-life, mass excess, binding, mass, Q-values, separation energies, decay modes and major radiations.", lines: ["X: Neutron Number N", "Y: Proton Number Z", "Source: ENSDF, AME2020, NUBASE2020 (IAEA Live Chart)"] },
+  { href: "/viz/chart", name: "Nuclides", title: "Nuclide Chart", body: "x N · y Z: every ENSDF nuclide as a box in its decay family's colour, the magic numbers ruled. Click a box for its card: Jπ, half-life, mass excess, binding, mass, Q-values, separation energies, decay modes and major radiations.", lines: ["X: Neutron Number N", "Y: Proton Number Z", "Source: ENSDF, AME2020, NUBASE2020 (IAEA Live Chart)"] },
   { href: "/viz/structure", title: "Heatmap", body: "x N · y Z: every nuclide with an ENSDF or XUNDL dataset, coloured by years since its evaluation's literature cutoff or by XUNDL sets compiled since. With it, the ENSDF evaluation index: each mass chain's citation, evaluators, cutoff and XUNDL sets since.", lines: ["X: Neutron Number N", "Y: Proton Number Z", "Source: ENSDF, XUNDL"] },
   { href: "/viz/reactions", title: "Flow Map", body: "x N · y Z: every ENSDF decay step as a line, coloured by mode, with one route lit from any nuclide, downstream or upstream. Each light moves faster the shorter its parent's half-life.", lines: ["X: Neutron Number N", "Y: Proton Number Z", "Source: ENSDF"] },
   { href: "/viz/matrix", title: "Correlation Matrix", body: "9×9 Pearson r across log T½, Qα, Qβ−, Sₙ, Sₚ, log E(2⁺), log B(E2), mass excess and log level count, over the 475 nuclides with all nine. Navy moves together; red apart.", lines: ["X: Nine Nuclear Properties", "Y: Nine Nuclear Properties", "Source: ENSDF, AME2020"] },
