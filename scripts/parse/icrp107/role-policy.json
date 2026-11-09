@@ -1,0 +1,4 @@
+{"Version":"2012-10-17","Statement":[
+ {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["arn:aws:s3:::nsr-lake-613473203863/raw/icrp/2026-11-09/*","arn:aws:s3:::nsr-lake-613473203863/lake/icrp107/*","arn:aws:s3:::nsr-lake-613473203863/lake/_work/parse/icrp107/*"]},
+ {"Effect":"Allow","Action":["glue:GetTable","glue:GetTables","glue:CreateTable","glue:UpdateTable","glue:DeleteTable","glue:GetPartition","glue:GetPartitions","glue:BatchGetPartition"],"Resource":["arn:aws:glue:us-east-2:613473203863:catalog","arn:aws:glue:us-east-2:613473203863:database/nsr","arn:aws:glue:us-east-2:613473203863:table/nsr/icrp107_*"]},
+ {"Effect":"Allow","Action":["glue:GetTable","glue:GetTables","glue:GetPartition","glue:GetPartitions","glue:BatchGetPartition"],"Resource":["arn:aws:glue:us-east-2:613473203863:table/nsr/nuclide_serve_*"]}]}
