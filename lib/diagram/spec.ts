@@ -177,7 +177,7 @@ export const DEFAULTS_BY_KIND: Record<DiagramKind, DiagramConfig> = {
     bands: false,
     legend: false,
     labels: ALL_LABELS,
-    edges: ["capture", "fission", "beta-"],
+    edges: ["capture", "fission", "beta-", "it"],
   },
   "level-scheme": {
     kind: "level-scheme",
@@ -187,7 +187,7 @@ export const DEFAULTS_BY_KIND: Record<DiagramKind, DiagramConfig> = {
     bands: false,
     legend: false,
     labels: ["symbol", "halflife", "jpi", "energy", "percent"],
-    edges: ["beta-", "beta+", "ec", "gamma", "it"],
+    edges: ["alpha", "beta-", "beta+", "ec", "gamma", "it"],
   },
 }
 

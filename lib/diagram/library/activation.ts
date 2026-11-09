@@ -44,9 +44,9 @@ export const ACTIVATION_SPECS: DiagramSpec[] = [
       e("232TH", "233TH", "capture"), e("233TH", "233PA", "beta-", 100), e("233PA", "233U", "beta-", 100)] },
 ]
 
-type Row = { z: number; a: number; liso: number; capturePct: number; fissionPct: number; class: string;
+type Row = { z: number; a: number; liso: number; capturePct: number; fissionPct: number; cls?: string; class?: string;
   decay: { alpha: number; betaMinus: number; ec: number; it: number; sf: number } }
-const CLS: Record<string, string> = { fissile: "fissile", fertile: "fertile", "less fertile": "less", shortlived: "short", "short-lived": "short" }
+const CLS: Record<string, string> = { fissile: "fissile", fertile: "fertile", "less fertile": "less", less: "less", shortlived: "short", "short-lived": "short", short: "short" }
 const round = (v: number) => (v >= 10 ? Math.round(v) : v >= 1 ? Math.round(v * 10) / 10 : Number(v.toPrecision(2)))
 
 export async function loadActivation(spec: DiagramSpec): Promise<DiagramSpec> {
@@ -59,7 +59,7 @@ export async function loadActivation(spec: DiagramSpec): Promise<DiagramSpec> {
   const byId = new Map(spec.nodes.map((n) => [n.id, n]))
   const nodes = spec.nodes.map((n) => {
     const r = rowOf(n)
-    return r ? { ...n, cls: CLS[r.class] ?? n.cls, fissionPct: r.fissionPct >= 0.5 ? round(r.fissionPct) : undefined } : n
+    return r ? { ...n, cls: CLS[(r.cls ?? r.class ?? "").toLowerCase()] ?? n.cls, fissionPct: r.fissionPct >= 0.5 ? round(r.fissionPct) : undefined } : n
   })
   const edges = spec.edges.map((x) => {
     const r = rowOf(byId.get(x.s)!)
