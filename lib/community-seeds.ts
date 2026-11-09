@@ -10,17 +10,20 @@ export type Seed = { id: string; name: string; saved_by: string; created_at: str
 
 const key = (n: { type: string; id: string }) => `${n.type}:${n.id}`
 
+/** Newest first is the lists' order, so the seeds keep theirs by the minute: 1 is the latest. */
+const at = (id: string) => `2026-11-08T12:${String(10 - Number(id)).padStart(2, "0")}:00Z`
+
 /** A recipe: its context nodes in a column on the left, wired into one prompt step on the right. */
 function recipe(id: string, name: string, prompt: string, context: Omit<SeedNode, "x" | "y">[]): Seed {
   const nodes: SeedNode[] = context.map((n, i) => ({ ...n, x: 0, y: i * 120 }))
   const step: SeedNode = { type: "prompt", id: `seed${id}`, label: "Prompt step", prompt, x: 420, y: ((context.length - 1) * 120) / 2 }
-  return { id, name, saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [...nodes, step], edges: nodes.map((n) => ({ s: key(n), t: key(step) })) } }
+  return { id, name, saved_by: "NSRgpt", created_at: at(id), state: { nodes: [...nodes, step], edges: nodes.map((n) => ({ s: key(n), t: key(step) })) } }
 }
 
 export const SEEDS: Seed[] = [
-  { id: "1", name: "Thorium series, discs", saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [], edges: [], diagram: "thorium-series" } },
-  { id: "2", name: "s-process, Ag to Sb", saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [], edges: [], diagram: "s-process-ag-sb" } },
-  { id: "3", name: "137Cs neighbourhood", saved_by: "NSRgpt", created_at: "2026-11-08", state: { nodes: [], edges: [], center: { type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" } } },
+  { id: "1", name: "Thorium series, discs", saved_by: "NSRgpt", created_at: at("1"), state: { nodes: [], edges: [], diagram: "thorium-series" } },
+  { id: "2", name: "s-process, Ag to Sb", saved_by: "NSRgpt", created_at: at("2"), state: { nodes: [], edges: [], diagram: "s-process-ag-sb" } },
+  { id: "3", name: "137Cs neighbourhood", saved_by: "NSRgpt", created_at: at("3"), state: { nodes: [], edges: [], center: { type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" } } },
   recipe("4", "Summarise the papers on this canvas", "Summarise the papers on this canvas: for each, what was measured, by what method, and the result with its uncertainty; then say where they agree and where they differ.", [
     { type: "paper", id: "1965GI06", label: "1965GI06", title: "Half-Life of Cesium-137", sub: "1965" },
     { type: "paper", id: "1973CO39", label: "1973CO39", title: "Radiometric Measurement of the Half-Life of Caesium-137", sub: "1973" },

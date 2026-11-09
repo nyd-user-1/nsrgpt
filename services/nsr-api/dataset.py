@@ -25,6 +25,7 @@ SOURCES = {"ensdf": ("ENSDF", "ensdf/2026-11-05", "2026-11-05"), "xundl": ("XUND
 NSRDB = f"{L}/nsr-database/2026-10-15/nsr"
 X4SRC = f"{L}/exfor/x4pro-2023-07-14/X4SRC/*.parquet"
 J4 = f"{L}/exfor/j4-2026-10-28"
+NSR_SERVE = f"{L}/serve/search/{os.environ.get('SEARCH_VERSION', '2026-11-08')}/nsr/*"
 ENDF_RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II"]
 PUBLIC = os.environ.get("PUBLIC_BASE", "https://daw1qggkn69lv.cloudfront.net")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -219,9 +220,18 @@ def dataset(source, raw_id):
     keys = sorted(set(keys) | set(header["dsref"]))
     texts = {}
     if keys and h.get("a") is not None:
-        texts = {r["keynum"]: r["reference"] for r in records(
-            f"SELECT keynum, reference FROM {table(source, 'references')} WHERE trim(nucid) = ? AND keynum IN "
-            f"({', '.join('?' * len(keys))})", [str(h['a'])] + keys)}
+        # The reference as the mass chain's references dataset writes it; XUNDL's own is nearly empty, so ENSDF's fills in.
+        for src in dict.fromkeys([source, "ensdf"]):
+            missing = [k for k in keys if k not in texts]
+            if missing:
+                texts |= {r["keynum"]: r["reference"] for r in records(
+                    f"SELECT keynum, reference FROM {table(src, 'references')} WHERE trim(nucid) = ? AND keynum IN "
+                    f"({', '.join('?' * len(missing))})", [str(h['a'])] + missing)}
+    missing = [k for k in keys if not texts.get(k)]
+    if missing:  # last, NSR's own reference line
+        texts |= {r["key_number"]: r["reference"] for r in records(
+            f"SELECT key_number, reference FROM read_parquet('{NSR_SERVE}') WHERE key_number IN "
+            f"({', '.join('?' * len(missing))})", missing)}
     references = [{"key": k, "reference": texts.get(k)} for k in keys]
 
     cards = [r["text"] for r in records(f"SELECT text FROM read_parquet('{L}/{folder}/cards/*') WHERE dataset_seq = ? "

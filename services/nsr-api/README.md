@@ -101,7 +101,8 @@ One record per dataset, for the dataset pages (brief 33). Every record carries `
 its links, so "Open in Graph" needs nothing else:
 `{"node": {"type", "id", "label", "sub"}, "links": [{"type", "id", "label", "rel"}]}`. Node types are Graph's own
 (`nuclide` id = NUCID as 60CO, `paper` id = NSR key number, `exfor` id = entry number) plus `dataset` (id = source:NUCID:DSID)
-and `material` (id = release:MAT). `rel` says what the link is: `nuclide`, `reference`, `parent`, `subentry`.
+and `material` (id = release:MAT). `rel` says what the link is: `nuclide`, `reference` (a paper cited), `parent` (a
+dataset's adopted dataset), `decay_parent` (a decay dataset's parent nuclide), `exfor` (an entry compiled from a paper).
 
 | Route | Example |
 | --- | --- |
@@ -131,8 +132,8 @@ URL-encoded, as Search's ids are (`60CO:ADOPTED LEVELS, GAMMAS`); NUCID and DSID
   `from_kev` is the level the gamma leaves; `to_kev` the level it reaches where the energy difference picks one, else null
 - `other`: `{betas, ec, alphas, delayed, xrefs, records}`, each a list of its cards' fields
 - `comments`: the dataset's general comments `[{card_seq, type, rtype, text}]` (level and gamma comments sit on those rows)
-- `references`: `[{key, reference}]`, the NSR keys the dataset cites (`nsr.ensdf_refs`, `xundl_refs`) with the
-  reference as ENSDF's references dataset writes it where it has one
+- `references`: `[{key, reference}]`, the NSR keys the dataset cites (`nsr.ensdf_refs`, `xundl_refs`, and the header's
+  DSREF) with the reference as the mass chain's references dataset writes it, else as NSR writes it
 - `cards`: the dataset's lines exactly as held (`nsr.ensdf_cards`, `xundl_cards`), in order
 
 `/text` is those cards, one per line. `/md` renders the header as a list, levels and gammas as tables, comments as quoted
@@ -141,7 +142,8 @@ print form, as NNDC's "PDF Version" does (Part C; the library is named in "Packa
 the page's PDF button is the browser's print of the page.
 
 `/exfor/entry/{id}`: `{id, entry: {title, year, authors, institutes, references, date, n_subentries}, subentries:
-[{subent, title, reaction, quantity, target, n_data_rows}], x4, x4_source, graph}`. `x4` is the entry's X4 text from the
+[{subent, title, reaction, quantity, target, n_data_rows}], x4, x4_source, papers, graph}`; `papers` are the NSR keys
+that cite the entry (`nsr.nsr_exfor`). `x4` is the entry's X4 text from the
 X4Pro database (`nsr.exfor_x4src`, release 2023-07-14); entries compiled since then have `x4: null` and
 `x4_source: null`. The subentries come from the J4 tables (2026-10-28); `/exfor/subentry/{id}` has their data.
 
@@ -152,7 +154,8 @@ section's lines from `nsr.endfb_records`. `/text` returns them as plain text. A 
 Lambda response holds, so the text goes one section at a time.
 
 `/nsr/{key}/text` is the reference in NSR's exchange layout (`<KEYNO   >`, `<REFRENCE>`, `<AUTHORS >`, `<TITLE   >`,
-`<KEYWORDS>`, `<SELECTRS>`, `<DOI     >`), written from `search_nsr`'s fields: the lake holds NSR's fields, not its
+`<KEYWORDS>`, `<SELECTRS>`, `<DOI     >`), written from `search_nsr`'s fields; `/nsr/{key}` now carries `graph` too (the
+paper, its nuclides and its EXFOR entries): the lake holds NSR's fields, not its
 exchange files, so the `<HISTORY >` and `<CODEN   >` lines are missing.
 
 ## Saved views and files (brief 34, community.py)
@@ -172,3 +175,22 @@ for them, not CloudFront (which passes GET and HEAD only). A write sends `x-nsr-
 
 The store is DynamoDB `nsrgpt-views` (on demand; key `id`; index `kind-created_at`). The seeds are rows written once by
 `scripts/community/seed.mjs`.
+
+## Packages and build (brief 34)
+
+The PDFs are written by reportlab 5.1.0 (pure Python; it brings Pillow 13.0.0 and charset-normalizer) with DejaVu Sans,
+Sans Bold and Sans Mono embedded for the Greek letters and minus signs ENSDF's values carry (`fonts/`). The package went
+from 38 MB zipped and 113 MB unzipped to 48 MB and 140 MB, inside Lambda's 250 MB. The parse box is gone, so `build.sh`
+now runs on any Ubuntu 24.04 box, the dev box included (it makes `/opt/nsrapi` the first time):
+
+```
+aws s3 cp services/nsr-api/ s3://nsr-lake-613473203863/lake/_work/parse/exfor/nsr-api/ --recursive --exclude '*' --include '*.py' --include '*.sh'
+./scripts/iaea/box/ssm.sh i-0ec4775a5cd68d41b 'aws s3 cp s3://nsr-lake-613473203863/lake/_work/parse/exfor/nsr-api/build.sh /tmp/ && bash /tmp/build.sh'
+./services/nsr-api/deploy.sh
+```
+
+`test_dataset.py` runs the dataset routes on the box before a deploy. First responses after a cold start: a dataset 4–5 s
+(the ENSDF tables load into memory), then 0.1–0.4 s; a PDF 0.5–1.5 s; an EXFOR entry with its X4 text 2–4 s.
+
+Spend: DynamoDB on demand at $1.25 a million writes and $0.25 a million reads, storage inside the free 25 GB; the S3 PUTs and
+the Lambda time are inside the free tiers. At this use, under a cent a day.
