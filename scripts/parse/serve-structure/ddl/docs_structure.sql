@@ -1,5 +1,6 @@
 -- search_docs_structure: parsing-1's share of the search documents (brief 18's columns): nuclides, adopted levels with a
--- half-life or an isomer flag, decays, ENSDF and XUNDL datasets, ENDF/B materials and MF3 cross sections, all releases.
+-- half-life or an isomer flag, decays, ENSDF and XUNDL datasets, ENDF materials and MF3 cross sections, all releases
+-- (ENDF/B, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2; @LIB@ names the library, @FAMILY@ its bare name for a lone "JEFF").
 -- url_path is the nsr-api path that returns the record.
 UNLOAD (
 WITH el AS (SELECT * FROM @ELEMENTS@),
@@ -62,26 +63,26 @@ SELECT 'dataset', ds.pre || ':' || CAST(ds.dataset_seq AS varchar),
 FROM dsets ds
 UNION ALL
 SELECT 'material', m.release || '/' || m.sublibrary || '/' || CAST(m.mat AS varchar), m.name,
-       m.name || ', ENDF/' || m.release || ' ' || m.sublibrary || ', MAT ' || CAST(m.mat AS varchar)
+       m.name || ', ' || @LIB(m.release)@ || ' ' || m.sublibrary || ', MAT ' || CAST(m.mat AS varchar)
          || coalesce(', ' || nullif(m.lab, ''), ''),
-       concat_ws(' ', m.name, replace(m.name, '-', ''), m.zsymam, 'ENDF/' || m.release, m.release, m.sublibrary,
+       concat_ws(' ', m.name, replace(m.name, '-', ''), m.zsymam, @LIB(m.release)@, m.release, m.sublibrary,
                  @SUB_WORDS(m.sublibrary)@, 'MAT ' || CAST(m.mat AS varchar), 'MAT' || CAST(m.mat AS varchar),
-                 nullif(m.lab, ''), nullif(m.authors, ''), nullif(m.edate, ''), 'evaluated material ENDF/B'),
-       filter(ARRAY[m.name, 'ENDF/' || m.release, m.sublibrary], x -> x IS NOT NULL),
-       'ENDF/' || m.release, m.z, m.a, CAST(NULL AS integer), CAST(NULL AS integer),
+                 nullif(m.lab, ''), nullif(m.authors, ''), nullif(m.edate, ''), 'evaluated material', @FAMILY(m.release)@),
+       filter(ARRAY[m.name, @LIB(m.release)@, m.sublibrary], x -> x IS NOT NULL),
+       @LIB(m.release)@, m.z, m.a, CAST(NULL AS integer), CAST(NULL AS integer),
        '/endf/materials?release=' || m.release || '&sublibrary=' || m.sublibrary || '&z=' || CAST(m.z AS varchar)
 FROM endf_serve_materials m WHERE m.release NOT LIKE '%-point-%'
 UNION ALL
 SELECT 'cross_section', x.release || '/' || x.sublibrary || '/' || CAST(x.mat AS varchar) || '/' || CAST(x.mt AS varchar),
        x.name || ' ' || coalesce(replace(t.reaction, '(z,', '(' || @PROJ(x.sublibrary)@ || ','), 'MT ' || CAST(x.mt AS varchar)),
        x.name || ' ' || coalesce(t.name, 'MT ' || CAST(x.mt AS varchar)) || ' cross section, MT ' || CAST(x.mt AS varchar)
-         || ', ENDF/' || x.release || ' ' || x.sublibrary,
+         || ', ' || @LIB(x.release)@ || ' ' || x.sublibrary,
        concat_ws(' ', x.name, replace(x.name, '-', ''), replace(t.reaction, '(z,', '(' || @PROJ(x.sublibrary)@ || ','),
                  t.name, 'MT' || CAST(x.mt AS varchar), 'MT ' || CAST(x.mt AS varchar), 'cross section',
-                 'ENDF/' || x.release, x.release, x.sublibrary, @SUB_WORDS(x.sublibrary)@),
+                 @LIB(x.release)@, @FAMILY(x.release)@, x.release, x.sublibrary, @SUB_WORDS(x.sublibrary)@),
        filter(ARRAY[x.name, replace(t.reaction, '(z,', '(' || @PROJ(x.sublibrary)@ || ','), 'MT' || CAST(x.mt AS varchar)],
               y -> y IS NOT NULL),
-       'ENDF/' || x.release, x.z, x.a, x.mt, CAST(NULL AS integer),
+       @LIB(x.release)@, x.z, x.a, x.mt, CAST(NULL AS integer),
        '/endf/xs?name=' || x.name || '&mt=' || CAST(x.mt AS varchar) || '&release=' || x.release || '&sub=' || x.sublibrary
 FROM endf_serve_xs x LEFT JOIN mt t ON t.mt = x.mt WHERE x.release NOT LIKE '%-point-%'
 ) TO '@LOC@' WITH (format = 'PARQUET', compression = 'SNAPPY')

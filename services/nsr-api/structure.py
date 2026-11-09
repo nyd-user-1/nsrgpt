@@ -1,4 +1,5 @@
-# nsr-api routes for nuclides (ENSDF 2026-11-05) and ENDF/B cross sections (brief 17, parsing-1), beside parsing-2's
+# nsr-api routes for nuclides (ENSDF 2026-11-05) and ENDF cross sections (brief 17, parsing-1; brief 43 added JEFF-3.3,
+# JENDL-5, TENDL-2023 and CENDL-3.2), beside parsing-2's
 # EXFOR routes. lambda_function.py sends every path starting /nuclide or /endf to route(path, query) -> (status, body).
 # DuckDB (its own connection, so these routes never load the EXFOR index) reads the serving Parquet under
 # s3://nsr-lake-613473203863/lake/serve/nuclide/2026-11-05/ and lake/serve/endf/. Tables load into memory on first use:
@@ -23,7 +24,11 @@ import duckdb
 BUCKET = os.environ.get("BUCKET", "nsr-lake-613473203863")
 NUC = f"s3://{BUCKET}/lake/serve/nuclide/2026-11-05"
 ENDF = f"s3://{BUCKET}/lake/serve/endf"
-RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II"]
+RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II",
+            "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]  # brief 43 added the last four; xs_<n> indexes this list
+# Releases with too many MF3 rows to load into memory (brief 43): read like the POINT releases, through xs_index (held in
+# memory) and xs_series/series.bin (one S3 byte-range request a section), built by serve.py point_files.
+INDEXED = ["JEFF-3.3", "JENDL-5", "TENDL-2023"]
 # NNDC's reconstructed, linearized libraries (POINT2025 for B-VIII.1, POINT2018 for B-VIII.0), one release per temperature
 POINT_RELEASES = ["B-VIII.1-point-0K", "B-VIII.1-point-293.6K", "B-VIII.0-point-0K", "B-VIII.0-point-293.6K"]
 DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
@@ -62,8 +67,8 @@ def table(name):
                "decays": f"{NUC}/decays/*", "materials": f"{ENDF}/*/materials/*", "mt": f"{ENDF}/mt_names/*"}
         if name.startswith("xs_"):
             path = f"{ENDF}/{RELEASES[int(name[3:])]}/xs/*"
-        elif name.startswith("pidx_"):  # a POINT release's xs_index: every column but the arrays, plus sid
-            path = f"{ENDF}/{POINT_RELEASES[int(name[5:])]}/xs_index/part-00000.parquet"
+        elif name.startswith("pidx_"):  # a POINT or INDEXED release's xs_index: every column but the arrays, plus sid
+            path = f"{ENDF}/{(POINT_RELEASES + INDEXED)[int(name[5:])]}/xs_index/part-00000.parquet"
         else:
             path = src[name]
         con().execute(f"CREATE OR REPLACE TABLE {name} AS SELECT * FROM read_parquet('{path}')")
@@ -185,10 +190,10 @@ def temp_of(v):
 
 
 def point_series(pr, name, sub, mt):
-    """One section from a POINT release: its row from the in-memory xs_index, its arrays from xs_series/series.bin with
-    one S3 byte-range request (energy then cross section, little-endian float64)."""
+    """One section from a POINT or INDEXED release: its row from the in-memory xs_index, its arrays from
+    xs_series/series.bin with one S3 byte-range request (energy then cross section, little-endian float64)."""
     global _s3
-    rows = records(f"SELECT * FROM {table(f'pidx_{POINT_RELEASES.index(pr)}')} WHERE sublibrary = ? AND upper(name) = upper(?) "
+    rows = records(f"SELECT * FROM {table(f'pidx_{(POINT_RELEASES + INDEXED).index(pr)}')} WHERE sublibrary = ? AND upper(name) = upper(?) "
                    "AND mt = ? ORDER BY liso, mat LIMIT 1", [sub, name, mt])
     if not rows:
         return None
@@ -236,7 +241,9 @@ def xs(q):
                 served = pr if row else r
             except Exception:  # noqa: BLE001 (a missing or unreadable POINT file falls back to the MF3)
                 row = None
-        if row is None and r in RELEASES:
+        if row is None and r in INDEXED:
+            row, served = point_series(r, name, sub, mt), r
+        elif row is None and r in RELEASES:
             t = table(f"xs_{RELEASES.index(r)}")
             rows = records(f"SELECT * FROM {t} WHERE sublibrary = ? AND upper(name) = upper(?) AND mt = ? "
                            "ORDER BY liso, mat", [sub, name, mt])
@@ -247,7 +254,8 @@ def xs(q):
             continue
         item = {**row, "release": r, "release_served": served, "held": True}
         if served == r and r in RELEASES:
-            lrp = records(f"SELECT lrp FROM {table('materials')} WHERE release = ? AND mat = ? LIMIT 1", [r, row["mat"]])
+            lrp = records(f"SELECT lrp FROM {table('materials')} WHERE release = ? AND mat = ? AND sublibrary = ? LIMIT 1",
+                          [r, row["mat"], sub])  # one MAT can sit in several sublibraries (JEFF-3.3 Fe-56: five)
             if lrp and lrp[0]["lrp"] == 1:
                 item["note"] = ("MF3 as evaluated: inside the resonance range it is only the background to the MF2 "
                                 "resonances; no reconstructed (POINT) release holds this section")

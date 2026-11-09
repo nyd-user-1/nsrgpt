@@ -26,7 +26,8 @@ NUCLIDE = "lake/serve/nuclide/2026-11-05"
 ENDF = "lake/serve/endf"
 SEARCH = "lake/serve/search/2026-11-08"
 WORK = "lake/_work/parse/serve-structure"
-RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II"]
+RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II",
+            "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]  # brief 43 added the last four
 TOL_KEV = "0.5"  # floor of the final-level match window for adopted gammas
 TMP = "/data/tmp"
 os.makedirs(TMP, exist_ok=True)
@@ -115,6 +116,9 @@ MACROS = {
     "PROJ": lambda x: m_case(x, PROJECTILE, "'z'"),
     "SUB_WORDS": lambda x: m_case(x, SUB_WORDS),
     "MODE_WORDS": m_mode_words,
+    # brief 43: an ENDF/B release reads ENDF/B-VIII.1; JEFF-3.3, JENDL-5, TENDL-2023 and CENDL-3.2 read as named
+    "LIB": lambda x: f"(CASE WHEN {x} LIKE 'B-%' THEN 'ENDF/' || {x} ELSE {x} END)",
+    "FAMILY": lambda x: f"(CASE WHEN {x} LIKE 'B-%' THEN 'ENDF/B' ELSE regexp_extract({x}, '^[A-Za-z]+') END)",
 }
 CONST = {
     "NUC": "nuc AS (SELECT nucid, max(z) AS z, max(a) AS a, max(" + m_sym("element") + ") AS sym FROM ensdf_datasets "
@@ -330,7 +334,7 @@ def mt():
          "bytes": os.path.getsize(f"{TMP}/mt_names.parquet"), "files": 1,
          "columns": [f"{f.name} {athena_type(f.type)}" for f in tab.schema],
          "source": "written by hand in scripts/parse/serve-structure/serve.py from ENDF-102 Appendix B"}
-    manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (nine ENDF/B releases)"]},
+    manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (ENDF/B, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2)"]},
              {"mt_names": r})
     print("mt_names", n)
 
@@ -343,7 +347,7 @@ def endf(releases, fresh):
                                       "ENDF/B materials, one row each", partition=rel, drop=drop, R=rel)
         t[f"xs/{rel}"] = build("endf_xs", "endf_serve_xs", f"{ENDF}/{rel}/xs",
                                "ENDF/B MF3 cross sections as point arrays, one row each", partition=rel, drop=drop, R=rel)
-    manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (nine ENDF/B releases)"]}, t)
+    manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (ENDF/B, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2)"]}, t)
 
 
 POINT_STEPS = 20000  # log-energy steps for thinning a POINT section; a thinned row keeps at most 2 per step
@@ -438,7 +442,7 @@ ORDER BY m.sublibrary, m.z, m.a, m.liso, agg.mt
                                     f"to the lowest and highest point in each of {POINT_STEPS} log-energy steps",
                       "thinned_sections": int(thin[1]), "points": int(thin[2]), "points_served": int(thin[3])}
     print("endf_serve_xs", rel, n, thin, flush=True)
-    manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (nine ENDF/B releases)"]}, t)
+    manifest(f"{ENDF}/manifest.json", {"set": "endf", "sources": ["nsr.endfb_* (ENDF/B, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2)"]}, t)
     point_files(rel)
 
 

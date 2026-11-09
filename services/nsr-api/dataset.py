@@ -26,7 +26,8 @@ NSRDB = f"{L}/nsr-database/2026-10-15/nsr"
 X4SRC = f"{L}/exfor/x4pro-2023-07-14/X4SRC/*.parquet"
 J4 = f"{L}/exfor/j4-2026-10-28"
 NSR_SERVE = f"{L}/serve/search/{os.environ.get('SEARCH_VERSION', '2026-11-08')}/nsr/*"
-ENDF_RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II"]
+ENDF_RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II",
+                 "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]  # brief 43 added the last four
 PUBLIC = os.environ.get("PUBLIC_BASE", "https://daw1qggkn69lv.cloudfront.net")
 HERE = os.path.dirname(os.path.abspath(__file__))
 # The small per-dataset tables, held in memory per container (about 60 MB of Parquet for both releases).

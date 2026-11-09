@@ -63,6 +63,15 @@ class Table:
         if self.n >= self.row_group:
             self.flush()
 
+    def extend(self, cols, n):
+        """Append n rows at once: {column: list of n values, or one value for every row}; missing columns are null."""
+        for k, col in zip(self.names, self.lists):
+            v = cols.get(k)
+            col.extend(v if isinstance(v, list) else [v] * n)
+        self.n += n
+        if self.n >= self.row_group:
+            self.flush()
+
     def _open(self):
         if self.writer:
             self.writer.close()
