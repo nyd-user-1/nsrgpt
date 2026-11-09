@@ -153,6 +153,10 @@ export function ChatPage() {
   }, [searchParams, autoSubmitted, routeSessionId, sendMessage, router]);
 
   const hasMessages = messages.length > 0;
+  // The orb stands under the newest answer (brief 50, components/agents/answer-orb.tsx).
+  const orbAt = [...messages].reverse().find((m) => m.role === "assistant")?.id;
+  const turns = messages.map((m) => ({ role: m.role, content: m.content }));
+  const askNext = (q: string) => sendMessage(q, seedRef.current ?? undefined);
 
   return (
     <div className="flex h-full min-h-0">
@@ -171,6 +175,7 @@ export function ChatPage() {
                   isStreaming={msg.isStreaming}
                   sources={msg.sources}
                   pdfUrl={msg.pdfUrl}
+                  orb={msg.id === orbAt ? { messages: turns, onAsk: askNext } : undefined}
                 />
                 </Suspense>
               ))}

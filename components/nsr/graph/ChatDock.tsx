@@ -5,6 +5,7 @@ import { Loader2, MessageSquare, Paperclip, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatInputContainer } from "@/components/chat/ChatInput";
 import { streamChat } from "@/lib/chat-stream";
+import { DEFAULT_MODEL_ID } from "@/lib/model-options";
 import { ENTITY_MIME, type DragEntity, describeEntity, readDragEntity } from "@/lib/nsr-drag-entity";
 
 const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMessage })));
@@ -37,9 +38,12 @@ export function ChatDock({ context, open, onOpenChange, attached, onAttach, laun
   const [dragOver, setDragOver] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // The model last picked, so a follow-up from the orb asks with it (brief 50).
+  const modelRef = useRef(DEFAULT_MODEL_ID);
 
   const send = async (text: string, modelId: string) => {
     if (!text || busy) return;
+    modelRef.current = modelId;
     const history = msgs;
     setMsgs((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
     setBusy(true);
@@ -137,7 +141,7 @@ export function ChatDock({ context, open, onOpenChange, attached, onAttach, laun
         )}
         <Suspense fallback={<Loader2 className="h-4 w-4 animate-spin text-[var(--paper-muted)]" />}>
           {msgs.map((m, i) => (
-            <ChatMessage key={i} role={m.role} content={m.content} isStreaming={busy && i === msgs.length - 1} />
+            <ChatMessage key={i} role={m.role} content={m.content} isStreaming={busy && i === msgs.length - 1} orb={i === msgs.length - 1 && m.role === "assistant" ? { messages: msgs, onAsk: (q) => send(q, modelRef.current) } : undefined} />
           ))}
         </Suspense>
       </div>

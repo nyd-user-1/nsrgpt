@@ -4,6 +4,7 @@ import { lazy, Suspense, useRef, useState } from "react";
 import { ChatInputContainer } from "@/components/chat/ChatInput";
 import { InsetBody } from "@/components/nsr/graph/InsetPanel";
 import { streamChat, type ChatTurn } from "@/lib/chat-stream";
+import { DEFAULT_MODEL_ID } from "@/lib/model-options";
 
 const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMessage })));
 
@@ -15,9 +16,11 @@ export function StepChat({ prompt, output, chat, onChat }: { prompt: string; out
   const [busy, setBusy] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const modelRef = useRef(DEFAULT_MODEL_ID);
 
   const send = async (text: string, modelId: string) => {
     if (!text || busy) return;
+    modelRef.current = modelId;
     const history: ChatTurn[] = [...chat, { role: "user", content: text }];
     const put = (content: string) => onChat([...history, { role: "assistant", content }]);
     put("");
@@ -49,13 +52,18 @@ export function StepChat({ prompt, output, chat, onChat }: { prompt: string; out
     }
   };
 
+  // The orb under the newest answer: the step's output until the conversation has one (brief 50).
+  const turns: ChatTurn[] = [{ role: "user", content: prompt || "(the step's prompt)" }, { role: "assistant", content: output }, ...chat];
+  const orbAt = chat.length && chat[chat.length - 1].role === "assistant" ? chat.length - 1 : chat.length ? null : -1;
+  const orb = { messages: turns, onAsk: (q: string) => send(q, modelRef.current) };
+
   return (
     <>
       <InsetBody className="px-3 pt-3">
         <Suspense fallback={<p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{output}</p>}>
-          <ChatMessage role="assistant" content={output} size="sm" />
+          <ChatMessage role="assistant" content={output} size="sm" orb={orbAt === -1 ? orb : undefined} />
           {chat.map((m, i) => (
-            <ChatMessage key={i} role={m.role} content={m.content} size="sm" isStreaming={busy && i === chat.length - 1 && m.role === "assistant"} />
+            <ChatMessage key={i} role={m.role} content={m.content} size="sm" isStreaming={busy && i === chat.length - 1 && m.role === "assistant"} orb={i === orbAt ? orb : undefined} />
           ))}
         </Suspense>
         <div ref={endRef} />

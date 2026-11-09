@@ -6,6 +6,8 @@ import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { ChatResponseFooter } from "./ChatResponseFooter";
+import { AnswerOrb } from "@/components/agents/answer-orb";
+import type { ChatTurn } from "@/lib/chat-stream";
 import { cn } from "@/lib/utils";
 
 // Inline citations: NSR key numbers in the response become live chips that
@@ -88,6 +90,8 @@ interface ChatMessageProps {
   pdfUrl?: string;
   /** A side panel's scale and width (brief 50); /chat's column by default. */
   size?: ChatMarkdownSize;
+  /** The newest answer wears the orb (brief 50): its conversation, for the follow-ups, and how a follow-up is sent. */
+  orb?: { messages: ChatTurn[]; onAsk: (q: string) => void };
 }
 
 export function ChatMessage({
@@ -97,6 +101,7 @@ export function ChatMessage({
   sources,
   pdfUrl,
   size = "base",
+  orb,
 }: ChatMessageProps) {
   if (role === "user") {
     if (size !== "base")
@@ -119,10 +124,11 @@ export function ChatMessage({
   return (
     <div className={size === "base" ? "mb-6 max-w-[720px]" : "mb-4"}>
       <ChatMarkdown content={content} size={size} />
-      {isStreaming && !content && (
+      {isStreaming && !content && !orb && (
         <span className="inline-block w-1.5 h-4 bg-foreground animate-pulse" />
       )}
       <ChatResponseFooter content={content} isStreaming={isStreaming} sources={sources} pdfUrl={pdfUrl} />
+      {orb && <AnswerOrb content={content} streaming={!!isStreaming} messages={orb.messages} onAsk={orb.onAsk} />}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { lazy, Suspense, useRef, useState } from "react";
 import { Loader2, Paperclip } from "lucide-react";
 import { ChatInputContainer } from "@/components/chat/ChatInput";
 import { streamChat } from "@/lib/chat-stream";
+import { DEFAULT_MODEL_ID } from "@/lib/model-options";
 import type { NsrRecord } from "@/lib/nsr-types";
 
 const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMessage })));
@@ -38,9 +39,12 @@ export function PanelChat({ record }: { record: NsrRecord }) {
   const [busy, setBusy] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // The model last picked, so a follow-up from the orb asks with it (brief 50).
+  const modelRef = useRef(DEFAULT_MODEL_ID);
 
   const send = async (text: string, modelId: string) => {
     if (!text || busy) return;
+    modelRef.current = modelId;
     const history = msgs;
     setMsgs((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
     setBusy(true);
@@ -76,7 +80,7 @@ export function PanelChat({ record }: { record: NsrRecord }) {
         )}
         <Suspense fallback={<Loader2 className="h-4 w-4 animate-spin text-[var(--paper-muted)]" />}>
           {msgs.map((m, i) => (
-            <ChatMessage key={i} role={m.role} content={m.content} isStreaming={busy && i === msgs.length - 1 && m.role === "assistant"} />
+            <ChatMessage key={i} role={m.role} content={m.content} isStreaming={busy && i === msgs.length - 1 && m.role === "assistant"} orb={i === msgs.length - 1 && m.role === "assistant" ? { messages: msgs, onAsk: (q) => send(q, modelRef.current) } : undefined} />
           ))}
         </Suspense>
       </div>
