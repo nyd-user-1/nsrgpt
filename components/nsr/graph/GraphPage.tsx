@@ -4,7 +4,7 @@ import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useS
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, Panel, Handle, Position,
-  useNodesState, useEdgesState, useReactFlow, addEdge,
+  useNodesState, useEdgesState, useReactFlow, useNodesInitialized, addEdge,
   SelectionMode, ConnectionMode, ConnectionLineType, PanOnScrollMode,
   type Node, type Edge, type NodeProps, type Connection,
 } from "@xyflow/react";
@@ -1464,8 +1464,20 @@ function GraphPageInner() {
     layoutModeRef.current = "none";
     setNodes(out.nodes);
     setEdges(out.edges);
-    if (fit) [60, 450].forEach((ms) => setTimeout(() => fitView({ padding: 0.12, duration: 300, maxZoom: 1 }), ms));
+    // The fit runs once the new nodes have measured (the effect on nodesInitialized below) and again late, after the
+    // page's transition and the panels' 500 ms have settled the canvas (Brendan, 2026-11-09: a reload must open fitted).
+    if (fit) {
+      pendingFit.current = true;
+      [450, 1000].forEach((ms) => setTimeout(() => fitView({ padding: 0.12, duration: 300, maxZoom: 1 }), ms));
+    }
   }, [setNodes, setEdges, fitView, snapshot]);
+  const nodesInitialized = useNodesInitialized();
+  const pendingFit = useRef(false);
+  useEffect(() => {
+    if (!nodesInitialized || !pendingFit.current) return;
+    pendingFit.current = false;
+    fitView({ padding: 0.12, duration: 300, maxZoom: 1 });
+  }, [nodesInitialized, nodes, fitView]);
 
   /** Opens a library diagram: its spec built from the data, its config the spec's defaults (the Config panel edits it). */
   const fitNext = useRef(false);
