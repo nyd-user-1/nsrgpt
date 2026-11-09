@@ -94,6 +94,8 @@ export function NuclideChart() {
             // Drawn in one pass: above ECharts' 3,000-item threshold a custom series renders progressively, and there
             // cells that return a group (a rect and its labels) vanished (brief 46, after ac72542).
             progressive: 0,
+            // Zoomed in, the cells stop at the plot's edge instead of drawing over the axis labels.
+            clip: true,
             renderItem: (params: { coordSys: { x: number; y: number; width: number; height: number } }, api: { value: (i: number) => number; coord: (v: number[]) => number[] }) => {
               const n = api.value(0), z = api.value(1), f = api.value(2)
               const [x0, y0] = api.coord([n - 0.5, z + 0.5])
