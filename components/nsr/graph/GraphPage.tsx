@@ -22,6 +22,9 @@ import { FileText } from "@/components/animate-ui/icons/file-text";
 import { FlaskConical } from "@/components/animate-ui/icons/flask-conical";
 import { Layers } from "@/components/animate-ui/icons/layers";
 import { Users } from "@/components/animate-ui/icons/users";
+import { Activity } from "@/components/animate-ui/icons/activity";
+import { Blocks } from "@/components/animate-ui/icons/blocks";
+import { ListOrdered } from "@/components/animate-ui/icons/list-ordered";
 import { KINDS, KIND_LABEL, SUBTYPE_LABEL, type DiagramKind } from "@/lib/diagram/spec";
 import { configFor, type DiagramConfig, type DiagramSpec } from "@/lib/diagram/spec";
 import { LIBRARY, loadSpec } from "@/lib/diagram/library";
@@ -38,7 +41,7 @@ import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
-import { SideBarMenuItem, SideBarSection } from "@/components/sidebar/SideBarMenuItem";
+import { SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
@@ -492,17 +495,15 @@ function RowMenu({ g, onPick, onAdd, onAsk }: {
 /** A diagram the rail lists: a spec from the library (lib/diagram/library, brief 28). */
 export type RailDiagram = { id: string; title: string; kind: DiagramKind; subtype: string; href: string; onSelect: () => void };
 
-/** One diagram kind in the rail (Brendan, 2026-11-08): its section header and the kind's diagrams, each row's kebab
- *  naming its subtype (the Type picker that stood under the header is gone). */
-function DiagramSection({ kind, diagrams }: { kind: DiagramKind; diagrams: RailDiagram[] }) {
-  return (
-    <SideBarSection label={KIND_LABEL[kind]} storageKey={`graph:section:${kind}`}>
-      {diagrams.map((d) => (
-        <SideBarMenuItem key={d.id} href={d.href} label={d.title} icon={Atom} on={false} group={KIND_LABEL[kind]} sub={SUBTYPE_LABEL[d.subtype] ?? d.subtype} onSelect={d.onSelect} tip={{ name: d.title, side: "left" }} />
-      ))}
-    </SideBarSection>
-  );
-}
+/** Each diagram kind's icon, on its row in the Diagrams section and on its diagrams' rows. */
+const KIND_ICON: Record<DiagramKind, SideBarIcon> = {
+  "decay-chain": Atom,
+  "reaction-network": Blocks,
+  "activation-burnup": FlaskConical,
+  "production-route": Boxes,
+  "fission-fan": Activity,
+  "level-scheme": ListOrdered,
+};
 
 function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, initialBrowse = null, railDiagrams }: {
   initialBrowse?: string | null;
@@ -643,6 +644,28 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
     );
   }
 
+  // A diagram kind, drilled into from the Diagrams section (Brendan, 2026-11-08): its diagrams, as Corpus > Papers drills.
+  const kind = browse?.startsWith("kind:") ? KINDS.find((k) => `kind:${k}` === browse) : undefined;
+  if (kind) {
+    const list = diagrams.filter((d) => d.kind === kind);
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <div className={INSET.header}>
+          <button onClick={() => setBrowse(null)} className="text-[var(--paper-muted)] hover:text-[var(--paper-text)]" title="back">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <span className={INSET.title}>{KIND_LABEL[kind]}</span>
+          <span className="ml-auto font-mono text-xs text-[var(--paper-muted)]">{list.length}</span>
+        </div>
+        <InsetBody className="pt-1.5">
+          {list.map((d) => (
+            <SideBarMenuItem key={d.id} href={d.href} label={d.title} icon={KIND_ICON[kind]} on={false} group={KIND_LABEL[kind]} sub={SUBTYPE_LABEL[d.subtype] ?? d.subtype} onSelect={d.onSelect} tip={{ name: d.title, side: "left" }} />
+          ))}
+        </InsetBody>
+      </div>
+    );
+  }
+
   if (browse) {
     const meta = CATALOG_TYPES.find((c) => c.key === browse)!;
     const items = (data?.top[browse] ?? []).filter(
@@ -718,10 +741,12 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
         <SideBarMenuItem key={key} href={href} label={label} icon={icon} on={false} group="Datasets" onSelect={() => navigate(href)} tip={{ name: label, side: "left" }} />
       ))}
       </SideBarSection>
-      {/* The six diagram kinds, each under its header with a Type row that narrows it to one subtype (brief 27). */}
-      {KINDS.map((kind) => (
-        <DiagramSection key={kind} kind={kind} diagrams={diagrams.filter((d) => d.kind === kind)} />
-      ))}
+      {/* One Diagrams section whose rows are the six kinds; a kind drills into its diagrams (Brendan, 2026-11-08). */}
+      <SideBarSection label="Diagrams" storageKey="graph:section:diagrams">
+        {KINDS.map((k) => (
+          <SideBarMenuItem key={k} href={`/graph?browse=kind:${k}`} label={KIND_LABEL[k]} icon={KIND_ICON[k]} on={false} group="Diagrams" onSelect={() => setBrowse(`kind:${k}`)} tip={{ name: KIND_LABEL[k], side: "left" }} />
+        ))}
+      </SideBarSection>
     </InsetBody>
   );
   })();
