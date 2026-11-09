@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { ChatInputContainer } from "@/components/chat/ChatInput";
 import { InsetBody } from "@/components/nsr/graph/InsetPanel";
 import { streamChat, type ChatTurn } from "@/lib/chat-stream";
@@ -17,10 +17,18 @@ export function StepChat({ prompt, output, chat, onChat }: { prompt: string; out
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef(DEFAULT_MODEL_ID);
+  // From a send until its answer settles, the panel follows the newest words, then shows the orb under them.
+  const follow = useRef(false);
+  useEffect(() => {
+    if (!follow.current) return;
+    endRef.current?.scrollIntoView({ block: "end" });
+    if (!busy) follow.current = false;
+  }, [chat, busy]);
 
   const send = async (text: string, modelId: string) => {
     if (!text || busy) return;
     modelRef.current = modelId;
+    follow.current = true;
     const history: ChatTurn[] = [...chat, { role: "user", content: text }];
     const put = (content: string) => onChat([...history, { role: "assistant", content }]);
     put("");
@@ -38,7 +46,6 @@ export function StepChat({ prompt, output, chat, onChat }: { prompt: string; out
         (cur) => {
           last = cur;
           put(cur);
-          endRef.current?.scrollIntoView({ block: "end" });
         },
         ctrl.signal,
       );
