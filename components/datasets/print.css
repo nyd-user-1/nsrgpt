@@ -1,0 +1,64 @@
+/* Print to PDF on a dataset record (brief 33): the record alone, ink on white, in either theme. Everything that is neither
+   the record nor one of its ancestors leaves the page (the header, the sidebar, the panels, the toasts); the ancestors
+   lose their scroll boxes, heights and frames, so the record runs on across pages instead of stopping at one screen.
+   The record's buttons and its folded raw text carry print:hidden. */
+@media print {
+  @page {
+    margin: 16mm 14mm;
+  }
+  html:has(.dataset-print),
+  body:has(.dataset-print) {
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+  body:has(.dataset-print) *:not(:has(.dataset-print)):not(.dataset-print):not(.dataset-print *) {
+    display: none !important;
+  }
+  body:has(.dataset-print) *:has(.dataset-print) {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: none !important;
+    transform: none !important;
+  }
+  .dataset-print {
+    --paper: #ffffff;
+    --paper-text: #16181d;
+    --paper-muted: rgba(22, 24, 29, 0.62);
+    --paper-faint: rgba(22, 24, 29, 0.45);
+    --paper-rule: #16181d;
+    --paper-rule-soft: rgba(22, 24, 29, 0.2);
+    --paper-quiet: transparent;
+    --paper-strong: #033882;
+    color: #16181d;
+    background: #ffffff;
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+  }
+  .dataset-print .overflow-auto,
+  .dataset-print .overflow-x-auto {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  .dataset-print thead {
+    display: table-header-group;
+  }
+  .dataset-print tr {
+    break-inside: avoid;
+  }
+  .dataset-print a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

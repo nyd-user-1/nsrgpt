@@ -38,7 +38,8 @@ export function AppLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const path = usePathname();
-  const title = headerTitle ?? HEADER_TITLES[path] ?? (path.startsWith("/docs/") ? HEADER_TITLES["/docs"] : undefined);
+  // a dataset record wears its source's name, as a /docs article wears Docs (brief 33)
+  const title = headerTitle ?? HEADER_TITLES[path] ?? (path.startsWith("/docs/") ? HEADER_TITLES["/docs"] : path.startsWith("/datasets/") ? HEADER_TITLES[path.split("/").slice(0, 3).join("/")] : undefined);
   const { headerMenu, closePage } = useShellPanel();
 
   return (

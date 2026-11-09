@@ -7,7 +7,7 @@
 export const ENTITY_MIME = "application/nsr-entity";
 
 export interface DragEntity {
-  type: "paper" | "author" | "nuclide" | "reaction" | "exfor" | "prompt" | "file" | "more";
+  type: "paper" | "author" | "nuclide" | "reaction" | "exfor" | "prompt" | "file" | "more" | "dataset" | "material" | "level";
   id: string;
   label: string;
   sub?: string;

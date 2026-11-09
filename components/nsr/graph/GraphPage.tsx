@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { copyPng, copyText, elementToPng } from "@/lib/canvas-png";
 import { canvasToSvg, downloadSvg, svgFileName } from "@/lib/canvas-svg";
 import { DEV_SIGNED_IN, DEV_USER } from "@/lib/dev-session";
+import { apiJson, apiText, fileBase, levelsOf, nuclideName, recordOfNode, recordView, SOURCES, type GraphRef, type RecordView } from "@/lib/datasets";
 import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
@@ -66,7 +67,9 @@ export interface CardRowGroup { items: { id: string; label: string }[]; total: n
 export interface CardRows { authors?: CardRowGroup; nuclides?: CardRowGroup; reactions?: CardRowGroup }
 
 export interface GNode {
-  type: "paper" | "author" | "nuclide" | "reaction" | "exfor" | "prompt" | "file" | "more";
+  /** dataset (an ENSDF or XUNDL dataset, id source:NUCID:DSID), material (an ENDF/B material, id release:MAT) and level
+   *  (one of a dataset's levels) come from the dataset pages' records (brief 33). */
+  type: "paper" | "author" | "nuclide" | "reaction" | "exfor" | "prompt" | "file" | "more" | "dataset" | "material" | "level";
   id: string;
   label: string;
   sub?: string;
@@ -95,6 +98,8 @@ export interface GNode {
   cos?: number;
   /** Paper cards: which row groups are unfolded (collapsed by default). */
   openGroups?: string[];
+  /** A card's own expanders where they depend on its record (a dataset's "+ nuclide", "+ references", "+ levels"). */
+  rels?: { rel: string; label: string }[];
 }
 /** Edge provenance. Absent = a record from the join tables. */
 type EdgeMeta = { kind?: "similar" | "wired" | "decay" | "reaction" | "sample"; cos?: number; mode?: string; pct?: number | null } & Record<string, unknown>;
@@ -117,7 +122,7 @@ const RELS: Partial<Record<GNode["type"], { rel: string; label: string }[]>> = {
 /* ── layout ───────────────────────────────────────────────────────────────── */
 
 const NODE_W: Record<GNode["type"], number> = {
-  paper: 250, author: 150, nuclide: 130, reaction: 140, exfor: 150, prompt: 260, file: 170, more: 130,
+  paper: 250, author: 150, nuclide: 130, reaction: 140, exfor: 150, prompt: 260, file: 170, more: 130, dataset: 250, material: 220, level: 150,
 };
 
 /** Card heights vary — papers grow with their entity rows. Dagre needs truth. */
@@ -334,7 +339,7 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
       >
         <GripVertical className="h-3 w-3" />
       </span>
-      <p className={`truncate pr-3 font-mono text-[11px] font-semibold ${d.type === "paper" ? "text-nuclear" : "text-[var(--paper-text)]"}`}>
+      <p className={`truncate pr-3 font-mono text-[11px] font-semibold ${d.type === "paper" || d.type === "dataset" || d.type === "material" ? "text-nuclear" : "text-[var(--paper-text)]"}`}>
         {d.type === "nuclide" ? <span dangerouslySetInnerHTML={{ __html: d.label.replace(/^(\d+)/, "<sup>$1</sup>") }} /> : d.label}
       </p>
       {d.title && (
@@ -386,7 +391,7 @@ function EntityNode({ data, selected }: NodeProps<Node<EntityData>>) {
         })}
 
       <div className="mt-1.5 flex flex-wrap gap-1">
-        {(RELS[d.type] ?? [])
+        {(d.rels ?? RELS[d.type] ?? [])
           .filter(({ rel }) => d.type !== "paper" || !d.rows || rel === "exfor")
           .map(({ rel, label }) => {
             const st = d.expanded[rel];
@@ -439,10 +444,16 @@ const CATALOG_TYPES = [
   { key: "reactions", label: "Reactions", icon: FlaskConical, type: "reaction" as const },
   { key: "exfor", label: "EXFOR", icon: Database, type: "exfor" as const },
 ];
+// The five parsed datasets' pages (brief 33), A to Z.
 const CATALOG_LINKS = [
-  { key: "ensdf", label: "ENSDF archive", icon: Layers, href: "/ensdf/archive" },
-  { key: "xundl", label: "XUNDL", icon: Boxes, href: "/xundl" },
+  { key: "endf", label: "ENDF/B", icon: Activity, href: "/datasets/endf" },
+  { key: "ensdf", label: "ENSDF", icon: Layers, href: "/datasets/ensdf" },
+  { key: "exfor", label: "EXFOR", icon: Database, href: "/datasets/exfor" },
+  { key: "nsr", label: "NSR", icon: BookOpen, href: "/datasets/nsr" },
+  { key: "xundl", label: "XUNDL", icon: Boxes, href: "/datasets/xundl" },
 ];
+/** How many of a record's links one press of its expander brings (brief 33). */
+const RECORD_PAGE: Record<string, number> = { references: 12, levels: 20, subentry: 12 };
 /** Saved canvases from Community. A saved state is a recipe iff it has prompt steps. */
 interface ViewRow { id: number; name: string; saved_by: string; created_at: string; state?: { nodes?: { type: string }[]; diagram?: string; center?: { label: string } } }
 const isRecipe = (v: ViewRow) => !!v.state?.nodes?.some((n) => n.type === "prompt");
@@ -820,6 +831,8 @@ function GraphPageInner() {
   const [edges, setEdges] = useEdgesState<Edge>([]);
   const store = useRef(new Map<string, GNode>());
   const expandState = useRef(new Map<string, { loaded: number; total: number }>());
+  // expand() is defined before the dataset cards' expanders; it reaches them through this ref (brief 33)
+  const expandRecordRef = useRef<(node: GNode, rel: string) => void>(() => {});
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   // The library diagram on the canvas and its config (brief 28); null when the canvas holds anything else.
   const [diagram, setDiagram] = useState<{ spec: DiagramSpec; config: DiagramConfig } | null>(null);
@@ -1071,6 +1084,7 @@ function GraphPageInner() {
   }, [syncNodes, setEdges]);
 
   const expand = useCallback(async (node: GNode, rel: string) => {
+    if (node.type === "dataset" || node.type === "material") { expandRecordRef.current(node, rel); return; }
     const k = `${keyOf(node)}|${rel}`;
     const st = expandState.current.get(k);
     const offset = st?.loaded ?? 0;
@@ -1335,6 +1349,76 @@ function GraphPageInner() {
     else if (RELS[g.type]?.length) setTimeout(() => expand(g, RELS[g.type]![0].rel), 0);
   }, [setEdges, setNodes, expand, fetchCards, snapshot]);
 
+  /* ── dataset and material cards (brief 33) ───────────────────────────────── */
+
+  // A dataset's or material's record from the API (services/nsr-api/README.md, "Dataset records"), by card key: the view
+  // the dataset page draws, the JSON (its levels), or what the API answered instead.
+  const records = useRef(new Map<string, { view?: RecordView; json?: unknown; error?: unknown }>());
+  const [, setDetailTick] = useState(0);
+  /** Graph's card for a node of a record's graph block. */
+  const cardOf = useCallback((r: GraphRef): GNode => {
+    const rec = recordOfNode(r.type, r.id);
+    if (rec) return { type: r.type as GNode["type"], id: r.id, label: `${SOURCES[rec.source].label} · ${rec.id.split(/[:/]/)[0]}`, title: r.label, sub: r.sub };
+    if (r.type === "nuclide") return { type: "nuclide", id: r.id, label: r.label && r.label !== r.id ? r.label : nuclideName(r.id), sub: r.sub };
+    if (r.type === "paper") return { type: "paper", id: r.id, label: r.id, title: r.label !== r.id ? r.label : undefined, sub: r.sub };
+    return { type: (["exfor", "author", "reaction"].includes(r.type) ? r.type : "exfor") as GNode["type"], id: r.id, label: r.label || r.id, sub: r.sub };
+  }, []);
+  /** A record's links by expander: nuclide, references, its parent and subentries, and its levels where it has them. */
+  const recordLinks = useCallback((key: string, rel: string): GNode[] => {
+    const rec = records.current.get(key);
+    if (!rec?.view) return [];
+    if (rel === "levels") {
+      const owner = store.current.get(key);
+      return levelsOf(rec.json).map((l): GNode => ({ type: "level", id: `${owner?.id ?? key}#${l.seq}`, label: l.energy ? `${l.energy} keV` : "level", sub: [l.jpi, l.halfLife].filter(Boolean).join(" · ") || undefined }));
+    }
+    const want = rel === "references" ? "reference" : rel;
+    return rec.view.graph.links.filter((x) => (x.rel ?? (x.type === "nuclide" ? "nuclide" : "reference")) === want).map(cardOf);
+  }, [cardOf]);
+  /** One page of a record's links onto the canvas, with the honest remainder as "+N more", as expand() does. */
+  const expandRecord = useCallback((node: GNode, rel: string) => {
+    const key = keyOf(node);
+    const all = recordLinks(key, rel);
+    const k = `${key}|${rel}`;
+    const offset = expandState.current.get(k)?.loaded ?? 0;
+    if (offset >= all.length) { if (all.length) toast.info("All loaded"); return; }
+    const page = all.slice(offset, offset + (RECORD_PAGE[rel] ?? all.length));
+    const loaded = offset + page.length;
+    expandState.current.set(k, { loaded, total: all.length });
+    addNodes(page, key);
+    const moreKey = `more:${k}`;
+    if (loaded < all.length) addNodes([{ type: "more", id: k, label: `+${(all.length - loaded).toLocaleString()} more`, parentKey: key, rel }], key);
+    else if (store.current.has(moreKey)) removeNode(moreKey);
+    fetchCards(page.filter((g) => g.type === "paper").map(keyOf));
+  }, [recordLinks, addNodes, removeNode, fetchCards]);
+  expandRecordRef.current = expandRecord;
+  /** A dataset or material centred with its nuclide, parent and first references already linked; the card's expanders
+   *  page the rest. A record that doesn't load leaves the card, and the Papers view says what the API answered. */
+  const centerRecord = useCallback(async (g: GNode) => {
+    const key = keyOf(g);
+    const rec = recordOfNode(g.type, g.id);
+    const first: GNode = { ...g, ...(rec ? { label: `${SOURCES[rec.source].label} · ${rec.id.split(/[:/]/)[0]}`, title: g.title ?? rec.id.split(/[:/]/).slice(1).join(" ") } : {}) };
+    center(first);
+    if (!rec) return;
+    try {
+      const json = await apiJson(SOURCES[rec.source].recordPath(rec.id, {}));
+      if (!store.current.has(key)) return;
+      const view = recordView(rec.source, rec.id, json);
+      records.current.set(key, { view, json });
+      const has = (rel: string) => recordLinks(key, rel).length > 0;
+      const rels = [
+        ...(has("nuclide") ? [{ rel: "nuclide", label: "nuclide" }] : []),
+        ...(has("references") ? [{ rel: "references", label: "references" }] : []),
+        ...(has("levels") ? [{ rel: "levels", label: "levels" }] : []),
+      ];
+      store.current.set(key, { ...first, title: view.graph.node.label || first.title, sub: view.graph.node.sub ?? view.sub, rels });
+      for (const rel of ["nuclide", "parent", "subentry", "references"]) if (has(rel)) expandRecord(store.current.get(key) as GNode, rel);
+      setEdges((prev) => { syncNodes(prev, false); return prev; });
+    } catch (error) {
+      records.current.set(key, { error });
+      setDetailTick((n) => n + 1);
+    }
+  }, [center, recordLinks, expandRecord, setEdges, syncNodes]);
+
   /** A diagram from the library (brief 28) drawn onto a fresh canvas: toFlow(spec, config) gives the parts' nodes and the
    *  typed arrows; the nuclides go into the canvas store, so clicking a disc or square opens its papers as any card does.
    *  `fit` refits the view (a new diagram, or a new grid). */
@@ -1465,7 +1549,7 @@ function GraphPageInner() {
   useEffect(() => {
     if (!selectedKey) { setDetail(null); return; }
     const g = store.current.get(selectedKey);
-    if (!g || g.type === "prompt" || g.type === "file" || g.type === "more") { setDetail(null); return; }
+    if (!g || g.type === "prompt" || g.type === "file" || g.type === "more" || g.type === "dataset" || g.type === "material" || g.type === "level") { setDetail(null); return; }
     setDetail(null);
     fetch(`/api/graph?op=node&type=${g.type}&id=${encodeURIComponent(g.id)}`)
       .then((r) => r.json())
@@ -1536,7 +1620,8 @@ function GraphPageInner() {
       const [type, ...rest] = c.split(":");
       const id = rest.join(":");
       bootSelection.current = true;
-      center({ type: type as GNode["type"], id, label: id });
+      if (type === "dataset" || type === "material") centerRecord({ type, id, label: id });
+      else center({ type: type as GNode["type"], id, label: id });
     } else {
       bootSelection.current = true;
       center({ type: "nuclide", id: "137CS", label: "137Cs", sub: "Z=55 N=82" });
@@ -1546,7 +1631,7 @@ function GraphPageInner() {
     if (panel) { setRightView(panel.key); setRail("right", false); }
     // the boot itself is not an undo step
     past.current = [];
-  }, [params, center, loadView, loadDiagram]);
+  }, [params, center, centerRecord, loadView, loadDiagram]);
 
   // A /graph?diagram=<id> link followed later (a row opened by its link, the browser's back) opens that diagram.
   const urlDiagram = params.get("diagram");
@@ -1705,7 +1790,12 @@ function GraphPageInner() {
             </h2>
           )}
         </RightViewHeader>
-        {type !== "prompt" && type !== "file" && type !== "more" && (
+        {(type === "dataset" || type === "material" || type === "level") && (
+          <InsetBody className="px-3 pt-3">
+            <RecordDetail node={sel} rec={records.current.get(selectedKey ?? "")} />
+          </InsetBody>
+        )}
+        {type !== "prompt" && type !== "file" && type !== "more" && type !== "dataset" && type !== "material" && type !== "level" && (
           <InsetBody className="px-3 pt-3">
             {!detail && <p className="text-xs text-[var(--paper-muted)]">Loading…</p>}
             {detail && !detail.error && (
@@ -2112,6 +2202,56 @@ function GraphPageInner() {
           </>
         }
       />
+    </div>
+  );
+}
+
+/** A dataset's or material's record in the Papers view (brief 33): its header, then Text, Markdown and PDF (the dataset
+ *  page's print, opened with ?print=1) and its page. A level shows its line. */
+function RecordDetail({ node, rec }: { node: GNode; rec?: { view?: RecordView; error?: unknown } }) {
+  const page = recordOfNode(node.type, node.id);
+  if (node.type === "level") return <p className="text-xs text-[var(--paper-text)]">{node.label}{node.sub ? ` · ${node.sub}` : ""}</p>;
+  if (!page) return null;
+  const def = SOURCES[page.source];
+  const save = async (path: string, ext: string, type: string) => {
+    try {
+      const body = ext === "txt" && rec?.view?.text ? rec.view.text : await apiText(path);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([body], { type }));
+      a.download = `${fileBase(page.source, page.id)}.${ext}`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (e) {
+      const err = e as { status?: number; path?: string; detail?: string; message?: string };
+      toast.error(err.path ? `The API answered ${err.status || "nothing"} for ${err.path}. ${err.detail}` : String(err.message));
+    }
+  };
+  const link = "text-xs text-nuclear hover:underline";
+  return (
+    <div className="space-y-3">
+      {rec?.view && <p className="text-sm font-medium leading-snug text-[var(--paper-text)]">{rec.view.title}</p>}
+      {rec?.view && (
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-xs">
+          {rec.view.header.slice(0, 10).map((h) => (
+            <Fragment key={h.label}>
+              <dt className="text-[var(--paper-muted)]">{h.label}</dt>
+              <dd className="min-w-0 break-words text-[var(--paper-text)]">{String(h.value ?? "")}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      )}
+      {!rec && <p className="text-xs text-[var(--paper-muted)]">Loading…</p>}
+      {rec?.error ? (
+        <p className="break-words font-mono text-[11px] text-[var(--paper-muted)]">
+          {(() => { const e = rec.error as { status?: number; path?: string; detail?: string; message?: string }; return e.path ? `The API answered ${e.status || "nothing"} for GET ${e.path}: ${e.detail}` : String(e.message); })()}
+        </p>
+      ) : null}
+      <p className="flex flex-wrap gap-x-3 gap-y-1">
+        <button type="button" className={link} onClick={() => save(def.textPath(page.id, {}), "txt", "text/plain;charset=utf-8")}>Text</button>
+        <button type="button" className={link} onClick={() => save(def.mdPath(page.id, {}), "md", "text/markdown;charset=utf-8")}>Markdown</button>
+        <a className={link} href={`${page.href}?print=1`} target="_blank" rel="noreferrer">PDF</a>
+        <a className={link} href={page.href}>{def.label} page</a>
+      </p>
     </div>
   );
 }

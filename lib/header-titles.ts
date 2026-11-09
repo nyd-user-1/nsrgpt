@@ -49,4 +49,10 @@ export const HEADER_TITLES: Record<string, string> = {
   "/factory": "Factory",
   "/glossary": "Glossary",
   "/schema": "Schema",
+  // The five parsed datasets, index and records (brief 33).
+  "/datasets/endf": "ENDF/B",
+  "/datasets/ensdf": "ENSDF",
+  "/datasets/exfor": "EXFOR",
+  "/datasets/nsr": "NSR",
+  "/datasets/xundl": "XUNDL",
 }
