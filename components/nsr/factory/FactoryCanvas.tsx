@@ -33,9 +33,9 @@ import { cn } from "@/lib/utils"
 // dragged is kept in this browser until Reset layout puts them back. A line touching a moved box reroutes between the
 // sides that face each other.
 
-const FLOW = "#94a3b8"
+const FLOW = "var(--paper-faint)"
 const LOOP = "#7c3aed"
-const PLANNED = "#cbd5e1"
+const PLANNED = "var(--paper-faint)"
 const LIGHT: Record<Kindof, string> = { flow: "#3b82f6", loop: "#c4b5fd", planned: "#94a3b8" }
 
 /** A kind's colour mixed into the paper, so the boxes read in every theme. */
@@ -133,9 +133,9 @@ function Door({ id, data: d }: NodeProps<Node<DoorData>>) {
     <div
       title={d.about}
       style={{ width: d.w, height: d.h, ...(d.planned ? {} : { background: "var(--paper-strong)" }) }}
-      className={cn("flex items-center justify-center gap-2 rounded-xl px-3", d.planned ? "border-2 border-dashed border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] bg-[var(--paper)]" : "shadow-e1", d.big && "ring-4 ring-[color-mix(in_oklab,var(--paper-strong)_25%,var(--paper))]", glow(useLit("nodes", id)))}
+      className={cn("flex items-center justify-center gap-2 rounded-xl px-3", d.planned ? "border-2 border-dashed border-[var(--paper-rule)] bg-[var(--paper)]" : "shadow-e1", d.big && "ring-4 ring-[color-mix(in_oklab,var(--paper-strong)_25%,var(--paper))]", glow(useLit("nodes", id)))}
     >
-      <span className={cn("font-semibold leading-tight", d.big ? "text-lg" : "text-[15px]", d.planned ? "text-[var(--paper-muted)]" : "text-white")}>{d.title}</span>
+      <span className={cn("font-semibold leading-tight", d.big ? "text-lg" : "text-[15px]", d.planned ? "text-[var(--paper-muted)]" : "text-[var(--paper)]")}>{d.title}</span>
       <Sides extra={d.extra} />
     </div>
   )
@@ -143,7 +143,7 @@ function Door({ id, data: d }: NodeProps<Node<DoorData>>) {
 
 function Stage({ id, data: d }: NodeProps<Node<StageData>>) {
   return (
-    <div title={d.about} style={{ width: d.w, height: d.h }} className={cn("flex flex-col rounded-2xl border-2 border-[var(--paper-strong)] bg-[var(--paper)] px-4 shadow-e1", d.tools ? "py-3.5" : "justify-center", glow(useLit("nodes", id)))}>
+    <div title={d.about} style={{ width: d.w, height: d.h }} className={cn("flex flex-col rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] px-4 shadow-e1", d.tools ? "py-3.5" : "justify-center", glow(useLit("nodes", id)))}>
       <p className={cn("text-lg font-semibold text-[var(--paper-strong)]", !d.tools && "text-center")}>{d.title}</p>
       {d.tools && (
         <ul className="mt-1.5 space-y-0.5">
@@ -155,7 +155,7 @@ function Stage({ id, data: d }: NodeProps<Node<StageData>>) {
         </ul>
       )}
       {d.foot?.length ? (
-        <div className="mt-auto border-t border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] pt-2">
+        <div className="mt-auto border-t border-[var(--paper-rule)] pt-2">
           {d.foot.map((f) => <p key={f} className="tabular text-[13px] font-semibold text-[var(--paper-strong)]">{f}</p>)}
         </div>
       ) : null}
@@ -167,7 +167,7 @@ function Stage({ id, data: d }: NodeProps<Node<StageData>>) {
 function Store({ id, data: d }: NodeProps<Node<StoreData>>) {
   const Icon = STORE_ICON[d.service]
   return (
-    <div title={d.about ? `${d.service}: ${d.about}` : d.service} style={{ width: d.w, height: d.h }} className={cn("flex flex-col justify-center rounded-[14px_14px_10px_10px] border shadow-e1 border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))] px-3", glow(useLit("nodes", id)))}>
+    <div title={d.about ? `${d.service}: ${d.about}` : d.service} style={{ width: d.w, height: d.h }} className={cn("flex flex-col justify-center rounded-[14px_14px_10px_10px] border shadow-e1 border-[var(--paper-rule)] bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))] px-3", glow(useLit("nodes", id)))}>
       <p className="flex items-center gap-1.5 font-mono text-[13px] font-semibold text-[var(--paper-text)]">
         <Icon className="size-3.5 shrink-0 text-[var(--paper-muted)]" />
         {d.title}
@@ -235,7 +235,7 @@ function Service({ id, data: d }: NodeProps<Node<ServiceData>>) {
 
 function Surface({ id, data: d }: NodeProps<Node<SurfaceData>>) {
   return (
-    <div title={d.about} style={{ width: d.w, height: d.h }} className={cn("flex flex-col overflow-hidden rounded-xl border border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] bg-[var(--paper)] shadow-e1", glow(useLit("nodes", id)))}>
+    <div title={d.about} style={{ width: d.w, height: d.h }} className={cn("flex flex-col overflow-hidden rounded-xl border border-[var(--paper-rule)] bg-[var(--paper)] shadow-e1", glow(useLit("nodes", id)))}>
       <div className="flex h-4 shrink-0 items-center gap-1 bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))] px-2">
         {[0, 1, 2].map((i) => <span key={i} className="size-1.5 rounded-full bg-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))]" />)}
         <span className="ml-1.5 font-mono text-[10px] text-[var(--paper-muted)]">{d.path}</span>
@@ -273,7 +273,7 @@ function EdgeChip({ d, big = false, className, style }: { d: FxData; big?: boole
       className={cn(
         "relative flex shrink-0 items-center justify-center rounded-full border bg-[var(--paper)] font-medium leading-none shadow-sm",
         Icon ? (big ? "size-8" : "size-7") : cn("w-max whitespace-nowrap px-2.5 text-xs", big ? "h-8" : "h-7"),
-        d.kind === "loop" ? "border-violet-300 text-violet-600" : d.kind === "planned" ? "border-dashed border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] italic text-[var(--paper-faint)]" : "border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] text-[var(--paper-strong)]",
+        d.kind === "loop" ? "border-violet-300 text-violet-600" : d.kind === "planned" ? "border-dashed border-[var(--paper-rule)] italic text-[var(--paper-faint)]" : "border-[var(--paper-rule)] text-[var(--paper-strong)]",
         className,
       )}
     >
@@ -437,17 +437,17 @@ function Architecture({ view, edges, focus, onFocus, onOpen }: { view: View; edg
         <div className="space-y-1">
           {kind("door", <span style={{ background: "var(--paper-strong)" }} className="h-6 w-14 rounded-lg" />, "Door", "A source the lake takes its data from.")}
           {kind("stage", <span className="h-6 w-14 rounded-xl border-2 border-[var(--paper-strong)] bg-[var(--paper)]" />, "Stage", "What the lake does to the data, with the tools that do it.")}
-          {kind("store", <span className="flex h-6 w-14 items-center justify-center rounded-[10px_10px_6px_6px] border border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))]"><HardDrive className="size-3.5 text-[var(--paper-muted)]" /></span>, "Store", "Where it is kept: the lake's S3 prefixes, the Glue catalog, the search index file.")}
+          {kind("store", <span className="flex h-6 w-14 items-center justify-center rounded-[10px_10px_6px_6px] border border-[var(--paper-rule)] bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))]"><HardDrive className="size-3.5 text-[var(--paper-muted)]" /></span>, "Store", "Where it is kept: the lake's S3 prefixes, the Glue catalog, the search index file.")}
           {kind("instrument", <span style={{ background: tint("var(--paper-strong)", 10), borderColor: tint("var(--paper-strong)", 35) }} className="flex h-6 w-14 items-center gap-1 rounded-full border pl-0.5"><MakeBadge make="neural" small /></span>, "Instrument", "A model or an index NSRgpt runs, numbered as listed here. Its circle names the kind: a network for a neural network, a magnifier for a ranking index, a table for data built from the lake. A dashed one is staged: in build, not yet serving.")}
           {kind("service", <span style={{ background: tint("#f59e0b", 14), borderColor: tint("#d97706", 55) }} className="flex h-6 w-14 items-center justify-center rounded-lg border"><Server className="size-3.5 text-[#d97706]" /></span>, "Service", "An AWS service the lake calls, named for its job; what it does shows on hover.")}
-          {kind("surface", <span className="h-6 w-14 overflow-hidden rounded-lg border border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] bg-[var(--paper)]"><span className="block h-1.5 bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))]" /></span>, "Surface", "A page the lake feeds.")}
+          {kind("surface", <span className="h-6 w-14 overflow-hidden rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)]"><span className="block h-1.5 bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))]" /></span>, "Surface", "A page the lake feeds.")}
         </div>
-        <div className="mt-3 space-y-1 border-t border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] pt-3">
+        <div className="mt-3 space-y-1 border-t border-[var(--paper-rule)] pt-3">
           {line("flow", "Flow", "The data, or what was built from it, moves on.")}
           {line("loop", "Loop", "A result comes back to re-enter the lake or feed what runs in it.")}
           {line("planned", "Planned", "Dashed: drawn where it will run; not yet wired.")}
         </div>
-        <div className="mt-3 space-y-1 border-t border-[color-mix(in_oklab,var(--paper-text)_24%,var(--paper))] pt-3">
+        <div className="mt-3 space-y-1 border-t border-[var(--paper-rule)] pt-3">
           {LOOPS.map(([n, name, def]) => (
             <Entry key={n} focus={{ on: "loop", n }} current={focus} onFocus={onFocus} sample={<LoopBadge n={n} />}>
               <span className="block text-[13px] font-semibold text-violet-600">{name}</span>
