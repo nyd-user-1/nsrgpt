@@ -89,6 +89,10 @@ set +x  # keep the key out of the log
 printf '[Service]\nEnvironment=NSR_API_WRITE_KEY=%s\n' "$(aws ssm get-parameter --region us-east-2 --name /nsrgpt/devbox/nsr-api-write-key --with-decryption --query Parameter.Value --output text)" > /etc/systemd/system/nsrgpt-dev.service.d/store.conf
 set -x
 chmod 600 /etc/systemd/system/nsrgpt-dev.service.d/store.conf
+# NSRgpt's own Cognito pool and app client (brief 45), read the same way into their own drop-in.
+ssm() { aws ssm get-parameter --region us-east-2 --name "/nsrgpt/devbox/$1" --with-decryption --query Parameter.Value --output text; }
+printf '[Service]\nEnvironment=NYSGPT_COGNITO_POOL_ID=%s\nEnvironment=NYSGPT_COGNITO_CLIENT_ID=%s\n' "$(ssm cognito-pool-id)" "$(ssm cognito-client-id)" > /etc/systemd/system/nsrgpt-dev.service.d/cognito.conf
+chmod 600 /etc/systemd/system/nsrgpt-dev.service.d/cognito.conf
 systemctl daemon-reload
 systemctl enable --now nsrgpt-dev nsrgpt-pull
 echo "nsr-devbox ready"
