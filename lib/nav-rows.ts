@@ -62,3 +62,55 @@ export function arrange(all: NavEntry[], rows: Record<string, NavRow>, showHidde
     },
   }
 }
+
+const ORDER = "nsrgpt-plate-order"
+
+const readOrder = (): string[] => {
+  try {
+    const v = JSON.parse(localStorage.getItem(ORDER) ?? "[]")
+    return Array.isArray(v) ? (v as string[]) : []
+  } catch {
+    return []
+  }
+}
+
+/** The contents plate's dragged order (brief 46), kept in this browser beside the marks: every box's address as last
+ *  arranged. A box the saved order doesn't hold (one added since) takes its place after its neighbour in `base`. */
+export function usePlateOrder(base: string[]) {
+  const [saved, setSaved] = React.useState<string[]>([])
+  React.useEffect(() => {
+    const on = () => setSaved(readOrder())
+    on()
+    window.addEventListener(EVENT, on)
+    window.addEventListener("storage", on)
+    return () => {
+      window.removeEventListener(EVENT, on)
+      window.removeEventListener("storage", on)
+    }
+  }, [])
+  const order = React.useMemo(() => {
+    const known = new Set(base)
+    const out = saved.filter((h) => known.has(h))
+    const have = new Set(out)
+    base.forEach((h, i) => {
+      if (have.has(h)) return
+      out.splice(i === 0 ? 0 : out.indexOf(base[i - 1]) + 1, 0, h)
+      have.add(h)
+    })
+    return out
+  }, [base, saved])
+  /** `from` takes the place where `to` sits: after it moving forward, before it moving back. */
+  const move = React.useCallback(
+    (from: string, to: string) => {
+      if (from === to) return
+      const next = order.filter((h) => h !== from)
+      next.splice(next.indexOf(to) + (order.indexOf(from) < order.indexOf(to) ? 1 : 0), 0, from)
+      try {
+        localStorage.setItem(ORDER, JSON.stringify(next))
+      } catch {}
+      window.dispatchEvent(new Event(EVENT))
+    },
+    [order],
+  )
+  return { order, move }
+}

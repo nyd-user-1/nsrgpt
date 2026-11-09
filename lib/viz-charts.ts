@@ -53,6 +53,26 @@ export const PLATE_TABLES: (VizChart & { name: string })[] = [
   { href: "/viz/data/nuclides", name: "Nuclides Table", title: "Table", body: "One row per ground state: Z, N, A, Jπ, half-life, decay modes, mass excess, binding per nucleon and abundance, with the ENSDF and XUNDL datasets, NSR papers and EXFOR entries held for each. Sorts on every column; a row opens its nuclide on the chart.", lines: ["Rows: Ground States", "Columns: Properties and Counts", "Source: IAEA Live Chart, ENSDF, XUNDL, NSR, EXFOR"] },
 ]
 
+/** The sidebar's other pages, each with a box on the contents plate (brief 46): its name and what it is for. Not charts,
+ *  like the tables. The five dataset pages have no sidebar row of their own. */
+export type PlatePage = { href: string; name: string; body: string }
+export const PLATE_PAGES: PlatePage[] = [
+  { href: "/chat", name: "Chat", body: "Ask about nuclear data and the papers behind it." },
+  { href: "/data-dictionary", name: "Data dictionary", body: "Every field the API returns or a page shows, by dataset." },
+  { href: "/docs", name: "Docs", body: "How to use NSRgpt: where to start, the topics and the video guides." },
+  { href: "/factory", name: "Factory", body: "How the data moves from its sources through the lake to the pages." },
+  { href: "/glossary", name: "Glossary", body: "Every nuclear data term the app uses, defined." },
+  { href: "/graph", name: "Graph", body: "Diagrams of the decay series, process chains and production routes, each one editable." },
+  { href: "/pipeline", name: "Pipeline", body: "Where the data comes from, where it is kept, and what reads it." },
+  { href: "/schema", name: "Schema", body: "The tables the API reads, the tables they are built from, and the keys between them." },
+  { href: "/search", name: "Search", body: "Find NSR papers by meaning or by keyword." },
+  { href: "/datasets/endf", name: "ENDF/B", body: "Evaluated nuclear data files, every ENDF/B release, by material." },
+  { href: "/datasets/ensdf", name: "ENSDF", body: "Evaluated nuclear structure datasets, by nuclide or mass." },
+  { href: "/datasets/exfor", name: "EXFOR", body: "Experimental nuclear reaction data, by target and reaction." },
+  { href: "/datasets/nsr", name: "NSR", body: "Nuclear Science References, by key or author." },
+  { href: "/datasets/xundl", name: "XUNDL", body: "Unevaluated nuclear structure datasets, by nuclide or mass." },
+]
+
 /** The chart before and after `path` in box order, wrapping at the ends; null off the list. */
 export function vizNeighbours(path: string | null): { prev: VizChart; next: VizChart } | null {
   const i = VIZ_CHARTS.findIndex((c) => c.href === path)

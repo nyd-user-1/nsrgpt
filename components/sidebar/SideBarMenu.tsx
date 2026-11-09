@@ -4,18 +4,10 @@ import * as React from "react"
 import { usePathname } from "next/navigation"
 
 import { Activity } from "@/components/animate-ui/icons/activity"
-import { Blocks } from "@/components/animate-ui/icons/blocks"
-import { BookOpen } from "@/components/animate-ui/icons/book-open"
-import { Boxes } from "@/components/animate-ui/icons/boxes"
 import { Database } from "@/components/animate-ui/icons/database"
-import { Layers } from "@/components/animate-ui/icons/layers"
-import { LayoutDashboard } from "@/components/animate-ui/icons/layout-dashboard"
-import { MessagesSquare } from "@/components/animate-ui/icons/messages-square"
-import { NotebookPen } from "@/components/animate-ui/icons/notebook-pen"
-import { Radar } from "@/components/animate-ui/icons/radar"
-import { ScrollText } from "@/components/animate-ui/icons/scroll-text"
 import { SearchBar } from "@/components/search/SearchBar"
 import { SidebarChats } from "@/components/sidebar/SidebarChats"
+import { PAGE_ICONS } from "@/components/sidebar/page-icons"
 import { SideBarMenuFoot, SideBarMenuGroup, SideBarMenuItem, SideBarMenuPinned } from "@/components/sidebar/SideBarMenuItem"
 import { HEADER_TITLES } from "@/lib/header-titles"
 import { VIZ_CHARTS } from "@/lib/viz-charts"
@@ -56,17 +48,17 @@ export function SideBarMenu() {
       </div>
       <nav className="-mx-1 flex max-h-[55%] shrink-0 flex-col gap-0.5 overflow-y-auto px-1">
         <SideBarMenuPinned pinned={pinned} isOn={isOn} />
-        {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={MessagesSquare} on={path === "/chat"} />}
+        {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={PAGE_ICONS["/chat"]} on={path === "/chat"} />}
         <SideBarMenuGroup label="Charts" icon={Activity} items={CHARTS} isOn={isOn} place={place} />
         <SideBarMenuGroup label="Data" icon={Database} items={TABLES} isOn={isOn} place={place} />
-        {place("/data-dictionary") && <SideBarMenuItem href="/data-dictionary" label="Data dictionary" icon={ScrollText} on={path === "/data-dictionary"} />}
-        {place("/docs") && <SideBarMenuItem href="/docs" label="Docs" icon={BookOpen} on={path === "/docs" || path.startsWith("/docs/")} />}
-        {place("/factory") && <SideBarMenuItem href="/factory" label="Factory" icon={Boxes} on={path === "/factory"} />}
-        {place("/glossary") && <SideBarMenuItem href="/glossary" label="Glossary" icon={NotebookPen} on={path === "/glossary"} />}
-        {place("/graph") && <SideBarMenuItem href="/graph" label="Graph" icon={Blocks} on={path === "/graph"} />}
-        {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={Layers} on={path === "/pipeline"} />}
-        {place("/schema") && <SideBarMenuItem href="/schema" label="Schema" icon={LayoutDashboard} on={path === "/schema"} />}
-        {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={Radar} on={path === "/search"} />}
+        {place("/data-dictionary") && <SideBarMenuItem href="/data-dictionary" label="Data dictionary" icon={PAGE_ICONS["/data-dictionary"]} on={path === "/data-dictionary"} />}
+        {place("/docs") && <SideBarMenuItem href="/docs" label="Docs" icon={PAGE_ICONS["/docs"]} on={path === "/docs" || path.startsWith("/docs/")} />}
+        {place("/factory") && <SideBarMenuItem href="/factory" label="Factory" icon={PAGE_ICONS["/factory"]} on={path === "/factory"} />}
+        {place("/glossary") && <SideBarMenuItem href="/glossary" label="Glossary" icon={PAGE_ICONS["/glossary"]} on={path === "/glossary"} />}
+        {place("/graph") && <SideBarMenuItem href="/graph" label="Graph" icon={PAGE_ICONS["/graph"]} on={path === "/graph"} />}
+        {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={PAGE_ICONS["/pipeline"]} on={path === "/pipeline"} />}
+        {place("/schema") && <SideBarMenuItem href="/schema" label="Schema" icon={PAGE_ICONS["/schema"]} on={path === "/schema"} />}
+        {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={PAGE_ICONS["/search"]} on={path === "/search"} />}
         <SideBarMenuFoot archived={archived} hiddenCount={hiddenCount} showHidden={showHidden} onShowHidden={setShowHidden} isOn={isOn} />
       </nav>
       <div className="mt-3 flex min-h-0 flex-1 flex-col border-t border-[var(--paper-rule-soft)] pt-3">

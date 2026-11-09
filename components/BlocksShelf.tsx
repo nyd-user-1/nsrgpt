@@ -7,8 +7,7 @@ import { X } from 'lucide-react'
 import { BlockCard } from '@/components/ui/nova/block-card'
 import { useShelf, type ShelfItem } from '@/lib/home-blocks'
 import { cn } from '@/lib/utils'
-import { PLATE_TABLES, VIZ_CHARTS } from '@/lib/viz-charts'
-import { HEADER_TITLES } from '@/lib/header-titles'
+import { PLATE_BOXES } from '@/lib/plate'
 import { setShelfDrag } from '@/lib/shelf-drag'
 import { openDrawnNote } from '@/lib/drawn-notes'
 
@@ -21,9 +20,9 @@ import { openDrawnNote } from '@/lib/drawn-notes'
 
 const MIN_TILE = 104
 const GAP = 10
-// A plate box's name and chart type by its anchor (page.tsx's VizBoxMenu anchor), so a block shows the box's own name
-// whatever it stored (brief 40: older blocks read "Home" or the chart type).
-const PLATE_NAMES = new Map([...VIZ_CHARTS, ...PLATE_TABLES].map((c) => [c.href.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase(), { name: c.name ?? HEADER_TITLES[c.href] ?? c.title, type: c.title }]))
+// A plate box's name and chart type by its anchor (lib/plate.ts), so a block shows the box's own name whatever it stored
+// (brief 40: older blocks read "Home" or the chart type). A page's box (brief 46) reads Page.
+const PLATE_NAMES = new Map(PLATE_BOXES.map((b) => [b.anchor, { name: b.name, type: b.type ?? 'Page' }]))
 const PLACE = (path: string) => (path === '/' ? 'Home' : path.slice(1).split('/')[0].replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase()))
 
 export function BlocksShelf() {

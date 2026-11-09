@@ -42,6 +42,7 @@ import { ChatDock } from "@/components/nsr/graph/ChatDock";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
 import { SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
+import { PAGE_ICONS } from "@/components/sidebar/page-icons";
 import { LeftInsetPanel } from "@/components/nsr/graph/LeftInsetPanel";
 import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@/components/nsr/graph/RightInsetPanel";
 import { cn } from "@/lib/utils";
@@ -440,12 +441,12 @@ const CATALOG_TYPES = [
 ];
 // The five parsed datasets' pages (brief 33), A to Z.
 const CATALOG_LINKS = [
-  { key: "endf", label: "ENDF/B", icon: Activity, href: "/datasets/endf" },
-  { key: "ensdf", label: "ENSDF", icon: Layers, href: "/datasets/ensdf" },
-  { key: "exfor", label: "EXFOR", icon: Database, href: "/datasets/exfor" },
-  { key: "nsr", label: "NSR", icon: BookOpen, href: "/datasets/nsr" },
-  { key: "xundl", label: "XUNDL", icon: Boxes, href: "/datasets/xundl" },
-];
+  { key: "endf", label: "ENDF/B", href: "/datasets/endf" },
+  { key: "ensdf", label: "ENSDF", href: "/datasets/ensdf" },
+  { key: "exfor", label: "EXFOR", href: "/datasets/exfor" },
+  { key: "nsr", label: "NSR", href: "/datasets/nsr" },
+  { key: "xundl", label: "XUNDL", href: "/datasets/xundl" },
+].map((l) => ({ ...l, icon: PAGE_ICONS[l.href] }));
 /** How many of a record's links one press of its expander brings (brief 33). */
 const RECORD_PAGE: Record<string, number> = { references: 12, levels: 20, subentry: 12 };
 /** Saved canvases from Community. A saved state is a recipe iff it has prompt steps. */
