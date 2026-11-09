@@ -177,9 +177,10 @@ export function useChat() {
               : m
           );
 
-          // Persist completed messages
+          // Persist completed messages, after this update: the save is a server action, which updates the Router, and an
+          // updater runs while ChatPage renders (brief 50: "Cannot update Router while rendering ChatPage").
           if (sessionId) {
-            persistence.updateMessages(sessionId, toPersistedMessages(updated));
+            setTimeout(() => persistence.updateMessages(sessionId, toPersistedMessages(updated)), 0);
           }
 
           return updated;
