@@ -91,9 +91,10 @@ export function EvaluationIndex({ data, onShowChain }: { data: StructureIndex; o
         <span className="font-medium text-[var(--paper-text)]">cut-off date</span>, the date up to which the literature was
         surveyed. Measurements published after that date are not part of the evaluation; they appear instead as XUNDL
         compilations, counted in the last column. The dot runs from{' '}
-        <span className="inline-block h-2 w-2 rounded-sm align-middle" style={{ background: ageColor(0, dark) }} /> two years or
-        less to <span className="inline-block h-2 w-2 rounded-sm align-middle" style={{ background: ageColor(11, dark) }} /> eleven
-        years or more since cutoff. Nuclides evaluated on their own since their chain evaluation are listed underneath it.
+        <span className="inline-block h-2 w-2 rounded-sm align-middle" style={{ background: ageColor(0, dark) }} /> under a year
+        through <span className="inline-block h-2 w-2 rounded-sm align-middle" style={{ background: ageColor(5, dark) }} /> five to
+        seven years to <span className="inline-block h-2 w-2 rounded-sm align-middle" style={{ background: ageColor(11, dark) }} />{' '}
+        ten years or more since cutoff. Nuclides evaluated on their own since their chain evaluation are listed underneath it.
         Citations I hold in the corpus link to the paper.
       </p>
 
@@ -140,7 +141,7 @@ export function EvaluationIndex({ data, onShowChain }: { data: StructureIndex; o
                   <td className="px-3 py-2 text-right tabular-nums" style={MONO}>{m.xundl_sets}</td>
                   <td className="w-12 px-1 py-2 text-right" onClick={(e) => e.stopPropagation()}>
                     <KebabMenu label={`A = ${m.a} options`} width="w-56" trigger={<EllipsisVertical className="size-4" />} triggerClassName={ROW_BTN}>
-                      <MenuRow icon={<MapIcon />} label="Show mass chain on the chart" onClick={() => onShowChain(m.a)} />
+                      <MenuRow icon={<MapIcon />} label="Show on the chart" onClick={() => onShowChain(m.a)} />
                       {chainHref(m.a) && <MenuRow icon={<Table2 />} label="Open mass chain" onClick={() => router.push(chainHref(m.a)!)} />}
                       {m.key && <MenuRow icon={<Network />} label="Open citation in graph" onClick={() => router.push(`/graph?center=paper:${m.key}`)} />}
                       {m.citation && <MenuRow icon={<Copy />} label="Copy citation" onClick={() => copy(m.citation!)} />}

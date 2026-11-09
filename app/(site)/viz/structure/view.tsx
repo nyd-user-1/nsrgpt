@@ -6,7 +6,7 @@ import { ChevronDown, Maximize2, Minimize2, X } from 'lucide-react'
 import { LegendBar, Pills } from '@/components/viz/Pills'
 import { VizControls } from '@/components/viz/VizControls'
 import { usePaperTheme } from '@/lib/use-paper-theme'
-import { AGE_LABELS, ELEMENTS, NONE, RAMP6, XUNDL_LABELS, datasetsHref, parseMassQuery, useStructureIndex } from '@/lib/structure'
+import { AGE_LABELS, DIVERGE7, ELEMENTS, XUNDL_LABELS, datasetsHref, parseMassQuery, useStructureIndex } from '@/lib/structure'
 import { ChartOfNuclides, type ChartMode } from './chart'
 import { EvaluationIndex } from './index-table'
 
@@ -100,12 +100,11 @@ export function StructureView() {
     return [...seen.entries()].sort((a, b) => a[0] - b[0]).map(([z, el]): ComboOpt => ({ value: el, search: `${el} ${z}`.toLowerCase(), label: el }))
   }, [allNuclides])
 
-  const ramp = RAMP6[dark ? 'dark' : 'light']
-  const none = NONE[dark ? 'dark' : 'light']
-  const legend =
-    mode === 'age'
-      ? { title: 'Years since cutoff', segments: ramp.map((color, i) => ({ color, label: AGE_LABELS[i] })) }
-      : { title: 'XUNDL sets since cutoff', segments: ramp.map((color, i) => ({ color, label: XUNDL_LABELS[i] })), none: { color: none, label: 'none' } }
+  const ramp = DIVERGE7[dark ? 'dark' : 'light']
+  const legend = {
+    title: mode === 'age' ? 'Years since cutoff' : 'XUNDL sets since cutoff',
+    segments: ramp.map((color, i) => ({ color, label: (mode === 'age' ? AGE_LABELS : XUNDL_LABELS)[i] })),
+  }
 
   return (
     <div ref={root} className="flex min-h-0 w-full flex-1 flex-col gap-2">
@@ -136,7 +135,7 @@ export function StructureView() {
               <ChartCombobox placeholder="Symbol" className="hidden w-[100px] sm:block" options={symbolCombo} applied={cq} appliedMatches={(v) => /^[A-Za-z]{1,2}$/.test(v)} onApply={setCq} />
             </div>
             <div className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-[var(--paper)]/85 p-1.5 backdrop-blur">
-              <LegendBar title={legend.title} segments={legend.segments} none={legend.none} />
+              <LegendBar title={legend.title} segments={legend.segments} />
             </div>
           </div>
         ) : null}

@@ -3,9 +3,13 @@
 // the mass and nuclide parsers. The data is structure-index.json on the chart CDN, built from the lake by
 // scripts/viz/structure-index.mjs and read through lib/use-data.ts.
 //
-// The colour codes keep the old scales (twelve year buckets, six XUNDL buckets) but not the old green-to-red ramps:
-// each is one hue, light to dark, validated with the dataviz skill's ordinal checks in both themes. One hue can carry
-// about seven visible steps, so the age code shows its twelve buckets two years to a step.
+// The colour codes keep the old scales (twelve year buckets, the XUNDL buckets of five) and their direction, fresh to
+// stale, which the old green-to-red ramps carried. Each is a seven-step diverging ramp (lead ruling, 2026-11-09): the
+// palette's blue at the fresh end, a validated red at the stale end, a neutral grey between, three steps to an arm. It
+// passes the dataviz validator on both papers: each arm the ordinal checks, the whole ramp the colour-blind and
+// normal-vision separation of neighbours. Seven steps hold the twelve year buckets as under 1, 1–3, 3–5, 5–7, 7–9, 9–10 and 10 or more years.
+// The other single-measure colourings (half-life, papers, EXFOR entries on /viz/chart) have no good or bad end, so they
+// take the one-hue ramps.
 
 import { fetchData, useData } from '@/lib/use-data'
 export { ELEMENTS } from '@/lib/nsr-structure'
@@ -65,23 +69,30 @@ export const RAMP7 = {
   light: ['#86b6ef', '#719fd8', '#5c89c1', '#4874ab', '#345f95', '#214a80', '#0d366b'],
   dark: ['#184f95', '#3867a6', '#557fb8', '#7297c9', '#90b0d9', '#aec9ea', '#cde2fb'],
 }
-/** No value: a neutral the ramps don't reach, receding toward the paper. */
+/** Fresh to stale: blue arm, grey midpoint, red arm (light: midpoint L 0.89 so cells stay visible on white; dark:
+ *  midpoint L 0.27 on the dark paper). */
+export const DIVERGE7 = {
+  light: ['#004799', '#4378be', '#86aadb', '#dcdbd7', '#de928b', '#be534e', '#940015'],
+  dark: ['#79b8ff', '#5384bd', '#355477', '#272624', '#793a38', '#bf5a56', '#ff807b'],
+}
+/** No value: a neutral the one-hue ramps don't reach, receding toward the paper. */
 export const NONE = { light: '#d6d3cc', dark: '#3a3630' }
 
 const theme = (dark: boolean) => (dark ? 'dark' : 'light')
 
 /** Years since cutoff: bucket 0–11 from the build date (≤1y … ≥11y), 12 = no cutoff. */
 export const ageLabel = (b: number) => (b >= 12 ? 'n/a' : b >= 11 ? '≥11y' : b <= 0 ? '≤1y' : `${b + 1}y`)
-/** The age code's six steps, two buckets to a step: ≤2, 3–4, 5–6, 7–8, 9–10, ≥11 years. */
-export const AGE_LABELS = ['≤2', '3–4', '5–6', '7–8', '9–10', '≥11']
-export const ageStep = (b: number) => Math.min(5, Math.floor(Math.max(0, b) / 2))
-export const ageColor = (b: number, dark: boolean) => (b >= 12 ? NONE[theme(dark)] : RAMP6[theme(dark)][ageStep(b)])
+/** The age code's seven steps, in years elapsed since the cutoff (bucket b holds b to b + 1 years): under 1, 1–3, 3–5,
+ *  5–7, 7–9, 9–10, 10 and over. */
+export const AGE_LABELS = ['<1', '1–3', '3–5', '5–7', '7–9', '9–10', '10+']
+const AGE_STEP = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 6]
+export const ageStep = (b: number) => AGE_STEP[Math.min(11, Math.max(0, b))]
+export const ageColor = (b: number, dark: boolean) => (b >= 12 ? NONE[theme(dark)] : DIVERGE7[theme(dark)][ageStep(b)])
 
-/** XUNDL sets compiled since the cutoff: 1–5, 6–10, 11–15, 16–20, 21–25, 26 and up; none outside the ramp. */
-export const XUNDL_LABELS = ['1–5', '6–10', '11–15', '16–20', '21–25', '26+']
-export const xundlBucket = (count: number) =>
-  count <= 5 ? 0 : count <= 10 ? 1 : count <= 15 ? 2 : count <= 20 ? 3 : count <= 25 ? 4 : 5
-export const xundlColor = (count: number, dark: boolean) => (count <= 0 ? NONE[theme(dark)] : RAMP6[theme(dark)][xundlBucket(count)])
+/** XUNDL sets compiled since the cutoff, seven steps: none (the fresh end), 1–5, 6–10, 11–15, 16–20, 21–25, 26 and up. */
+export const XUNDL_LABELS = ['none', '1–5', '6–10', '11–15', '16–20', '21–25', '26+']
+export const xundlStep = (count: number) => (count <= 0 ? 0 : Math.min(6, Math.ceil(count / 5)))
+export const xundlColor = (count: number, dark: boolean) => DIVERGE7[theme(dark)][xundlStep(count)]
 
 /** Black or white for a label on a ramp segment, from the segment's own luminance. */
 export function inkOn(hex: string) {
@@ -109,12 +120,12 @@ export function parseMassQuery(q: string): number | null {
 /** The NUCID ENSDF and the graph key nuclides by: "137CS"; the neutron "1NN". */
 export const nucidOf = (a: number, el: string) => (el === 'n' ? '1NN' : `${a}${el.toUpperCase()}`)
 
-/** A nuclide's datasets: brief 33's ENSDF index, which takes a nuclide or a mass as ?q= (60Ni, 60). Until that route
- *  is on main, the graph centred on the nuclide. */
-export const DATASETS_ROUTE = false
+/** A nuclide's datasets: brief 33's ENSDF index, which takes a nuclide or a mass as ?q= (60Ni, 60). Set false to send
+ *  them to the graph centred on the nuclide instead. */
+export const DATASETS_ROUTE = true
 export const datasetsHref = (a: number, el: string) =>
   DATASETS_ROUTE ? `/datasets/ensdf?q=${a}${el === 'n' ? 'NN' : el}` : `/graph?center=nuclide:${nucidOf(a, el)}`
-/** A mass chain's datasets, on the same index; null until the route is on main. */
+/** A mass chain's datasets, on the same index; null when DATASETS_ROUTE is off. */
 export const chainHref = (a: number) => (DATASETS_ROUTE ? `/datasets/ensdf?q=${a}` : null)
 /** A nuclide's papers: NSR search for its name. */
 export const papersHref = (a: number, el: string) => `/search?q=${encodeURIComponent(el === 'n' ? 'neutron' : `${a}${el}`)}`
