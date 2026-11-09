@@ -48,3 +48,22 @@ for mod, path, q in [(D, "/dataset/ensdf", {"nucid": "60CO"}), (D, "/dataset/xun
         print("    first", json.dumps(b["rows"][:2], default=str)[:400])
     if status == 200 and path.startswith(("/exfor/entry", "/endf/material")):
         print("    ", json.dumps({k: v for k, v in b.items() if k not in ("x4",)}, default=str)[:700])
+
+# The other records' Markdown and PDF (brief 34 follow-up), through the handler as the Lambda runs them.
+import base64
+import lambda_function as F
+for path, q in [("/exfor/entry/10001/md", {}), ("/exfor/entry/10001/pdf", {}), ("/exfor/subentry/10001002/md", {}),
+                ("/exfor/subentry/10001002/pdf", {}), ("/endf/material/B-VIII.1/9228/md", {"mf": "3", "mt": "18"}),
+                ("/endf/material/B-VIII.1/9228/pdf", {}), ("/endf/material/B-VIII.1/9228", {}), ("/nsr/2011CH57/md", {}),
+                ("/nsr/2011CH57/pdf", {}), ("/exfor/subentry/99999999/md", {})]:
+    t = time.time()
+    out = F.lambda_handler({"rawPath": path, "queryStringParameters": q}, None)
+    ms = (time.time() - t) * 1000
+    body = out["body"]
+    print(path, q, out["statusCode"], f"{ms:.0f} ms", out["headers"].get("Content-Type"), f"{len(body)} chars")
+    if path.endswith("/pdf") and out["statusCode"] == 200:
+        open("/tmp/" + path.strip("/").replace("/", "-") + ".pdf", "wb").write(base64.b64decode(body))
+    elif path.endswith("/md"):
+        print("   ", body[:500].replace("\n", "\n    "))
+    else:
+        print("   ", body[:200])

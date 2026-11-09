@@ -236,6 +236,14 @@ def lambda_handler(event, context):
             return out
         if path.rstrip("/") == "/exfor/search":
             return respond(200, search(q), t0)
+        m = re.fullmatch(r"/exfor/subentry/([^/]+)/(md|pdf)/?", path)
+        if m:  # the subentry as Markdown or a PDF (brief 34 follow-up), drawn by dataset.py
+            status, body = subentry(m.group(1))
+            if status != 200:
+                return respond(status, body, t0)
+            import dataset
+            x4 = dataset.x4_text(body["subentry"].get("entry") or m.group(1)[:5], m.group(1).strip().upper()[:8])
+            return dataset.doc_response(dataset.exfor_subentry_doc(body, x4), m.group(2), f"exfor-{body['id']}")
         m = re.fullmatch(r"/exfor/subentry/([^/]+)/?", path)
         if m:
             return respond(*subentry(m.group(1)), t0)

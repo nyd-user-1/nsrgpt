@@ -111,9 +111,10 @@ dataset's adopted dataset), `decay_parent` (a decay dataset's parent nuclide), `
 | `GET /dataset/{source}/{id}/text` | the same dataset's cards as `text/plain` |
 | `GET /dataset/{source}/{id}/md` | the same as Markdown (`text/markdown`) |
 | `GET /dataset/{source}/{id}/pdf` | the same as a PDF (`application/pdf`) |
-| `GET /exfor/entry/{id}` | `/exfor/entry/10001`; `/exfor/entry/10001/text` is its X4 text |
-| `GET /endf/material/{release}/{mat}` | `/endf/material/B-VIII.1/9228?sub=neutrons&mf=3&mt=18`; `/text` is that section as plain text |
-| `GET /nsr/{key}/text` | `/nsr/2011CH57/text` |
+| `GET /exfor/entry/{id}` | `/exfor/entry/10001`; `/text` is its X4 text; `/md` and `/pdf` the entry as Markdown and a PDF |
+| `GET /exfor/subentry/{id}/md` | `/exfor/subentry/10001002/md`; `/pdf` the same as a PDF |
+| `GET /endf/material/{release}/{mat}` | `/endf/material/B-VIII.1/9228?sub=neutrons&mf=3&mt=18`; `/text` is that section as plain text; `/md` and `/pdf` the material |
+| `GET /nsr/{key}/text` | `/nsr/2011CH57/text`; `/md` and `/pdf` the reference as Markdown and a PDF |
 
 `source` is `ensdf` (2026-11-05) or `xundl` (2026-10-01). A dataset's `id` is its NUCID and DSID joined by a colon,
 URL-encoded, as Search's ids are (`60CO:ADOPTED LEVELS, GAMMAS`); NUCID and DSID name one dataset in a release.
@@ -149,7 +150,7 @@ X4Pro database (`nsr.exfor_x4src`, release 2023-07-14); entries compiled since t
 
 `/endf/material/{release}/{mat}?sub=neutrons&mf=1&mt=451`: `{release, mat, sublibrary, material: {za, zsymam, awr,
 temp_k, alab, edate, auth, ref, description, …}, sections: [{mf, mt, reaction, line_count}], text: {mf, mt, lines},
-graph}`. `sub` defaults to `neutrons`, `mf` and `mt` to 1 and 451 (the material's description); `text.lines` is that
+graph}`. `sublibrary` is the name `sub` takes (`neutrons`, `protons`, `decay`, …), not the library's folder. `sub` defaults to `neutrons`, `mf` and `mt` to 1 and 451 (the material's description); `text.lines` is that
 section's lines from `nsr.endfb_records`. `/text` returns them as plain text. A whole material can run past the 6 MB a
 Lambda response holds, so the text goes one section at a time.
 
@@ -157,6 +158,17 @@ Lambda response holds, so the text goes one section at a time.
 `<KEYWORDS>`, `<SELECTRS>`, `<DOI     >`), written from `search_nsr`'s fields; `/nsr/{key}` now carries `graph` too (the
 paper, its nuclides and its EXFOR entries): the lake holds NSR's fields, not its
 exchange files, so the `<HISTORY >` and `<CODEN   >` lines are missing.
+
+**Markdown and PDF for EXFOR, ENDF/B and NSR** (brief 34 follow-up). `/md` on `/exfor/entry/{id}`, `/exfor/subentry/{id}`,
+`/endf/material/{release}/{mat}` and `/nsr/{key}` renders the header as a list, the data as tables and the raw text in
+a fenced block:
+- EXFOR entry: the entry's fields, its subentries, the NSR papers that cite it, the X4 text.
+- EXFOR subentry: its fields and BIB keywords, its datasets, its COMMON values, its data table, its X4 text.
+- ENDF/B material: the header fields, the description, the sections, and the lines of the section that `mf` and `mt` pick.
+- NSR: the fields, its nuclides and reactions, its EXFOR entries, the exchange record.
+
+`/pdf` renders the same document in the dataset PDF's form. A PDF stops a table at 2,000 rows and the raw text at 3,000
+lines and says so; the Markdown has everything. Both are cached for an hour like the other GETs.
 
 ## Saved views and files (brief 34, community.py)
 

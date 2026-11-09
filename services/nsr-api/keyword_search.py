@@ -147,10 +147,26 @@ def nsr_graph(rec):
 
 
 def nsr_text(key):
-    """NSR's exchange layout, written from the fields the lake holds; <HISTORY > and <CODEN   > are not among them."""
+    """NSR's exchange layout as text/plain."""
     status, rec = nsr(key)
     if status != 200:
         return status, rec
+    return {"statusCode": 200, "body": exchange(rec),
+            "headers": {"Content-Type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*",
+                        "Cache-Control": "public, max-age=3600"}}
+
+
+def nsr_doc(key, kind):
+    """The reference as Markdown or a PDF (brief 34 follow-up), drawn by dataset.py."""
+    status, rec = nsr(key)
+    if status != 200:
+        return status, rec
+    import dataset
+    return dataset.doc_response(dataset.nsr_doc(rec, exchange(rec)), kind, f"nsr-{rec['key_number']}")
+
+
+def exchange(rec):
+    """NSR's exchange layout, written from the fields the lake holds; <HISTORY > and <CODEN   > are not among them."""
     tags = (("KEYNO", "key_number"), ("REFRENCE", "reference"), ("AUTHORS", "authors"), ("TITLE", "title"),
             ("KEYWORDS", "keywords"), ("SELECTRS", None), ("DOI", "doi"))
     lines = []
@@ -162,9 +178,7 @@ def nsr_text(key):
             v = str(rec.get(field) or "").strip()
         if v:
             lines.append(f"<{tag:<8}>{v}")
-    return {"statusCode": 200, "body": "\n".join(lines) + "\n",
-            "headers": {"Content-Type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*",
-                        "Cache-Control": "public, max-age=3600"}}
+    return "\n".join(lines) + "\n"
 
 
 def route(path, q):
@@ -176,7 +190,10 @@ def route(path, q):
     m = re.fullmatch(r"/nsr/([^/]+)/text", p)
     if m:
         return nsr_text(m.group(1))
+    m = re.fullmatch(r"/nsr/([^/]+)/(md|pdf)", p)
+    if m:
+        return nsr_doc(m.group(1), m.group(2))
     m = re.fullmatch(r"/nsr/([^/]+)", p)
     if m:
         return nsr(m.group(1))
-    return 404, {"error": "routes here: /search?q=, /suggest?q=, /nsr/{key}, /nsr/{key}/text"}
+    return 404, {"error": "routes here: /search?q=, /suggest?q=, /nsr/{key}, /nsr/{key}/text, /nsr/{key}/md, /nsr/{key}/pdf"}

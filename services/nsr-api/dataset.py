@@ -342,95 +342,287 @@ def rich(s):
     return re.sub(r"\{-([^}]*)\}", r"<sub>\1</sub>", s)
 
 
-def pdf(d):
-    from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.platypus import LongTable, Paragraph, SimpleDocTemplate, Spacer, TableStyle
+class _Kit:
+    """reportlab's pieces in the paper palette's print form, shared by the dataset PDF and the other records' PDFs."""
 
-    fonts()
+    def __init__(self):
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import LongTable, Paragraph, Preformatted, SimpleDocTemplate, TableStyle
+
+        fonts()
+        self.colors, self.letter, self.inch = colors, letter, inch
+        self.LongTable, self.Paragraph, self.Preformatted, self.SimpleDocTemplate, self.TableStyle = \
+            LongTable, Paragraph, Preformatted, SimpleDocTemplate, TableStyle
+        st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Sans"), textColor=colors.HexColor(k.pop("color", INK)), **k)
+        self.H1 = st("h1", fontSize=17, leading=21, font="Sans-Bold", color=STRONG, spaceAfter=4)
+        self.H2 = st("h2", fontSize=11.5, leading=15, font="Sans-Bold", color=STRONG, spaceBefore=12, spaceAfter=5)
+        self.META = st("meta", fontSize=8.5, leading=11.5, color=MUTED)
+        self.BODY = st("body", fontSize=8.5, leading=11)
+        self.CELL = st("cell", fontSize=7.5, leading=9.5)
+        self.HEAD = st("head", fontSize=7.5, leading=9.5, font="Sans-Bold", color=MUTED)
+        self.QUOTE = st("quote", fontSize=7.5, leading=9.5, font="Mono", color=INK, leftIndent=8)
+        self.PRE = st("pre", fontSize=6.4, leading=7.8, font="Mono", color=INK)
+        self.WIDTH = letter[0] / inch - 1.4  # inches between the margins
+
+    def p(self, markup, style):
+        return self.Paragraph(markup, style)
+
+    def h2(self, label, count=None):
+        return self.p(label + (f" <font color='{MUTED}' size='8.5'>{count}</font>" if count is not None else ""), self.H2)
+
+    def field(self, label, value):
+        return self.p(f"<font color='{MUTED}'>{label}</font>  {rich(str(value))}", self.BODY)
+
+    def grid(self, head, rows, widths=None):
+        if widths is None:  # by content, each column 4 to 40 characters wide
+            n = [min(40, max(4, len(str(h)), *(len(str(r[i] if r[i] is not None else "")) for r in rows[:200])))
+                 for i, h in enumerate(head)]
+            widths = [self.WIDTH * w / sum(n) for w in n]
+        data = [[self.p(rich(str(x)), self.HEAD) for x in head]] + [[self.p(rich(str(c)) if c not in (None, "") else "", self.CELL)
+                                                                     for c in r] for r in rows]
+        t = self.LongTable(data, colWidths=[w * self.inch for w in widths], repeatRows=1)
+        c = self.colors
+        t.setStyle(self.TableStyle([("BACKGROUND", (0, 0), (-1, 0), c.HexColor(QUIET)),
+                                    ("LINEBELOW", (0, 0), (-1, 0), 0.6, c.HexColor(INK)),
+                                    ("LINEBELOW", (0, 1), (-1, -1), 0.3, c.HexColor(RULE)),
+                                    ("VALIGN", (0, 0), (-1, -1), "TOP"), ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+                                    ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5), ("LEFTPADDING", (0, 0), (-1, -1), 3),
+                                    ("RIGHTPADDING", (0, 0), (-1, -1), 3)]))
+        return t
+
+    def pre(self, text):
+        return self.Preformatted(text, self.PRE)
+
+    def build(self, story, title, author, subject, footer):
+        c, inch, letter = self.colors, self.inch, self.letter
+
+        def page(canvas, doc):
+            canvas.saveState()
+            canvas.setFont("Sans", 7)
+            canvas.setFillColor(c.HexColor(FAINT))
+            canvas.drawString(0.7 * inch, 0.45 * inch, footer)
+            canvas.drawRightString(letter[0] - 0.7 * inch, 0.45 * inch, f"Page {doc.page}")
+            canvas.restoreState()
+
+        buf = io.BytesIO()
+        doc = self.SimpleDocTemplate(buf, pagesize=letter, leftMargin=0.7 * inch, rightMargin=0.7 * inch, topMargin=0.7 * inch,
+                                     bottomMargin=0.7 * inch, title=title, author=author, subject=subject)
+        doc.build(story, onFirstPage=page, onLaterPages=page)
+        return buf.getvalue()
+
+
+def pdf(d):
+    k = _Kit()
     h = d["header"]
     name = SOURCES[d["source"]][0]
     title = f"{nuclide_label(h['nucid'])} {h['dsid']}"
-    st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Sans"), textColor=colors.HexColor(k.pop("color", INK)), **k)
-    H1 = st("h1", fontSize=17, leading=21, font="Sans-Bold", color=STRONG, spaceAfter=4)
-    H2 = st("h2", fontSize=11.5, leading=15, font="Sans-Bold", color=STRONG, spaceBefore=12, spaceAfter=5)
-    META = st("meta", fontSize=8.5, leading=11.5, color=MUTED)
-    BODY = st("body", fontSize=8.5, leading=11)
-    CELL = st("cell", fontSize=7.5, leading=9.5)
-    HEAD = st("head", fontSize=7.5, leading=9.5, font="Sans-Bold", color=MUTED)
-    QUOTE = st("quote", fontSize=7.5, leading=9.5, font="Mono", color=INK, leftIndent=8)
-
-    story = [Paragraph(rich(title), H1)]
+    story = [k.p(rich(title), k.H1)]
     meta = [f"{name} {d['release']}", h["type"] and f"{h['type']} dataset", h["date"] and f"dated {h['date']}"]
-    story.append(Paragraph(" · ".join(x for x in meta if x), META))
+    story.append(k.p(" · ".join(x for x in meta if x), k.META))
     for label, v in (("Authors", h["authors"]), ("Citation", h["citation"]), ("Literature cutoff", h["cutoff"]),
                      ("Publication", h["publication"])):
         if v:
-            story.append(Paragraph(f"<font color='{MUTED}'>{label}</font>  {rich(v)}", BODY))
+            story.append(k.field(label, v))
     if d["qvalue"]:
         qv = d["qvalue"]
         names = {"q_minus": "Q(β<super>−</super>)", "sn": "S(n)", "sp": "S(p)", "qa": "Q(α)"}
-        parts = [f"{names[k]} {rich(qv.get(k + '_raw') or '')} {rich(qv.get(k + '_unc_raw') or '')}" for k in names
-                 if qv.get(k) is not None]
+        parts = [f"{names[n]} {rich(qv.get(n + '_raw') or '')} {rich(qv.get(n + '_unc_raw') or '')}" for n in names
+                 if qv.get(n) is not None]
         if parts:
-            story.append(Paragraph(f"<font color='{MUTED}'>Q-values (keV)</font>  " + "   ".join(parts), BODY))
-
-    def grid(head, rows, widths):
-        data = [[Paragraph(x, HEAD) for x in head]] + [[Paragraph(rich(str(c)) if c not in (None, "") else "", CELL)
-                                                        for c in r] for r in rows]
-        t = LongTable(data, colWidths=[w * inch for w in widths], repeatRows=1)
-        t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(QUIET)),
-                               ("LINEBELOW", (0, 0), (-1, 0), 0.6, colors.HexColor(INK)),
-                               ("LINEBELOW", (0, 1), (-1, -1), 0.3, colors.HexColor(RULE)),
-                               ("VALIGN", (0, 0), (-1, -1), "TOP"), ("TOPPADDING", (0, 0), (-1, -1), 2.5),
-                               ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5), ("LEFTPADDING", (0, 0), (-1, -1), 3),
-                               ("RIGHTPADDING", (0, 0), (-1, -1), 3)]))
-        return t
-
+            story.append(k.p(f"<font color='{MUTED}'>Q-values (keV)</font>  " + "   ".join(parts), k.BODY))
     if d["levels"]:
-        story.append(Paragraph(f"Levels <font color='{MUTED}' size='8.5'>{len(d['levels'])}</font>", H2))
-        story.append(grid(["E(level) keV", "Jπ", "T½", "L", "Comments"],
-                          [[f"{l['energy'] or ''} {l['unc'] or ''}".strip(), l["jpi"], l["half_life"], l["l"],
-                            " ".join(field_text(c) for c in l["comments"])] for l in d["levels"]], [1.05, 0.85, 1.05, 0.45, 3.6]))
+        story.append(k.h2("Levels", len(d["levels"])))
+        story.append(k.grid(["E(level) keV", "Jπ", "T½", "L", "Comments"],
+                            [[f"{l['energy'] or ''} {l['unc'] or ''}".strip(), l["jpi"], l["half_life"], l["l"],
+                              " ".join(field_text(c) for c in l["comments"])] for l in d["levels"]], [1.05, 0.85, 1.05, 0.45, 3.6]))
     if d["gammas"]:
-        story.append(Paragraph(f"Gammas <font color='{MUTED}' size='8.5'>{len(d['gammas'])}</font>", H2))
-        story.append(grid(["E(level) keV", "Eγ keV", "Iγ", "Mult.", "δ", "α", "E(final) keV", "Comments"],
-                          [[g["from_kev"], f"{g['energy'] or ''} {g['unc'] or ''}".strip(),
-                            f"{g['ri'] or ''} {g['ri_unc'] or ''}".strip(), g["mult"], g["mr"], g["cc"], g["to_kev"],
-                            " ".join(field_text(c) for c in g["comments"])] for g in d["gammas"]],
-                          [0.8, 0.85, 0.7, 0.55, 0.55, 0.6, 0.8, 2.15]))
+        story.append(k.h2("Gammas", len(d["gammas"])))
+        story.append(k.grid(["E(level) keV", "Eγ keV", "Iγ", "Mult.", "δ", "α", "E(final) keV", "Comments"],
+                            [[g["from_kev"], f"{g['energy'] or ''} {g['unc'] or ''}".strip(),
+                              f"{g['ri'] or ''} {g['ri_unc'] or ''}".strip(), g["mult"], g["mr"], g["cc"], g["to_kev"],
+                              " ".join(field_text(c) for c in g["comments"])] for g in d["gammas"]],
+                            [0.8, 0.85, 0.7, 0.55, 0.55, 0.6, 0.8, 2.15]))
     if d["comments"]:
-        story.append(Paragraph("Comments", H2))
-        story += [Paragraph(rich(field_text(c["text"])).replace("\n", "<br/>") or "&nbsp;", QUOTE) for c in d["comments"]]
+        story.append(k.h2("Comments"))
+        story += [k.p(rich(field_text(c["text"])).replace("\n", "<br/>") or "&nbsp;", k.QUOTE) for c in d["comments"]]
     if d["references"]:
-        story.append(Paragraph(f"References <font color='{MUTED}' size='8.5'>{len(d['references'])}</font>", H2))
-        story += [Paragraph(f"<link href='{PUBLIC}/nsr/{r['key']}' color='{STRONG}'>{r['key']}</link>"
-                            + (f"  <font color='{MUTED}'>{rich(r['reference'])}</font>" if r["reference"] else ""), BODY)
+        story.append(k.h2("References", len(d["references"])))
+        story += [k.p(f"<link href='{PUBLIC}/nsr/{r['key']}' color='{STRONG}'>{r['key']}</link>"
+                      + (f"  <font color='{MUTED}'>{rich(r['reference'])}</font>" if r["reference"] else ""), k.BODY)
                   for r in d["references"]]
+    return k.build(story, title, h["authors"] or name, f"{name} dataset", f"NSRgpt · {name} {d['release']} · {title}")
 
-    def page(canvas, doc):
-        canvas.saveState()
-        canvas.setFont("Sans", 7)
-        canvas.setFillColor(colors.HexColor(FAINT))
-        canvas.drawString(0.7 * inch, 0.45 * inch, f"NSRgpt · {name} {d['release']} · {title}")
-        canvas.drawRightString(letter[0] - 0.7 * inch, 0.45 * inch, f"Page {doc.page}")
-        canvas.restoreState()
 
-    buf = io.BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=letter, leftMargin=0.7 * inch, rightMargin=0.7 * inch, topMargin=0.7 * inch,
-                            bottomMargin=0.7 * inch, title=title, author=h["authors"] or name, subject=f"{name} dataset")
-    doc.build(story, onFirstPage=page, onLaterPages=page)
-    return buf.getvalue()
+# ---------------------------------------------------------------------------------------------
+# The other records' Markdown and PDF (EXFOR entries and subentries, ENDF/B materials, NSR papers): one document, a
+# title, a line under it, the header as fields, then sections that are each a table, a list or the raw text. Markdown
+# has everything; the PDF stops a table at 2,000 rows and the raw text at 3,000 lines and says where the rest is.
+
+PDF_ROWS, PDF_LINES = 2000, 3000
+
+
+def doc_md(doc):
+    out = [f"# {doc['title']}", ""]
+    if doc.get("meta"):
+        out += [" · ".join(doc["meta"]), ""]
+    out += [f"- **{label}:** {md_cell(v)}" for label, v in doc["fields"] if v not in (None, "", [])]
+    out.append("")
+    for s in doc["sections"]:
+        out += [f"## {s['heading']}", ""]
+        if "table" in s:
+            cols, rows = s["table"]
+            out += ["| " + " | ".join(md_cell(c) for c in cols) + " |", "| " + " | ".join("---" for _ in cols) + " |"]
+            out += ["| " + " | ".join(md_cell(c) for c in r) + " |" for r in rows]
+        if "items" in s:
+            out += [f"- [{label}]({href})" + (f" {rest}" if rest else "") if href else f"- {label}" + (f" {rest}" if rest else "")
+                    for label, href, rest in s["items"]]
+        if "text" in s:
+            fence = "~~~" if "```" in s["text"] else "```"
+            out += [fence + "text", s["text"].rstrip("\n"), fence]
+        out.append("")
+    return "\n".join(out)
+
+
+def doc_pdf(doc):
+    k = _Kit()
+    story = [k.p(rich(doc["title"]), k.H1)]
+    if doc.get("meta"):
+        story.append(k.p(rich(" · ".join(doc["meta"])), k.META))
+    story += [k.field(label, v) for label, v in doc["fields"] if v not in (None, "", [])]
+    for s in doc["sections"]:
+        if "table" in s:
+            cols, rows = s["table"]
+            story.append(k.h2(s["heading"], len(rows)))
+            story.append(k.grid(cols, rows[:PDF_ROWS]))
+            if len(rows) > PDF_ROWS:
+                story.append(k.p(f"The first {PDF_ROWS:,} of {len(rows):,} rows; the Markdown has them all.", k.META))
+        if "items" in s:
+            story.append(k.h2(s["heading"], len(s["items"])))
+            story += [k.p((f"<link href='{href}' color='{STRONG}'>{rich(label)}</link>" if href else rich(label))
+                          + (f"  <font color='{MUTED}'>{rich(rest)}</font>" if rest else ""), k.BODY) for label, href, rest in s["items"]]
+        if "text" in s:
+            lines = s["text"].rstrip("\n").split("\n")
+            story.append(k.h2(s["heading"], f"{len(lines):,} lines"))
+            story.append(k.pre("\n".join(lines[:PDF_LINES])))
+            if len(lines) > PDF_LINES:
+                story.append(k.p(f"The first {PDF_LINES:,} of {len(lines):,} lines; {doc.get('text_url', 'the text route')} has them all.", k.META))
+    return k.build(story, doc["title"], doc.get("author") or "NSRgpt", doc.get("subject") or "", f"NSRgpt · {doc['title']}")
+
+
+def doc_response(doc, kind, file):
+    if kind == "md":
+        return text_response(doc_md(doc), "text/markdown")
+    return {"statusCode": 200, "isBase64Encoded": True, "body": base64.b64encode(doc_pdf(doc)).decode(),
+            "headers": {"Content-Type": "application/pdf", "Access-Control-Allow-Origin": "*",
+                        "Content-Disposition": f'inline; filename="{re.sub(r"[^A-Za-z0-9.-]+", "-", file).strip("-")}.pdf"',
+                        "Cache-Control": "public, max-age=3600"}}
+
+
+def bib_fields(bib):
+    """EXFOR's BIB keywords as fields: each keyword's codes, then its free text."""
+    out = []
+    for kw, entries in (bib or {}).items():
+        parts = []
+        for e in entries or []:
+            ci = e.get("coded_information")
+            code = ci.get("code") if isinstance(ci, dict) else ", ".join(map(str, ci)) if isinstance(ci, list) else ci
+            free = " ".join(t.strip() for t in (e.get("free_text") or []) if t and t.strip())
+            parts.append(" ".join(x for x in ((f"({code})" if code else ""), free) if x))
+        if any(parts):
+            out.append((kw.replace("_", " ").title(), "; ".join(p for p in parts if p)))
+    return out
+
+
+def exfor_entry_doc(e):
+    en = e["entry"]
+    lst = lambda v: ", ".join(v) if isinstance(v, list) else v
+    return {"title": f"EXFOR {e['id']}", "meta": [x for x in (en["title"], en["year"] and str(en["year"])) if x],
+            "author": lst(en["authors"]), "subject": "EXFOR entry", "text_url": f"{PUBLIC}/exfor/entry/{e['id']}/text",
+            "fields": [("Entry", e["id"]), ("Title", en["title"]), ("Year", en["year"]), ("Authors", lst(en["authors"])),
+                       ("Institutes", lst(en["institutes"])), ("References", lst(en["references"])), ("Entry date", en["date"]),
+                       ("Subentries", en["n_subentries"]), ("X4 text", e["x4_source"])],
+            "sections": [s for s in [
+                {"heading": "Subentries", "table": (["Subentry", "Reaction", "Quantity", "Target", "Data rows"],
+                                                    [[s["subent"], lst(s["reaction"]), lst(s["quantity"]), lst(s["target"]), s["n_data_rows"]]
+                                                     for s in e["subentries"]])} if e["subentries"] else None,
+                {"heading": "Papers", "items": [(k, f"{PUBLIC}/nsr/{k}", "") for k in e["papers"]]} if e["papers"] else None,
+                {"heading": "X4 text", "text": e["x4"]} if e["x4"] else None] if s]}
+
+
+def exfor_subentry_doc(b, x4):
+    sub, en = b.get("subentry") or {}, b.get("entry") or {}
+    lst = lambda v: ", ".join(map(str, v)) if isinstance(v, list) else v
+    cols = b.get("columns") or []
+    heads = [f"{c['name']} ({c['unit']})" if c.get("unit") else c["name"] for c in cols]
+    sections = []
+    if b.get("datasets"):
+        sections.append({"heading": "Datasets", "table": (["Dataset", "Pointer", "Reaction code", "Energy min eV", "Energy max eV", "Points"],
+                                                          [[d["dataset"], d["pointer"], d["code"], d["energy_min_ev"], d["energy_max_ev"], d["points"]]
+                                                           for d in b["datasets"]])})
+    if b.get("common"):
+        sections.append({"heading": "Common", "table": (["Name", "Unit", "Value"],
+                                                        [[c["name"], c["unit"], c["value"] if c["value"] is not None else c["value_text"]]
+                                                         for c in b["common"]])})
+    if cols:
+        sections.append({"heading": "Data", "table": (heads, b.get("rows") or [])})
+    if x4:
+        sections.append({"heading": "X4 text", "text": x4})
+    return {"title": f"EXFOR {b['id']}", "meta": [x for x in (en.get("title"), en.get("year") and str(en["year"])) if x],
+            "author": lst(en.get("authors")), "subject": "EXFOR subentry",
+            "fields": [("Subentry", sub.get("subent")), ("Entry", sub.get("entry"))]
+                      + ([] if (b.get("bib") or {}).get("REACTION") else [("Reaction", lst(sub.get("reaction")))])
+                      + [("Authors", lst(en.get("authors"))), ("Year", en.get("year")), ("Subentry date", sub.get("date"))]
+                      + bib_fields(b.get("bib")),
+            "sections": sections}
+
+
+def endf_doc(e):
+    m = e["material"]
+    title = f"{(m.get('zsymam') or '').strip() or 'MAT ' + str(e['mat'])} · ENDF/{e['release']} MAT {e['mat']}"
+    t = e["text"]
+    return {"title": title, "meta": [f"{e['sublibrary']} sublibrary", m.get("hsub") and m["hsub"].split("\n")[0].strip("- ")],
+            "author": m.get("auth"), "subject": "ENDF material",
+            "text_url": f"{PUBLIC}/endf/material/{e['release']}/{e['mat']}/text?sub={e['sublibrary']}&mf={t['mf']}&mt={t['mt']}",
+            "fields": [("Release", e["release"]), ("MAT", e["mat"]), ("Sublibrary", e["sublibrary"]), ("ZA", m.get("za")),
+                       ("AWR", m.get("awr")), ("Temperature K", m.get("temp_k")), ("Laboratory", m.get("alab")),
+                       ("Evaluation date", m.get("edate")), ("Authors", m.get("auth")), ("Reference", m.get("ref")),
+                       ("Distribution", m.get("ddate")), ("Revision", m.get("rdate")), ("File", m.get("file_name"))],
+            "sections": [s for s in [
+                {"heading": "Description", "text": m["description"]} if m.get("description") else None,
+                {"heading": "Sections", "table": (["MF", "MT", "Reaction", "Lines"],
+                                                  [[s["mf"], s["mt"], s["reaction"], s["line_count"]] for s in e["sections"]])},
+                {"heading": f"MF{t['mf']} MT{t['mt']}", "text": t["lines"]} if t["lines"] else None] if s]}
+
+
+def nsr_doc(rec, text):
+    split = lambda v: [x.strip() for x in re.split(r"[;,]", v or "") if x.strip()]
+    nuclides, reactions = split(rec.get("nuclides")), split(rec.get("reactions"))
+    exfor = re.findall(r"\b[0-9A-Z]\d{4}\b", (rec.get("exfor_keys") or "").upper())
+    return {"title": rec["key_number"], "meta": [x for x in (rec.get("title"),) if x], "author": rec.get("authors"),
+            "subject": "NSR reference",
+            "fields": [("Key number", rec["key_number"]), ("Year", rec.get("year")), ("Reference", rec.get("reference")),
+                       ("Authors", rec.get("authors")), ("Title", rec.get("title")), ("DOI", rec.get("doi")),
+                       ("Type", rec.get("reference_type")), ("Journal", rec.get("journal_code")), ("Keywords", rec.get("keywords")),
+                       ("Entered", rec.get("entry_date")), ("Changed", rec.get("modification_date"))],
+            "sections": [s for s in [
+                {"heading": "Nuclides and reactions", "table": (["Nuclides", "Reactions"],
+                                                                [[n, r] for n, r in zip(nuclides + [""] * len(reactions), reactions + [""] * len(nuclides))
+                                                                 if n or r])} if nuclides or reactions else None,
+                {"heading": "EXFOR entries", "items": [(f"EXFOR {x}", f"{PUBLIC}/exfor/entry/{x}", "") for x in exfor]} if exfor else None,
+                {"heading": "Exchange record", "text": text}] if s]}
 
 
 # ---------------------------------------------------------------------------------------------
 # /exfor/entry/{id}
 
-def x4_text(entry):
-    rows = con().cursor().execute(f"SELECT Coding, Src FROM read_parquet('{X4SRC}') WHERE Entry = ? ORDER BY SubAccNum",
-                                  [entry]).fetchall()
+def x4_text(entry, subent=None):
+    """An entry's X4 text, or one subentry's, from X4Pro's sources (one zipped text per subentry)."""
+    rows = con().cursor().execute(f"SELECT Coding, Src FROM read_parquet('{X4SRC}') WHERE Entry = ?"
+                                  + (" AND SubAcc = ?" if subent else "") + " ORDER BY SubAccNum",
+                                  [entry] + ([subent] if subent else [])).fetchall()
     parts = []
     for coding, src in rows:
         b = bytes(src or b"")
@@ -494,7 +686,7 @@ def endf_material(release, mat, q):
     links = [{"type": "nuclide", "id": f"{a}{sym.upper()}", "label": f"{a}{sym}", "sub": f"Z={z} N={a - z}", "rel": "nuclide"}] if sym and a else []
     material = {k: m.get(k) for k in ("za", "zsymam", "awr", "temp_k", "lis", "liso", "nlib", "nver", "alab", "edate",
                                       "auth", "ref", "ddate", "rdate", "endate", "hsub", "description", "file_name")}
-    return {"release": release, "mat": mat, "sublibrary": m["sublibrary"], "material": material, "sections": sections,
+    return {"release": release, "mat": mat, "sublibrary": sub, "material": material, "sections": sections,
             "text": {"mf": mf, "mt": mt, "lines": "\n".join(lines) if lines else None},
             "graph": {"node": {"type": "material", "id": f"{release}:{mat}", "label": (m.get("zsymam") or "").strip() or f"MAT {mat}",
                                "sub": f"ENDF/{release} MAT {mat}"}, "links": links}}
@@ -528,25 +720,29 @@ def route(path, q):
         m = re.fullmatch(r"/dataset/[^/]+(/.*)?", p)
         if m:
             return 404, {"error": "source is ensdf or xundl"}
-        m = re.fullmatch(r"/exfor/entry/([^/]+)(/text)?", p)
+        m = re.fullmatch(r"/exfor/entry/([^/]+)(/text|/md|/pdf)?", p)
         if m:
             e = exfor_entry(m.group(1))
             if e is None:
                 return 404, {"error": f"no EXFOR entry {m.group(1)}"}
+            if m.group(2) in ("/md", "/pdf"):
+                return doc_response(exfor_entry_doc(e), m.group(2)[1:], f"exfor-{e['id']}")
             if m.group(2):
                 return text_response(e["x4"] + "\n", "text/plain") if e["x4"] else \
                     (404, {"error": f"the lake holds no X4 text for {e['id']} (X4Pro 2023-07-14 predates it)"})
             return 200, e
-        m = re.fullmatch(r"/endf/material/([^/]+)/(\d+)(/text)?", p)
+        m = re.fullmatch(r"/endf/material/([^/]+)/(\d+)(/text|/md|/pdf)?", p)
         if m:
             e = endf_material(m.group(1), m.group(2), q)
             if e is None:
                 return 404, {"error": f"no material {m.group(2)} in {m.group(1)} {(q.get('sub') or 'neutrons')}"}
+            if m.group(3) in ("/md", "/pdf"):
+                return doc_response(endf_doc(e), m.group(3)[1:], f"endf-{e['release']}-{e['mat']}-{e['sublibrary']}")
             if m.group(3):
                 return text_response(e["text"]["lines"] + "\n", "text/plain") if e["text"]["lines"] else \
                     (404, {"error": f"MF{e['text']['mf']} MT{e['text']['mt']} is not in this material"})
             return 200, e
         return 404, {"error": "routes: /dataset/{ensdf|xundl}?nucid=|mass=, /dataset/{source}/{id}[/text|/md|/pdf], "
-                              "/exfor/entry/{id}[/text], /endf/material/{release}/{mat}[/text]"}
+                              "/exfor/entry/{id}[/text|/md|/pdf], /endf/material/{release}/{mat}[/text|/md|/pdf]"}
     except (ValueError, duckdb.Error) as e:
         return 400, {"error": str(e)[:500]}
