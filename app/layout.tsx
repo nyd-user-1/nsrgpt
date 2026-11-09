@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { DataProvider } from "@/components/DataProvider";
 import { ProductStatusProvider } from "@/components/ProductStatus";
 import { SwitchboardProvider, SwitchboardShell } from "@/components/SwitchboardPanel";
-import { ShiftNotes } from "@/components/ShiftNotes";
+import { DrawNotes } from "@/components/notes/draw-notes";
 import { ShiftNav } from "@/components/ShiftNav";
 import { Shell } from "@/components/shell";
 import { HousekeepingTool, LiveEditMode } from "@/components/dev/devkit-lazy";
@@ -118,7 +118,7 @@ export default function RootLayout({
                   {/* The two global gestures, ported from pax-trinity (2026-11-03):
                       Shift-drag draws a note; Shift and a right-click opens the Nav.
                       Inside the provider so the Nav can open a box in the panel. */}
-                  <ShiftNotes />
+                  <DrawNotes />
                   <ShiftNav />
                   {/* Trinity's dev kit (2026-11-04): the housekeeping pointer, the inspector
                       dock, and Live edit's armed mode — all inert until the panel's Dev tools

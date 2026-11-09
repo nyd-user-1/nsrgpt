@@ -6,6 +6,7 @@ import { CheckIcon, ChevronsDownUpIcon, CopyIcon, DownloadIcon, EllipsisVertical
 
 import { CardTitle } from "@/components/ui/nova/card"
 import { KebabMenu, MenuFlyout, MenuFoot, MenuRow, MenuSeparator } from "@/components/kebab-menu"
+import { AddToNoteRow } from "@/components/notes/add-to-note"
 import { useShellPanel } from "@/components/shell"
 import { useHiddenBlocks, useShelf } from "@/lib/home-blocks"
 import { cn } from "@/lib/utils"
@@ -154,6 +155,7 @@ export function CardTools({
       {/* Code/hq's row kebab, in the light dress (components/kebab-menu.tsx). */}
       <KebabMenu label="Block options" trigger={<EllipsisVerticalIcon className="size-4" />} triggerClassName="inline-flex size-8 items-center justify-center rounded-md text-slate-800 outline-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted">
         <MenuRow icon={<LayoutGridIcon />} label={onShelf ? "Remove from Blocks" : "Add to Blocks"} checked={onShelf} disabled={!key || !title} onClick={() => key && title && anchor && (onShelf ? shelf.remove(key) : shelf.add({ key, title, path, anchor }))} />
+        {title && anchor && <AddToNoteRow title={title} anchor={anchor} />}
         <MenuRow icon={<MessagesSquareIcon />} label="Ask" onClick={ask} />
         <MenuRow icon={<RefreshCwIcon />} label="Refresh" onClick={() => router.refresh()} />
         <MenuSeparator />

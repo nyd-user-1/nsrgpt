@@ -1,0 +1,109 @@
+"use client"
+
+import * as React from "react"
+import { MessageSquareText } from "lucide-react"
+import type { Editor } from "@tiptap/react"
+
+import { cn } from "@/lib/utils"
+import { TEAM_PLACES, type TeamPlace } from "@/lib/note-team"
+import { TaskSurface, TaskToolbar } from "@/components/notes/rich-body"
+
+// A note's Team shape (Brendan, 2026-11-02; pax-trinity's note-team.tsx, ported 2026-11-09): the note posted to the
+// team with the page it was written on. One row checks where, each place with its mark: a Dev Comment on this page
+// (the stream every admin reads), Slack, Discord, any one, two or all three. Post sends the note's text and the page's
+// link to each place checked (app/api/notes/team, one post a place) and says, place by place, where it went and where
+// it didn't. The note is the one text every shape edits.
+
+type Result = { place: TeamPlace; label: string } & ({ ok: true } | { ok: false; error: string })
+
+export function NoteTeam({ editor, body }: { editor: Editor | null; body: string }) {
+  const [to, setTo] = React.useState<TeamPlace[]>(["comments"])
+  const [open, setOpen] = React.useState<Partial<Record<TeamPlace, boolean>>>({ comments: true })
+  const [busy, setBusy] = React.useState(false)
+  const [results, setResults] = React.useState<Result[] | null>(null)
+  // A place that can't take a post leaves the checked ones.
+  const chosen = to.filter((p) => open[p] !== false)
+  const toggle = (place: TeamPlace) => setTo((t) => (t.includes(place) ? t.filter((p) => p !== place) : TEAM_PLACES.map((x) => x.place).filter((p) => p === place || t.includes(p))))
+  const [here, setHere] = React.useState("")
+  React.useEffect(() => {
+    setHere(`${window.location.pathname}${window.location.search}`)
+    fetch("/api/notes/team")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: Partial<Record<TeamPlace, boolean>> | null) => d && setOpen(d))
+      .catch(() => {})
+  }, [])
+
+  const post = async () => {
+    if (!body.trim() || !chosen.length || busy) return
+    setBusy(true)
+    setResults(null)
+    const one = async (place: TeamPlace): Promise<Result> => {
+      const label = TEAM_PLACES.find((x) => x.place === place)?.label ?? place
+      try {
+        const res = await fetch("/api/notes/team", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: place, text: body, url: window.location.href, route: window.location.pathname }),
+        })
+        const out = (await res.json().catch(() => ({}))) as { ok?: boolean; where?: string; error?: string }
+        return out.ok ? { place, label: out.where || label, ok: true } : { place, label, ok: false, error: out.error ?? `It answered ${res.status}.` }
+      } catch {
+        return { place, label, ok: false, error: "The server can't be reached." }
+      }
+    }
+    setResults(await Promise.all(chosen.map(one)))
+    setBusy(false)
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col" data-note-team>
+      <TaskToolbar editor={editor} className="shrink-0 border-b border-[var(--paper-rule)] px-2 py-1" />
+      <div className="min-h-0 flex-1 cursor-text overflow-y-auto px-4 py-3" onClick={() => editor?.commands.focus()}>
+        <TaskSurface editor={editor} className="min-h-full [&_.ProseMirror]:min-h-full" />
+      </div>
+      <div className="shrink-0 border-t border-[var(--paper-rule)] px-3 py-2">
+        <div role="group" aria-label="Post to" className="flex flex-wrap gap-1.5">
+          {TEAM_PLACES.map(({ place, label, mark }) => {
+            const ready = open[place] !== false
+            const on = ready && to.includes(place)
+            return (
+              <button
+                key={place}
+                type="button"
+                role="checkbox"
+                aria-checked={on}
+                disabled={!ready}
+                title={ready ? label : `${label} isn't connected`}
+                onClick={() => toggle(place)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors disabled:opacity-40",
+                  on ? "border-[var(--paper-strong)] bg-[var(--paper-quiet)] text-[var(--paper-strong)]" : "border-[var(--paper-rule)] text-[var(--paper-muted)] hover:bg-[var(--paper-quiet)]"
+                )}
+              >
+                {mark ? <img src={mark} alt="" className="size-3.5 shrink-0 object-contain" /> : <MessageSquareText className="size-3.5 shrink-0" />}
+                {label}
+              </button>
+            )
+          })}
+        </div>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-[var(--paper-faint)]" title={here}>
+            {here}
+          </span>
+          <button type="button" disabled={!body.trim() || !chosen.length || busy} onClick={() => void post()} className="rounded-full bg-[var(--paper-strong)] px-3.5 py-1 text-xs font-medium text-[var(--paper)] disabled:opacity-40">
+            {busy ? "Posting…" : "Post"}
+          </button>
+        </div>
+        {results && (
+          <ul role="status" className="pt-1.5 text-xs">
+            {results.map((r) => (
+              <li key={r.place} className={r.ok ? "text-[var(--paper-muted)]" : "text-red-600"}>
+                {r.ok ? `Posted to ${r.label}` : `Not posted to ${r.label}: ${r.error}`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}

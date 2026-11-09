@@ -152,9 +152,7 @@ const TOOLS: Tool[] = [
   { kind: "button", icon: List, label: "Bulleted list", active: "bulletList", run: (e) => e.chain().focus().toggleBulletList().run() },
   { kind: "button", icon: ListOrdered, label: "Numbered list", active: "orderedList", run: (e) => e.chain().focus().toggleOrderedList().run() },
   { kind: "button", icon: Quote, label: "Quote", active: "blockquote", run: (e) => e.chain().focus().toggleBlockquote().run() },
-  // insertTable is declared by @tiptap/extension-table, which NSRgpt's notes don't load (2026-11-06): the button only
-  // shows where the editor has a table node (`needs`), so the command is reached through its shape, not its type.
-  { kind: "button", icon: Table2, label: "Table", active: "table", needs: "table", run: (e) => (e.chain().focus() as unknown as { insertTable: (o: { rows: number; cols: number; withHeaderRow: boolean }) => { run: () => boolean } }).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+  { kind: "button", icon: Table2, label: "Table", active: "table", needs: "table", run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
   { kind: "divider" },
   { kind: "button", icon: Code, label: "Code", active: "code", run: (e) => e.chain().focus().toggleCode().run() },
   {

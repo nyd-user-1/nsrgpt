@@ -9,6 +9,7 @@ import { Archive, ArchiveRestore, Copy, EllipsisVertical, Eye, EyeOff, LayoutGri
 import { usePathname } from 'next/navigation'
 import { KebabMenu, MenuFoot, MenuRow, MenuSeparator } from '@/components/kebab-menu'
 import { useShelf } from '@/lib/home-blocks'
+import { AddToNoteRow } from '@/components/notes/add-to-note'
 import { useNavRows } from '@/lib/nav-rows'
 
 export function VizBoxMenu({ title, anchor, href }: { title: string; anchor: string; href?: string }) {
@@ -33,6 +34,7 @@ export function VizBoxMenu({ title, anchor, href }: { title: string; anchor: str
           checked={on}
           onClick={() => (on ? shelf.remove(key) : shelf.add({ key, title, path, anchor }))}
         />
+        <AddToNoteRow title={title} anchor={anchor} />
         {href && <MenuRow icon={<Copy />} label="Copy the link" onClick={() => void navigator.clipboard.writeText(new URL(href, location.origin).toString())} />}
         <MenuSeparator />
         <MenuRow icon={<Star className={row.favorite ? 'fill-amber-400 text-amber-400' : undefined} />} label={row.favorite ? 'Unfavorite' : 'Favorite'} onClick={() => mark({ favorite: !row.favorite })} />
