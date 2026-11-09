@@ -20,6 +20,10 @@ import { MODES, colouring, loadCounts, modeLine, type Counts, type Mode } from '
 // its row in the nuclides table; ?nuclide=137Cs opens a card.
 
 const MAGIC = [2, 8, 20, 28, 50, 82, 126]
+// Labels as cells grow (brief 37), as /viz/structure's chart draws them: the element symbol once a cell is about 28 px
+// across, the mass number above it from 48 px, in the ink that reads on the cell's fill.
+const LABEL_PX = 28, MASS_PX = 48
+const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace'
 type Data = { d: Decay; g: Ground }
 
 export function NuclideChart() {
@@ -87,12 +91,33 @@ export function NuclideChart() {
             type: 'custom',
             encode: { x: 0, y: 1 },
             data: d.nuclides.map((x) => [x.n, x.z, bucket(x)]),
-            renderItem: (_: unknown, api: { value: (i: number) => number; coord: (v: number[]) => number[] }) => {
+            // Drawn in one pass: above ECharts' 3,000-item threshold a custom series renders progressively, and there
+            // cells that return a group (a rect and its labels) vanished (brief 46, after ac72542).
+            progressive: 0,
+            renderItem: (params: { coordSys: { x: number; y: number; width: number; height: number } }, api: { value: (i: number) => number; coord: (v: number[]) => number[] }) => {
               const n = api.value(0), z = api.value(1), f = api.value(2)
               const [x0, y0] = api.coord([n - 0.5, z + 0.5])
               const [x1, y1] = api.coord([n + 0.5, z - 0.5])
               const w = x1 - x0, h = y1 - y0
-              return { type: 'rect', shape: { x: x0 + 0.5, y: y0 + 0.5, width: Math.max(w - 1, 0.6), height: Math.max(h - 1, 0.6) }, style: { fill: colors[f] } }
+              const rect = { type: 'rect', shape: { x: x0 + 0.5, y: y0 + 0.5, width: Math.max(w - 1, 0.6), height: Math.max(h - 1, 0.6) }, style: { fill: colors[f] } }
+              if (w < LABEL_PX) return rect
+              // Only the cells inside the plot take a label, so a close zoom draws a few hundred, not 3,386.
+              const cs = params.coordSys
+              const cx = x0 + w / 2, cy = y0 + h / 2
+              if (cx < cs.x - w || cx > cs.x + cs.width + w || cy < cs.y - h || cy > cs.y + cs.height + h) return rect
+              const fill = inkOn(colors[f])
+              const mass = w >= MASS_PX
+              const size = mass ? Math.min(16, w * 0.26) : Math.min(13, w * 0.4)
+              const text = (t: string, y: number, px: number, weight: number) => ({
+                type: 'text',
+                style: { text: t, x: cx, y, textAlign: 'center', textVerticalAlign: 'middle', fill, font: `${weight} ${px.toFixed(1)}px ${MONO}` },
+              })
+              return {
+                type: 'group',
+                children: mass
+                  ? [rect, text(String(n + z), cy - size * 0.6, size * 0.72, 400), text(ELEMENTS[z] ?? String(z), cy + size * 0.45, size, 600)]
+                  : [rect, text(ELEMENTS[z] ?? String(z), cy, size, 600)],
+              }
             },
             // The magic numbers: a dashed rule at each closed shell.
             markLine: {
