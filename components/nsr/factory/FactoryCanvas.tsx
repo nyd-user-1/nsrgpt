@@ -132,10 +132,10 @@ function Door({ id, data: d }: NodeProps<Node<DoorData>>) {
   return (
     <div
       title={d.about}
-      style={{ width: d.w, height: d.h, ...(d.planned ? {} : { background: "var(--paper-strong)" }) }}
-      className={cn("flex items-center justify-center gap-2 rounded-xl px-3", d.planned ? "border-2 border-dashed border-[var(--paper-rule)] bg-[var(--paper)]" : "shadow-e1", d.big && "ring-4 ring-[color-mix(in_oklab,var(--paper-strong)_25%,var(--paper))]", glow(useLit("nodes", id)))}
+      style={{ width: d.w, height: d.h, ...(d.planned ? {} : { borderLeft: "4px solid var(--paper-strong)" }) }}
+      className={cn("flex items-center justify-center gap-2 rounded-xl px-3", d.planned ? "border-2 border-dashed border-[var(--paper-rule)] bg-[var(--paper)]" : "border border-[var(--paper-rule)] bg-[var(--paper)] shadow-e1", d.big && "ring-4 ring-[color-mix(in_oklab,var(--paper-strong)_25%,var(--paper))]", glow(useLit("nodes", id)))}
     >
-      <span className={cn("font-semibold leading-tight", d.big ? "text-lg" : "text-[15px]", d.planned ? "text-[var(--paper-muted)]" : "text-[var(--paper)]")}>{d.title}</span>
+      <span className={cn("font-semibold leading-tight", d.big ? "text-lg" : "text-[15px]", d.planned ? "text-[var(--paper-muted)]" : "text-[var(--paper-text)]")}>{d.title}</span>
       <Sides extra={d.extra} />
     </div>
   )
@@ -156,7 +156,7 @@ function Stage({ id, data: d }: NodeProps<Node<StageData>>) {
       )}
       {d.foot?.length ? (
         <div className="mt-auto border-t border-[var(--paper-rule)] pt-2">
-          {d.foot.map((f) => <p key={f} className="tabular text-[13px] font-semibold text-[var(--paper-strong)]">{f}</p>)}
+          {d.foot.map((f) => <p key={f} className="tabular text-[13px] font-semibold text-[var(--paper-text)]">{f}</p>)}
         </div>
       ) : null}
       <Sides extra={d.extra} />
@@ -172,7 +172,7 @@ function Store({ id, data: d }: NodeProps<Node<StoreData>>) {
         <Icon className="size-3.5 shrink-0 text-[var(--paper-muted)]" />
         {d.title}
       </p>
-      {d.count && <p className="tabular pl-5 text-xs font-semibold text-[var(--paper-strong)]">{d.count}</p>}
+      {d.count && <p className="tabular pl-5 text-xs font-semibold text-[var(--paper-text)]">{d.count}</p>}
       <Sides extra={d.extra} />
     </div>
   )
@@ -182,7 +182,7 @@ function Store({ id, data: d }: NodeProps<Node<StoreData>>) {
 function MakeBadge({ make, small = false }: { make: Make; small?: boolean }) {
   const Icon = MAKE[make].icon
   return (
-    <span style={{ background: "var(--paper-strong)" }} className={cn("flex shrink-0 items-center justify-center rounded-full text-white", small ? "size-5" : "size-[26px]")}>
+    <span style={{ background: "var(--paper-strong)" }} className={cn("flex shrink-0 items-center justify-center rounded-full text-[var(--paper)]", small ? "size-5" : "size-[26px]")}>
       <Icon className={small ? "size-3" : "size-3.5"} strokeWidth={2} />
     </span>
   )
@@ -192,8 +192,8 @@ function ChipBody({ c }: { c: Chip }) {
   return (
     <span
       title={`${c.status} · ${MAKE[c.make].label}`}
-      style={{ background: c.status === "Live" ? tint("var(--paper-strong)", 10) : "var(--paper)", borderColor: tint("var(--paper-strong)", 35) }}
-      className={cn("flex min-h-[34px] items-center gap-2 rounded-[18px] border py-1 pl-1 pr-3 text-xs font-semibold leading-tight text-[var(--paper-strong)]", c.status !== "Live" && "border-dashed")}
+      style={{ background: "var(--paper)", borderColor: "var(--paper-rule)" }}
+      className={cn("flex min-h-[34px] items-center gap-2 rounded-[18px] border py-1 pl-1 pr-3 text-xs font-semibold leading-tight text-[var(--paper-text)]", c.status !== "Live" && "border-dashed")}
     >
       <MakeBadge make={c.make} />
       <span>
@@ -214,7 +214,7 @@ function Instrument({ id, data: d }: NodeProps<Node<ChipData>>) {
 
 function Rack({ id, data: d }: NodeProps<Node<RackData>>) {
   return (
-    <div style={{ width: d.w, borderColor: tint("var(--paper-strong)", 30) }} className={cn("grid grid-cols-2 gap-1.5 rounded-2xl border bg-[var(--paper)] p-2.5 shadow-e1", glow(useLit("nodes", id)))}>
+    <div style={{ width: d.w, borderColor: "var(--paper-rule)" }} className={cn("grid grid-cols-2 gap-1.5 rounded-2xl border bg-[var(--paper)] p-2.5 shadow-e1", glow(useLit("nodes", id)))}>
       {d.ns.map((n) => <ChipBody key={n} c={model(n)} />)}
       <Sides extra={d.extra} />
     </div>
@@ -435,10 +435,10 @@ function Architecture({ view, edges, focus, onFocus, onOpen }: { view: View; edg
     return (
       <>
         <div className="space-y-1">
-          {kind("door", <span style={{ background: "var(--paper-strong)" }} className="h-6 w-14 rounded-lg" />, "Door", "A source the lake takes its data from.")}
+          {kind("door", <span style={{ borderLeft: "3px solid var(--paper-strong)" }} className="h-6 w-14 rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)]" />, "Door", "A source the lake takes its data from.")}
           {kind("stage", <span className="h-6 w-14 rounded-xl border-2 border-[var(--paper-strong)] bg-[var(--paper)]" />, "Stage", "What the lake does to the data, with the tools that do it.")}
           {kind("store", <span className="flex h-6 w-14 items-center justify-center rounded-[10px_10px_6px_6px] border border-[var(--paper-rule)] bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))]"><HardDrive className="size-3.5 text-[var(--paper-muted)]" /></span>, "Store", "Where it is kept: the lake's S3 prefixes, the Glue catalog, the search index file.")}
-          {kind("instrument", <span style={{ background: tint("var(--paper-strong)", 10), borderColor: tint("var(--paper-strong)", 35) }} className="flex h-6 w-14 items-center gap-1 rounded-full border pl-0.5"><MakeBadge make="neural" small /></span>, "Instrument", "A model or an index NSRgpt runs, numbered as listed here. Its circle names the kind: a network for a neural network, a magnifier for a ranking index, a table for data built from the lake. A dashed one is staged: in build, not yet serving.")}
+          {kind("instrument", <span style={{ background: "var(--paper)", borderColor: "var(--paper-rule)" }} className="flex h-6 w-14 items-center gap-1 rounded-full border pl-0.5"><MakeBadge make="neural" small /></span>, "Instrument", "A model or an index NSRgpt runs, numbered as listed here. Its circle names the kind: a network for a neural network, a magnifier for a ranking index, a table for data built from the lake. A dashed one is staged: in build, not yet serving.")}
           {kind("service", <span style={{ background: tint("#f59e0b", 14), borderColor: tint("#d97706", 55) }} className="flex h-6 w-14 items-center justify-center rounded-lg border"><Server className="size-3.5 text-[#d97706]" /></span>, "Service", "An AWS service the lake calls, named for its job; what it does shows on hover.")}
           {kind("surface", <span className="h-6 w-14 overflow-hidden rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)]"><span className="block h-1.5 bg-[color-mix(in_oklab,var(--paper-text)_7%,var(--paper))]" /></span>, "Surface", "A page the lake feeds.")}
         </div>
@@ -481,8 +481,8 @@ function Architecture({ view, edges, focus, onFocus, onOpen }: { view: View; edg
 // The drawing's grid: the doors on the left, then the raw store, Parse, the parsed lake and its catalog, Serve, the
 // serving stores, the instruments and services, and the surfaces on the right. Every position derives from these.
 
-const GAP = 90 // between columns: room for a chip
-const W = { door: 150, store: 210, stage: 230, service: 170, surface: 160, chip: 210 }
+const GAP = 60 // between columns: room for a chip
+const W = { door: 130, store: 170, stage: 190, service: 150, surface: 150, chip: 180 }
 const DOOR_H = 44
 const STORE_H = 56
 const SURFACE_H = 52
