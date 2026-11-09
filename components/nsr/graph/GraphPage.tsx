@@ -32,6 +32,7 @@ import { LIBRARY, loadSpec } from "@/lib/diagram/library";
 import { toFlow } from "@/lib/diagram/layout";
 import { DIAGRAM_EDGE_TYPES, DIAGRAM_NODE_TYPES } from "@/components/nsr/graph/diagram";
 import { FlowSettingsPanel, DEFAULT_FLOW_PROPS, type FlowProps } from "@/components/nsr/graph/FlowSettings";
+import { EntitySearch } from "@/components/nsr/graph/EntitySearch";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -2051,6 +2052,10 @@ function GraphPageInner() {
           {/* The tools (Brendan, 2026-11-08): at rest two circles, the plus that opens them and Config, which never moves;
               open, between them: a plain plus (a prompt node), Prompt, Run, Save, Reset, and Back and Forward once the
               diagram has a change to step through. The fold takes 500 ms; the plus turns into a cross while open. */}
+          {/* The corpus search, back on the canvas (Brendan, 2026-11-09): top left, in line with the tools opposite. */}
+          <Panel position="top-left">
+            <EntitySearch />
+          </Panel>
           <Panel position="top-right">
             <div className="flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
               <Button variant="outline" aria-label={toolsOpen ? "Hide the tools" : "Show the tools"} aria-expanded={toolsOpen} className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => setToolsOpen((v) => !v)}>
