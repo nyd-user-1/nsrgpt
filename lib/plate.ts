@@ -23,4 +23,5 @@ export const PLATE_BOXES: PlateBox[] = [
     lines: c.lines.filter((l) => !l.startsWith("Source: ")),
   })),
   ...PLATE_PAGES.map((p) => ({ href: p.href, name: p.name, anchor: anchorOf(p.href), body: p.body })),
+  { href: "/lab", name: "Lab", anchor: anchorOf("/lab"), body: "Blocks that fetch, broaden, compare and plot nuclear data, and ask about it." },
 ].sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base", numeric: true }))

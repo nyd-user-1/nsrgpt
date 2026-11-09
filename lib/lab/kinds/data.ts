@@ -1,0 +1,153 @@
+import type { Dataset, KindDef, RunContext, Series } from "@/lib/lab/blocks"
+import { describe, plural, window } from "@/lib/lab/format"
+
+// Data (brief 52): one source with its own params, out as a `dataset` (rows) and a `series` (curves).
+//   exfor    GET /exfor/points: every point of every EXFOR dataset matching target, reaction, quantity, emin to emax;
+//            rows { dataset_id, e_ev, de_ev, xs_b, dxs_b }, meta.datasets [{ dataset_id, entry, subentry, author, year,
+//            institute, n }]; one series per dataset.
+//   endf     GET /endf/xs, one series per release (cut to emin to emax by the route); rows { release, e_ev, xs_b }.
+//   cov      GET /endf/cov: MF33 relative sd per group; rows { release, e_lo, e_hi, rel_sd }; one step series per release.
+//   nuclide  GET /nuclide/{name}: its decays as parent and as daughter.
+//   view     a saved canvas or view's rows (/api/community).
+
+export type DataSource = "exfor" | "endf" | "cov" | "nuclide" | "view"
+
+export type DataParams = {
+  source: DataSource
+  target?: string
+  reaction?: string
+  quantity?: string
+  name?: string
+  mt?: number
+  releases?: string[]
+  emin?: number
+  emax?: number
+  id?: string
+}
+
+export const DATA_SOURCES: { key: DataSource; label: string }[] = [
+  { key: "exfor", label: "EXFOR points" },
+  { key: "endf", label: "ENDF cross section" },
+  { key: "cov", label: "ENDF covariance" },
+  { key: "nuclide", label: "Nuclide decays" },
+  { key: "view", label: "Saved view" },
+]
+
+/** GET a JSON route; a refusal throws with the route's own error text. */
+export async function getJson<T>(ctx: RunContext, path: string): Promise<T> {
+  const r = await ctx.api(path)
+  const j = (await r.json().catch(() => ({}))) as T & { error?: string }
+  if (!r.ok) throw new Error(`${path.split("?")[0]} answered ${r.status}${j.error ? `: ${j.error}` : ""}`)
+  return j
+}
+
+const query = (o: Record<string, unknown>) =>
+  new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => [k, String(v)])).toString()
+
+type ExforDataset = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; institute?: string; n?: number }
+type ExforPoint = { dataset_id: string; e_ev: number; de_ev?: number | null; xs_b: number; dxs_b?: number | null }
+
+async function exfor(p: DataParams, ctx: RunContext) {
+  const q = query({ target: p.target, reaction: p.reaction, quantity: p.quantity, emin: p.emin, emax: p.emax, limit: 20000 })
+  const j = await getJson<{ datasets: ExforDataset[]; points: ExforPoint[] }>(ctx, `/exfor/points?${q}`)
+  const info = new Map(j.datasets.map((d) => [d.dataset_id, d]))
+  const dataset: Dataset = { columns: ["dataset_id", "e_ev", "de_ev", "xs_b", "dxs_b"], rows: j.points, meta: { datasets: j.datasets } }
+  const byId = new Map<string, ExforPoint[]>()
+  for (const pt of j.points) byId.set(pt.dataset_id, [...(byId.get(pt.dataset_id) ?? []), pt])
+  const series: Series[] = [...byId].map(([id, pts]) => {
+    const d = info.get(id)
+    const hasErr = pts.some((x) => x.dxs_b != null)
+    return {
+      name: d?.author ? `${d.author}${d.year ? ` (${d.year})` : ""}` : id,
+      x: pts.map((x) => x.e_ev),
+      y: pts.map((x) => x.xs_b),
+      ...(hasErr ? { lo: pts.map((x) => x.xs_b - (x.dxs_b ?? 0)), hi: pts.map((x) => x.xs_b + (x.dxs_b ?? 0)) } : {}),
+      unit_x: "eV",
+      unit_y: "b",
+      meta: { dataset_id: id, entry: d?.entry, subentry: d?.subentry, author: d?.author, year: d?.year },
+    }
+  })
+  return { dataset, series }
+}
+
+type XsSeries = { release: string; held: boolean; release_served?: string; mat?: number; n_points?: number; energy_ev?: number[]; xs_barn?: number[]; note?: string }
+
+async function endf(p: DataParams, ctx: RunContext) {
+  const rel = p.releases?.length ? p.releases : ["B-VIII.1"]
+  const q = query({ name: p.name, mt: p.mt, release: rel[0], compare: rel.slice(1).join(","), emin: p.emin, emax: p.emax })
+  const j = await getJson<{ series: XsSeries[] }>(ctx, `/endf/xs?${q}`)
+  const held = j.series.filter((s) => s.held && s.energy_ev?.length)
+  const series: Series[] = held.map((s) =>
+    window(
+      { name: s.release, x: s.energy_ev ?? [], y: s.xs_barn ?? [], unit_x: "eV", unit_y: "b", meta: { release: s.release, release_served: s.release_served, mat: s.mat, n_points: s.n_points, note: s.note } },
+      p.emin,
+      p.emax,
+    ),
+  )
+  const rows = series.flatMap((s) => s.x.map((x, i) => ({ release: s.name, e_ev: x, xs_b: s.y[i] })))
+  const missing = j.series.filter((s) => !s.held).map((s) => s.release)
+  return { dataset: { columns: ["release", "e_ev", "xs_b"], rows, meta: { missing } } as Dataset, series }
+}
+
+type CovSeries = { release: string; held: boolean; mat?: number; lb?: number[]; groups: { e_lo_ev: number; e_hi_ev: number; rel_sd: number }[]; note?: string }
+
+async function cov(p: DataParams, ctx: RunContext) {
+  const rel = p.releases?.length ? p.releases : ["B-VIII.1"]
+  const q = query({ name: p.name, mt: p.mt, release: rel.join(","), emin: p.emin, emax: p.emax })
+  const j = await getJson<{ series: CovSeries[] }>(ctx, `/endf/cov?${q}`)
+  const rows = j.series.flatMap((s) => s.groups.map((g) => ({ release: s.release, e_lo: g.e_lo_ev, e_hi: g.e_hi_ev, rel_sd: g.rel_sd })))
+  // A step line: each group's value held from its lower to its upper edge.
+  const series: Series[] = j.series
+    .filter((s) => s.groups.length)
+    .map((s) => ({
+      name: s.release,
+      x: s.groups.flatMap((g) => [g.e_lo_ev, g.e_hi_ev]),
+      y: s.groups.flatMap((g) => [g.rel_sd, g.rel_sd]),
+      unit_x: "eV",
+      unit_y: "relative sd",
+      meta: { release: s.release, mat: s.mat, lb: s.lb },
+    }))
+  const notes = j.series.filter((s) => !s.groups.length).map((s) => `${s.release}: ${s.note ?? "no MF33"}`)
+  return { dataset: { columns: ["release", "e_lo", "e_hi", "rel_sd"], rows, meta: { notes } } as Dataset, series }
+}
+
+type Decay = { parent: string; daughter: string; mode: string; branching_pct: number | null; half_life_s: number | null; q_kev: number | null; dsid: string }
+
+async function nuclide(p: DataParams, ctx: RunContext) {
+  const j = await getJson<{ nuclide: Record<string, unknown>; decays: { as_parent: Decay[]; as_daughter: Decay[] } }>(ctx, `/nuclide/${encodeURIComponent(p.name ?? "")}`)
+  const row = (role: string) => (d: Decay) => ({ role, parent: d.parent, daughter: d.daughter, mode: d.mode, branching_pct: d.branching_pct, half_life_s: d.half_life_s, q_kev: d.q_kev, dsid: d.dsid })
+  const rows = [...j.decays.as_parent.map(row("parent")), ...j.decays.as_daughter.map(row("daughter"))]
+  const columns = ["role", "parent", "daughter", "mode", "branching_pct", "half_life_s", "q_kev", "dsid"]
+  return { dataset: { columns, rows, meta: { nuclide: j.nuclide } } as Dataset, series: [] as Series[] }
+}
+
+async function view(p: DataParams, ctx: RunContext) {
+  const r = await fetch(`/api/community?tab=view&id=${encodeURIComponent(p.id ?? "")}`, { signal: ctx.signal })
+  const j = (await r.json().catch(() => ({}))) as { view?: { name: string; state: Record<string, unknown> }; error?: string }
+  if (!r.ok || !j.view) throw new Error(j.error ?? `the saved view answered ${r.status}`)
+  const s = j.view.state
+  if (Array.isArray(s.columns) && Array.isArray(s.rows)) return { dataset: { columns: s.columns as string[], rows: s.rows as Record<string, unknown>[] }, series: [] as Series[] }
+  const canvas = s.canvas as { blocks?: { id: string; kind: string; title: string }[] } | undefined
+  const nodes = (canvas?.blocks ?? (s.nodes as Record<string, unknown>[] | undefined) ?? []) as Record<string, unknown>[]
+  const rows = nodes.map((n) => ({ id: n.id, type: n.kind ?? n.type, label: n.title ?? n.label ?? n.name }))
+  return { dataset: { columns: ["id", "type", "label"], rows, meta: { view: j.view.name } }, series: [] as Series[] }
+}
+
+const SOURCES = { exfor, endf, cov, nuclide, view }
+
+export const data: KindDef<DataParams> = {
+  kind: "data",
+  title: "Data",
+  inputs: {},
+  outputs: { dataset: "dataset", series: "series" },
+  defaults: { source: "endf", name: "U-235", mt: 18, releases: ["B-VIII.1"], emin: 1e3, emax: 2e5 },
+  run(p, _inputs, ctx) {
+    const f = SOURCES[p.source]
+    if (!f) throw new Error(`unknown source ${p.source}`)
+    return f(p, ctx)
+  },
+  summary(o) {
+    const d = o.dataset as Dataset | undefined
+    return [d ? plural(d.rows.length, "row") : "", describe(o.series)].filter(Boolean).join(" · ")
+  },
+}

@@ -25,9 +25,12 @@ export async function GET(req: Request) {
     return view ? Response.json({ view }) : Response.json({ error: "not found" }, { status: 404 })
   }
   if (tab === "views") {
+    // The Lab's saved canvases (brief 52) are their own kind; the store's default list is views and recipes.
+    const lab = params.get("kind") === "lab"
+    if (lab && !storeConfigured()) return Response.json({ views: [] })
     if (storeConfigured()) {
       try {
-        return Response.json(await store<{ views: View[] }>("/community"))
+        return Response.json(await store<{ views: View[] }>(lab ? "/community?kind=lab" : "/community"))
       } catch {
         // the store is down: the seeds keep the lists useful
       }

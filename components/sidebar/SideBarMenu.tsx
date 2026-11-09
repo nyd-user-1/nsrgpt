@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { FlaskConical } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 import { Activity } from "@/components/animate-ui/icons/activity"
@@ -30,6 +31,7 @@ const ALL: NavEntry[] = [
   { href: "/factory", label: "Factory", group: "Main" },
   { href: "/glossary", label: "Glossary", group: "Main" },
   { href: "/graph", label: "Graph", group: "Main" },
+  { href: "/lab", label: "Lab", group: "Main" },
   { href: "/pipeline", label: "Pipeline", group: "Main" },
   { href: "/schema", label: "Schema", group: "Main" },
   { href: "/search", label: "Search", group: "Main" },
@@ -56,6 +58,7 @@ export function SideBarMenu() {
         {place("/factory") && <SideBarMenuItem href="/factory" label="Factory" icon={PAGE_ICONS["/factory"]} on={path === "/factory"} />}
         {place("/glossary") && <SideBarMenuItem href="/glossary" label="Glossary" icon={PAGE_ICONS["/glossary"]} on={path === "/glossary"} />}
         {place("/graph") && <SideBarMenuItem href="/graph" label="Graph" icon={PAGE_ICONS["/graph"]} on={path === "/graph"} />}
+        {place("/lab") && <SideBarMenuItem href="/lab" label="Lab" icon={FlaskConical} on={path === "/lab"} />}
         {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={PAGE_ICONS["/pipeline"]} on={path === "/pipeline"} />}
         {place("/schema") && <SideBarMenuItem href="/schema" label="Schema" icon={PAGE_ICONS["/schema"]} on={path === "/schema"} />}
         {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={PAGE_ICONS["/search"]} on={path === "/search"} />}
