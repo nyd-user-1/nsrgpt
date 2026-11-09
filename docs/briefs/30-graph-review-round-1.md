@@ -50,3 +50,11 @@ name or "Canvas". The chat dock stays reachable from a node's Ask action.
 
 ## Done means
 Each item checked on the box in both themes; CI green; one report with commits and anything seen and not fixed.
+
+## 8. Addendum (22:30 ET): one Diagrams section, six drill-downs
+Replaces item 3's "keep the sections". Under Datasets, one section, **Diagrams**, in place of the six diagram sections.
+Its rows are the six kinds (Decay chains, Reaction networks, Activation and burnup, Production routes, Fission fan /
+yield curve, Level schemes), each a SideBarMenuItem row with its icon. Clicking a kind drills into a layer that lists that
+kind's diagrams as SideBarMenuItem rows, exactly as Corpus > Papers drills: the 500 ms push, the back arrow, the same
+header. The kind rows' kebab shows the kind's name over "Diagrams"; a diagram row's kebab shows its title over its type.
+No Type rows anywhere. Keep the fold state of the Diagrams section stored like the others.
