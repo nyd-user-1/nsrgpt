@@ -11,7 +11,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import dagre from "@dagrejs/dagre";
 import {
-  ArrowLeft, Check, ChevronRight, Copy, Crosshair, Download, History, Redo2, RotateCcw, Share2, Undo2,
+  ArrowLeft, Check, ChevronRight, Copy, Crosshair, Download, History, Redo2, RotateCcw, Share2, Trash2, Undo2,
   GripVertical, Loader2, MessageSquare, MoreHorizontal, Play, Plus, Save, Search, Settings2, X,
 } from "lucide-react";
 import { Atom } from "@/components/animate-ui/icons/atom";
@@ -31,7 +31,7 @@ import { LIBRARY, loadSpec } from "@/lib/diagram/library";
 import { toFlow } from "@/lib/diagram/layout";
 import { DIAGRAM_EDGE_TYPES, DIAGRAM_NODE_TYPES } from "@/components/nsr/graph/diagram";
 import { FlowSettingsPanel, DEFAULT_FLOW_PROPS, type FlowProps } from "@/components/nsr/graph/FlowSettings";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogPopup, DialogHeader, DialogTitle, DialogDescription } from "@/components/animate-ui/components/base/dialog";
@@ -47,7 +47,7 @@ import { RIGHT_VIEWS, RightInsetPanel, RightViewHeader, type RightView } from "@
 import { cn } from "@/lib/utils";
 import { copyPng, copyText, elementToPng } from "@/lib/canvas-png";
 import { canvasToSvg, downloadSvg, svgFileName } from "@/lib/canvas-svg";
-import { DEV_SIGNED_IN, DEV_USER } from "@/lib/dev-session";
+import { apiUrl } from "@/lib/api-url";
 import { apiJson, apiText, fileBase, levelsOf, nuclideName, recordOfNode, recordView, SOURCES, type GraphRef, type RecordView } from "@/lib/datasets";
 import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
@@ -455,7 +455,7 @@ const CATALOG_LINKS = [
 /** How many of a record's links one press of its expander brings (brief 33). */
 const RECORD_PAGE: Record<string, number> = { references: 12, levels: 20, subentry: 12 };
 /** Saved canvases from Community. A saved state is a recipe iff it has prompt steps. */
-interface ViewRow { id: number; name: string; saved_by: string; created_at: string; state?: { nodes?: { type: string }[]; diagram?: string; center?: { label: string } } }
+interface ViewRow { id: number | string; name: string; saved_by: string; created_at: string; state?: { nodes?: { type: string }[]; diagram?: string; center?: { label: string } } }
 const isRecipe = (v: ViewRow) => !!v.state?.nodes?.some((n) => n.type === "prompt");
 
 const toGNode = (typeKey: string, it: CatalogItem): GNode => {
@@ -525,7 +525,7 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
   onAdd: (g: GNode) => void;
   onAsk: (g: GNode) => void;
   onAddFile: (f: LibFile) => void;
-  onLoadView: (id: number) => void;
+  onLoadView: (id: number | string) => void;
   navigate: (p: string) => void;
   /** The diagrams the rail lists, from the library (brief 28). */
   railDiagrams: RailDiagram[];
@@ -562,6 +562,27 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
     staleTime: 60_000,
   });
 
+  // The signed-in reader's name as the store stamps saves with it (lib/community.ts signedInName): their own rows can be deleted.
+  const me = useQuery({
+    queryKey: ["auth-me"],
+    queryFn: async (): Promise<string | null> => {
+      const r = await fetch("/api/auth/me", { cache: "no-store" });
+      const { user } = (await r.json()) as { user?: { name?: string; email?: string } | null };
+      return user ? user.name || user.email?.split("@")[0] || null : null;
+    },
+    enabled: browse === "views" || browse === "recipes",
+    staleTime: 5 * 60_000,
+  });
+  const queryClient = useQueryClient();
+  const deleteView = async (v: ViewRow) => {
+    if (!window.confirm(`Delete "${v.name}" from Community?`)) return;
+    const r = await fetch(`/api/community?id=${encodeURIComponent(String(v.id))}`, { method: "DELETE" });
+    const body = (await r.json().catch(() => ({}))) as { error?: string };
+    if (!r.ok) { toast.error(body.error ?? `Couldn't delete it (${r.status})`); return; }
+    toast.success(`Deleted "${v.name}"`);
+    queryClient.invalidateQueries({ queryKey: ["community-views"] });
+  };
+
   const diagrams = railDiagrams;
   const layer = (() => {
   if (browse === "views" || browse === "recipes") {
@@ -585,9 +606,10 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
           {views.isLoading && <p className="p-3 text-xs text-[var(--paper-muted)]">Loading…</p>}
           {items.map((v) => (
             <InsetTip key={v.id} name={v.name} side="left">
+            <div className="group/view relative">
             <button
               onClick={() => onLoadView(v.id)}
-              className="flex w-full flex-col gap-0.5 border-b border-[var(--paper-rule-soft)] px-3 py-2 text-left transition-colors hover:bg-[var(--paper-quiet)]"
+              className={`flex w-full flex-col gap-0.5 border-b border-[var(--paper-rule-soft)] px-3 py-2 text-left transition-colors hover:bg-[var(--paper-quiet)] ${me.data && v.saved_by === me.data ? "pr-9" : ""}`}
             >
               <span className="flex w-full items-baseline justify-between gap-2">
                 <span className="truncate text-xs font-semibold text-[var(--paper-text)]">{v.name}</span>
@@ -595,6 +617,18 @@ function CatalogRail({ onPick, onAdd, onAsk, onAddFile, onLoadView, navigate, in
               </span>
               <span className="text-[10px] text-[var(--paper-muted)]">{v.saved_by} · {String(v.created_at).slice(0, 10)}</span>
             </button>
+            {me.data && v.saved_by === me.data && (
+              <button
+                type="button"
+                aria-label={`Delete ${v.name}`}
+                title="Delete"
+                onClick={() => deleteView(v)}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-[var(--paper-muted)] opacity-0 transition-opacity hover:bg-[var(--paper)] hover:text-[var(--paper-text)] focus-visible:opacity-100 group-hover/view:opacity-100"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+            </div>
             </InsetTip>
           ))}
         </InsetBody>
@@ -827,6 +861,7 @@ function GraphPageInner() {
   const navigate = (to: string) => router.push(to);
   const params = useSearchParams();
   const { screenToFlowPosition, fitView } = useReactFlow();
+  const queryClient = useQueryClient();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges] = useEdgesState<Edge>([]);
   const store = useRef(new Map<string, GNode>());
@@ -878,8 +913,6 @@ function GraphPageInner() {
   const [saveOpen, setSaveOpen] = useState(false);
   const [edgeInfo, setEdgeInfo] = useState<{ source: GNode; target: GNode; meta?: EdgeMeta } | null>(null);
   const [viewName, setViewName] = useState("");
-  // On the dev box (brief 33) saves carry the dev reader's name unless one was typed before.
-  const [savedBy, setSavedBy] = useState(() => localStorage.getItem("display-name") || (DEV_SIGNED_IN ? DEV_USER.name : ""));
 
   /* ── <ReactFlow /> props panel: every row is a live prop ────────────────── */
   const [flowProps, setFlowProps] = useState<FlowProps>(() => {
@@ -1655,7 +1688,6 @@ function GraphPageInner() {
 
   const saveView = async () => {
     if (!viewName.trim()) return;
-    localStorage.setItem("display-name", savedBy);
     const state = {
       nodes: nodes.map((n) => {
         const g = n.data as unknown as GNode;
@@ -1671,13 +1703,18 @@ function GraphPageInner() {
     const res = await fetch("/api/community", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "view", name: viewName, saved_by: savedBy || "anonymous", state }),
+      // the server stamps the save with the signed-in reader's name (brief 34)
+      body: JSON.stringify({ name: viewName, state }),
     });
     if (res.ok) {
       toast.success(state.nodes.some((n) => n.type === "prompt") ? "Recipe saved to Community" : "View saved to Community");
       setSaveOpen(false);
       setViewName("");
-    } else toast.error("Save failed");
+      queryClient.invalidateQueries({ queryKey: ["community-views"] });
+    } else {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      toast.error(body.error ?? `Save failed (${res.status})`);
+    }
   };
 
   const connected = useMemo(() => {
@@ -2150,7 +2187,6 @@ function GraphPageInner() {
             </DialogHeader>
             <div className="space-y-2 p-5">
               <Input value={viewName} onChange={(e) => setViewName(e.target.value)} placeholder="View / recipe name" autoFocus />
-              <Input value={savedBy} onChange={(e) => setSavedBy(e.target.value)} placeholder="Your name (optional)" />
               <Button className="w-full" onClick={saveView} disabled={!viewName.trim()}>Save</Button>
             </div>
           </DialogPopup>
@@ -2249,7 +2285,7 @@ function RecordDetail({ node, rec }: { node: GNode; rec?: { view?: RecordView; e
       <p className="flex flex-wrap gap-x-3 gap-y-1">
         <button type="button" className={link} onClick={() => save(def.textPath(page.id, {}), "txt", "text/plain;charset=utf-8")}>Text</button>
         <button type="button" className={link} onClick={() => save(def.mdPath(page.id, {}), "md", "text/markdown;charset=utf-8")}>Markdown</button>
-        <a className={link} href={`${page.href}?print=1`} target="_blank" rel="noreferrer">PDF</a>
+        <a className={link} href={def.pdfPath ? apiUrl(def.pdfPath(page.id, {})) : `${page.href}?print=1`} target="_blank" rel="noreferrer">PDF</a>
         <a className={link} href={page.href}>{def.label} page</a>
       </p>
     </div>

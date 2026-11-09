@@ -2,8 +2,8 @@
 // /datasets/{source}/{id}, the record (brief 33, Part 1): the header, the tables the record has (levels, gammas, other
 // records; a subentry's data columns; a material's sections; a reference's abstract and keywords), the comments, the
 // references with their NSR links, then the raw text in a mono block, folded. Four icon circles as /graph's: Text (the
-// raw record as held, the API's /text route), Markdown (its /md route), Print to PDF (the browser's print of this page;
-// ./print.css leaves the record alone on the paper) and Open in Graph (the record's own graph node, centred). The record
+// raw record as held, the API's /text route), Markdown (its /md route), PDF (its /pdf route for ENSDF and XUNDL; for the
+// others the browser's print of this page, ./print.css leaving the record alone on the paper) and Open in Graph (the record's own graph node, centred). The record
 // loads after the page paints; a route that isn't live shows the API's answer.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/nova/skeleton";
 import {
-  ApiError, apiJson, apiText, fileBase, graphNodeOf, idFromSegments, isSource, recordView, SOURCES,
+  ApiError, apiBlob, apiJson, apiText, fileBase, graphNodeOf, idFromSegments, isSource, recordView, SOURCES,
   type RecordQuery, type RecordView, type SourceKey,
 } from "@/lib/datasets";
 import { ApiErrorNote, cellText, DataTable, UnknownSource } from "./DatasetParts";
@@ -27,9 +27,9 @@ export function DatasetRecord() {
   return <RecordPage key={`${params.source}:${id}`} source={params.source} id={id} />;
 }
 
-function download(body: string, name: string, type: string) {
+function download(body: string | Blob, name: string, type: string) {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([body], { type }));
+  a.href = URL.createObjectURL(typeof body === "string" ? new Blob([body], { type }) : body);
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -51,7 +51,7 @@ function RecordPage({ source, id }: { source: SourceKey; id: string }) {
   const view: RecordView | null = q.data ? recordView(source, id, q.data, query) : null;
   const base = fileBase(source, id, query);
 
-  // /graph's Papers view links Print here with ?print=1: print once the record is on the page
+  // /graph's Papers view links here with ?print=1 for a source without a PDF of its own: print once the record is on the page
   const printNow = sp.get("print") === "1";
   useEffect(() => {
     if (printNow && view) { const t = setTimeout(() => window.print(), 400); return () => clearTimeout(t); }
@@ -64,6 +64,10 @@ function RecordPage({ source, id }: { source: SourceKey; id: string }) {
   };
   const saveMd = async () => {
     try { download(await apiText(def.mdPath(id, query)), `${base}.md`, "text/markdown;charset=utf-8"); } catch (e) { failed("Markdown", e); }
+  };
+  const savePdf = async () => {
+    if (!def.pdfPath) { window.print(); return; }
+    try { download(await apiBlob(def.pdfPath(id, query)), `${base}.pdf`, "application/pdf"); } catch (e) { failed("PDF", e); }
   };
   const node = view?.graph.node ?? graphNodeOf(source, id);
 
@@ -86,7 +90,7 @@ function RecordPage({ source, id }: { source: SourceKey; id: string }) {
         <div className="flex shrink-0 items-center gap-1.5 print:hidden">
           <Circle label="Text" onClick={saveText}><FileText className="h-4 w-4" /></Circle>
           <Circle label="Markdown" onClick={saveMd}><FileCode2 className="h-4 w-4" /></Circle>
-          <Circle label="Print to PDF" onClick={() => window.print()}><Printer className="h-4 w-4" /></Circle>
+          <Circle label={def.pdfPath ? "PDF" : "Print to PDF"} onClick={savePdf}><Printer className="h-4 w-4" /></Circle>
           <Circle label="Open in Graph" onClick={() => router.push(graphHref(node.type, node.id))}><Waypoints className="h-4 w-4" /></Circle>
         </div>
       </div>

@@ -35,6 +35,8 @@ export interface SourceDef {
   recordPath(id: string, q: RecordQuery): string
   textPath(id: string, q: RecordQuery): string
   mdPath(id: string, q: RecordQuery): string
+  /** The record as a PDF from the API, where the source has one (ENSDF, XUNDL); else the page prints itself. */
+  pdfPath?(id: string, q: RecordQuery): string
 }
 
 /** A short count for a heading: 2,644 reads 2.6K (lib/compact.ts). Exact figures stay in the tables. */
@@ -108,6 +110,7 @@ function structure(key: "ensdf" | "xundl", label: string, name: string): SourceD
     recordPath: (id) => rec(id),
     textPath: (id) => `${rec(id)}/text`,
     mdPath: (id) => `${rec(id)}/md`,
+    pdfPath: (id) => `${rec(id)}/pdf`,
   }
 }
 
@@ -356,7 +359,7 @@ function structureView(source: "ensdf" | "xundl", id: string, o: Record<string, 
   const nucid = str(h.nucid) || id.split(":")[0]
   const header: RecordView["header"] = []
   const add = (label: string, v: unknown) => { const j = join(v); if (!blank(j)) header.push({ label, value: j }) }
-  add("Nuclide", nucid)
+  add("Nuclide", nuclideName(nucid))
   add("Dataset", h.dsid ?? id.split(":").slice(1).join(":"))
   add("Type", h.type)
   add("Date", month(h.date))
@@ -390,7 +393,7 @@ function structureView(source: "ensdf" | "xundl", id: string, o: Record<string, 
   const comments = arr(o.comments).map(obj).filter((c) => str(c.text)).map((c) => ({ label: [str(c.rtype), str(c.type)].filter(Boolean).join(" "), text: tidyComment(str(c.text)) }))
   const references = refsOf(o.references)
   const dsid = str(h.dsid) || id.split(":").slice(1).join(":")
-  const sub = [nucid, str(h.type), month(h.date)].filter(Boolean).join(" · ")
+  const sub = [nuclideName(nucid), str(h.type), month(h.date)].filter(Boolean).join(" · ")
   const fallback: GraphBlock = {
     node: { type: "dataset", id: `${source}:${id}`, label: dsid || id, sub: `${SOURCES[source].label}${sub ? ` · ${sub}` : ""}` },
     links: [...nuclideLink(nucid), ...refLinks(references)],
@@ -577,6 +580,23 @@ export async function apiJson(path: string): Promise<unknown> {
   } catch {
     throw new ApiError(path, r.status, "The API answered with something other than JSON.")
   }
+}
+
+/** GET a route as bytes (a PDF). */
+export async function apiBlob(path: string): Promise<Blob> {
+  let r: Response
+  try {
+    r = await fetch(apiUrl(path))
+  } catch (e) {
+    throw new ApiError(path, 0, (e as Error).message || "The API didn't answer.")
+  }
+  if (!r.ok) {
+    const body = await r.text()
+    let detail = body
+    try { detail = str(obj(JSON.parse(body)).error) || body } catch { /* plain text */ }
+    throw new ApiError(path, r.status, detail.slice(0, 600) || r.statusText)
+  }
+  return r.blob()
 }
 
 /** GET a route as text (the raw record, the Markdown). */

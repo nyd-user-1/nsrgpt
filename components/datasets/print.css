@@ -54,6 +54,13 @@
   .dataset-print thead {
     display: table-header-group;
   }
+  .dataset-print th,
+  .dataset-print td {
+    height: auto !important;
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+    font-size: 10px !important;
+  }
   .dataset-print tr {
     break-inside: avoid;
   }
