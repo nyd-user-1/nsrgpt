@@ -16,7 +16,12 @@ Rerun each part on the parse box (`scripts/parse/box/create.sh`; scripts synced 
 - **Part B, MF8 and MF33** (`endfb_fy`, `endfb_decay`, `endfb_decay_modes`, `endfb_decay_lines`, `endfb_cov`):
   `./releases.sh --mf=8,33 <release>`. Same files and sections as part A; each table's sections are compared with
   `endfb_sections` and written to the manifest's `mf8_mf33` section.
-- **Serving**: `cd ../serve-structure && /opt/parse/bin/python -I serve.py endf <release>` (`lake/serve/endf/<release>/`).
+- **Serving**: `cd ../serve-structure && /opt/parse/bin/python -I serve.py endf <release>` (`lake/serve/endf/<release>/`);
+  for JEFF-3.3, JENDL-5 and TENDL-2023 also `HOME=/root /opt/parse/bin/python -I serve.py point_files <release>` (the
+  API reads them through `xs_index/` and `xs_series/series.bin`, `INDEXED` in `services/nsr-api/structure.py`).
+- **Search**: `serve.py docs`, then `cd ../search && HOME=/root /opt/parse/bin/python -I index.py` (it needs
+  `scripts/parse/exfor/common.py` at `/opt/parse/scripts/common.py` and DuckDB's fts in `/opt/duckdb_ext`); then build
+  and deploy nsr-api (`services/nsr-api/README.md`, "Packages and build").
 
 `parse.py <release> <s3 key>… [--mf=8,33] [--no-upload] [--register-only] [--only=<path part>]` is what `releases.sh`
 runs; `--only` parses one file as a test.

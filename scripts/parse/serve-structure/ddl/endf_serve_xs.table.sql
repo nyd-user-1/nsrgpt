@@ -38,3 +38,7 @@ ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point
 ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.1-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.1-point-0K/xs/';
 ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-293.6K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.0-point-293.6K/xs/';
 ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.0-point-0K') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/B-VIII.0-point-0K/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='CENDL-3.2') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/CENDL-3.2/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='JEFF-3.3') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/JEFF-3.3/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='JENDL-5') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/JENDL-5/xs/';
+ALTER TABLE `endf_serve_xs` ADD IF NOT EXISTS PARTITION (release='TENDL-2023') LOCATION 's3://nsr-lake-613473203863/lake/serve/endf/TENDL-2023/xs/';
