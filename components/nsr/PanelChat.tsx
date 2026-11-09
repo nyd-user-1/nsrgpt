@@ -2,7 +2,8 @@
 
 import { lazy, Suspense, useRef, useState } from "react";
 import { Loader2, Paperclip } from "lucide-react";
-import { ChatInput } from "@/components/chat/ChatInput";
+import { ChatInputContainer } from "@/components/chat/ChatInput";
+import { streamChat } from "@/lib/chat-stream";
 import type { NsrRecord } from "@/lib/nsr-types";
 
 const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMessage })));
@@ -46,24 +47,14 @@ export function PanelChat({ record }: { record: NsrRecord }) {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...history, { role: "user", content: text }], model: modelId, systemContext: describeRecord(record) }),
-        signal: ctrl.signal,
-      });
-      if (!res.ok) throw new Error(`chat ${res.status}`);
-      const reader = res.body!.getReader();
-      const dec = new TextDecoder();
-      let acc = "";
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += dec.decode(value, { stream: true });
-        const cur = acc;
-        setMsgs((m) => { const n = [...m]; n[n.length - 1] = { role: "assistant", content: cur }; return n; });
-        listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
-      }
+      const acc = await streamChat(
+        { messages: [...history, { role: "user", content: text }], model: modelId, systemContext: describeRecord(record) },
+        (cur) => {
+          setMsgs((m) => { const n = [...m]; n[n.length - 1] = { role: "assistant", content: cur }; return n; });
+          listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+        },
+        ctrl.signal,
+      );
       if (!acc) setMsgs((m) => { const n = [...m]; n[n.length - 1] = { role: "assistant", content: "(no answer came back — try again)" }; return n; });
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
@@ -98,7 +89,7 @@ export function PanelChat({ record }: { record: NsrRecord }) {
           <span className="min-w-0 truncate">— {record.title}</span>
         </div>
         <div className="relative [&_.rounded-2xl]:p-2.5 [&_textarea]:text-sm">
-          <ChatInput onSubmit={send} isLoading={busy} onStop={() => abortRef.current?.abort()} />
+          <ChatInputContainer onSubmit={send} isLoading={busy} onStop={() => abortRef.current?.abort()} />
         </div>
       </div>
     </div>

@@ -37,7 +37,9 @@ interface ChatInputProps {
   beam?: boolean;
 }
 
-export function ChatInput({ onSubmit, onStop, isLoading, initialValue, searchToggle, lambdaLastCall = null, beam = false }: ChatInputProps) {
+/** ChatInputContainer (the design system's name, brief 50): the box, its light, the plus menu, the model picker, send and
+ *  stop. /chat, the graph's dock, /search's record chat and the step output's chat all use it. */
+export function ChatInputContainer({ onSubmit, onStop, isLoading, initialValue, searchToggle, lambdaLastCall = null, beam = false }: ChatInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const lit = beam && isFocused;
   // One search backend since Hugging Face was dropped, so no picker (Brendan, 2026-11-07).
@@ -230,3 +232,6 @@ export function ChatInput({ onSubmit, onStop, isLoading, initialValue, searchTog
     </div>
   );
 }
+
+/** The earlier name, kept so nothing breaks. */
+export const ChatInput = ChatInputContainer;

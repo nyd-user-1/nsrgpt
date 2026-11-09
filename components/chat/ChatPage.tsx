@@ -3,11 +3,12 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ChatInput } from "@/components/chat/ChatInput";
+import { ChatInputContainer } from "@/components/chat/ChatInput";
 import { DetailBody, type EntityType } from "@/components/chat/EntityDetail";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { useChat } from "@/hooks/useChat";
+import { SEED_PREFIX } from "@/lib/pane";
 
 // pax-trinity's typewriter over the empty chat (components/text-type.tsx, brought back 2026-11-07), with NSR's own lines.
 // It types each line, then the next, and stops on the last.
@@ -31,6 +32,9 @@ export function ChatPage() {
   const [autoSubmitted, setAutoSubmitted] = useState(false);
   const [entity, setEntity] = useState<{ type: EntityType; id: string } | null>(null);
   const [entityDetail, setEntityDetail] = useState<Record<string, unknown> | null>(null);
+  // The second panel's chat, opened by askAbout (components/shell.tsx): ?seed= names the context it stored, which rides
+  // every message of this chat (brief 50).
+  const seedRef = useRef<string | null>(null);
 
   // Inline citations dispatch open-entity; the panel shows the record.
   useEffect(() => {
@@ -103,6 +107,10 @@ export function ChatPage() {
 
   // Auto-submit from URL params (from reference card click)
   useEffect(() => {
+    const seed = searchParams.get("seed");
+    if (seed && seedRef.current === null) {
+      try { seedRef.current = localStorage.getItem(SEED_PREFIX + seed); } catch {}
+    }
     if (autoSubmitted || routeSessionId) return;
 
     const prompt = searchParams.get("prompt");
@@ -122,6 +130,8 @@ export function ChatPage() {
           "\n\nThe user is asking about a specific nuclear science reference. " +
           "Here is the record data:\n" +
           context;
+      } else if (seedRef.current) {
+        systemContext += "\n\n" + seedRef.current;
       }
 
       if (url) {
@@ -170,8 +180,8 @@ export function ChatPage() {
 
           {/* Input pinned to bottom */}
           <div className="px-2 md:px-4 py-3 md:py-4 shrink-0 bg-[var(--paper)]">
-            <ChatInput
-              onSubmit={(text, modelId, pdf, backend) => sendMessage(text, undefined, undefined, modelId, pdf, backend)}
+            <ChatInputContainer
+              onSubmit={(text, modelId, pdf, backend) => sendMessage(text, seedRef.current ?? undefined, undefined, modelId, pdf, backend)}
               lambdaLastCall={lambdaLastCall}
               onStop={stopGeneration}
               isLoading={isLoading}
@@ -188,9 +198,9 @@ export function ChatPage() {
               <TextType as="span" text={READY} loop={false} typingSpeed={70} className="text-2xl font-normal text-[#2563eb] md:text-3xl" />
             </span>
           </div>
-          <ChatInput
+          <ChatInputContainer
             beam
-            onSubmit={(text, modelId, pdf, backend) => sendMessage(text, undefined, undefined, modelId, pdf, backend)}
+            onSubmit={(text, modelId, pdf, backend) => sendMessage(text, seedRef.current ?? undefined, undefined, modelId, pdf, backend)}
               lambdaLastCall={lambdaLastCall}
             isLoading={isLoading}
             searchToggle

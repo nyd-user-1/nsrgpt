@@ -3,7 +3,8 @@
 import { lazy, Suspense, useRef, useState } from "react";
 import { Loader2, MessageSquare, Paperclip, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ChatInput } from "@/components/chat/ChatInput";
+import { ChatInputContainer } from "@/components/chat/ChatInput";
+import { streamChat } from "@/lib/chat-stream";
 import { ENTITY_MIME, type DragEntity, describeEntity, readDragEntity } from "@/lib/nsr-drag-entity";
 
 const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMessage })));
@@ -46,28 +47,18 @@ export function ChatDock({ context, open, onOpenChange, attached, onAttach, laun
     abortRef.current = ctrl;
     try {
       const parts = [await describeEntity(attached), context()].filter(Boolean);
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...history, { role: "user", content: text }], model: modelId, systemContext: parts.length ? parts.join("\n\n") : undefined }),
-        signal: ctrl.signal,
-      });
-      if (!res.ok) throw new Error(`chat ${res.status}`);
-      const reader = res.body!.getReader();
-      const dec = new TextDecoder();
-      let acc = "";
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += dec.decode(value, { stream: true });
-        const cur = acc;
-        setMsgs((m) => {
-          const n = [...m];
-          n[n.length - 1] = { role: "assistant", content: cur };
-          return n;
-        });
-        listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
-      }
+      const acc = await streamChat(
+        { messages: [...history, { role: "user", content: text }], model: modelId, systemContext: parts.length ? parts.join("\n\n") : undefined },
+        (cur) => {
+          setMsgs((m) => {
+            const n = [...m];
+            n[n.length - 1] = { role: "assistant", content: cur };
+            return n;
+          });
+          listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+        },
+        ctrl.signal,
+      );
       if (!acc) {
         setMsgs((m) => {
           const n = [...m];
@@ -164,7 +155,7 @@ export function ChatDock({ context, open, onOpenChange, attached, onAttach, laun
           </div>
         )}
         <div className="relative [&_.rounded-2xl]:p-2.5 [&_textarea]:text-sm">
-          <ChatInput
+          <ChatInputContainer
             onSubmit={send}
             isLoading={busy}
             onStop={() => abortRef.current?.abort()}

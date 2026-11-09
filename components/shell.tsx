@@ -301,7 +301,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       asideKey: null,
       askAbout: (s: Omit<DiscussSeed, "nonce">) => {
         setSeed({ ...s, nonce: Date.now() })
-        openPane(`/chat?seed=${storeSeed(s.context())}`)
+        // The chat in the second panel reads the stored context and asks the seed's question, if it has one (brief 50).
+        openPane(`/chat?seed=${storeSeed(s.context())}${s.ask ? `&prompt=${encodeURIComponent(s.ask.ask)}` : ""}`)
       },
       discussSeed: seed,
       signedIn: false,

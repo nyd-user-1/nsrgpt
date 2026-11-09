@@ -4,6 +4,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TexText } from "./TexText";
+import { useShellPanel } from "@/components/shell";
 
 /** Entity detail body shared by the graph side panel and chat citations. */
 
@@ -19,6 +20,18 @@ function Field({ k, v }: { k: string; v: React.ReactNode }) {
   );
 }
 
+/** A paper's record as the right panel's chat context (brief 50: Ask NSRgpt opens that chat, not /chat). */
+function paperContext(node: Record<string, unknown>, counts: Record<string, unknown>): string {
+  return [
+    "The user is asking about this NSR paper.",
+    `key_number: ${node.key_number}`,
+    node.title ? `title: ${node.title}` : "",
+    node.doi ? `doi: ${node.doi}` : "",
+    node.abstract ? `abstract: ${node.abstract}` : "",
+    `links: ${counts.authors ?? 0} authors, ${counts.nuclides ?? 0} nuclides, ${counts.reactions ?? 0} reactions, ${counts.exfor ?? 0} EXFOR entries`,
+  ].filter(Boolean).join("\n");
+}
+
 export function DetailBody({ type, detail, navigate, onCanvas }: {
   type: EntityType;
   detail: Record<string, unknown>;
@@ -28,6 +41,7 @@ export function DetailBody({ type, detail, navigate, onCanvas }: {
 }) {
   const node = (detail.node ?? {}) as Record<string, unknown>;
   const counts = (detail.counts ?? {}) as Record<string, unknown>;
+  const { askAbout } = useShellPanel();
   if (type === "paper") {
     return (
       <div>
@@ -50,7 +64,7 @@ export function DetailBody({ type, detail, navigate, onCanvas }: {
           <Field k="Links" v={`${counts.authors ?? 0} authors · ${counts.nuclides ?? 0} nuclides · ${counts.reactions ?? 0} reactions · ${counts.exfor ?? 0} EXFOR`} />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/chat?prompt=${encodeURIComponent(`Tell me about ${node.key_number}: ${node.title ?? ""}`)}`)}>
+          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => askAbout({ context: () => paperContext(node, counts), ask: { id: `paper:${node.key_number}`, ask: `Tell me about ${node.key_number}: ${node.title ?? ""}`, register: "technical", position: 0, propensity: 1 } })}>
             Ask NSRgpt
           </Button>
           {node.doi != null && (

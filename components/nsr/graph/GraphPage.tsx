@@ -40,6 +40,7 @@ import { Input } from "@/components/ui/input";
 import { TexText } from "@/components/chat/TexText";
 import { DetailBody } from "@/components/chat/EntityDetail";
 import { ChatDock } from "@/components/nsr/graph/ChatDock";
+import { StepChat } from "@/components/nsr/graph/StepChat";
 import { setRail, useRailClosed, useRailsClosedWhileMounted } from "@/components/rail-toggle";
 import { INSET, InsetBody, InsetLayers, InsetTip } from "@/components/nsr/graph/InsetPanel";
 import { BRANCH, SideBarGroupHeader, SideBarMenuItem, SideBarSection, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem";
@@ -58,7 +59,6 @@ import { GRAPH_CENTER, STARTER, keyOf, toGNode, type Catalog } from "./entities"
 
 // Answers render as /chat renders them (brief 50), loaded with the first answer shown, as the dock loads them.
 const ChatMarkdown = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMarkdown })));
-const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMessage })));
 
 /**
  * The workspace canvas — OpenMetadata's lineage interaction model over our
@@ -83,6 +83,8 @@ export interface GNode {
   title?: string | null;
   prompt?: string;
   output?: string;
+  /** A prompt step's conversation about its output (brief 50), saved with the view as `output` is. */
+  chat?: { role: "user" | "assistant"; content: string }[];
   fileKey?: string;
   fileText?: string;
   /** Nuclide cards on a chart grid (decay chains, capture paths): proton and neutron numbers; levels: energy in keV. */
@@ -1695,6 +1697,7 @@ function GraphPageInner() {
         return {
           type: g.type, id: g.id, label: g.label, sub: g.sub, title: g.title,
           prompt: g.prompt, output: g.output ? g.output.slice(0, 2000) : undefined,
+          chat: g.chat?.slice(-10).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) })),
           fileKey: g.fileKey, fileText: g.fileText,
           x: n.position.x, y: n.position.y,
         };
@@ -1841,12 +1844,8 @@ function GraphPageInner() {
             )}
           </InsetBody>
         )}
-        {sel.type === "prompt" && sel.output && (
-          <InsetBody className="px-3 pt-3">
-            <Suspense fallback={<p className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--paper-text)]">{sel.output}</p>}>
-              <ChatMessage role="assistant" content={sel.output} size="sm" />
-            </Suspense>
-          </InsetBody>
+        {sel.type === "prompt" && sel.output && selectedKey && (
+          <StepChat key={selectedKey} prompt={sel.prompt ?? ""} output={sel.output} chat={sel.chat ?? []} onChat={(chat) => patchNode(selectedKey, { chat })} />
         )}
       </>
     );
