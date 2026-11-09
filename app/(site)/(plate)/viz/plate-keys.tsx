@@ -132,5 +132,5 @@ export function PlateKeys() {
       current?.removeAttribute(ON)
     }
   }, [])
-  return <style>{`[${ON}]{box-shadow:inset 0 0 0 2px var(--paper-strong);background-color:color-mix(in oklab,var(--paper-strong) 12%,var(--paper))}`}</style>
+  return <style>{`[${ON}]{box-shadow:inset 0 0 0 2px #033882;background-color:color-mix(in oklab,#033882 14%,var(--paper))}`}</style>
 }
