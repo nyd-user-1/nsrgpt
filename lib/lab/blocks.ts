@@ -26,7 +26,11 @@ export type Block = {
   state: BlockState
 }
 
-export type Edge = { id: string; source: string; sourceHandle: string; target: string; targetHandle: string }
+/** A side of a block, where a port's dot can sit (Brendan, 2026-11-10). */
+export type Side = "top" | "right" | "bottom" | "left"
+/** sourceSide and targetSide are set when the reader pinned the dot to a side; left out, the side follows the blocks'
+ *  positions as they move (floating edges). */
+export type Edge = { id: string; source: string; sourceHandle: string; target: string; targetHandle: string; sourceSide?: Side; targetSide?: Side }
 
 export type Canvas = { id: string; name: string; blocks: Block[]; edges: Edge[]; created_at: string; updated_at: string }
 

@@ -16,9 +16,9 @@ import {
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { ChevronDown, ChevronRight, LayoutDashboard, Play, Plus, Save, type LucideIcon } from "lucide-react"
+import { ChevronDown, ChevronRight, LayoutDashboard, PanelBottom, Play, Plus, Rows3, Save, type LucideIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { BlockNode } from "@/components/lab/BlockNode"
@@ -30,7 +30,11 @@ import { useLab } from "@/components/lab/useLab"
 import { setRail } from "@/components/rail-toggle"
 import { Button } from "@/components/ui/button"
 import { streamChat, type ChatTurn } from "@/lib/chat-stream"
-import { inputsFor, newId, portsMatch, type Block, type BlockKind, type Canvas } from "@/lib/lab/blocks"
+import { inputsFor, isDataset, newId, portsMatch, seriesList, type Block, type BlockKind, type Canvas, type Dataset, type Edge, type Side } from "@/lib/lab/blocks"
+import { PlotChart } from "@/components/lab/PlotChart"
+import type { PlotMode } from "@/lib/lab/canvases/plot"
+
+const ChatMarkdown = lazy(() => import("@/components/chat/ChatMessage").then((m) => ({ default: m.ChatMarkdown })))
 import { DEFAULT_CANVAS } from "@/lib/lab/default"
 import { KINDS, newBlock } from "@/lib/lab/kinds"
 import { answerOnly, contextOf } from "@/lib/lab/kinds/prompt"
@@ -97,44 +101,79 @@ function LabInner() {
   const pendingTidy = useRef(false)
   const nodesInitialized = useNodesInitialized()
   const [lanes, setLanes] = useState<Lane[]>([])
+  // Notebook (option 6, a switch): the stages as rows, top to bottom, the plot full width at the foot. Outputs in panels
+  // (option 7, a switch): the Plot and the Prompt stand as cards and show their output in the sheet and the right panel.
+  const [notebook, setNotebook] = useState(false)
+  const [outputsInPanels, setOutputsInPanels] = useState(false)
   const tidy = useCallback(() => {
     const measured = new Map(flow.getNodes().map((n) => [n.id, n.measured]))
     const sizeOf = (b: Block) => ({ w: measured.get(b.id)?.width ?? b.size?.w ?? 300, h: measured.get(b.id)?.height ?? b.size?.h ?? 320 })
     const byLane: Block[][] = LANES.map(() => [])
     for (const b of canvas.blocks) byLane[STAGE[b.kind]].push(b)
     const order = new Map<string, number>()
+    // Blocks fed from the stage before stand level with their sources; the unfed keep the canvas's order after them.
+    const key = (b: Block) => {
+      const from = canvas.edges.filter((e) => e.target === b.id).map((e) => order.get(e.source)).filter((n): n is number => n !== undefined)
+      return from.length ? from.reduce((a, c) => a + c, 0) / from.length : Number.POSITIVE_INFINITY
+    }
     const out: Lane[] = []
-    let x = 0
-    byLane.forEach((list, i) => {
-      const w = Math.max(240, ...list.map((b) => sizeOf(b).w))
-      // Blocks fed from the lane before stand level with their sources; the unfed keep the canvas's order after them.
-      const key = (b: Block) => {
-        const from = canvas.edges.filter((e) => e.target === b.id).map((e) => order.get(e.source)).filter((n): n is number => n !== undefined)
-        return from.length ? from.reduce((a, c) => a + c, 0) / from.length : Number.POSITIVE_INFINITY
-      }
-      const sorted = [...list].sort((a, b) => key(a) - key(b))
+    if (notebook) {
+      // Rows: each stage's blocks side by side; the widest row sets the page, and the Plot takes the whole of it.
+      const rowWidth = Math.max(560, ...byLane.map((list) => list.reduce((w, b) => w + sizeOf(b).w, 0) + Math.max(0, list.length - 1) * LANE_GAP))
       let y = 0
-      sorted.forEach((b, k) => {
-        order.set(b.id, k)
-        lab.move(b.id, { x, y })
-        y += sizeOf(b).h + LANE_GAP
+      byLane.forEach((list, i) => {
+        const sorted = [...list].sort((a, b) => key(a) - key(b))
+        let x = 0
+        let rowH = 0
+        sorted.forEach((b, k) => {
+          order.set(b.id, k)
+          if (b.kind === "plot") lab.resize(b.id, { w: rowWidth, h: sizeOf(b).h })
+          lab.move(b.id, { x, y })
+          x += (b.kind === "plot" ? rowWidth : sizeOf(b).w) + LANE_GAP
+          rowH = Math.max(rowH, sizeOf(b).h)
+        })
+        if (list.length) {
+          out.push({ label: LANES[i], x: 0, w: rowWidth })
+          y += rowH + LANE_GAP + 44
+        }
       })
-      out.push({ label: LANES[i], x, w })
-      x += w + LANE_GUTTER
-    })
+    } else {
+      let x = 0
+      byLane.forEach((list, i) => {
+        const w = Math.max(240, ...list.map((b) => sizeOf(b).w))
+        const sorted = [...list].sort((a, b) => key(a) - key(b))
+        let y = 0
+        sorted.forEach((b, k) => {
+          order.set(b.id, k)
+          if (b.kind === "plot" && b.size) lab.resize(b.id, undefined)
+          lab.move(b.id, { x, y })
+          y += sizeOf(b).h + LANE_GAP
+        })
+        out.push({ label: LANES[i], x, w })
+        x += w + LANE_GUTTER
+      })
+    }
     setLanes(out)
     requestAnimationFrame(() => flow.fitView(FIT))
-  }, [canvas.blocks, canvas.edges, flow, lab])
-  /** A dropped block lands on the nearest lane's left edge; its height stays where it was put. */
+  }, [canvas.blocks, canvas.edges, flow, lab, notebook])
+  /** A dropped block lands on the nearest lane's left edge in the lanes layout; in the notebook it stays where it was put. */
   const snap = useCallback((id: string, p: { x: number; y: number }) => {
-    const lane = lanes.length ? lanes.reduce((best, l) => (Math.abs(l.x - p.x) < Math.abs(best.x - p.x) ? l : best)) : null
+    const lane = !notebook && lanes.length ? lanes.reduce((best, l) => (Math.abs(l.x - p.x) < Math.abs(best.x - p.x) ? l : best)) : null
     lab.move(id, { x: lane ? lane.x : p.x, y: p.y })
-  }, [lanes, lab])
+  }, [lanes, lab, notebook])
   useEffect(() => {
     if (!nodesInitialized || !pendingTidy.current) return
     pendingTidy.current = false
     tidy()
   }, [nodesInitialized, tidy])
+  // A layout switch re-tidies into the other shape at once.
+  const firstLayout = useRef(true)
+  useEffect(() => {
+    if (firstLayout.current) { firstLayout.current = false; return }
+    pendingTidy.current = false
+    tidy()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notebook])
   // The view fits once, on load; nothing recentres it afterwards (Brendan, 2026-11-10). Tidy is the circle, by hand.
   const [legendOpen, setLegendOpen] = useState(false)
   // The rails close over 500 ms after the page draws, and the canvas widens under the first fit; fit again once they
@@ -194,18 +233,48 @@ function LabInner() {
   }, [lanes, nodes, canvas.blocks])
 
   const [edgeSel, setEdgeSel] = useState<Set<string>>(new Set())
+  // Floating edges (Brendan, 2026-11-10): an edge's ends sit on the sides that face each other, worked out from where the
+  // two blocks stand, so a moved block takes its dots with it; a side the reader drew the end to is kept.
+  const sidesOf = useCallback((e: Edge): { s: Side; t: Side } => {
+    if (e.sourceSide && e.targetSide) return { s: e.sourceSide, t: e.targetSide }
+    const a = nodes.find((n) => n.id === e.source), b = nodes.find((n) => n.id === e.target)
+    if (!a || !b) return { s: e.sourceSide ?? "right", t: e.targetSide ?? "left" }
+    const centre = (n: Node) => ({ x: n.position.x + (n.measured?.width ?? 300) / 2, y: n.position.y + (n.measured?.height ?? 320) / 2 })
+    const ca = centre(a), cb = centre(b)
+    const dx = cb.x - ca.x, dy = cb.y - ca.y
+    const auto: { s: Side; t: Side } = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? { s: "right", t: "left" } : { s: "left", t: "right" }) : dy >= 0 ? { s: "bottom", t: "top" } : { s: "top", t: "bottom" }
+    return { s: e.sourceSide ?? auto.s, t: e.targetSide ?? auto.t }
+  }, [nodes])
   const edges: FlowEdge[] = useMemo(() => canvas.edges.map((e) => {
     const from = canvas.blocks.find((b) => b.id === e.source)
     const port = from?.outputs[e.sourceHandle]
+    const { s, t } = sidesOf(e)
     return {
       ...e,
+      sourceHandle: `${e.sourceHandle}@${s}`,
+      targetHandle: `${e.targetHandle}@${t}`,
       selected: edgeSel.has(e.id),
       type: "smoothstep",
       pathOptions: { borderRadius: 14, offset: 28 },
       animated: from?.state.status === "running",
+      reconnectable: true,
       style: { stroke: port ? PORT_COLOR[port] : undefined, strokeWidth: edgeSel.has(e.id) ? 2.5 : 1.5 },
     }
-  }), [canvas.edges, canvas.blocks, edgeSel])
+  }), [canvas.edges, canvas.blocks, edgeSel, sidesOf])
+  const usedHandles = useMemo(() => {
+    const set = new Set<string>()
+    for (const e of canvas.edges) {
+      const { s, t } = sidesOf(e)
+      set.add(`${e.source}:${e.sourceHandle}@${s}`)
+      set.add(`${e.target}:${e.targetHandle}@${t}`)
+    }
+    return set
+  }, [canvas.edges, sidesOf])
+  /** A handle id on the canvas is `${port}@${side}`. */
+  const splitHandle = (h: string | null | undefined): { port: string; side?: Side } => {
+    const [port, side] = (h ?? "").split("@")
+    return { port, side: side as Side | undefined }
+  }
 
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
     for (const c of changes) {
@@ -216,13 +285,21 @@ function LabInner() {
 
   const portOf = useCallback((c: Connection | FlowEdge) => {
     const s = canvas.blocks.find((b) => b.id === c.source), t = canvas.blocks.find((b) => b.id === c.target)
-    return { from: s?.outputs[c.sourceHandle ?? ""], to: t?.inputs[c.targetHandle ?? ""] }
+    return { from: s?.outputs[splitHandle(c.sourceHandle).port], to: t?.inputs[splitHandle(c.targetHandle).port] }
   }, [canvas.blocks])
   const onConnect = useCallback((c: Connection) => {
     const { from, to } = portOf(c)
     if (!portsMatch(from, to)) return toast.info(`A ${from ?? "?"} output joins a ${from ?? "matching"} input only`)
     if (c.source === c.target) return
-    lab.connect({ source: c.source, sourceHandle: c.sourceHandle ?? "", target: c.target, targetHandle: c.targetHandle ?? "" })
+    const sh = splitHandle(c.sourceHandle), th = splitHandle(c.targetHandle)
+    lab.connect({ source: c.source, sourceHandle: sh.port, target: c.target, targetHandle: th.port, sourceSide: sh.side, targetSide: th.side })
+  }, [lab, portOf])
+  // An edge's end dragged to another dot (React Flow's reconnect): the port, and the side it was drawn to, are kept.
+  const onReconnect = useCallback((old: FlowEdge, c: Connection) => {
+    const { from, to } = portOf(c)
+    if (!portsMatch(from, to) || c.source === c.target) return
+    const sh = splitHandle(c.sourceHandle), th = splitHandle(c.targetHandle)
+    lab.reconnect(old.id, { source: c.source, sourceHandle: sh.port, target: c.target, targetHandle: th.port, sourceSide: sh.side, targetSide: th.side })
   }, [lab, portOf])
 
   const addAt = useCallback((kind: BlockKind, screen?: { x: number; y: number }) => {
@@ -290,10 +367,30 @@ function LabInner() {
     openSubentry: (id) => setSubentry(id),
     ask: (id, q) => void ask(id, q),
     asking,
-  }), [lab, selected, ask, asking])
+    usedHandles,
+    outputsInPanels,
+  }), [lab, selected, ask, asking, usedHandles, outputsInPanels])
 
   const running = canvas.blocks.some((b) => b.state.status === "running")
   const sel = canvas.blocks.find((b) => b.id === selected) ?? null
+
+  // The sheet's preview when outputs read in the panels: the selected Plot's chart, or the selected Prompt's answer.
+  const preview = useMemo(() => {
+    if (!outputsInPanels || !sel) return null
+    if (sel.kind === "plot") {
+      const inputs = inputsFor(sel, canvas.edges, outputs)
+      const points = (inputs.points ?? []).find(isDataset) as Dataset | undefined
+      const series = (inputs.series ?? []).flatMap(seriesList), ratio = (inputs.ratio ?? []).flatMap(seriesList)
+      const p = sel.params as { mode?: PlotMode; highlight?: [number, number] }
+      if (!points && !series.length && !ratio.length) return null
+      return <PlotChart className="h-full min-h-[200px]" points={points} series={series} ratio={ratio} mode={p.mode ?? "both"} highlight={p.highlight} title={sel.title} onPoint={(d) => setSubentry(d)} />
+    }
+    if (sel.kind === "prompt") {
+      const text = typeof outputs[sel.id]?.text === "string" ? (outputs[sel.id]!.text as string) : ""
+      return text ? <Suspense fallback={<p className="whitespace-pre-wrap text-xs">{text}</p>}><div className="max-w-3xl p-2"><ChatMarkdown content={text} size="sm" /></div></Suspense> : null
+    }
+    return null
+  }, [outputsInPanels, sel, canvas.edges, outputs])
 
   return (
     <LabContext.Provider value={ctx}>
@@ -317,6 +414,8 @@ function LabInner() {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              onReconnect={onReconnect}
+              edgesReconnectable
               isValidConnection={(c) => c.source !== c.target && portsMatch(portOf(c).from, portOf(c).to)}
               onNodeDragStop={(_, n) => snap(n.id, n.position)}
               onNodeClick={(_, n) => { setSelected(n.id); setSubentry(null) }}
@@ -384,13 +483,21 @@ function LabInner() {
               <Background gap={24} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>
-            <div className="absolute bottom-4 right-4 z-10 flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
+            {/* Bottom right (Brendan, 2026-11-10): the two layout switches, Notebook (the stages as rows, the plot full width)
+                and Outputs in panels (the chart and the answer in the sheet), then Save. */}
+            <div className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
+              <Button variant="outline" aria-label="Notebook layout" aria-pressed={notebook} title={notebook ? "Lanes" : "Notebook"} className={`h-8 w-8 shrink-0 rounded-full p-0 ${notebook ? "bg-[var(--paper-quiet)]" : ""}`} onClick={() => { setNotebook((v) => !v); pendingTidy.current = true }}>
+                <Rows3 className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" aria-label="Outputs in the panels" aria-pressed={outputsInPanels} title={outputsInPanels ? "Outputs on the canvas" : "Outputs in the panels"} className={`h-8 w-8 shrink-0 rounded-full p-0 ${outputsInPanels ? "bg-[var(--paper-quiet)]" : ""}`} onClick={() => setOutputsInPanels((v) => !v)}>
+                <PanelBottom className="h-4 w-4" />
+              </Button>
               <Button variant="outline" aria-label="Save the canvas" title="Save" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={save} disabled={saving}>
                 <Save className="h-4 w-4" />
               </Button>
             </div>
           </div>
-          <OutputPane block={sel} outputs={sel ? outputs[sel.id] : undefined} logs={lab.logs} />
+          <OutputPane block={sel} outputs={sel ? outputs[sel.id] : undefined} logs={lab.logs} preview={preview} />
         </div>
         {railsReady && <LabRight subentry={subentry} onCloseSubentry={() => setSubentry(null)} />}
       </div>

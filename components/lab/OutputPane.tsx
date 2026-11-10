@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronDown, ChevronUp, Download } from "lucide-react"
-import { lazy, Suspense, useState } from "react"
+import { lazy, Suspense, useState, type ReactNode } from "react"
 
 import type { RunLog } from "@/components/lab/useLab"
 import { isDataset, seriesList, type AnyValue, type Block, type Dataset, type Outputs } from "@/lib/lab/blocks"
@@ -48,7 +48,7 @@ function Table({ d }: { d: Dataset }) {
 /** A port value as a table, when it is one. */
 const asTable = (v: AnyValue): Dataset | null => (isDataset(v) ? v : typeof v === "string" ? null : seriesRows(seriesList(v)))
 
-export function OutputPane({ block, outputs, logs }: { block: Block | null; outputs: Outputs | undefined; logs: RunLog[] }) {
+export function OutputPane({ block, outputs, logs, preview }: { block: Block | null; outputs: Outputs | undefined; logs: RunLog[]; preview?: ReactNode }) {
   const [tab, setTab] = useState<"output" | "logs">("output")
   const [handle, setHandle] = useState<string | null>(null)
   // Shut on load (Brendan, 2026-11-09); a tab opens it.
@@ -97,6 +97,8 @@ export function OutputPane({ block, outputs, logs }: { block: Block | null; outp
             )
           ) : !block ? (
             <p className="p-2 text-xs text-[var(--paper-muted)]">Select a block.</p>
+          ) : preview ? (
+            <div className="h-full min-h-[200px]">{preview}</div>
           ) : !cur ? (
             <p className="p-2 text-xs text-[var(--paper-muted)]">{block.kind === "plot" ? "The plot draws on the block." : "Run the block."}</p>
           ) : typeof cur[1] === "string" ? (

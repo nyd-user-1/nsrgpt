@@ -14,6 +14,11 @@ export type LabContextValue = {
   openSubentry: (datasetId: string) => void
   ask: (blockId: string, q: string) => void
   asking: string | null
+  /** Each edge's resolved sides, `${port}@${side}` at its source and target, so a block knows which dots are in use. */
+  usedHandles: Set<string>
+  /** Outputs in the panels (Brendan, 2026-11-10): the Plot and the Prompt show their output in the sheet and the right
+   *  panel, and stand on the canvas as cards. */
+  outputsInPanels: boolean
 }
 
 export const LabContext = createContext<LabContextValue | null>(null)

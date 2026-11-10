@@ -204,8 +204,10 @@ export function useLab(initial: Canvas) {
     setCanvas((c) => (c.edges.some((x) => x.id === id) ? c : { ...c, edges: [...c.edges, { id, ...e }] }))
   }, [setCanvas])
   const disconnect = useCallback((id: string) => setCanvas((c) => ({ ...c, edges: c.edges.filter((e) => e.id !== id) })), [setCanvas])
+  /** An edge's end moved to another port or side (Brendan, 2026-11-10). */
+  const reconnect = useCallback((id: string, patch: Partial<Omit<Edge, "id">>) => setCanvas((c) => ({ ...c, edges: c.edges.map((e) => (e.id === id ? { ...e, ...patch } : e)) })), [setCanvas])
   const setName = useCallback((name: string) => setCanvas((c) => ({ ...c, name })), [setCanvas])
   const setId = useCallback((id: string) => setCanvas((c) => ({ ...c, id })), [setCanvas])
 
-  return { canvas, outputs, logs, run, runAll, stop, open, addBlock, setParams, setQuietParams, rename, move, resize, duplicate, remove, connect, disconnect, setName, setId }
+  return { canvas, outputs, logs, run, runAll, stop, open, addBlock, setParams, setQuietParams, rename, move, resize, duplicate, remove, connect, disconnect, reconnect, setName, setId }
 }

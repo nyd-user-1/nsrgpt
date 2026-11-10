@@ -11,7 +11,7 @@ import { PORT_COLOR, useLabContext } from "@/components/lab/LabContext"
 import { PlotChart } from "@/components/lab/PlotChart"
 import { KebabMenu, MenuRow, MenuSeparator } from "@/components/kebab-menu"
 import { copyText } from "@/lib/canvas-png"
-import { inputsFor, isDataset, seriesList, type Block, type Dataset, type Outputs, type Port } from "@/lib/lab/blocks"
+import { inputsFor, isDataset, seriesList, type Block, type Dataset, type Outputs, type Side } from "@/lib/lab/blocks"
 import type { PlotMode } from "@/lib/lab/canvases/plot"
 import { KINDS } from "@/lib/lab/kinds"
 import type { ChatTurn } from "@/lib/chat-stream"
@@ -25,23 +25,43 @@ const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) 
 
 const WIDTH: Record<Block["kind"], number> = { data: 300, process: 300, compare: 300, plot: 560, prompt: 420 }
 
-/** The ports as dots on the block's edges (Brendan, 2026-11-10): inputs down the left edge, outputs down the right,
- *  spread evenly over the block's height, one alone at the middle of its edge; no labels, the colour says the type (the
- *  legend names them) and the hover title says the port. */
-function Ports({ ports, side }: { ports: Record<string, Port>; side: "in" | "out" }) {
-  const list = Object.entries(ports)
+const SIDES: { side: Side; position: Position }[] = [
+  { side: "top", position: Position.Top },
+  { side: "right", position: Position.Right },
+  { side: "bottom", position: Position.Bottom },
+  { side: "left", position: Position.Left },
+]
+
+/** The ports as dots on all four sides of the block (Brendan, 2026-11-10): every input and output has a dot on each
+ *  side, id `${port}@${side}`, spread evenly along it; the dots in use by an edge show always, the rest when the
+ *  block is hovered, so an edge's end can be drawn to any side. The colour says the type (the legend names them) and
+ *  the hover title says the port. */
+function Ports({ block, used }: { block: Block; used: Set<string> }) {
+  const list = [
+    ...Object.entries(block.inputs).map(([handle, port]) => ({ handle, port, type: "target" as const })),
+    ...Object.entries(block.outputs).map(([handle, port]) => ({ handle, port, type: "source" as const })),
+  ]
   return (
     <>
-      {list.map(([handle, port], i) => (
-        <Handle
-          key={handle}
-          type={side === "in" ? "target" : "source"}
-          id={handle}
-          position={side === "in" ? Position.Left : Position.Right}
-          style={{ background: PORT_COLOR[port], width: 12, height: 12, border: "2px solid var(--paper)", top: `${((i + 1) / (list.length + 1)) * 100}%`, [side === "in" ? "left" : "right"]: -6 }}
-          title={`${handle}: ${port}`}
-        />
-      ))}
+      {SIDES.map(({ side, position }) =>
+        list.map((p, i) => {
+          const id = `${p.handle}@${side}`
+          const at = `${((i + 1) / (list.length + 1)) * 100}%`
+          const along = side === "top" || side === "bottom" ? { left: at } : { top: at }
+          const on = used.has(`${block.id}:${id}`)
+          return (
+            <Handle
+              key={id}
+              type={p.type}
+              id={id}
+              position={position}
+              className={cn("transition-opacity", on ? "opacity-100" : "opacity-0 group-hover/block:opacity-100")}
+              style={{ background: PORT_COLOR[p.port], width: 12, height: 12, border: "2px solid var(--paper)", ...along, [side]: -6 }}
+              title={`${p.handle}: ${p.port}`}
+            />
+          )
+        }),
+      )}
     </>
   )
 }
@@ -62,7 +82,7 @@ function Status({ block, summary }: { block: Block; summary: string }) {
 }
 
 function BlockNodeInner({ id }: NodeProps) {
-  const { lab, selected, select, openSubentry, ask, asking } = useLabContext()
+  const { lab, selected, select, openSubentry, ask, asking, usedHandles, outputsInPanels } = useLabContext()
   const block = lab.canvas.blocks.find((b) => b.id === id)
   const out: Outputs | undefined = lab.outputs[id]
   const inputs = useMemo(() => (block?.kind === "plot" ? inputsFor(block, lab.canvas.edges, lab.outputs) : null), [block, lab.canvas.edges, lab.outputs])
@@ -87,7 +107,15 @@ function BlockNodeInner({ id }: NodeProps) {
   }
 
   let body
-  if (block.kind === "plot" && inputs && plotData) {
+  if (outputsInPanels && (block.kind === "plot" || block.kind === "prompt")) {
+    // Outputs in the panels: the card keeps its settings; the chart or the answer reads in the sheet below.
+    body = (
+      <>
+        <BlockParams block={block} onParams={(v, quiet) => (quiet ? lab.setQuietParams(id, v) : lab.setParams(id, v))} />
+        <p className="mt-2 text-[11px] text-[var(--paper-faint)]">{block.kind === "plot" ? "The plot draws in the sheet below." : "The answer reads in the sheet below and the right panel."}</p>
+      </>
+    )
+  } else if (block.kind === "plot" && inputs && plotData) {
     const { points, series, ratio } = plotData
     const p = block.params as { mode?: PlotMode; highlight?: [number, number] }
     body = (
@@ -152,7 +180,7 @@ function BlockNodeInner({ id }: NodeProps) {
     <div
       style={{ width: size?.w ?? WIDTH[block.kind], height: size?.h }}
       className={cn(
-        "relative flex flex-col rounded-xl border bg-[var(--paper)] text-[var(--paper-text)] shadow-sm transition-shadow",
+        "group/block relative flex flex-col rounded-xl border bg-[var(--paper)] text-[var(--paper-text)] shadow-sm transition-shadow",
         selected === id ? "border-[var(--paper-strong)] shadow-md" : "border-[var(--paper-rule)]",
       )}
     >
@@ -185,8 +213,7 @@ function BlockNodeInner({ id }: NodeProps) {
           </KebabMenu>
         </div>
       </div>
-      <Ports ports={block.inputs} side="in" />
-      <Ports ports={block.outputs} side="out" />
+      <Ports block={block} used={usedHandles} />
       <div className={cn("px-2.5 pb-2 pt-3", size && "nowheel min-h-0 flex-1 overflow-y-auto")}>{body}</div>
       {/* The foot: the status and its time; the summary and the notes (what a Data block left out and why) read in the
           right panel, which the info circle at the right end opens (Brendan, 2026-11-10). */}
