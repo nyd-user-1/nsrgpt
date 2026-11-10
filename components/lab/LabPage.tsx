@@ -16,9 +16,9 @@ import {
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { ChevronDown, ChevronLeft, ChevronRight, Copy, LayoutDashboard, Play, Plus, Save, type LucideIcon } from "lucide-react"
+import { ChevronLeft, ChevronRight, LayoutDashboard, Play, Plus, Save, type LucideIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { BlockNode } from "@/components/lab/BlockNode"
@@ -55,12 +55,6 @@ const LANE_ICON: Record<string, LucideIcon> = { Sources: KIND_ICON.data, Process
 /** What a port colour carries, for the legend. */
 const PORT_LABEL = { dataset: "Dataset: rows and columns", series: "Series: x and y, a curve or points", text: "Text" } as const
 
-/** The title at rest: up to its first colon or comma, with an ellipsis when that cut something. */
-const shortName = (name: string) => {
-  const cut = name.split(/[:,]/)[0].trim()
-  return cut.length < name.trim().length ? `${cut}…` : cut
-}
-
 const fresh = (): Canvas => {
   const now = new Date().toISOString()
   return { id: newId("canvas"), name: "Untitled canvas", blocks: [newBlock("data", { x: 0, y: 0 })], edges: [], created_at: now, updated_at: now }
@@ -85,10 +79,13 @@ function LabInner() {
   const refreshSaved = useCallback(() => listCanvases().then(setSaved).catch(() => setSaved([])), [])
   useEffect(() => { void refreshSaved() }, [refreshSaved])
 
-  // The drawers and the output sheet open shut (Brendan, 2026-11-09); the rail tabs open them.
-  useEffect(() => {
+  // The drawers and the output sheet open shut (Brendan, 2026-11-09); the rail tabs open them. The rails are set before
+  // the panels mount, so the right one no longer draws open and slides shut (Brendan, 2026-11-10).
+  const [railsReady, setRailsReady] = useState(false)
+  useLayoutEffect(() => {
     setRail("left", true)
     setRail("right", true)
+    setRailsReady(true)
   }, [])
 
   // Tidy, lanes by stage (Brendan, 2026-11-10): four columns, Sources, Process, Compare, Results, each as wide as its widest
@@ -137,7 +134,6 @@ function LabInner() {
     tidy()
   }, [nodesInitialized, tidy])
   // The view fits once, on load; nothing recentres it afterwards (Brendan, 2026-11-10). Tidy is the circle, by hand.
-  const [titleOpen, setTitleOpen] = useState(false)
   const [legendOpen, setLegendOpen] = useState(false)
   // The rails close over 500 ms after the page draws, and the canvas widens under the first fit; fit again once they
   // have settled (Brendan, 2026-11-10).
@@ -179,6 +175,21 @@ function LabInner() {
     }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutKey, setNodes])
+
+  // The frames: each lane's rectangle around its blocks as they stand now, from React Flow's measured nodes, 16 px of
+  // room around them and 30 px over them for the name.
+  const frames = useMemo(() => {
+    if (!lanes.length) return [] as { label: string; x: number; y: number; w: number; h: number }[]
+    return lanes.map((l, i) => {
+      const mine = nodes.filter((n) => STAGE[(canvas.blocks.find((b) => b.id === n.id)?.kind ?? "data")] === i)
+      if (!mine.length) return null
+      const top = Math.min(...mine.map((n) => n.position.y))
+      const bottom = Math.max(...mine.map((n) => n.position.y + (n.measured?.height ?? 320)))
+      const left = Math.min(l.x, ...mine.map((n) => n.position.x))
+      const right = Math.max(l.x + l.w, ...mine.map((n) => n.position.x + (n.measured?.width ?? 300)))
+      return { label: l.label, x: left - 16, y: top - 44, w: right - left + 32, h: bottom - top + 60 }
+    }).filter((f): f is { label: string; x: number; y: number; w: number; h: number } => f !== null)
+  }, [lanes, nodes, canvas.blocks])
 
   const [edgeSel, setEdgeSel] = useState<Set<string>>(new Set())
   const edges: FlowEdge[] = useMemo(() => canvas.edges.map((e) => {
@@ -285,7 +296,7 @@ function LabInner() {
   return (
     <LabContext.Provider value={ctx}>
       <div className="flex h-full min-h-0">
-        <LabRail saved={saved} current={canvasParam ?? (canvas.id === DEFAULT_CANVAS.id ? DEFAULT_CANVAS.id : canvas.id)} onAdd={(k) => addAt(k)} onOpen={openCanvas} onNew={newCanvas} />
+        {railsReady && <LabRail saved={saved} current={canvasParam ?? (canvas.id === DEFAULT_CANVAS.id ? DEFAULT_CANVAS.id : canvas.id)} onAdd={(k) => addAt(k)} onOpen={openCanvas} onNew={newCanvas} />}
         <div className="flex min-w-0 flex-1 flex-col">
           <div
             className="lab-flow relative min-h-0 flex-1"
@@ -319,36 +330,27 @@ function LabInner() {
               {/* The graph canvas's three groups, in its dress (Brendan, 2026-11-09): top left the title where the search
                   sits on /graph, its circle a click-to-copy; top right the tools, Run all and New canvas with Tidy between;
                   bottom right the save, where /graph keeps share, download and copy. */}
+              {/* The dots' legend (Brendan, 2026-11-10), top left where the title pill was: the three port colours, folded at rest
+                  in the tools' pill; the chevron at its end grows on hover as the rail tabs do and opens it. */}
               <Panel position="top-left">
-                {/* The title reads short at rest, its first clause and an ellipsis; the rail tab's chevron at its end grows on
-                    hover as the tabs do and opens the pill to the full, editable name over 500 ms (Brendan, 2026-11-10). */}
-                <div className="flex h-10 items-center gap-2 rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
-                  <Button variant="outline" aria-label="Copy the canvas name" title="Copy" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => void navigator.clipboard.writeText(canvas.name).then(() => toast.success("Copied"))}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <div className={`flex min-w-0 items-center overflow-hidden transition-[width] duration-[500ms] ease-in-out ${titleOpen ? "w-[24rem]" : "w-[7.5rem]"}`}>
-                    {titleOpen ? (
-                      <input
-                        className="w-full min-w-0 bg-transparent text-[13px] text-[var(--paper-text)] outline-none"
-                        defaultValue={canvas.name}
-                        key={`${canvas.id}:${canvas.name}`}
-                        aria-label="Canvas name"
-                        autoFocus
-                        onBlur={(e) => e.target.value.trim() && e.target.value !== canvas.name && lab.setName(e.target.value.trim())}
-                        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur() }}
-                      />
-                    ) : (
-                      <span className="truncate text-[13px] text-[var(--paper-text)]" title={canvas.name}>{shortName(canvas.name)}</span>
-                    )}
+                <div className={`flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm transition-[width] duration-[500ms] ease-in-out ${legendOpen ? "pl-3" : "pl-3"}`}>
+                  <span className="text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">Legend</span>
+                  <div className={`flex items-center gap-3 overflow-hidden transition-[width,margin] duration-[500ms] ease-in-out ${legendOpen ? "ml-3 w-[24rem]" : "ml-0 w-0"}`}>
+                    {(Object.keys(PORT_COLOR) as (keyof typeof PORT_COLOR)[]).map((port) => (
+                      <span key={port} className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] text-[var(--paper-muted)]">
+                        <span aria-hidden className="inline-block h-3 w-3 rounded-full border-2 border-[var(--paper)]" style={{ background: PORT_COLOR[port] }} />
+                        {PORT_LABEL[port]}
+                      </span>
+                    ))}
                   </div>
                   <button
                     type="button"
-                    aria-label={titleOpen ? "Show the short title" : "Show the full title"}
-                    aria-expanded={titleOpen}
-                    onClick={() => setTitleOpen((v) => !v)}
-                    className="flex h-8 w-4 shrink-0 items-center justify-center rounded-r-full text-[var(--paper-muted)] transition-[width,color] duration-200 ease-out hover:w-[17.5px] hover:text-[var(--paper-text)]"
+                    aria-label={legendOpen ? "Fold the legend" : "Open the legend"}
+                    aria-expanded={legendOpen}
+                    onClick={() => setLegendOpen((v) => !v)}
+                    className="ml-1 flex h-8 w-4 shrink-0 items-center justify-center rounded-r-full text-[var(--paper-muted)] transition-[width,color] duration-200 ease-out hover:w-[17.5px] hover:text-[var(--paper-text)]"
                   >
-                    {titleOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                    {legendOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                   </button>
                 </div>
               </Panel>
@@ -366,38 +368,23 @@ function LabInner() {
                 </div>
               </Panel>
               {/* The lanes' names over their columns, in the canvas's own coordinates, so they pan and zoom with the blocks. */}
+              {/* Group frames (Brendan, 2026-11-10, option 5): a labelled frame around each stage's blocks, in the canvas's
+                  coordinates behind the blocks, its name and the kind's icon in its top-left corner. */}
               <ViewportPortal>
-                {lanes.map((l) => {
-                  const LaneIcon = LANE_ICON[l.label]
+                {frames.map((f) => {
+                  const LaneIcon = LANE_ICON[f.label]
                   return (
-                    <div key={l.label} style={{ position: "absolute", left: l.x, top: -34, width: l.w }} className="pointer-events-none flex select-none items-center gap-1.5 border-b border-[var(--paper-rule-soft)] pb-1 text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">
-                      {LaneIcon && <LaneIcon className="h-3.5 w-3.5" />}
-                      {l.label}
+                    <div key={f.label} style={{ position: "absolute", left: f.x, top: f.y, width: f.w, height: f.h, zIndex: -1 }} className="pointer-events-none select-none rounded-2xl border border-[var(--paper-rule-soft)] bg-[var(--paper-quiet)]">
+                      <div className="flex items-center gap-1.5 px-3 pt-2 text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">
+                        {LaneIcon && <LaneIcon className="h-3.5 w-3.5" />}
+                        {f.label}
+                      </div>
                     </div>
                   )
                 })}
               </ViewportPortal>
               <Background gap={24} size={1} />
               <Controls showInteractive={false} />
-              {/* The dots' legend (Brendan, 2026-11-10): what each port colour carries; folded at rest, above the zoom controls. */}
-              <Panel position="bottom-left" className="mb-[132px]">
-                <div className="rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] text-[11px] text-[var(--paper-muted)] shadow-sm">
-                  <button type="button" aria-expanded={legendOpen} onClick={() => setLegendOpen((v) => !v)} className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:text-[var(--paper-text)]">
-                    {legendOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                    Legend
-                  </button>
-                  {legendOpen && (
-                    <ul className="flex flex-col gap-1 border-t border-[var(--paper-rule-soft)] px-2.5 py-1.5">
-                      {(Object.keys(PORT_COLOR) as (keyof typeof PORT_COLOR)[]).map((port) => (
-                        <li key={port} className="flex items-center gap-2">
-                          <span aria-hidden className="inline-block h-3 w-3 rounded-full border-2 border-[var(--paper)]" style={{ background: PORT_COLOR[port] }} />
-                          {PORT_LABEL[port]}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </Panel>
             </ReactFlow>
             <div className="absolute bottom-4 right-4 z-10 flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
               <Button variant="outline" aria-label="Save the canvas" title="Save" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={save} disabled={saving}>
@@ -407,7 +394,7 @@ function LabInner() {
           </div>
           <OutputPane block={sel} outputs={sel ? outputs[sel.id] : undefined} logs={lab.logs} />
         </div>
-        <LabRight subentry={subentry} onCloseSubentry={() => setSubentry(null)} />
+        {railsReady && <LabRight subentry={subentry} onCloseSubentry={() => setSubentry(null)} />}
       </div>
     </LabContext.Provider>
   )

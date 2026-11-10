@@ -26,8 +26,8 @@ const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) 
 const WIDTH: Record<Block["kind"], number> = { data: 300, process: 300, compare: 300, plot: 560, prompt: 420 }
 
 /** The ports as dots on the block's edges (Brendan, 2026-11-10): inputs down the left edge, outputs down the right,
- *  spaced evenly below the header, no labels; the colour says the type (the canvas's legend names them) and the hover
- *  title says the port. */
+ *  spread evenly over the block's height, one alone at the middle of its edge; no labels, the colour says the type (the
+ *  legend names them) and the hover title says the port. */
 function Ports({ ports, side }: { ports: Record<string, Port>; side: "in" | "out" }) {
   const list = Object.entries(ports)
   return (
@@ -38,7 +38,7 @@ function Ports({ ports, side }: { ports: Record<string, Port>; side: "in" | "out
           type={side === "in" ? "target" : "source"}
           id={handle}
           position={side === "in" ? Position.Left : Position.Right}
-          style={{ background: PORT_COLOR[port], width: 12, height: 12, border: "2px solid var(--paper)", top: 52 + i * 22, [side === "in" ? "left" : "right"]: -6 }}
+          style={{ background: PORT_COLOR[port], width: 12, height: 12, border: "2px solid var(--paper)", top: `${((i + 1) / (list.length + 1)) * 100}%`, [side === "in" ? "left" : "right"]: -6 }}
           title={`${handle}: ${port}`}
         />
       ))}
@@ -156,8 +156,9 @@ function BlockNodeInner({ id }: NodeProps) {
         selected === id ? "border-[var(--paper-strong)] shadow-md" : "border-[var(--paper-rule)]",
       )}
     >
-      <div className="lab-grip flex cursor-grab items-center gap-1.5 border-b border-[var(--paper-rule)] px-2 py-1.5 active:cursor-grabbing">
-        <GripVertical className="h-3.5 w-3.5 shrink-0 text-[var(--paper-faint)]" />
+      <div className="lab-grip group/head flex cursor-grab items-center gap-1.5 border-b border-[var(--paper-rule)] px-2 py-1.5 active:cursor-grabbing">
+        {/* The grip shows on hover of the header; the whole header drags (Brendan, 2026-11-10). */}
+        <GripVertical className="h-3.5 w-3.5 shrink-0 text-[var(--paper-faint)] opacity-0 transition-opacity group-hover/head:opacity-100" />
         <input
           className="nodrag min-w-0 flex-1 bg-transparent text-[13px] font-medium outline-none"
           defaultValue={block.title}
