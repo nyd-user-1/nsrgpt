@@ -2,7 +2,8 @@
 
 import { TexText } from "./TexText";
 import { useState, useRef } from "react";
-import { ThumbsUp, ThumbsDown, Copy, Check, BookOpen, ExternalLink, GraduationCap, FileText } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Copy, Check, BookOpen, ExternalLink, FileText } from "lucide-react";
+import { CitationList } from "@/components/agents/citations";
 import { toast } from "sonner";
 import type { MessageSources } from "@/hooks/useChat";
 import { usePaperLookup } from "@/hooks/usePaperLookup";
@@ -155,89 +156,27 @@ export function ChatResponseFooter({
 
       {/* Sources dropdown */}
       {sourcesOpen && sources && (
-        <div ref={sourcesRef} className="mt-2 border rounded-lg overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
-          <div className="px-3 py-2 space-y-3">
-            {/* NSR Records */}
-            {sources.nsr.length > 0 && (
-              <div>
-                <p className="text-[11px] font-semibold text-[var(--paper-muted)] uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                  <BookOpen className="h-3 w-3" />
-                  NSR Records
-                </p>
-                <div className="space-y-1.5">
-                  {sources.nsr.map((r) => {
-                    const href = r.doi
-                      ? `https://doi.org/${r.doi}`
-                      : undefined;
-                    const Row = href ? "a" : "div";
-                    return (
-                      <Row
-                        key={r.key_number}
-                        {...(href
-                          ? {
-                              href,
-                              target: "_blank",
-                              rel: "noopener noreferrer",
-                            }
-                          : {})}
-                        className="flex items-start gap-2 text-xs rounded-md bg-[var(--paper-quiet)] px-2.5 py-1.5 transition-colors hover:bg-[var(--paper-quiet)] cursor-pointer"
-                      >
-                        <span className="font-mono font-bold text-[var(--paper-text)] shrink-0">
-                          {r.key_number}
-                        </span>
-                        <span className="text-[var(--paper-muted)] truncate flex-1">
-                          <TexText text={r.title} />
-                        </span>
-                        {href && (
-                          <ExternalLink className="h-3 w-3 shrink-0 text-[var(--paper-muted)]" />
-                        )}
-                      </Row>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Semantic Scholar Papers */}
-            {sources.s2.length > 0 && (
-              <div>
-                <p className="text-[11px] font-semibold text-[var(--paper-muted)] uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                  <GraduationCap className="h-3 w-3" />
-                  Semantic Scholar
-                </p>
-                <div className="space-y-1.5">
-                  {sources.s2.map((p, i) => {
-                    const Row = p.url ? "a" : "div";
-                    return (
-                      <Row
-                        key={i}
-                        {...(p.url
-                          ? {
-                              href: p.url,
-                              target: "_blank",
-                              rel: "noopener noreferrer",
-                            }
-                          : {})}
-                        className="flex items-start gap-2 text-xs rounded-md bg-[var(--paper-quiet)] px-2.5 py-1.5 transition-colors hover:bg-[var(--paper-quiet)] cursor-pointer"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <span className="text-[var(--paper-text)] font-medium line-clamp-1">
-                            <TexText text={p.title} />
-                          </span>
-                          <span className="text-[var(--paper-muted)] block truncate">
-                            {p.authors} &middot; {p.citations} citations
-                          </span>
-                        </div>
-                        {p.url && (
-                          <ExternalLink className="h-3 w-3 shrink-0 text-[var(--paper-muted)] mt-0.5" />
-                        )}
-                      </Row>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+        <div ref={sourcesRef} className="mt-2">
+          {/* govblock's citations (components/agents/citations.tsx, ported 2026-11-10): one numbered, animated list. An NSR
+              record opens its entity panel (open-entity, as the inline chips do); a Semantic Scholar paper opens its page. */}
+          <CitationList
+            citations={[
+              ...sources.nsr.map((r) => ({
+                id: `nsr-${r.key_number}`,
+                title: <TexText text={r.title} />,
+                domain: r.key_number,
+                url: r.doi ? `https://doi.org/${r.doi}` : undefined,
+                onOpen: () => window.dispatchEvent(new CustomEvent("open-entity", { detail: { type: "paper", id: r.key_number } })),
+              })),
+              ...sources.s2.map((p, i) => ({
+                id: `s2-${i}`,
+                title: <TexText text={p.title} />,
+                domain: `${p.authors} · ${p.citations} citations`,
+                url: p.url || undefined,
+              })),
+            ]}
+            className="rounded-xl bg-[var(--paper-quiet)] p-2"
+          />
         </div>
       )}
 
