@@ -46,7 +46,7 @@ export async function getJson<T>(ctx: RunContext, path: string): Promise<T> {
 const query = (o: Record<string, unknown>) =>
   new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => [k, String(v)])).toString()
 
-type ExforDataset = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; institute?: string; n?: number }
+type ExforDataset = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; institute?: string; n?: number; excluded?: string }
 type ExforPoint = { dataset_id: string; e_ev: number; de_ev?: number | null; xs_b: number; dxs_b?: number | null }
 
 /** EXFOR points per query unless a block sets its own limit: the route's most (50K). U-235 (n,f) from 1 to 200 keV is 38.8K
@@ -56,10 +56,14 @@ export const EXFOR_LIMIT = 50_000
 async function exfor(p: DataParams, ctx: RunContext) {
   const q = query({ target: p.target, reaction: p.reaction, quantity: p.quantity, emin: p.emin, emax: p.emax, limit: p.limit ?? EXFOR_LIMIT })
   const j = await getJson<{ datasets: ExforDataset[]; points: ExforPoint[]; truncated?: boolean }>(ctx, `/exfor/points?${q}`)
-  const info = new Map(j.datasets.map((d) => [d.dataset_id, d]))
-  const dataset: Dataset = { columns: ["dataset_id", "e_ev", "de_ev", "xs_b", "dxs_b"], rows: j.points, meta: { datasets: j.datasets, truncated: !!j.truncated } }
+  // The route lists datasets it serves no points for (ratios and combinations of reactions) with `excluded`: kept apart, so
+  // nothing plots or cites them, and named in the block's note.
+  const served = j.datasets.filter((d) => !d.excluded)
+  const excluded = j.datasets.filter((d) => d.excluded).map((d) => ({ dataset_id: d.dataset_id, entry: d.entry, author: d.author, year: d.year, why: d.excluded as string }))
+  const info = new Map(served.map((d) => [d.dataset_id, d]))
+  const dataset: Dataset = { columns: ["dataset_id", "e_ev", "de_ev", "xs_b", "dxs_b"], rows: j.points.filter((pt) => info.has(pt.dataset_id)), meta: { datasets: served, excluded, truncated: !!j.truncated } }
   const byId = new Map<string, ExforPoint[]>()
-  for (const pt of j.points) byId.set(pt.dataset_id, [...(byId.get(pt.dataset_id) ?? []), pt])
+  for (const pt of dataset.rows as ExforPoint[]) byId.set(pt.dataset_id, [...(byId.get(pt.dataset_id) ?? []), pt])
   const series: Series[] = [...byId].map(([id, pts]) => {
     const d = info.get(id)
     const hasErr = pts.some((x) => x.dxs_b != null)
@@ -151,6 +155,12 @@ export const data: KindDef<DataParams> = {
     const f = SOURCES[p.source]
     if (!f) throw new Error(`unknown source ${p.source}`)
     return f(p, ctx)
+  },
+  note: (o) => {
+    const ex = ((o.dataset as Dataset | undefined)?.meta?.excluded ?? []) as { why: string }[]
+    if (!ex.length) return undefined
+    const why = [...new Set(ex.map((e) => e.why.split(":")[0].trim()))].join("; ")
+    return `${plural(ex.length, "dataset")} left out: ${why}.`
   },
   summary(o) {
     const d = o.dataset as Dataset | undefined
