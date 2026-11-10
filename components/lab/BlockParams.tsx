@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 
 import type { Block } from "@/lib/lab/blocks"
-import { DATA_SOURCES, PROJECTILES, type DataParams, type DataSource } from "@/lib/lab/kinds/data"
+import { DATA_SOURCES, PROJECTILES, TEMPERATURES, type DataParams, type DataSource } from "@/lib/lab/kinds/data"
 import { cn } from "@/lib/utils"
 
 // A block's params (brief 52): the same editors on the block (compact) and in the right panel. Numbers take 1e3 or 1000;
@@ -109,7 +109,16 @@ export function BlockParams({ block, onParams, full = false }: { block: Block; o
                   {PROJECTILES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
                 </select>
               </Row>
-              {number("mt", "MT")}{list("releases", "Releases")}{range()}
+              {number("mt", "MT")}{list("releases", "Releases")}
+              {d.source === "endf" && (
+                <Row label="Kelvin">
+                  <select className={FIELD} value={d.temp ?? 0} onChange={(e) => onParams({ temp: Number(e.target.value) || undefined })}>
+                    <option value={0}>0 K, MF3</option>
+                    {TEMPERATURES.map((t) => <option key={t} value={t}>{t} K, POINT (B-VIII.1, B-VIII.0)</option>)}
+                  </select>
+                </Row>
+              )}
+              {range()}
             </>
           )}
           {d.source === "nuclide" && text("name", "Nuclide", "137Cs")}

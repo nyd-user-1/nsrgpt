@@ -224,6 +224,9 @@ export function compareOutputs(points: Dataset | undefined, evaluations: Series[
   const curves = evaluations.map((s) => ({ name: s.name, x: s.x, y: s.y }))
   const res = compare(pointsFrom(points), curves, opts, bandsFrom(band, evaluations))
   const meta = new Map(evaluations.map((s) => [s.name, s.meta]))
+  // Each release's band method (MF33, or File 32 where MF33 is empty), from the covariance block's rows.
+  const methodOf = new Map<string, string>()
+  for (const r of band?.rows ?? []) if (r.method && r.release) methodOf.set(String(r.release), String(r.method))
   // PREPRO copies the unresolved resonance range without broadening (window-1's `method`): say so with the table, so a
   // broadened curve isn't taken for one where it equals 0 K. The canvas's own sentence, when it gives one, says where.
   const copied = evaluations.some((s) => typeof s.meta?.method === "string" && /not broadened/i.test(s.meta.method))
@@ -234,7 +237,10 @@ export function compareOutputs(points: Dataset | undefined, evaluations: Series[
       rows: res.bins,
       meta: { window: res.window, highlight: opts.highlight ?? null, binsPerDecade: opts.perDecade ?? 20, ...(note ? { note } : {}) },
     },
-    ratio: res.ratios.map((r) => ({ ...r, meta: { ...meta.get(r.name), ratio_of: r.name } })),
+    ratio: res.ratios.map((r) => {
+      const m = methodOf.get(releaseOf({ name: r.name, meta: meta.get(r.name) }))
+      return { ...r, meta: { ...meta.get(r.name), ratio_of: r.name, ...(m ? { band_method: m } : {}) } }
+    }),
   }
 }
 

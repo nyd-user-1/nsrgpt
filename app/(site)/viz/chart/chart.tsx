@@ -9,6 +9,7 @@ import { LegendBar, Pills } from '@/components/viz/Pills'
 import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { AXIS, FAMILY, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, keyOf, type Decay, type DecayNuclide } from '@/lib/viz-physics'
 import { ELEMENTS, datasetsHref, inkOn, papersHref } from '@/lib/structure'
+import { apiUrl } from '@/lib/api-url'
 import { ELEMENT_NAMES, RADIATION_LABEL, jpi, loadGround, loadRadiation, massMicroU, type Ground, type GroundRow, type Radiation } from './data'
 import { MODES, colouring, loadCounts, modeLine, type Counts, type Mode } from './colour'
 
@@ -215,15 +216,32 @@ function useDark() {
   return dark
 }
 
+/** The libraries the API holds for a nuclide (GET /nuclide/{name}: fy_releases, decay_releases, icrp; worker-1's brief 56). */
+type Held = { fy: string[]; decay: string[]; icrp: boolean }
+const firstOf = (list: string[]) => (list.includes('B-VIII.1') ? 'B-VIII.1' : list[0])
+
 /** The IAEA Live Chart's nuclide card: the ground-state row and the element's decay radiation, loaded when the card opens. */
 function NuclideCard({ x, d, ground: r, onClose }: { x: DecayNuclide; d: Decay; ground: GroundRow | undefined; onClose: () => void }) {
   const [rad, setRad] = React.useState<Radiation | null>(null)
+  const [held, setHeld] = React.useState<Held | null>(null)
   React.useEffect(() => {
     let live = true
     setRad(null)
     loadRadiation(x.z).then((f) => { if (live) setRad(f) }).catch(() => {})
     return () => { live = false }
   }, [x.z])
+  // Its fission yields, decay data and ICRP 107 record, where the lake holds them, linked from the card's row of links.
+  React.useEffect(() => {
+    let live = true
+    setHeld(null)
+    fetch(apiUrl(`/nuclide/${x.z + x.n}${x.el}?levels=0`))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((j: { fy_releases?: string[]; decay_releases?: string[]; icrp?: unknown } | null) => {
+        if (live && j) setHeld({ fy: j.fy_releases ?? [], decay: j.decay_releases ?? [], icrp: !!j.icrp })
+      })
+      .catch(() => {})
+    return () => { live = false }
+  }, [x.z, x.n, x.el])
   const a = x.z + x.n
   const dark = isDark()
   const color = dark ? FAMILY[familyOf(x)].dark : FAMILY[familyOf(x)].light
@@ -264,6 +282,17 @@ function NuclideCard({ x, d, ground: r, onClose }: { x: DecayNuclide; d: Decay; 
             {l.label}
           </Link>
         ))}
+        {/* The API's records, as JSON in a new tab. */}
+        {held &&
+          [
+            ...(held.fy.length ? [{ href: apiUrl(`/endf/fy?name=${x.el}-${a}&release=${firstOf(held.fy)}&mt=459`), label: `Fission yields, ${firstOf(held.fy)}` }] : []),
+            ...(held.decay.length ? [{ href: apiUrl(`/endf/decay?name=${x.el}-${a}&release=${firstOf(held.decay)}`), label: `Decay data, ${firstOf(held.decay)}` }] : []),
+            ...(held.icrp ? [{ href: apiUrl(`/icrp/nuclide/${x.el}-${a}`), label: 'ICRP 107' }] : []),
+          ].map((l) => (
+            <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="rounded-full border border-[var(--paper-rule)]/30 px-2 py-0.5 text-[var(--paper-muted)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]">
+              {l.label}
+            </a>
+          ))}
       </div>
       {field('Jπ', jpi(r))}
       {field('T½', halfLifeText(x))}

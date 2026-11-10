@@ -1,5 +1,6 @@
 import type { Dataset, Series } from "@/lib/lab/blocks"
 import { offDatasets, releaseOf } from "@/lib/lab/canvases/compare"
+import { bandMethodText } from "@/lib/lab/kinds/data"
 
 // The Lab's Plot option (brief 53), for ECharts through components/viz/use-echart.ts. σ against energy, log-log: the
 // EXFOR points hollow in the paper's ink, one series per dataset (its author and year in the legend; ids
@@ -18,7 +19,12 @@ export const SLOTS = {
   light: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"],
   dark: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
 }
-export const RELEASE_SLOT: Record<string, number> = { "B-VIII.1": 0, "JEFF-3.3": 1, "JENDL-5": 2, "B-VIII.0": 3, "B-VII.1": 4, "TENDL-2023": 5, "CENDL-3.2": 6 }
+/** The ENDF/B line takes nine colours from eight slots: B-II repeats B-VIII.1's, the pair furthest apart; the other old
+ *  releases share a slot with a library they are rarely drawn beside. */
+export const RELEASE_SLOT: Record<string, number> = {
+  "B-VIII.1": 0, "JEFF-3.3": 1, "JENDL-5": 2, "B-VIII.0": 3, "B-VII.1": 4, "TENDL-2023": 5, "CENDL-3.2": 6,
+  "B-VII.0": 7, "B-VI.8": 5, "B-V": 6, "B-IV": 2, "B-III": 1, "B-II": 0,
+}
 
 const rgba = (hex: string, a: number) => {
   const n = parseInt(hex.slice(1), 16)
@@ -201,7 +207,11 @@ export function plotOption({ points, series = [], ratio = [], mode = "both", hig
       trigger: "item",
       formatter: (p: { seriesId?: string; seriesName: string; value: [number, number, number | null] }) => {
         const [e, y, dy] = p.value
-        if (String(p.seriesId).startsWith("ratio:")) return `${p.seriesName}<br/>${energyLabel(e)}: measured / evaluated ${y.toFixed(3)}`
+        // The band's method under an evaluation's or a ratio's value: MF33, or File 32 where MF33 is empty.
+        const bm = ratio.find((r) => r.name === p.seriesName)?.meta?.band_method
+        const band = typeof bm === "string" ? `<br/>band: ${bandMethodText(bm)}` : ""
+        if (String(p.seriesId).startsWith("ratio:")) return `${p.seriesName}<br/>${energyLabel(e)}: measured / evaluated ${y.toFixed(3)}${band}`
+        if (String(p.seriesId).startsWith("eval:")) return `${p.seriesName}<br/>${energyLabel(e)}: ${y.toPrecision(4)} b${band}`
         const ds = datasetOfSeries(p.seriesId)
         return `${p.seriesName}${ds ? ` · ${ds}` : ""}<br/>${energyLabel(e)}: ${y.toPrecision(4)} b${dy ? ` ± ${Number(dy).toPrecision(2)}` : ""}`
       },

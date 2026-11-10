@@ -22,6 +22,8 @@ export type DataParams = {
   releases?: string[]
   /** ENDF and covariance: the projectile's sublibrary, as the API's `sub` takes it (brief 58 follow-up); neutrons when unset. */
   sub?: string
+  /** ENDF: a POINT temperature in kelvin (293.6, 600, 900, 1200, 1800; B-VIII.1 and B-VIII.0 only); 0 K MF3 when unset. */
+  temp?: number
   emin?: number
   emax?: number
   id?: string
@@ -39,6 +41,13 @@ export const PROJECTILES: { key: string; label: string }[] = [
   { key: "alphas", label: "Alphas" },
   { key: "gammas", label: "Photons" },
 ]
+/** The POINT temperatures /endf/xs serves (B-VIII.1 and B-VIII.0 only, worker-1's brief 56). */
+export const TEMPERATURES = [293.6, 600, 900, 1200, 1800]
+
+/** A covariance band's method, as a reader reads it. */
+export const bandMethodText = (m: string | undefined) =>
+  !m || m === "MF33" ? "MF33 covariances" : m === "mf32-diagonal-first-order" ? "File 32 resonance parameters, first order, diagonal only" : m
+
 /** The API's sub for a block: left out for neutrons, the API's default. */
 const subOf = (p: DataParams) => (p.sub && p.sub !== "neutrons" ? p.sub : undefined)
 
@@ -99,7 +108,7 @@ type XsSeries = { release: string; held: boolean; release_served?: string; mat?:
 
 async function endf(p: DataParams, ctx: RunContext) {
   const rel = p.releases?.length ? p.releases : ["B-VIII.1"]
-  const q = query({ name: p.name, mt: p.mt, release: rel[0], compare: rel.slice(1).join(","), sub: subOf(p), emin: p.emin, emax: p.emax })
+  const q = query({ name: p.name, mt: p.mt, release: rel[0], compare: rel.slice(1).join(","), sub: subOf(p), temp: p.temp ? `${p.temp}K` : undefined, emin: p.emin, emax: p.emax })
   const j = await getJson<{ series: XsSeries[] }>(ctx, `/endf/xs?${q}`)
   const held = j.series.filter((s) => s.held && s.energy_ev?.length)
   const series: Series[] = held.map((s) =>
@@ -114,26 +123,35 @@ async function endf(p: DataParams, ctx: RunContext) {
   return { dataset: { columns: ["release", "e_ev", "xs_b"], rows, meta: { missing } } as Dataset, series }
 }
 
-type CovSeries = { release: string; held: boolean; mat?: number; lb?: number[]; groups: { e_lo_ev: number; e_hi_ev: number; rel_sd: number }[]; note?: string }
+type CovGroupRow = { e_lo_ev: number; e_hi_ev: number; rel_sd: number }
+/** `resolved` (MT 2, 18, 102; worker-1's brief 56): File 32's band inside the resolved ranges, where MF33 is often empty. */
+type CovSeries = { release: string; held: boolean; mat?: number; lb?: number[]; groups: CovGroupRow[]; note?: string; resolved?: { method?: string; groups?: CovGroupRow[]; note?: string } | null }
 
 async function cov(p: DataParams, ctx: RunContext) {
   const rel = p.releases?.length ? p.releases : ["B-VIII.1"]
   const q = query({ name: p.name, mt: p.mt, release: rel.join(","), sub: subOf(p), emin: p.emin, emax: p.emax })
   const j = await getJson<{ series: CovSeries[] }>(ctx, `/endf/cov?${q}`)
-  const rows = j.series.flatMap((s) => s.groups.map((g) => ({ release: s.release, e_lo: g.e_lo_ev, e_hi: g.e_hi_ev, rel_sd: g.rel_sd })))
+  // Where a release's MF33 is empty, its File 32 band stands in (resolved.groups), the method carried with every row.
+  const used = j.series.map((s) => {
+    const fallback = !s.groups.length && (s.resolved?.groups?.length ?? 0) > 0
+    return { s, groups: fallback ? s.resolved!.groups! : s.groups, method: fallback ? (s.resolved!.method ?? "File 32") : "MF33" }
+  })
+  const rows = used.flatMap(({ s, groups, method }) => groups.map((g) => ({ release: s.release, e_lo: g.e_lo_ev, e_hi: g.e_hi_ev, rel_sd: g.rel_sd, method })))
   // A step line: each group's value held from its lower to its upper edge.
-  const series: Series[] = j.series
-    .filter((s) => s.groups.length)
-    .map((s) => ({
+  const series: Series[] = used
+    .filter((u) => u.groups.length)
+    .map(({ s, groups, method }) => ({
       name: s.release,
-      x: s.groups.flatMap((g) => [g.e_lo_ev, g.e_hi_ev]),
-      y: s.groups.flatMap((g) => [g.rel_sd, g.rel_sd]),
+      x: groups.flatMap((g) => [g.e_lo_ev, g.e_hi_ev]),
+      y: groups.flatMap((g) => [g.rel_sd, g.rel_sd]),
       unit_x: "eV",
       unit_y: "relative sd",
-      meta: { release: s.release, mat: s.mat, lb: s.lb },
+      meta: { release: s.release, mat: s.mat, lb: s.lb, method: bandMethodText(method) },
     }))
-  const notes = j.series.filter((s) => !s.groups.length).map((s) => `${s.release}: ${s.note ?? "no MF33"}`)
-  return { dataset: { columns: ["release", "e_lo", "e_hi", "rel_sd"], rows, meta: { notes } } as Dataset, series }
+  const notes = used.flatMap(({ s, groups, method }) =>
+    !groups.length ? [`${s.release}: ${s.note ?? "no MF33"}`] : method !== "MF33" ? [`${s.release}: no MF33 here; the band is ${bandMethodText(method)}${s.resolved?.note ? ` (${s.resolved.note})` : ""}`] : [],
+  )
+  return { dataset: { columns: ["release", "e_lo", "e_hi", "rel_sd", "method"], rows, meta: { notes } } as Dataset, series }
 }
 
 type Decay = { parent: string; daughter: string; mode: string; branching_pct: number | null; half_life_s: number | null; q_kev: number | null; dsid: string }
