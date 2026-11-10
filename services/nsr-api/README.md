@@ -274,6 +274,30 @@ The files come from `scripts/gnds/compile.py` (LLNL FUDGE 6.14.0, `brownies/bin/
 `lake/gnds/manifest.json` through the CDN (both uploaded with `max-age=300`, kept five minutes in the container too), so
 the Lambda needs no `lake/gnds/` grant.
 
+## Stopping powers, RIPL-4, BetaShape and benchmarks (brief 62, refdata.py)
+
+| Route | Example |
+| --- | --- |
+| `GET /stopping` | `/stopping?projectile=p&target=Mo&emin=0.1&emax=10`; `projectile=a&target=Au`; `projectile=O&a=16&target=C`; `projectile=p` (the targets) |
+| `GET /ripl/levels` | `/ripl/levels?name=Co-60` |
+| `GET /ripl/masses` | `/ripl/masses?name=Co-60`; `name=Co` |
+| `GET /betashape` | `/betashape?name=Sb-131`; `name=Cs-137&mode=bm&level=0` |
+| `GET /benchmarks` | `/benchmarks`; `?benchmark=hmf001&library=jendl5` |
+
+`/stopping` reads `nsr.stopping_powers` and `nsr.stopping_refs` (`lake/stopping/2026-11-11/`, the IAEA database): `{projectile, a, target,
+points: [{energy_mev_u, energy, energy_unit, stopping_power_converted, stopping_power, stopping_unit, percentage_error,
+phase, ion_isotope, ref_id, year}], truncated, refs}`, at most 20,000 points; `energy_mev_u` is every energy in MeV per
+nucleon (keV and per-ion energies divided out) and `emin`/`emax` filter it; `stopping_power_converted` is MeV/(mg/cm2).
+Without `target`: `{targets: [{target_name, points, emin_mev_u, emax_mev_u}]}`. `/ripl/levels` reads RIPL-4's levels
+segment (`lake/ripl/ripl-4-2026-05/`): `{nuclide: {z, a, symb, n_levels, n_gammas, n_max, n_c, sn_mev, sp_mev}, levels,
+gammas}`; `/ripl/masses` AME2020 (`{masses: [{z, a, symbol, flag, mass_excess_mev, err_mev}]}`). `/betashape` reads
+`nsr.iaea_betashape_spectra` (`lake/iaea-betashape/2026-11-11/`): `{nuclide, spectra: [{mode, parent_level_kev, daughter,
+e_kev, dn_de, unc_dn_de, dn_de_nu, unc_dn_de_nu}]}`. `/benchmarks` reads `nsr.conderc_openmc`: `{benchmarks: [{benchmark,
+case, runs: [{library, k_eff, k_eff_unc, k_collision, k_tracklength, k_absorption, leakage, nuclides, run_at}]}],
+libraries}`. The tables load into memory on first use. The Lambda reads these prefixes through inline policy
+`nsr-api-refdata` (`scripts/ingest/api-policy.sh`), which `deploy.sh` leaves in place. On the dev box with a warm container:
+0.1–0.5 s the first call to a table, then 1–50 ms.
+
 ## Saved views and files (brief 34, community.py)
 
 Behind the app's `/api/community` and `/api/upload`. These routes are not cached: the app calls the API Gateway origin

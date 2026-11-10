@@ -277,7 +277,8 @@ MODULES = {"/nuclide": "structure", "/endf/material": "dataset", "/endf/resonanc
            "/endf/fy": "library", "/endf/decay": "library", "/endf/decay-vs-ensdf": "library", "/endf": "structure",
            "/icrp": "icrp", "/counts": "counts", "/search": "keyword_search",
            "/suggest": "keyword_search", "/nsr": "keyword_search", "/dataset": "dataset", "/exfor/entry": "dataset",
-           "/community": "community", "/files": "community", "/sweep": "sweep", "/gnds": "gnds"}
+           "/community": "community", "/files": "community", "/sweep": "sweep", "/gnds": "gnds",
+           "/stopping": "refdata", "/ripl": "refdata", "/betashape": "refdata", "/benchmarks": "refdata"}
 
 
 def module_route(path, q, t0, event=None):
