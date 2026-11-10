@@ -16,6 +16,10 @@ Rerun each part on the parse box (`scripts/parse/box/create.sh`; scripts synced 
 - **Part B, MF8 and MF33** (`endfb_fy`, `endfb_decay`, `endfb_decay_modes`, `endfb_decay_lines`, `endfb_cov`):
   `./releases.sh --mf=8,33 <release>`. Same files and sections as part A; each table's sections are compared with
   `endfb_sections` and written to the manifest's `mf8_mf33` section.
+- **Part C, MF2 and MF32** (brief 56: `endfb_res_ranges`, `endfb_res_params`, `endfb_res_cov`): `./releases.sh --mf=2,32 <release>`,
+  or `nohup ./res_all.sh &` for all 13 in the brief's order (logs `/data/mf2-<release>.log`); counts against `endfb_sections`
+  (MF2 and MF32 MT151) go to the manifest's `mf2_mf32` section. `./res_test.sh <release> <key> <file part>` parses one file
+  without uploading and prints what each table holds.
 - **Serving**: `cd ../serve-structure && /opt/parse/bin/python -I serve.py endf <release>` (`lake/serve/endf/<release>/`);
   for JEFF-3.3, JENDL-5 and TENDL-2023 also `HOME=/root /opt/parse/bin/python -I serve.py point_files <release>` (the
   API reads them through `xs_index/` and `xs_series/series.bin`, `INDEXED` in `services/nsr-api/structure.py`).

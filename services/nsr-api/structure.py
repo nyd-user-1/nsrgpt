@@ -15,7 +15,9 @@
 #                                      resonance range is only the background; release_served says which. point=0 forces MF3.
 #                                      &emin=&emax= (eV) cut each series to the window, keeping the point on each side.
 #   GET /endf/cov?name=U-235&mt=18&release=B-VIII.1,JEFF-3.3&emin=&emax=   the MF33 self-covariance as relative standard
-#                                      deviation per energy group, per release (brief 51), read from lake/endfb/<release>/cov/
+#                                      deviation per energy group, per release (brief 51), read from lake/endfb/<release>/cov/;
+#                                      for MT 2, 18 and 102 each series also has "resolved": the File 32 band per decade
+#                                      inside the resolved ranges (brief 56, resonances.resolved_band; &resolved=0 drops it)
 #   GET /endf/mt                       MT numbers present, with reaction and name (ENDF-102)
 import array
 import bisect
@@ -158,7 +160,23 @@ def nuclide(name, part, q):
                                           [canon]),
                      "as_daughter": records(f"SELECT * FROM {d} WHERE daughter = ? ORDER BY parent_z, parent_a",
                                             [canon])}
+    out.update(links_for(s))
     return 200, out
+
+
+def links_for(s):
+    """For the card (brief 56): the releases whose fission-yield (nfy) or decay sublibraries hold this nuclide as a
+    material, and whether ICRP 107 lists it, so the card can link /endf/fy, /endf/decay and /icrp/nuclide."""
+    sym_a = material_name(f"{s['name']}")  # 137Cs -> Cs-137
+    rows = records(f"SELECT DISTINCT release, sublibrary FROM {table('materials')} WHERE upper(name) = upper(?) "
+                   "AND sublibrary IN ('nfy', 'decay')", [sym_a])
+    rel = lambda sub: [r for r in RELEASES if any(x["release"] == r and x["sublibrary"] == sub for x in rows)]  # noqa: E731
+    try:
+        import icrp
+        in_icrp = icrp.nuclide_row(sym_a) is not None
+    except Exception:  # noqa: BLE001  ICRP tables unreadable: say unknown rather than fail the card
+        in_icrp = None
+    return {"fy_releases": rel("nfy"), "decay_releases": rel("decay"), "icrp": in_icrp}
 
 
 def release_of(v):
@@ -379,7 +397,11 @@ def cov(q):
             series.append({"release": w.strip(), "held": False, "groups": [],
                            "note": f"no MF33 here; releases with covariances: {', '.join(RELEASES)}"})
             continue
-        series.append(cov_release(r, name, sub, mt, emin, emax))
+        s = cov_release(r, name, sub, mt, emin, emax)
+        if mt in (2, 18, 102) and q.get("resolved") != "0":  # MF33 often has nothing in the resolved range; MF32 does
+            import resonances
+            s["resolved"] = resonances.resolved_band(r, name, sub, mt, emin, emax)
+        series.append(s)
     return 200, {"name": name, "mt": mt, "sublibrary": sub, "units": {"energy": "eV", "rel_sd": "fraction"},
                  "series": series}
 

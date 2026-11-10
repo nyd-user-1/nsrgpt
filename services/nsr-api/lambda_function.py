@@ -271,10 +271,13 @@ def respond(status, body, t0):
 # route(path, query) returning (status, body) or a full Lambda response; it is imported on first use, so a cold start
 # loads only what its route needs. A module that writes has handle(event) instead and answers with a full response.
 # The first prefix that matches wins, so /endf/material comes before /endf. structure.py is parsing-1's (brief 17),
-# keyword_search.py parsing-2's (brief 18), dataset.py and community.py ui-layer's (brief 34).
-MODULES = {"/nuclide": "structure", "/endf/material": "dataset", "/endf": "structure", "/search": "keyword_search",
+# keyword_search.py parsing-2's (brief 18), dataset.py and community.py ui-layer's (brief 34), resonances.py, library.py, icrp.py
+# and counts.py brief 56's.
+MODULES = {"/nuclide": "structure", "/endf/material": "dataset", "/endf/resonances": "resonances",
+           "/endf/fy": "library", "/endf/decay": "library", "/endf/decay-vs-ensdf": "library", "/endf": "structure",
+           "/icrp": "icrp", "/counts": "counts", "/search": "keyword_search",
            "/suggest": "keyword_search", "/nsr": "keyword_search", "/dataset": "dataset", "/exfor/entry": "dataset",
-           "/community": "community", "/files": "community"}
+           "/community": "community", "/files": "community", "/sweep": "sweep"}
 
 
 def module_route(path, q, t0, event=None):

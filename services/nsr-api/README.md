@@ -17,6 +17,11 @@ JSON; CloudFront keeps each one for an hour, keyed on the whole query string.
 | `deploy.sh` | creates or updates the Lambda, the HTTP API and CloudFront from the package in S3 | |
 | `test_box.py` | runs the handler on a parse box before deploying | |
 | `test_structure.py` | runs structure.py's routes on a parse box before deploying | parsing-1 (brief 17) |
+| `resonances.py` | `/endf/resonances`, `/endf/resonances/cov`; `/endf/cov`'s `resolved` band | worker-1 (brief 56) |
+| `library.py` | `/endf/fy`, `/endf/decay`, `/endf/decay-vs-ensdf` | worker-1 (brief 56) |
+| `icrp.py` | `/icrp/nuclide/{name}`, `/icrp/radiations/{name}`, `/icrp/chain/{name}`, `/icrp/vs-ensdf` | worker-1 (brief 56) |
+| `counts.py` | `/counts` | worker-1 (brief 56) |
+| `test_layers.py` | runs brief 56's routes on a box before deploying | worker-1 (brief 56) |
 
 A module has `route(path, query)` returning `(status, body)`; `lambda_function.py` imports it on first use, so a cold
 start loads only what its route needs.
@@ -112,6 +117,14 @@ group (LB=1 and 8: F_k; LB=2: F_k squared; LB=5 and 6: the diagonal F_kk); `rel_
 union of the blocks' grids, a fraction. LB=0 (absolute), 3, 4 and 9 are left out with a note; a release with no MF33
 for the section, or a lumped one (MTL), answers `groups: []` with a note. `release` is comma-separated. 0.25 s warm.
 
+For MT 2, 18 and 102 each series also carries `resolved` (brief 56; `&resolved=0` leaves it out), the File 32 band inside
+the resolved ranges, where MF33 is often empty: `{method: "mf32-diagonal-first-order", mt, groups: [{e_lo_ev, e_hi_ev,
+rel_sd, rel_sd_uncorrelated, n_resonances, rel_sd_median}], ranges, note}`. Each resonance's cross section at its peak
+(Breit-Wigner: capture Gn·Gg/G², fission Gn·Gf/G², elastic Gn²/G², over Er) takes the parameters' standard deviations
+from the diagonal of MF32, first order, no correlations; per decade, `rel_sd` is their mean weighted by the resonances'
+areas (the bound for resonances fully correlated with each other) and `rel_sd_uncorrelated` their sum in quadrature over
+the summed areas (independent resonances). LRF 4 and 7 ranges are not converted (noted). Pu-240 MT102 B-VIII.1: 0.5 s.
+
 The POINT rows are read through `lake/serve/endf/<release>/xs_index/` (held in memory) and `xs_series/series.bin` (one S3
 byte-range request a section). Measured through CloudFront on 2026-11-08 with a warm Lambda: first requests 0.17–0.40 s
 (a POINT cross section 0.27–0.34 s; a two-release POINT compare 0.82 s while it loads the second index), cached
@@ -191,6 +204,54 @@ a fenced block:
 
 `/pdf` renders the same document in the dataset PDF's form. A PDF stops a table at 2,000 rows and the raw text at 3,000
 lines and says so; the Markdown has everything. Both are cached for an hour like the other GETs.
+
+## Resonances, fission yields, decay data, ICRP 107 and counts (brief 56)
+
+| Route | Example |
+| --- | --- |
+| `GET /endf/resonances` | `/endf/resonances?name=U-235&release=B-VIII.1`; `&range=1` one range; `&sub=` |
+| `GET /endf/resonances/cov` | `/endf/resonances/cov?name=Pu-240&release=B-VIII.1`; `&matrix=1` the correlation triples; `&range=` |
+| `GET /endf/fy` | `/endf/fy?name=U-235&release=B-VIII.1&mt=454&energy_ev=0.0253`; `mt=459` cumulative; `&sub=sfy` |
+| `GET /endf/decay` | `/endf/decay?name=Co-60&release=B-VIII.1` |
+| `GET /endf/decay-vs-ensdf` | `/endf/decay-vs-ensdf?release=B-VIII.1&sort=sigmas`; `sort=rel_diff`; `&note=differ by more than 3 sigma` |
+| `GET /icrp/nuclide/{name}` | `/icrp/nuclide/Ac-225` (also `ac225`, `225Ac`, `Tc-99m`) |
+| `GET /icrp/radiations/{name}` | `/icrp/radiations/Ac-225`; `&type=A,G,X,B-` |
+| `GET /icrp/chain/{name}` | `/icrp/chain/U-238` |
+| `GET /icrp/vs-ensdf` | `/icrp/vs-ensdf?sort=sigmas`; `sort=rel_diff`; `&note=`; `&isomer=m` |
+| `GET /counts` | `/counts` |
+
+`/endf/resonances` reads File 2 MT151 from `lake/endfb/<release>/res_ranges/` and `res_params/` (`nsr.endfb_res_*`,
+`scripts/parse/endfb/parse.py --mf=2,32`): `{name, release, sublibrary, mat, ranges: [{range_index, el_ev, eh_ev, lru, lrf,
+formalism, spi, ap, n_resonances, …}], resonances: [{range_index, l, j, er_ev, gn_ev, gg_ev, gf_ev, …}], unresolved: [{l, j,
+es_ev, d_ev, amun, gn0_ev, gg_ev, gf_ev, gx_ev, …}], truncated}`, at most 5,000 resolved resonances. Reich-Moore's `gf_ev` is
+|GFA| + |GFB| with both kept; R-matrix limited (LRF 7) rows carry every channel's width (`widths`) and gn, gg and gf summed
+over the channels by their particle pair's MT. U-235 B-VIII.1 (3,194 resonances, 84 unresolved rows, 522 KB): 0.9 s warm
+at the origin, 4.1 s on a cold container.
+
+`/endf/resonances/cov` reads File 32 from `res_cov/`: per range its LCOMP and header, every parameter's value and
+standard deviation (`uncertainties`, at most 20,000), and with `&matrix=1` the off-diagonal correlations as
+`[range_index, i, j, corr]` (LCOMP 2 as stored with NDIGIT digits; LCOMP 0 and 1 divided by the two standard deviations;
+at most 200,000). Pu-240 B-VIII.1: 0.9 s.
+
+`/endf/fy` (`fy/`, nfy or sfy) answers `{energies, energy_ev, products: [{zafp, fps, product, yield, yield_unc}], sum_yield}`
+at the energy nearest `energy_ev` (the first when not given), 0.4 s. `/endf/decay` (`decay/`, `decay_modes/`,
+`decay_lines/`) answers `{decay, modes, lines}` (at most 5,000 lines), 0.6 s. `/endf/decay-vs-ensdf` reads
+`nsr.endf_decay_vs_ensdf` (`lake/endfb/_compare/decay_vs_ensdf/`, built by `scripts/sweep/endf-decay-vs-ensdf.sql`):
+`{rows, counts_by_release_and_note}`, at most 5,000 rows.
+
+The ICRP routes read brief 48's tables under `lake/icrp107/2008/` (loaded into memory on first use): `/icrp/nuclide` the
+nuclide row and its daughters; `/icrp/radiations` every emission (type, yield per transformation, energy in MeV);
+`/icrp/chain` the members from the head to the stable ends with each one's probability of being reached (the branching
+fractions multiplied along every path and added) and every link; `/icrp/vs-ensdf` `{rows, counts_by_note}` from
+`nsr.icrp107_vs_ensdf` (1,246 rows). 0.1–0.4 s; `vs-ensdf` 674 KB, 2.4 s.
+
+`/counts` counts rows from the Parquet footers (NSR papers, ENSDF datasets and nuclides, XUNDL datasets, EXFOR entries,
+subentries, datasets and data points, ICRP nuclides, links and chains) and reads each ENDF release's manifest (materials,
+sections, MF3 points, resonance rows): `{counts, about, endf: {<release>: {materials, sections, points, resonances}},
+endf_total, counted_at}`, kept in memory for an hour. 2.4 s when counted, then instant.
+
+The card's `/nuclide/{name}` also answers `fy_releases` and `decay_releases` (the releases whose nfy or decay sublibrary
+holds the nuclide) and `icrp` (true when ICRP 107 lists it).
 
 ## Saved views and files (brief 34, community.py)
 

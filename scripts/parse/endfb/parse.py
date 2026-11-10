@@ -22,7 +22,15 @@ lake/endfb/<release>/<table>/ and are added as an explicit partition.
                covariance as JSON), a row for a discrete-spectrum covariance; each row repeats its spectrum's FD, ERAV, FC
   cov          MF33 in long form: LB=5 and 6 as (row bin, column bin, value); LB=0-4, 8, 9 as (energy, value) pairs with
                col_energy_ev null (pair_set 2 holds LB=3/4's second array); NC sub-subsections as JSON in params
-MF1/451, MF3, MF8 and MF33 are parsed with endf-parserpy 0.18.0 (IAEA; held at raw/pypi/2026-11-07/endf-parserpy/). An
+--mf=2,32 (brief 56) writes, from the same files and sections, MF2 and MF32 MT151:
+  res_ranges   one row per energy range per isotope (LRU 0 scattering radius only, 1 resolved: LRF 1-4 and 7, 2
+               unresolved), header fields as columns, the rest (particle pairs, spin groups' channels) as JSON
+  res_params   one row per resonance (LRF 7: every channel's width as JSON), or per (L, J[, energy]) of the unresolved
+               averages (unresolved = true)
+  res_cov      MF32 in long form: per range a header row, one "unc" row per parameter (its absolute standard
+               deviation), the covariance (LCOMP 0, 1) or compact correlations (LCOMP 2, NDIGIT kept) as (row, column,
+               value), long-range (LB, energies, value) and the unresolved relative covariance
+MF1/451, MF3, MF8, MF33, MF2 and MF32 are parsed with endf-parserpy 0.18.0 (IAEA; held at raw/pypi/2026-11-07/endf-parserpy/). An
 MF1/451 or MF3 section it rejects is read by the fixed-column reader below; an MF8 or MF33 section it rejects is listed
 in the manifest with its MAT and MT. Either way it is counted.
 """
@@ -30,6 +38,7 @@ import collections
 import io
 import json
 import logging
+import math
 import os
 import re
 import sys
@@ -52,12 +61,16 @@ RELEASE, KEYS = ARGS[0], ARGS[1:]
 KEY = KEYS[0]
 UPLOAD = "--no-upload" not in sys.argv
 ONLY = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--only=")), None)  # test on one file path substring
-MF_MODE = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--mf=")), None)  # "8,33": part B tables only
+MF_MODE = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--mf=")), None)  # "8,33" or "2,32"
+RES_MODE = MF_MODE == "2,32"  # brief 56: MF2 and MF32, MT151 (resonance parameters and their covariances)
 WORK = f"/data/endfb/{RELEASE}"
-OUT = f"{WORK}/mf/out" if MF_MODE else f"{WORK}/out"
+OUT = f"{WORK}/mf2/out" if RES_MODE else f"{WORK}/mf/out" if MF_MODE else f"{WORK}/out"
 PREFIX = f"lake/endfb/{RELEASE}"
 HERE = os.path.dirname(os.path.abspath(__file__))
-BOX = "nsr-parse-2, m7i-flex.large, about $0.096 an hour on-demand (Free plan credits); 400 GB gp3, about $0.044 an hour"
+BOX = ("nsr-parse-3, m7i-flex.large, about $0.096 an hour on-demand (Free plan credits); 400 GB gp3, about $0.044 an hour"
+       if RES_MODE else
+       "nsr-parse-2, m7i-flex.large, about $0.096 an hour on-demand (Free plan credits); 400 GB gp3, about $0.044 an hour")
+MF_KEY = "mf2_mf32" if RES_MODE else "mf8_mf33"  # the manifest's section and the local summary's name
 
 # A sublibrary archive's token (IAEA <lib>_<token>.sublib.zip, NEA JEFF33-<token>.tgz) -> ENDF/B's folder word.
 NSUB_WORDS = {"n": "neutrons", "tsl": "thermal_scatt", "decay": "decay", "nfpy": "nfy", "sfpy": "sfy", "g": "gammas",
@@ -552,10 +565,11 @@ def register():
     else:
         rerun = nsr_count.endf(KEY, RELEASE)
         manifest["counts_check"] = rerun_check(manifest, mine, ref, rerun)
-    try:  # keep part B's section when part A is rerun
+    try:  # keep the other parts' sections when part A is rerun
         old = json.loads(lake.s3.get_object(Bucket=lake.BUCKET, Key=f"{PREFIX}/manifest.json")["Body"].read())
-        if "mf8_mf33" in old:
-            manifest["mf8_mf33"] = old["mf8_mf33"]
+        for k in ("mf8_mf33", "mf2_mf32", "sections_by_mf"):
+            if k in old:
+                manifest[k] = old[k]
     except Exception:  # noqa: BLE001
         pass
     manifest["spend"] = {"athena_queries": queries, "athena_bytes_scanned": scanned,
@@ -657,7 +671,16 @@ FY_MTS = (454, 459)
 
 
 def wanted(mf, mt):
+    if RES_MODE:
+        return mt == 151 and mf in (2, 32)
     return mf == 33 or (mf == 8 and mt in (454, 457, 459))
+
+
+def group_of(mf, mt):
+    """The section's table group: fy, decay, cov (--mf=8,33); res, rescov (--mf=2,32)."""
+    if RES_MODE:
+        return "res" if mf == 2 else "rescov"
+    return "fy" if mf == 8 and mt in FY_MTS else "decay" if mf == 8 else "cov"
 
 
 def as_list(v):
@@ -792,11 +815,388 @@ def cov_rows(t, base, d):
     return n
 
 
+# ---------- part C: MF2 and MF32, MT151 (brief 56) ----------
+# ENDF-102 chapters 2 and 32; ENDF-367 (SAMMY's guide, raw/manual/2026-11-10/ENDF-367.pdf) for the compact LCOMP=2 form.
+RES_SCHEMAS = {
+    "res_ranges": pa.schema([
+        ("release", S), ("sublibrary", S), ("file_name", S), ("mat", I), ("za", D), ("awr", D), ("nis", I),
+        ("isotope_index", I), ("zai", D), ("abn", D), ("lfw", I), ("ner", I), ("range_index", I), ("isotope_range", I),
+        ("el_ev", D), ("eh_ev", D), ("lru", I), ("lrf", I), ("nro", I), ("naps", I), ("spi", D), ("ap", D), ("lad", I),
+        ("nls", I), ("nlsc", I), ("lssf", I), ("ifg", I), ("krm", I), ("krl", I), ("npp", I), ("njs", I),
+        ("scattering_radius_only", B), ("n_resonances", I), ("ap_table", S), ("params", S)]),
+    "res_params": pa.schema([
+        ("release", S), ("sublibrary", S), ("file_name", S), ("mat", I), ("isotope_index", I), ("range_index", I),
+        ("lru", I), ("lrf", I), ("unresolved", B), ("group_index", I), ("res_index", I), ("l", I), ("j", D),
+        ("er_ev", D), ("gt_ev", D), ("gn_ev", D), ("gg_ev", D), ("gf_ev", D), ("gfa_ev", D), ("gfb_ev", D),
+        ("gx_ev", D), ("widths", S), ("es_ev", D), ("d_ev", D), ("amun", D), ("amux", D), ("amug", D), ("amuf", D),
+        ("gn0_ev", D), ("params", S)]),
+    "res_cov": pa.schema([
+        ("release", S), ("sublibrary", S), ("file_name", S), ("mat", I), ("isotope_index", I), ("zai", D),
+        ("range_index", I), ("el_ev", D), ("eh_ev", D), ("lru", I), ("lrf", I), ("lcomp", I), ("isr", I), ("dap", D),
+        ("block", S), ("block_index", I), ("lb", I), ("row_param", I), ("col_param", I), ("row_name", S),
+        ("col_name", S), ("l", I), ("j", D), ("row_er_ev", D), ("col_er_ev", D), ("row_value", D),
+        ("row_energy_ev", D), ("col_energy_ev", D), ("value", D), ("ndigit", I), ("params", S)]),
+}
+# Range fields that have their own column (or become rows); everything else endf-parserpy returns goes into params.
+RANGE_COLS = {"EL", "EH", "LRU", "LRF", "NRO", "NAPS", "SPI", "AP", "LAD", "NLS", "NLSC", "LSSF", "IFG", "KRM", "KRL",
+              "NPP", "NJS", "AP_table", "l_group", "j_group"}
+CHUNK = 50_000  # rows per extend for the covariance matrices, so a dense 10,000-parameter block never sits in memory whole
+
+
+def fit(v, k):
+    """A column of exactly k values: a list padded with None or cut, a scalar repeated."""
+    if not isinstance(v, (list, tuple, dict)):
+        return [v] * k
+    v = as_list(v)
+    return v[:k] + [None] * (k - len(v)) if len(v) != k else v
+
+
+def at(a, i):
+    a = as_list(a)
+    return a[i] if 0 <= i < len(a) else None
+
+
+def extend(t, cols, k):
+    if k:
+        t.extend({c: (fit(v, k) if isinstance(v, (list, tuple, dict)) else v) for c, v in cols.items()}, k)
+    return k
+
+
+def res_rows(tables, base, d):
+    """MF2 MT151 -> one res_ranges row per energy range per isotope and one res_params row per resonance (resolved)
+    or per (L, J[, energy]) of the unresolved averages."""
+    rng_t, par_t = tables["res_ranges"], tables["res_params"]
+    ridx = 0
+    for i_i, iso in enumerate(as_list(d.get("isotope")), 1):
+        lfw = num(iso.get("LFW"), int)
+        for j_i, r in enumerate(as_list(iso.get("range")), 1):
+            ridx += 1
+            lru, lrf = num(r.get("LRU"), int), num(r.get("LRF"), int)
+            pb = {**base, "isotope_index": i_i, "range_index": ridx, "lru": lru, "lrf": lrf}
+            extra = {k: v for k, v in r.items() if k not in RANGE_COLS}
+            n = 0
+            if lru == 1 and lrf in (1, 2, 3):  # SLBW, MLBW, Reich-Moore
+                meta = []
+                for m_i, lg in enumerate(as_list(r.get("l_group")), 1):
+                    meta.append({k: v for k, v in lg.items() if not isinstance(v, (list, dict))})
+                    er = as_list(lg.get("ER"))
+                    cols = {**pb, "unresolved": False, "group_index": m_i, "res_index": list(range(n + 1, n + len(er) + 1)),
+                            "l": num(lg.get("L"), int), "j": lg.get("AJ"), "er_ev": er, "gn_ev": lg.get("GN"),
+                            "gg_ev": lg.get("GG")}
+                    if lrf == 3:
+                        cols.update(gfa_ev=lg.get("GFA"), gfb_ev=lg.get("GFB"))
+                    else:
+                        cols.update(gt_ev=lg.get("GT"), gf_ev=lg.get("GF"))
+                    n += extend(par_t, cols, len(er))
+                extra["l_groups"] = meta
+            elif lru == 1 and lrf == 4:  # Adler-Adler: one row per (L, J) level, its 12 parameters in params
+                for m_i, lg in enumerate(as_list(r.get("l_group")), 1):
+                    for jg in as_list(lg.get("j_group")):
+                        det = as_list(jg.get("DET"))
+                        for k in range(len(det)):
+                            n += 1
+                            par_t.add({**pb, "unresolved": False, "group_index": m_i, "res_index": n,
+                                       "l": num(lg.get("L"), int), "j": num(jg.get("AJ")), "er_ev": num(det[k]),
+                                       "params": jdump({f: at(jg.get(f), k) for f in (
+                                           "DET", "DWT", "GRT", "GIT", "DEF", "DWF", "GRF", "GIF", "DEC", "DWC", "GRC",
+                                           "GIC")})})
+            elif lru == 1 and lrf == 7:  # R-matrix limited: every channel's width with its spin group's channels
+                groups = []
+                for s_i, sg in enumerate(as_list(r.get("j_group")), 1):
+                    nch = num(sg.get("NCH"), int) or len(as_list(sg.get("PPI")))
+                    ch = [[at(sg.get(f), c) for f in ("PPI", "L", "SCH", "BND", "APE", "APT")] for c in range(nch)]
+                    groups.append({**{k: v for k, v in sg.items() if not isinstance(v, (list, dict))}, "channels": ch,
+                                   **({"background": sg["background"]} if sg.get("background") else {}),
+                                   **({"phase_shift": sg["phase_shift"]} if sg.get("phase_shift") else {})})
+                    er, gam = as_list(sg.get("ER")), as_list(sg.get("GAM"))
+                    for k in range(len(er)):
+                        n += 1
+                        par_t.add({**pb, "unresolved": False, "group_index": s_i, "res_index": n, "j": num(sg.get("AJ")),
+                                   "er_ev": num(er[k]),
+                                   "widths": jdump({"pj": sg.get("PJ"), "gam": [at(g, k) for g in gam],
+                                                    "ch": [c[:3] for c in ch]})})
+                extra["spin_groups"] = groups
+            elif lru == 2:  # unresolved: the energy-dependent averages
+                es = as_list(r.get("ES"))
+                for p_i, lg in enumerate(as_list(r.get("l_group")), 1):
+                    l = num(lg.get("L"), int)
+                    if lfw == 0 and lrf == 1:  # case A: one row per J, energy-independent
+                        aj = as_list(lg.get("AJ"))
+                        n += extend(par_t, {**pb, "unresolved": True, "group_index": p_i, "l": l, "j": aj,
+                                            "d_ev": lg.get("D"), "amun": lg.get("AMUN"), "gn0_ev": lg.get("GN0"),
+                                            "gg_ev": lg.get("GG")}, len(aj))
+                        continue
+                    for jg in as_list(lg.get("j_group")):
+                        if lrf == 1:  # case B: fission widths at the range's energies ES
+                            gf = as_list(jg.get("GF"))
+                            n += extend(par_t, {**pb, "unresolved": True, "group_index": p_i, "l": l,
+                                                "j": num(jg.get("AJ")), "es_ev": es[:len(gf)], "gf_ev": gf,
+                                                "d_ev": num(jg.get("D")), "amun": num(jg.get("AMUN")),
+                                                "gn0_ev": num(jg.get("GN0")), "gg_ev": num(jg.get("GG")),
+                                                "amuf": num(jg.get("MUF"))}, len(gf))
+                        else:  # case C: every average energy-dependent
+                            e = as_list(jg.get("ES"))
+                            n += extend(par_t, {**pb, "unresolved": True, "group_index": p_i, "l": l,
+                                                "j": num(jg.get("AJ")), "es_ev": e, "d_ev": jg.get("D"),
+                                                "gx_ev": jg.get("GX"), "gn0_ev": jg.get("GN0"), "gg_ev": jg.get("GG"),
+                                                "gf_ev": jg.get("GF"), "amux": num(jg.get("AMUX")),
+                                                "amun": num(jg.get("AMUN")), "amug": num(jg.get("AMUG")),
+                                                "amuf": num(jg.get("AMUF")),
+                                                "params": jdump({"INT": jg.get("INT")})}, len(e))
+                extra["l_groups"] = [{k: v for k, v in lg.items() if not isinstance(v, (list, dict))}
+                                     for lg in as_list(r.get("l_group"))]
+            rng_t.add({**base, "za": num(d.get("ZA")), "awr": num(d.get("AWR")), "nis": num(d.get("NIS"), int),
+                       "isotope_index": i_i, "zai": num(iso.get("ZAI")), "abn": num(iso.get("ABN")), "lfw": lfw,
+                       "ner": num(iso.get("NER"), int), "range_index": ridx, "isotope_range": j_i,
+                       "el_ev": num(r.get("EL")), "eh_ev": num(r.get("EH")), "lru": lru, "lrf": lrf,
+                       "nro": num(r.get("NRO"), int), "naps": num(r.get("NAPS"), int), "spi": num(r.get("SPI")),
+                       "ap": num(r.get("AP")), "lad": num(r.get("LAD"), int), "nls": num(r.get("NLS"), int),
+                       "nlsc": num(r.get("NLSC"), int), "lssf": num(r.get("LSSF"), int), "ifg": num(r.get("IFG"), int),
+                       "krm": num(r.get("KRM"), int), "krl": num(r.get("KRL"), int), "npp": num(r.get("NPP"), int),
+                       "njs": num(r.get("NJS"), int) if lrf == 7 else None, "scattering_radius_only": lru == 0,
+                       "n_resonances": n, "ap_table": jdump(r["AP_table"]) if r.get("AP_table") is not None else None,
+                       "params": jdump(extra) if extra else None})
+
+
+def v_at(V, m, n, size):
+    """V[m, n] (1-based, n >= m) of an upper-triangle LIST, whichever way the rows came back: a dict keyed by n, a row
+    of all `size` columns, or a row starting at column m."""
+    row = at(V, m - 1) if not isinstance(V, dict) else V.get(m)
+    if isinstance(row, dict):
+        return row.get(n)
+    row = as_list(row)
+    return at(row, n - 1) if len(row) == size else at(row, n - m)
+
+
+def mat_rows(t, rb, block, bi, names, ers, vals, ls, js, V, size):
+    """An upper-triangle covariance block as rows, CHUNK at a time; returns the count."""
+    n = 0
+    for m in range(1, size + 1):
+        cols = list(range(m, size + 1))
+        vv = [v_at(V, m, c, size) for c in cols]
+        keep = [i for i, v in enumerate(vv) if v]  # zeros are not stored; the block's size is in its range row
+        if not keep:
+            continue
+        cc = [cols[i] for i in keep]
+        n += extend(t, {**rb, "block": block, "block_index": bi, "row_param": m, "col_param": cc,
+                        "row_name": names[m - 1], "col_name": [names[c - 1] for c in cc], "l": ls[m - 1],
+                        "j": js[m - 1], "row_er_ev": ers[m - 1], "col_er_ev": [ers[c - 1] for c in cc],
+                        "row_value": vals[m - 1], "value": [vv[i] for i in keep]}, len(cc))
+    return n
+
+
+def unc_rows(t, rb, names, ers, vals, ls, js, sds, first=1):
+    """One row per parameter: its value and its absolute standard deviation."""
+    k = len(names)
+    return extend(t, {**rb, "block": "unc", "row_param": list(range(first, first + k)), "col_param": list(range(first, first + k)),
+                      "row_name": names, "col_name": names, "l": ls, "j": js, "row_er_ev": ers, "row_value": vals,
+                      "value": sds}, k)
+
+
+def sqrt_or_none(v):
+    v = num(v)
+    return math.sqrt(v) if v is not None and v >= 0 else None
+
+
+def res_params_of(lrf, lg_or_range, per, mpar=None):
+    """(names, ers, vals, ls, js) for the parameters of each resonance in a LIST, in ENDF-102's order: ER, GN, GG, GF
+    (GX) for LRF 1 and 2; ER, GN, GG, GFA, GFB for LRF 3; the first `per` of them."""
+    fields = ["ER", "GN", "GG", "GFA", "GFB"] if lrf == 3 else ["ER", "GN", "GG", "GF", "GX"]
+    fields = fields[:per]
+    er = as_list(lg_or_range.get("ER"))
+    l, aj = lg_or_range.get("L"), as_list(lg_or_range.get("AJ"))
+    names, ers, vals, ls, js = [], [], [], [], []
+    for k in range(len(er)):
+        for f in fields:
+            names.append(f)
+            ers.append(num(er[k]))
+            vals.append(num(at(lg_or_range.get(f), k)))
+            ls.append(num(l, int))
+            js.append(num(at(aj, k)))
+    return names, ers, vals, ls, js
+
+
+def rml_params_of(j_groups, ndrop_er=False):
+    """LRF 7: per spin group, per resonance: ER, then each channel's width GAM (ENDF-102 32.2.2.a.4, 32.4.1.3)."""
+    names, ers, vals, ls, js = [], [], [], [], []
+    for sg in j_groups:
+        er, gam = as_list(sg.get("ER")), as_list(sg.get("GAM"))
+        for k in range(len(er)):
+            if not ndrop_er:
+                names.append("ER"); ers.append(num(er[k])); vals.append(num(er[k])); ls.append(None); js.append(num(sg.get("AJ")))
+            for c, g in enumerate(gam, 1):
+                names.append(f"GAM{c}"); ers.append(num(er[k])); vals.append(num(at(g, k))); ls.append(None)
+                js.append(num(sg.get("AJ")))
+    return names, ers, vals, ls, js
+
+
+def corr_rows(t, rb, names, ers, ndigit, ii, jj, kij):
+    """The compact form's INTG records -> (row I, column J, correlation) for the non-zero K: K>0 maps to
+    (K+0.5)*10^-NDIGIT, K<0 to (K-0.5)*10^-NDIGIT (ENDF-367 section 32.3, its FORTRAN), only J < I stored."""
+    fac = 10.0 ** -ndigit
+    rr, cc, vv = [], [], []
+    n = 0
+    for I, J, K in zip(as_list(ii), as_list(jj), as_list(kij)):
+        I, jp = int(I), int(J) - 1
+        for kv in as_list(K):
+            jp += 1
+            if jp >= I:
+                break
+            if kv:
+                rr.append(I); cc.append(jp); vv.append((kv + 0.5) * fac if kv > 0 else (kv - 0.5) * fac)
+        if len(rr) >= CHUNK:
+            n += corr_flush(t, rb, names, ers, ndigit, rr, cc, vv)
+            rr, cc, vv = [], [], []
+    return n + corr_flush(t, rb, names, ers, ndigit, rr, cc, vv)
+
+
+def corr_flush(t, rb, names, ers, ndigit, rr, cc, vv):
+    nm = lambda i: names[i - 1] if 0 < i <= len(names) else None  # noqa: E731
+    ev = lambda i: ers[i - 1] if 0 < i <= len(ers) else None  # noqa: E731
+    return extend(t, {**rb, "block": "corr", "row_param": rr, "col_param": cc, "row_name": [nm(i) for i in rr],
+                      "col_name": [nm(i) for i in cc], "row_er_ev": [ev(i) for i in rr], "col_er_ev": [ev(i) for i in cc],
+                      "value": vv, "ndigit": ndigit}, len(rr))
+
+
+def rescov_rows(t, base, d):
+    """MF32 MT151 -> res_cov in long form. Per range: a "range" row (the header fields as JSON); "unc" rows, one per
+    parameter, value = its absolute standard deviation (LCOMP 0 and 1 from the variances, 2 from the D fields, the
+    unresolved range from its relative covariance); "cov" rows (LCOMP 0 per resonance, LCOMP 1 each short-range block's
+    upper triangle, non-zero), "lr" rows (LCOMP 1 long-range: LB and energy pairs), "corr" rows (LCOMP 2: non-zero
+    correlations with NDIGIT), "urr" rows (LRU 2 relative covariance), "ap" and "dap" rows (scattering radius)."""
+    ridx = 0
+    for i_i, iso in enumerate(as_list(d.get("isotope")), 1):
+        for r in as_list(iso.get("range")):
+            ridx += 1
+            lru, lrf, lcomp = num(r.get("LRU"), int), num(r.get("LRF"), int), num(r.get("LCOMP"), int)
+            dap = r.get("DAP")
+            rb = {**base, "isotope_index": i_i, "zai": num(iso.get("ZAI")), "range_index": ridx,
+                  "el_ev": num(r.get("EL")), "eh_ev": num(r.get("EH")), "lru": lru, "lrf": lrf, "lcomp": lcomp,
+                  "isr": num(r.get("ISR"), int), "dap": num(dap) if not isinstance(dap, (list, dict)) else None}
+            head = {k: v for k, v in r.items() if not isinstance(v, (list, dict))}
+            if isinstance(dap, (list, dict)):
+                t.add({**rb, "block": "dap", "params": jdump({"DAP": dap})})
+            for m, ap in enumerate(as_list(r.get("AP_subsec")), 1):
+                t.add({**rb, "block": "ap", "block_index": m, "lb": num(ap.get("LB"), int), "params": jdump(ap)})
+            if lru == 1 and lcomp == 0:
+                p0 = 0
+                for lg in as_list(r.get("l_group")):
+                    er, aj = as_list(lg.get("ER")), as_list(lg.get("AJ"))
+                    for k in range(len(er)):
+                        base_i = p0 * 5
+                        p0 += 1
+                        idx = {"ER": base_i + 1, "GN": base_i + 2, "GG": base_i + 3, "GF": base_i + 4, "J": base_i + 5}
+                        names = ["ER", "GN", "GG", "GF"]
+                        unc_rows(t, rb, names, [num(er[k])] * 4, [num(at(lg.get(f), k)) for f in names],
+                                 [num(lg.get("L"), int)] * 4, [num(at(aj, k))] * 4,
+                                 [sqrt_or_none(at(lg.get(v), k)) for v in ("DE2", "DN2", "DG2", "DF2")], first=base_i + 1)
+                        for a, b, f in (("ER", "ER", "DE2"), ("GN", "GN", "DN2"), ("GN", "GG", "DNDG"), ("GG", "GG", "DG2"),
+                                        ("GN", "GF", "DNDF"), ("GG", "GF", "DGDF"), ("GF", "GF", "DF2"), ("J", "GN", "DJDN"),
+                                        ("J", "GG", "DJDG"), ("J", "GF", "DJDF"), ("J", "J", "DJ2")):
+                            v = num(at(lg.get(f), k))
+                            if v:
+                                t.add({**rb, "block": "cov", "row_param": idx[a], "col_param": idx[b], "row_name": a,
+                                       "col_name": b, "l": num(lg.get("L"), int), "j": num(at(aj, k)),
+                                       "row_er_ev": num(er[k]), "col_er_ev": num(er[k]), "value": v})
+            elif lru == 1 and lcomp == 1 and lrf != 7:
+                first = 1
+                for p, sr in enumerate(as_list(r.get("sr_subsec")), 1):
+                    mpar = num(sr.get("MPAR"), int) or 1
+                    if lrf == 4:
+                        t.add({**rb, "block": "sr", "block_index": p, "params": jdump(sr)})
+                        continue
+                    names, ers, vals, ls, js = res_params_of(lrf, sr, mpar)
+                    size = len(names)
+                    V = sr.get("V")
+                    unc_rows(t, rb, names, ers, vals, ls, js,
+                             [sqrt_or_none(v_at(V, m, m, size)) for m in range(1, size + 1)], first=first)
+                    mat_rows(t, {**rb, "params": jdump({"first_param": first, "mpar": mpar})}, "cov", p, names, ers,
+                             vals, ls, js, V, size)
+                    first += size
+                for p, lr in enumerate(as_list(r.get("lr_subsec")), 1):
+                    lb = num(lr.get("LB"), int)
+                    pr = jdump({"IDP": lr.get("IDP")})
+                    if lb == 5:
+                        e = as_list(lr.get("E"))
+                        ne = len(e)
+                        for k in range(1, ne):
+                            for kp in range(k, ne):
+                                v = v_at(lr.get("F"), k, kp, ne - 1)
+                                if v:
+                                    t.add({**rb, "block": "lr", "block_index": p, "lb": lb, "row_energy_ev": num(e[k - 1]),
+                                           "col_energy_ev": num(e[kp - 1]), "value": num(v), "params": pr})
+                    else:
+                        ek = as_list(lr.get("Ek"))
+                        extend(t, {**rb, "block": "lr", "block_index": p, "lb": lb, "row_energy_ev": ek,
+                                   "value": lr.get("Fk"), "params": pr}, len(ek))
+            elif lru == 1 and lcomp == 1 and lrf == 7:
+                for p, sr in enumerate(as_list(r.get("sr_subsec")), 1):
+                    groups = as_list(sr.get("j_group"))
+                    names, ers, vals, ls, js = rml_params_of(groups)
+                    size = num(sr.get("NPARB"), int) or len(names)
+                    note = None
+                    if size != len(names):
+                        note = f"NPARB {size} differs from the {len(names)} parameters listed; names are positions"
+                        names, ers, vals = [f"P{i}" for i in range(1, size + 1)], [None] * size, [None] * size
+                        ls, js = [None] * size, [None] * size
+                    V = sr.get("V")
+                    unc_rows(t, rb, names, ers, vals, ls, js,
+                             [sqrt_or_none(v_at(V, m, m, size)) for m in range(1, size + 1)])
+                    mat_rows(t, {**rb, "params": jdump({"note": note}) if note else None}, "cov", p, names, ers, vals,
+                             ls, js, V, size)
+            elif lru == 1 and lcomp == 2:
+                nnn, ndigit = num(r.get("NNN"), int), num(r.get("NDIGIT"), int) or 2
+                if lrf == 7:
+                    groups = as_list(r.get("j_group"))
+                    names, ers, vals, ls, js = rml_params_of(groups)
+                    if nnn is not None and nnn != len(names):
+                        alt = rml_params_of(groups, ndrop_er=True)
+                        if len(alt[0]) == nnn:
+                            names, ers, vals, ls, js = alt
+                    sds, has_er = [], bool(names) and names[0] == "ER"
+                    for sg in groups:  # DER and DGAM in the same order as the parameters
+                        der, dgam = as_list(sg.get("DER")), as_list(sg.get("DGAM"))
+                        for k in range(len(as_list(sg.get("ER")))):
+                            if has_er:
+                                sds.append(num(at(der, k)))
+                            sds += [num(at(g, k)) for g in dgam]
+                    sds = fit(sds, len(names))
+                else:
+                    nrsa = len(as_list(r.get("ER"))) or 1
+                    per = (nnn // nrsa) if nnn else (4 if lrf != 3 else 5)
+                    names, ers, vals, ls, js = res_params_of(lrf, r, per)
+                    dfields = (["DER", "DGN", "DGG", "DGFA", "DGFB"] if lrf == 3 else ["DER", "DGN", "DGG", "DGF"])[:per]
+                    sds = [num(at(r.get(f), k)) for k in range(len(as_list(r.get("ER")))) for f in dfields]
+                head["n_params"] = len(names)
+                unc_rows(t, {**rb, "ndigit": ndigit}, names, ers, vals, ls, js, sds)
+                corr_rows(t, rb, names, ers, ndigit, r.get("II"), r.get("JJ"), r.get("KIJ"))
+            elif lru == 2:
+                mpar = num(r.get("MPAR"), int) or 1
+                fields = ["D", "GN0", "GG", "GF", "GX"][:mpar]
+                names, ers, vals, ls, js = [], [], [], [], []
+                for lg in as_list(r.get("l_group")):
+                    for k in range(len(as_list(lg.get("AJ")))):
+                        for f in fields:
+                            names.append(f); ers.append(None); vals.append(num(at(lg.get(f), k)))
+                            ls.append(num(lg.get("L"), int)); js.append(num(at(lg.get("AJ"), k)))
+                size = num(r.get("NPAR"), int) or len(names)
+                names, ers, vals, ls, js = (fit(x, size) for x in (names, ers, vals, ls, js))
+                RV = r.get("RV")
+                rel = [sqrt_or_none(v_at(RV, m, m, size)) for m in range(1, size + 1)]
+                unc_rows(t, rb, names, ers, vals, ls, js,
+                         [x * abs(v) if x is not None and v is not None else None for x, v in zip(rel, vals)])
+                mat_rows(t, rb, "urr", 1, names, ers, vals, ls, js, RV, size)
+            t.add({**rb, "block": "range", "params": jdump(head)})
+
+
 def main_mf():
     """Part B: re-read the release's archives, keep MF8 MT454/457/459 and MF33 sections from the same files and runs of
-    lines that endfb_sections holds, parse each with endf-parserpy, write five tables."""
+    lines that endfb_sections holds, parse each with endf-parserpy, write five tables. --mf=2,32 (brief 56) keeps MF2
+    and MF32 MT151 the same way and writes res_ranges, res_params and res_cov."""
     t0 = time.time()
-    tables = {t: lake.Table(OUT, t, MF_SCHEMAS[t]) for t in MF_SCHEMAS}
+    schemas = RES_SCHEMAS if RES_MODE else MF_SCHEMAS
+    # Small row groups for the resonance tables, so a route reading one MAT skips the rest by the row groups' MAT range.
+    tables = {t: lake.Table(OUT, t, schemas[t], row_group=100_000 if RES_MODE else 500_000) for t in schemas}
     seen = collections.Counter()      # sections met, by table group
     parsed = collections.Counter()    # sections parsed
     rejected = []                     # sections endf-parserpy rejected: file, MAT, MF, MT, error
@@ -813,7 +1213,7 @@ def main_mf():
         cur, sec, capture, prev_tag = None, [], False, None
 
         def handle(mat, mf, mt, body, send):
-            group = "fy" if mf == 8 and mt in FY_MTS else "decay" if mf == 8 else "cov"
+            group = group_of(mf, mt)
             seen[group] += 1
             try:
                 d = PARSER.parse([TPID] + body + [send] + tail(mat), include=((mf, mt),))[mf][mt]
@@ -822,7 +1222,11 @@ def main_mf():
                 return
             base = {"release": RELEASE, "sublibrary": sub, "file_name": path, "mat": mat}
             try:
-                if group == "fy":
+                if group == "res":
+                    res_rows(tables, base, d)
+                elif group == "rescov":
+                    rescov_rows(tables["res_cov"], base, d)
+                elif group == "fy":
                     fy_rows(tables["fy"], base, d, mt)
                 elif group == "decay":
                     decay_rows(tables, base, d)
@@ -843,7 +1247,7 @@ def main_mf():
                 for p in st["pending"]:
                     handle(*p)
                 st["pending"].clear()
-            if mf == 8 and not wanted(mf, mt):
+            if mf == 8 and not RES_MODE and not wanted(mf, mt):
                 if st["holds"]:
                     other_mf8[mt] += 1
                 return
@@ -881,7 +1285,7 @@ def main_mf():
              "rejected": rejected[:500], "mf8_other_mts": dict(sorted(other_mf8.items())),
              "tables": {f"endfb_{t}": {"location": f"s3://{lake.BUCKET}/{PREFIX}/{t}/", "partition": {"release": RELEASE},
                                        **st} for t, st in stats.items()}}
-    with open(f"{WORK}/mf8_mf33.local.json", "w") as f:
+    with open(f"{WORK}/{MF_KEY}.local.json", "w") as f:
         json.dump(local, f, indent=1)
     print(json.dumps({k: local[k] for k in ("sections_seen", "sections_parsed", "sections_rejected", "seconds")}),
           json.dumps({t: s["rows"] for t, s in stats.items()}), flush=True)
@@ -895,11 +1299,11 @@ def main_mf():
 def register_mf():
     """Register endfb_fy, endfb_decay, endfb_decay_modes, endfb_decay_lines and endfb_cov (release partition), count
     each, compare sections with endfb_sections, add mf8_mf33 to lake/endfb/<release>/manifest.json."""
-    with open(f"{WORK}/mf8_mf33.local.json") as f:
+    with open(f"{WORK}/{MF_KEY}.local.json") as f:
         local = json.load(f)
     ddl_dir = f"{HERE}/ddl"
     scanned = queries = 0
-    for t, schema in MF_SCHEMAS.items():
+    for t, schema in (RES_SCHEMAS if RES_MODE else MF_SCHEMAS).items():
         name = f"endfb_{t}"
         n, s = lake.register(name, schema, f"s3://{lake.BUCKET}/lake/endfb/", ddl_dir, partitions={"release": "string"},
                              partition_locations={(("release", RELEASE),): f"s3://{lake.BUCKET}/{PREFIX}/{t}/"},
@@ -908,13 +1312,17 @@ def register_mf():
         scanned += s
         queries += 1
         lake.s3.upload_file(f"{ddl_dir}/{name}.sql", lake.BUCKET, f"lake/_work/parse/endfb/ddl/{name}.sql")
-    (r,), s = lake.rows(f"SELECT count_if(mf = 8 AND mt IN (454, 459)), count_if(mf = 8 AND mt = 457), "
-                        f"count_if(mf = 33) FROM endfb_sections WHERE release = '{RELEASE}'")
+    if RES_MODE:
+        (r,), s = lake.rows(f"SELECT count_if(mf = 2 AND mt = 151), count_if(mf = 32 AND mt = 151) "
+                            f"FROM endfb_sections WHERE release = '{RELEASE}'")
+        in_sections = dict(zip(("res", "rescov"), (int(x) for x in r)))
+    else:
+        (r,), s = lake.rows(f"SELECT count_if(mf = 8 AND mt IN (454, 459)), count_if(mf = 8 AND mt = 457), "
+                            f"count_if(mf = 33) FROM endfb_sections WHERE release = '{RELEASE}'")
+        in_sections = dict(zip(("fy", "decay", "cov"), (int(x) for x in r)))
     scanned += s
     queries += 1
-    in_sections = dict(zip(("fy", "decay", "cov"), (int(x) for x in r)))
-    by_group = collections.Counter(("fy" if x["mf"] == 8 and x["mt"] in FY_MTS else "decay" if x["mf"] == 8 else "cov")
-                                   for x in local["rejected"])
+    by_group = collections.Counter(group_of(x["mf"], x["mt"]) for x in local["rejected"])
     check = {g: {"endfb_sections": in_sections[g], "sections_seen": local["sections_seen"].get(g, 0),
                  "parsed": local["sections_parsed"].get(g, 0), "rejected": by_group.get(g, 0),
                  "match": in_sections[g] == local["sections_parsed"].get(g, 0)} for g in in_sections}
@@ -923,16 +1331,21 @@ def register_mf():
         if c["endfb_sections"] != c["sections_seen"]:
             explained.append(f"{g}: endfb_sections holds {c['endfb_sections']:,} sections, this pass met {c['sections_seen']:,}.")
         if c["rejected"]:
-            ex = [x for x in local["rejected"] if ("fy" if x["mf"] == 8 and x["mt"] in FY_MTS else
-                                                   "decay" if x["mf"] == 8 else "cov") == g][:5]
+            ex = [x for x in local["rejected"] if group_of(x["mf"], x["mt"]) == g][:5]
             explained.append(f"{g}: endf-parserpy rejected {c['rejected']:,} sections (listed under rejected, each with its "
                              f"file, MAT and MT; their lines are in endfb_records), e.g. "
                              + "; ".join(f"{x['file'].rsplit('/', 1)[-1]} MAT {x['mat']} MT {x['mt']}: "
                                          f"{x['error'].split(':', 1)[0]}" for x in ex) + ".")
-    local["counts_check"] = {"tables_vs_sections": check,
-                             "tables": {"decay rows = MT457 sections parsed":
-                                        local["tables"]["endfb_decay"]["athena_count"] == check["decay"]["parsed"]},
-                             "explained": explained}
+    if RES_MODE:
+        (r,), s = lake.rows(f"SELECT count(DISTINCT file_name || '/' || CAST(mat AS varchar)) FROM endfb_res_ranges "
+                            f"WHERE release = '{RELEASE}'")
+        scanned += s
+        queries += 1
+        tables_check = {"materials in res_ranges = MF2 sections parsed": int(r[0]) == check["res"]["parsed"]}
+    else:
+        tables_check = {"decay rows = MT457 sections parsed":
+                        local["tables"]["endfb_decay"]["athena_count"] == check["decay"]["parsed"]}
+    local["counts_check"] = {"tables_vs_sections": check, "tables": tables_check, "explained": explained}
     local["spend"] = {"athena_queries": queries, "athena_bytes_scanned": scanned,
                       "athena_usd": round(max(scanned, queries * 10_485_760) / 1e12 * 5, 4), "box": BOX}
     key = f"{PREFIX}/manifest.json"
@@ -940,7 +1353,7 @@ def register_mf():
         manifest = json.loads(lake.s3.get_object(Bucket=lake.BUCKET, Key=key)["Body"].read())
     except Exception:  # noqa: BLE001
         manifest = {"dataset": "endfb", "release": RELEASE}
-    manifest["mf8_mf33"] = local
+    manifest[MF_KEY] = local
     lake.put_json(key, manifest)
     print(json.dumps(local["counts_check"], indent=1), flush=True)
 

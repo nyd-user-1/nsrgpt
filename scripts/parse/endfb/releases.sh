@@ -7,6 +7,7 @@
 #   ./releases.sh                              # all of them
 #   ./releases.sh <release> [<s3 key>…]        # one (its keys from the list below unless given)
 #   ./releases.sh --mf=8,33 [<release>]        # part B, MF8 and MF33 tables; logs /data/mf-<release>.log
+#   ./releases.sh --mf=2,32 [<release>]        # brief 56, MF2 and MF32 tables; logs /data/mf2-<release>.log
 cd "$(dirname "$0")"
 N=raw/nndc/2026-11-07
 R=$N/endf-releases/releases
@@ -35,7 +36,7 @@ GIVEN="$*"
 echo "$ALL" | while read -r rel keys; do
   [ -n "$ONE" ] && [ "$rel" != "$ONE" ] && continue
   [ -n "$GIVEN" ] && keys=$GIVEN
-  log=/data/endf-$rel.log; [ -n "$MF" ] && log=/data/mf-$rel.log
+  log=/data/endf-$rel.log; [ -n "$MF" ] && log=/data/mf-$rel.log; [ "$MF" = "--mf=2,32" ] && log=/data/mf2-$rel.log
   echo "$(date -u +%FT%TZ) start $rel $MF" >> /data/endf-releases.log
   # shellcheck disable=SC2086  # keys split on spaces
   /opt/parse/bin/python -I parse.py "$rel" $keys $MF > "$log" 2>&1
