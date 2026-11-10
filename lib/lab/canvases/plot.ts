@@ -1,5 +1,5 @@
 import type { Dataset, Series } from "@/lib/lab/blocks"
-import { releaseOf } from "@/lib/lab/canvases/compare"
+import { offDatasets, releaseOf } from "@/lib/lab/canvases/compare"
 
 // The Lab's Plot option (brief 53), for ECharts through components/viz/use-echart.ts. σ against energy, log-log: the
 // EXFOR points hollow in the paper's ink, one series per dataset (its author and year in the legend; ids
@@ -99,10 +99,12 @@ export function plotOption({ points, series = [], ratio = [], mode = "both", hig
   const evalNames: string[] = []
 
   if (showSigma) {
-    // The points, one series per dataset.
+    // The points, one series per dataset; not those in other units (σ√E) or excluded, which aren't barns.
+    const off = offDatasets(points)
     const byDs = new Map<string, [number, number, number | null][]>()
     for (const r of points?.rows ?? []) {
       const id = String(r.dataset_id ?? "")
+      if (off.has(id)) continue
       const e = Number(r.e_ev), y = Number(r.xs_b)
       if (!(e > 0) || !(y > 0)) continue
       byDs.set(id, [...(byDs.get(id) ?? []), [e, y, r.dxs_b == null ? null : Number(r.dxs_b)]])

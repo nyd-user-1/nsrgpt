@@ -46,7 +46,7 @@ export async function getJson<T>(ctx: RunContext, path: string): Promise<T> {
 const query = (o: Record<string, unknown>) =>
   new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => [k, String(v)])).toString()
 
-type ExforDataset = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; institute?: string; n?: number; excluded?: string }
+type ExforDataset = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; institute?: string; n?: number; excluded?: string; units?: string | null }
 type ExforPoint = { dataset_id: string; e_ev: number; de_ev?: number | null; xs_b: number; dxs_b?: number | null }
 
 /** EXFOR points per query unless a block sets its own limit: the route's most (50K). U-235 (n,f) from 1 to 200 keV is 38.8K
@@ -73,7 +73,7 @@ async function exfor(p: DataParams, ctx: RunContext) {
       y: pts.map((x) => x.xs_b),
       ...(hasErr ? { lo: pts.map((x) => x.xs_b - (x.dxs_b ?? 0)), hi: pts.map((x) => x.xs_b + (x.dxs_b ?? 0)) } : {}),
       unit_x: "eV",
-      unit_y: "b",
+      unit_y: d?.units && d.units !== "B" ? d.units : "b",
       meta: { dataset_id: id, entry: d?.entry, subentry: d?.subentry, author: d?.author, year: d?.year },
     }
   })
