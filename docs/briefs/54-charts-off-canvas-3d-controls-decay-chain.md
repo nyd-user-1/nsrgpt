@@ -64,3 +64,9 @@ the 3D charts with the 4× mark and pan, and the rename count.
 
 ## Kickoff
 `Read ~/Code/nsrgpt/docs/briefs/54-charts-off-canvas-3d-controls-decay-chain.md and do it; report to lead-agent after each part.`
+
+## Part A, added (Brendan, 03:30 ET)
+4. On /viz/chart, the cell under the pointer grows, as the 2D marks grow a hovered dot (brief 06's hover mark, 1.6× and
+   outlined in ink, on its own layer): the chart is a custom series, so draw the hovered cell again at about 2× on the
+   marks layer, above its neighbours, in the cell's own colour with the ink outline; the same for the picked cell. The
+   symbols at zoom and the click are unchanged; hovering must stay smooth over 3,386 cells (the layer repaints alone).
