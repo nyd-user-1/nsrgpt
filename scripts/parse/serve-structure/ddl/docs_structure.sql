@@ -1,7 +1,8 @@
 -- search_docs_structure: parsing-1's share of the search documents (brief 18's columns): nuclides, adopted levels with a
 -- half-life or an isomer flag, decays, ENSDF and XUNDL datasets, ENDF materials and MF3 cross sections, all releases
 -- (ENDF/B, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2; @LIB@ names the library, @FAMILY@ its bare name for a lone "JEFF").
--- url_path is the nsr-api path that returns the record.
+-- url_path is the nsr-api path that returns the record. Brief 56: a decay or fission-yield material points at /endf/decay
+-- or /endf/fy, and ICRP 107's nuclides are documents of their own (type icrp_nuclide, /icrp/nuclide/{name}).
 UNLOAD (
 WITH el AS (SELECT * FROM @ELEMENTS@),
 s AS (SELECT s.*, el.ename FROM nuclide_serve_summary s LEFT JOIN el ON el.z = s.z),
@@ -70,7 +71,11 @@ SELECT 'material', m.release || '/' || m.sublibrary || '/' || CAST(m.mat AS varc
                  nullif(m.lab, ''), nullif(m.authors, ''), nullif(m.edate, ''), 'evaluated material', @FAMILY(m.release)@),
        filter(ARRAY[m.name, @LIB(m.release)@, m.sublibrary], x -> x IS NOT NULL),
        @LIB(m.release)@, m.z, m.a, CAST(NULL AS integer), CAST(NULL AS integer),
-       '/endf/materials?release=' || m.release || '&sublibrary=' || m.sublibrary || '&z=' || CAST(m.z AS varchar)
+       CASE m.sublibrary
+         WHEN 'decay' THEN '/endf/decay?name=' || m.name || '&release=' || m.release
+         WHEN 'nfy' THEN '/endf/fy?name=' || m.name || '&release=' || m.release
+         WHEN 'sfy' THEN '/endf/fy?name=' || m.name || '&release=' || m.release || '&sub=sfy'
+         ELSE '/endf/materials?release=' || m.release || '&sublibrary=' || m.sublibrary || '&z=' || CAST(m.z AS varchar) END
 FROM endf_serve_materials m WHERE m.release NOT LIKE '%-point-%'
 UNION ALL
 SELECT 'cross_section', x.release || '/' || x.sublibrary || '/' || CAST(x.mat AS varchar) || '/' || CAST(x.mt AS varchar),
@@ -85,4 +90,14 @@ SELECT 'cross_section', x.release || '/' || x.sublibrary || '/' || CAST(x.mat AS
        @LIB(x.release)@, x.z, x.a, x.mt, CAST(NULL AS integer),
        '/endf/xs?name=' || x.name || '&mt=' || CAST(x.mt AS varchar) || '&release=' || x.release || '&sub=' || x.sublibrary
 FROM endf_serve_xs x LEFT JOIN mt t ON t.mt = x.mt WHERE x.release NOT LIKE '%-point-%'
+UNION ALL
+SELECT 'icrp_nuclide', 'icrp:' || i.nuclide, i.nuclide,
+       i.nuclide || coalesce(' (' || @CAP(el.ename)@ || ')', '') || ', ICRP 107: half-life ' || CAST(i.half_life AS varchar) || ' '
+         || i.half_life_unit || coalesce(', decay ' || nullif(trim(i.decay_modes), ''), '') || ', radiations and chain for dose',
+       concat_ws(' ', i.nuclide, replace(i.nuclide, '-', ''), CAST(i.a AS varchar) || coalesce(nullif(i.isomer, ''), '') || i.element,
+                 el.ename, el.ename || '-' || CAST(i.a AS varchar), i.decay_modes,
+                 'ICRP 107 ICRP Publication 107 dosimetry dose radiations emissions decay chain half-life'),
+       filter(ARRAY[i.nuclide, 'ICRP 107', el.ename], x -> x IS NOT NULL),
+       'ICRP 107', i.z, i.a, CAST(NULL AS integer), 2008, '/icrp/nuclide/' || i.nuclide
+FROM icrp107_nuclides i LEFT JOIN el ON el.z = i.z
 ) TO '@LOC@' WITH (format = 'PARQUET', compression = 'SNAPPY')

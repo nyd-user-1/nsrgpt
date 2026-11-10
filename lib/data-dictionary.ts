@@ -4,11 +4,11 @@
 // exact fields) and the serving tables' columns in the Glue catalog nsr. Types are the catalog's. Pages list where the
 // app shows the field; route is the API path that returns it. Paging and timing fields (page, pages, took_ms) are left out.
 
-export type Dataset = "ENSDF" | "ENDF/B" | "EXFOR" | "NSR" | "Every dataset"
+export type Dataset = "ENSDF" | "ENDF/B" | "EXFOR" | "NSR" | "ICRP 107" | "Every dataset"
 export type Field = { id: string; field: string; type: string; dataset: Dataset; table: string; description: string; pages: string[]; route: string }
 
 /** The groups in the order the page shows them. */
-export const DATASETS: Dataset[] = ["ENSDF", "ENDF/B", "EXFOR", "NSR", "Every dataset"]
+export const DATASETS: Dataset[] = ["ENSDF", "ENDF/B", "EXFOR", "NSR", "ICRP 107", "Every dataset"]
 
 type Spec = [field: string, type: string, description: string, pages?: string[]]
 
@@ -140,7 +140,7 @@ export const DICTIONARY: Field[] = [
   ...rows("ENDF/B", "API response", "/endf/xs", [
     ["release", "string", "The release asked for, as B-VIII.1."],
     ["release_served", "string", "The release that answered: NNDC's reconstructed POINT library where it holds the section, else the file's own MF3."],
-    ["held", "boolean", "Whether the lake holds the release; false for one it doesn't, as JEFF-3.3."],
+    ["held", "boolean", "Whether the lake holds the release; false for a release the lake does not hold, as JEFF-3.2."],
   ]),
   ...rows("ENDF/B", "endf_serve_mt_names", "/endf/mt", [
     ["mt", "int", "Reaction number."],
@@ -149,6 +149,118 @@ export const DICTIONARY: Field[] = [
     ["description", "string", "What the reaction number covers, from ENDF-102."],
   ]),
 
+  // ENDF/B File 2 and File 32, MT151 (brief 56): /endf/resonances, /endf/resonances/cov
+  ...rows("ENDF/B", "endfb_res_ranges", "/endf/resonances", [
+    ["release", "string", "The release, as B-VIII.1; the table's partition."],
+    ["mat", "int", "The material number."],
+    ["isotope_index", "int", "The isotope within the material, from 1; a natural element can list several."],
+    ["zai", "double", "The isotope's Z × 1000 + A."],
+    ["abn", "double", "The isotope's abundance in the material."],
+    ["range_index", "int", "The energy range, numbered from 1 across the material's isotopes; /endf/resonances takes it as range."],
+    ["el_ev", "double", "The range's lower energy, eV."],
+    ["eh_ev", "double", "The range's upper energy, eV."],
+    ["lru", "int", "0 scattering radius only, 1 resolved, 2 unresolved."],
+    ["lrf", "int", "The formalism: 1 single-level Breit-Wigner, 2 multilevel Breit-Wigner, 3 Reich-Moore, 4 Adler-Adler, 7 R-matrix limited; 1 or 2 in the unresolved range."],
+    ["spi", "double", "The target's spin."],
+    ["ap", "double", "The scattering radius, 10⁻¹² cm."],
+    ["nls", "int", "The number of orbital angular momenta (l-values) given."],
+    ["njs", "int", "R-matrix limited: the number of spin groups."],
+    ["npp", "int", "R-matrix limited: the number of particle pairs."],
+    ["scattering_radius_only", "boolean", "True for a range that gives only the scattering radius, no resonances."],
+    ["n_resonances", "int", "Rows the range has in endfb_res_params."],
+    ["ap_table", "string", "An energy-dependent scattering radius as JSON, where the file gives one."],
+    ["params", "string", "Every other field the file gives for the range as JSON: l-groups, particle pairs, spin groups' channels."],
+  ]),
+  ...rows("ENDF/B", "endfb_res_params", "/endf/resonances", [
+    ["range_index", "int", "The range the row belongs to."],
+    ["unresolved", "boolean", "True for the unresolved range's average parameters, false for a resonance."],
+    ["l", "int", "Orbital angular momentum."],
+    ["j", "double", "The resonance's spin J (its sign carries the channel spin where the file uses it)."],
+    ["er_ev", "double", "The resonance energy, eV; negative for a bound level."],
+    ["gn_ev", "double", "The neutron width at the resonance energy, eV."],
+    ["gg_ev", "double", "The radiation (capture) width, eV."],
+    ["gf_ev", "double", "The fission width, eV (Breit-Wigner)."],
+    ["gfa_ev", "double", "Reich-Moore's first fission channel width, eV, signed."],
+    ["gfb_ev", "double", "Reich-Moore's second fission channel width, eV, signed."],
+    ["gt_ev", "double", "The total width, eV, where the file gives it."],
+    ["widths", "string", "R-matrix limited: every channel's width in order with the spin group's channels, as JSON."],
+    ["es_ev", "double", "Unresolved: the energy the averages hold at, eV."],
+    ["d_ev", "double", "Unresolved: the average level spacing, eV."],
+    ["gn0_ev", "double", "Unresolved: the average reduced neutron width, eV."],
+    ["amun", "double", "Unresolved: degrees of freedom of the neutron width distribution."],
+  ]),
+  ...rows("ENDF/B", "endfb_res_cov", "/endf/resonances/cov", [
+    ["range_index", "int", "The File 32 range."],
+    ["lcomp", "int", "The covariance form: 0 per resonance, 1 full blocks, 2 the compact form (uncertainties and a correlation matrix)."],
+    ["block", "string", "range (the header), unc (one parameter's standard deviation), cov (a covariance), corr (a compact correlation), lr (long-range), urr (unresolved relative covariance), ap and dap (scattering radius)."],
+    ["row_param", "int", "The parameter's number within the range, in ENDF-102's order."],
+    ["col_param", "int", "The second parameter's number, for cov and corr rows."],
+    ["row_name", "string", "Which parameter: ER, GN, GG, GF, GFA, GFB, GAM1… or D, GN0 in the unresolved range."],
+    ["row_er_ev", "double", "The energy of the resonance the parameter belongs to, eV."],
+    ["row_value", "double", "The parameter's value, from File 32's own listing."],
+    ["value", "double", "unc: the standard deviation, in the parameter's unit; cov: the covariance; corr: the correlation; lr and urr: the file's value."],
+    ["ndigit", "int", "The compact form's digits per correlation (2 to 6)."],
+  ]),
+  ...rows("ENDF/B", "API response", "/endf/cov", [
+    ["resolved", "object", "For elastic, capture or fission: the relative uncertainty per decade inside the resolved ranges, from File 32's diagonal at each resonance's peak, first order (method mf32-diagonal-first-order)."],
+    ["rel_sd", "double", "resolved: the resonances' peak uncertainties averaged over the decade, weighted by their areas; a fraction."],
+    ["rel_sd_uncorrelated", "double", "resolved: the same added in quadrature, as if the resonances were independent."],
+  ]),
+  // ENDF/B File 8 and File 33 (brief 43): /endf/fy, /endf/decay, /endf/cov
+  ...rows("ENDF/B", "endfb_fy", "/endf/fy", [
+    ["mt", "int", "454 independent yields, 459 cumulative."],
+    ["energy_ev", "double", "The incident neutron energy the yields hold at, eV (0.0253 thermal)."],
+    ["zafp", "double", "The fission product's Z × 1000 + A."],
+    ["fps", "double", "The product's isomeric state, 0 ground."],
+    ["yield", "double", "The yield per fission."],
+    ["yield_unc", "double", "The yield's standard deviation."],
+  ]),
+  ...rows("ENDF/B", "endfb_decay", "/endf/decay", [
+    ["half_life_s", "double", "Half-life, seconds; empty for a stable state."],
+    ["half_life_unc", "double", "The half-life's standard deviation, seconds."],
+    ["stable", "boolean", "True for a stable nuclide."],
+    ["spin", "double", "The state's spin."],
+    ["parity", "double", "The state's parity, +1 or -1."],
+    ["mean_light_ev", "double", "Mean energy of light particles (electrons, positrons) per decay, eV."],
+    ["mean_em_ev", "double", "Mean energy of electromagnetic radiation (gammas, X-rays) per decay, eV."],
+    ["mean_heavy_ev", "double", "Mean energy of heavy particles (alphas, protons, neutrons) per decay, eV."],
+  ]),
+  ...rows("ENDF/B", "endfb_decay_modes", "/endf/decay", [
+    ["rtyp", "double", "The decay mode: 1 β−, 2 β+ or electron capture, 3 isomeric transition, 4 α, 5 neutron, 6 spontaneous fission, 7 proton; a decimal for a sequence."],
+    ["rfs", "double", "The daughter's isomeric state."],
+    ["q_ev", "double", "The mode's Q-value, eV."],
+    ["br", "double", "The mode's branching fraction."],
+  ]),
+  ...rows("ENDF/B", "endfb_decay_lines", "/endf/decay", [
+    ["styp", "double", "The radiation: 0 gamma, 1 β−, 2 β+ and electron capture, 4 α, 5 neutron, 6 spontaneous fission, 7 proton, 8 electron, 9 X-ray."],
+    ["er_ev", "double", "A discrete line's energy, eV."],
+    ["ri", "double", "The line's intensity relative to the spectrum's normalization fd."],
+    ["fd", "double", "The spectrum's normalization: multiply ri by it for the intensity per decay."],
+    ["continuum", "boolean", "True for the spectrum's continuous part (its table is in params)."],
+  ]),
+  ...rows("ENDF/B", "endfb_cov", "/endf/cov", [
+    ["mt", "int", "The reaction the covariance is for."],
+    ["mt1", "int", "The second reaction; equal to mt for a self-covariance."],
+    ["lb", "int", "The representation (ENDF-102 33.2): 1 and 8 relative variances, 2 fully correlated, 5 and 6 a relative matrix."],
+    ["row_energy_ev", "double", "The group's lower energy, eV."],
+    ["col_energy_ev", "double", "The column group's lower energy, eV, for a matrix."],
+    ["value", "double", "The covariance value, relative for LB 1, 2, 5, 6 and 8."],
+  ]),
+  ...rows("ENDF/B", "endf_decay_vs_ensdf", "/endf/decay-vs-ensdf", [
+    ["endf_s", "double", "The library's half-life, seconds."],
+    ["ensdf_s", "double", "ENSDF 2026-11-05's half-life for the same state, seconds."],
+    ["ensdf_text", "string", "ENSDF's half-life as written, the receipt."],
+    ["rel_diff", "double", "(library − ENSDF) / ENSDF."],
+    ["sigmas", "double", "The difference over the two stated uncertainties added in quadrature."],
+    ["note", "string", "agree within 3 sigma, differ by more than 3 sigma, ENSDF gives a width, ENSDF gives a limit or approximate value, or why there is no comparison."],
+  ]),
+  ...rows("ENDF/B", "nsrgpt-jobs", "/jobs/{id}", [
+    ["id", "string", "The job's id (DynamoDB nsrgpt-jobs, the Lab's broadening jobs)."],
+    ["kind", "string", "broaden: Doppler broadening of one cross section with PREPRO."],
+    ["params", "map", "release, name or mat, sub, mt and temps_k."],
+    ["status", "string", "queued, running, done or failed."],
+    ["result_urls", "map", "One result file per temperature once done."],
+  ]),
   // EXFOR: /exfor/search, /exfor/subentry/{id}, /exfor/pickers/{name}
   ...rows("EXFOR", "exfor_serve_search_index", "/exfor/search", [
     ["dataset", "string", "One data table: the subentry and its pointer, as 10001002 or O04060152."],
@@ -208,6 +320,17 @@ export const DICTIONARY: Field[] = [
     ["targets", "bigint", "Targets with this quantity."],
   ]),
 
+  ...rows("EXFOR", "exfor_serve_points", "/exfor/points", [
+    ["dataset", "string", "The data table the point belongs to: subentry and pointer."],
+    ["target_za", "int", "The target's Z × 1000 + A."],
+    ["source", "string", "C5 where the C5 file holds the dataset, else J4 converted with the dictionary's unit factors."],
+    ["e_ev", "double", "The incident energy, eV."],
+    ["de_ev", "double", "The energy's uncertainty, eV."],
+    ["xs_b", "double", "The value in the dataset's base unit (barns for a cross section)."],
+    ["dxs_b", "double", "The value's uncertainty, same unit."],
+    ["units", "string", "The base unit of xs_b."],
+  ]),
+
   // NSR: /nsr/{key}
   ...rows("NSR", "search_nsr", "/nsr/{key}", [
     ["key_number", "string", "NSR key number, as 2011CH57; the route takes it."],
@@ -224,6 +347,57 @@ export const DICTIONARY: Field[] = [
     ["exfor_keys", "string", "EXFOR entry numbers compiled from the paper."],
     ["entry_date", "string", "Date the reference entered NSR."],
     ["modification_date", "string", "Date the reference last changed."],
+  ]),
+
+  // ICRP 107 (brief 48): /icrp/nuclide/{name}, /icrp/radiations/{name}, /icrp/chain/{name}, /icrp/vs-ensdf
+  ...rows("ICRP 107", "icrp107_nuclides", "/icrp/nuclide/{name}", [
+    ["nuclide", "string", "The nuclide as ICRP 107 writes it, as Ac-225 or Tc-99m; the route takes it."],
+    ["half_life", "double", "Half-life in half_life_unit."],
+    ["half_life_unit", "string", "The unit ICRP 107 gives: y, d, h, m, s, ms, µs."],
+    ["half_life_s", "double", "Half-life, seconds."],
+    ["decay_modes", "string", "Decay modes, as A, B-, EC B+, IT, SF."],
+    ["e_alpha_mev", "double", "Mean alpha energy per transformation, MeV."],
+    ["e_electron_mev", "double", "Mean electron energy per transformation, MeV."],
+    ["e_photon_mev", "double", "Mean photon energy per transformation, MeV."],
+    ["air_kerma_rate_const", "double", "The air-kerma rate constant."],
+  ]),
+  ...rows("ICRP 107", "icrp107_daughters", "/icrp/chain/{name}", [
+    ["parent", "string", "The decaying nuclide."],
+    ["daughter", "string", "The nuclide it decays to."],
+    ["branching_fraction", "double", "The fraction of the parent's decays that go to this daughter."],
+    ["mode", "string", "The decay mode of this branch."],
+    ["daughter_stable", "boolean", "True when the daughter is stable: the chain ends there."],
+  ]),
+  ...rows("ICRP 107", "icrp107_radiations", "/icrp/radiations/{name}", [
+    ["type", "string", "G gamma, X X-ray, AQ annihilation, B+, B−, IE internal conversion electron, AE Auger electron, A alpha, AR recoil, FF fission fragment, N neutron."],
+    ["yield_per_transformation", "double", "Emissions per nuclear transformation."],
+    ["energy_mev", "double", "The emission's energy, MeV (the mean for a beta)."],
+  ]),
+  ...rows("ICRP 107", "icrp107_beta_spectra", "/icrp/radiations/{name}", [
+    ["energy_mev", "double", "A point of the beta spectrum, MeV."],
+    ["intensity_per_mev", "double", "Betas per MeV per transformation at that energy."],
+  ]),
+  ...rows("ICRP 107", "icrp107_auger_ck", "/icrp/radiations/{name}", [
+    ["energy_ev", "double", "An Auger or Coster-Kronig electron's energy, eV."],
+    ["yield_per_transformation", "double", "Electrons per transformation."],
+    ["transition", "string", "The atomic transition."],
+  ]),
+  ...rows("ICRP 107", "icrp107_neutron_spectra", "/icrp/radiations/{name}", [
+    ["sf_branching_fraction", "double", "The spontaneous-fission branching fraction."],
+    ["energy_low_mev", "double", "The bin's lower energy, MeV."],
+    ["yield_per_transformation", "double", "Neutrons per transformation in the bin."],
+  ]),
+  ...rows("ICRP 107", "icrp107_vs_ensdf", "/icrp/vs-ensdf", [
+    ["icrp_s", "double", "ICRP 107's half-life, seconds."],
+    ["ensdf_s", "double", "ENSDF 2026-11-05's half-life for the same state, seconds."],
+    ["ensdf_text", "string", "ENSDF's half-life as written, the receipt."],
+    ["rel_diff", "double", "(ICRP − ENSDF) / ENSDF."],
+    ["sigmas", "double", "The difference over ENSDF's stated uncertainty."],
+    ["note", "string", "agree within 3 sigma of ENSDF, differ by more than 3 sigma, or why there is no comparison."],
+  ]),
+  ...rows("Every dataset", "API response", "/counts", [
+    ["counts", "object", "Rows per dataset counted from the lake's Parquet: NSR papers, ENSDF datasets and nuclides, XUNDL datasets, EXFOR entries, subentries, datasets and points, ICRP nuclides."],
+    ["endf", "object", "Per release: materials, sections, MF3 points and resonance rows."],
   ]),
 
   // Every dataset: /search, /suggest

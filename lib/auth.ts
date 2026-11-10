@@ -5,8 +5,8 @@ import { DEV_SIGNED_IN, DEV_USER } from "@/lib/dev-session";
 /**
  * The signed-in reader, from the Cognito ID token in the nysgpt_session
  * cookie, verified against the pool's signing keys (2026-10-07, ported from
- * Hermes). The pool is invite-only: accounts are created by hand, so a bot
- * can never sign itself up and wake a product's database.
+ * Hermes). Self sign-up is on since 2026-11-10 (Brendan; the pool nsrgpt's
+ * AllowAdminCreateUserOnly is false), bounded by the daily cap in lib/limits.ts.
  */
 
 const POOL = process.env.NYSGPT_COGNITO_POOL_ID;
