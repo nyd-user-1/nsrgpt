@@ -16,13 +16,13 @@ import {
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { ChevronLeft, ChevronRight, Copy, LayoutDashboard, Play, Plus, Save } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, Copy, LayoutDashboard, Play, Plus, Save, type LucideIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { BlockNode } from "@/components/lab/BlockNode"
-import { LabContext, PORT_COLOR, type LabContextValue } from "@/components/lab/LabContext"
+import { KIND_ICON, LabContext, PORT_COLOR, type LabContextValue } from "@/components/lab/LabContext"
 import { KIND_DRAG, LabRail } from "@/components/lab/LabRail"
 import { LabRight } from "@/components/lab/LabRight"
 import { OutputPane } from "@/components/lab/OutputPane"
@@ -50,6 +50,10 @@ const STAGE: Record<BlockKind, number> = { data: 0, process: 1, compare: 2, plot
 const LANE_GAP = 40
 const LANE_GUTTER = 120
 type Lane = { label: string; x: number; w: number }
+/** Each lane's icon, the kind's own, beside the lane's name (Brendan, 2026-11-10); the blocks' headers carry none. */
+const LANE_ICON: Record<string, LucideIcon> = { Sources: KIND_ICON.data, Process: KIND_ICON.process, Compare: KIND_ICON.compare, Results: KIND_ICON.plot }
+/** What a port colour carries, for the legend. */
+const PORT_LABEL = { dataset: "Dataset: rows and columns", series: "Series: x and y, a curve or points", text: "Text" } as const
 
 /** The title at rest: up to its first colon or comma, with an ellipsis when that cut something. */
 const shortName = (name: string) => {
@@ -134,6 +138,7 @@ function LabInner() {
   }, [nodesInitialized, tidy])
   // The view fits once, on load; nothing recentres it afterwards (Brendan, 2026-11-10). Tidy is the circle, by hand.
   const [titleOpen, setTitleOpen] = useState(false)
+  const [legendOpen, setLegendOpen] = useState(false)
   // The rails close over 500 ms after the page draws, and the canvas widens under the first fit; fit again once they
   // have settled (Brendan, 2026-11-10).
   const fitSettled = useCallback(() => {
@@ -362,14 +367,37 @@ function LabInner() {
               </Panel>
               {/* The lanes' names over their columns, in the canvas's own coordinates, so they pan and zoom with the blocks. */}
               <ViewportPortal>
-                {lanes.map((l) => (
-                  <div key={l.label} style={{ position: "absolute", left: l.x, top: -34, width: l.w }} className="pointer-events-none select-none border-b border-[var(--paper-rule-soft)] pb-1 text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">
-                    {l.label}
-                  </div>
-                ))}
+                {lanes.map((l) => {
+                  const LaneIcon = LANE_ICON[l.label]
+                  return (
+                    <div key={l.label} style={{ position: "absolute", left: l.x, top: -34, width: l.w }} className="pointer-events-none flex select-none items-center gap-1.5 border-b border-[var(--paper-rule-soft)] pb-1 text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">
+                      {LaneIcon && <LaneIcon className="h-3.5 w-3.5" />}
+                      {l.label}
+                    </div>
+                  )
+                })}
               </ViewportPortal>
               <Background gap={24} size={1} />
               <Controls showInteractive={false} />
+              {/* The dots' legend (Brendan, 2026-11-10): what each port colour carries; folded at rest, above the zoom controls. */}
+              <Panel position="bottom-left" className="mb-[132px]">
+                <div className="rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] text-[11px] text-[var(--paper-muted)] shadow-sm">
+                  <button type="button" aria-expanded={legendOpen} onClick={() => setLegendOpen((v) => !v)} className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:text-[var(--paper-text)]">
+                    {legendOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                    Legend
+                  </button>
+                  {legendOpen && (
+                    <ul className="flex flex-col gap-1 border-t border-[var(--paper-rule-soft)] px-2.5 py-1.5">
+                      {(Object.keys(PORT_COLOR) as (keyof typeof PORT_COLOR)[]).map((port) => (
+                        <li key={port} className="flex items-center gap-2">
+                          <span aria-hidden className="inline-block h-3 w-3 rounded-full border-2 border-[var(--paper)]" style={{ background: PORT_COLOR[port] }} />
+                          {PORT_LABEL[port]}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </Panel>
             </ReactFlow>
             <div className="absolute bottom-4 right-4 z-10 flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
               <Button variant="outline" aria-label="Save the canvas" title="Save" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={save} disabled={saving}>

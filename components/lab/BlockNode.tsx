@@ -7,7 +7,7 @@ import { lazy, memo, Suspense, useMemo, type PointerEvent as ReactPointerEvent }
 import { toast } from "sonner"
 
 import { BlockParams } from "@/components/lab/BlockParams"
-import { KIND_ICON, PORT_COLOR, useLabContext } from "@/components/lab/LabContext"
+import { PORT_COLOR, useLabContext } from "@/components/lab/LabContext"
 import { PlotChart } from "@/components/lab/PlotChart"
 import { KebabMenu, MenuRow, MenuSeparator } from "@/components/kebab-menu"
 import { copyText } from "@/lib/canvas-png"
@@ -25,24 +25,24 @@ const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) 
 
 const WIDTH: Record<Block["kind"], number> = { data: 300, process: 300, compare: 300, plot: 560, prompt: 420 }
 
+/** The ports as dots on the block's edges (Brendan, 2026-11-10): inputs down the left edge, outputs down the right,
+ *  spaced evenly below the header, no labels; the colour says the type (the canvas's legend names them) and the hover
+ *  title says the port. */
 function Ports({ ports, side }: { ports: Record<string, Port>; side: "in" | "out" }) {
   const list = Object.entries(ports)
-  if (!list.length) return <div />
   return (
-    <div className={cn("flex flex-col gap-1", side === "out" && "items-end")}>
-      {list.map(([handle, port]) => (
-        <div key={handle} className={cn("relative flex items-center gap-1.5 text-[10px] text-[var(--paper-muted)]", side === "in" ? "pl-2.5" : "pr-2.5")}>
-          <Handle
-            type={side === "in" ? "target" : "source"}
-            id={handle}
-            position={side === "in" ? Position.Left : Position.Right}
-            style={{ background: PORT_COLOR[port], width: 9, height: 9, border: "2px solid var(--paper)", [side === "in" ? "left" : "right"]: -5 }}
-            title={`${handle}: ${port}`}
-          />
-          <span>{handle}</span>
-        </div>
+    <>
+      {list.map(([handle, port], i) => (
+        <Handle
+          key={handle}
+          type={side === "in" ? "target" : "source"}
+          id={handle}
+          position={side === "in" ? Position.Left : Position.Right}
+          style={{ background: PORT_COLOR[port], width: 12, height: 12, border: "2px solid var(--paper)", top: 52 + i * 22, [side === "in" ? "left" : "right"]: -6 }}
+          title={`${handle}: ${port}`}
+        />
       ))}
-    </div>
+    </>
   )
 }
 
@@ -76,7 +76,6 @@ function BlockNodeInner({ id }: NodeProps) {
   } : null, [inputs])
   if (!block) return null
   const kind = KINDS[block.kind]
-  const Icon = KIND_ICON[block.kind]
   const running = block.state.status === "running"
   const summary = out ? kind.summary?.(out) ?? "" : ""
   const note = out ? kind.note?.(out) : undefined
@@ -159,7 +158,6 @@ function BlockNodeInner({ id }: NodeProps) {
     >
       <div className="lab-grip flex cursor-grab items-center gap-1.5 border-b border-[var(--paper-rule)] px-2 py-1.5 active:cursor-grabbing">
         <GripVertical className="h-3.5 w-3.5 shrink-0 text-[var(--paper-faint)]" />
-        <Icon className="h-3.5 w-3.5 shrink-0 text-[var(--paper-muted)]" />
         <input
           className="nodrag min-w-0 flex-1 bg-transparent text-[13px] font-medium outline-none"
           defaultValue={block.title}
@@ -173,9 +171,9 @@ function BlockNodeInner({ id }: NodeProps) {
           title={running ? "Stop" : "Run"}
           aria-label={running ? "Stop the block" : "Run the block"}
           onClick={() => (running ? lab.stop(id) : void lab.run(id))}
-          className="nodrag flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)] text-[var(--paper-muted)] hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
+          className="nodrag flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--paper-muted)] hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
         >
-          {running ? <Square className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+          {running ? <Square className="h-3 w-3" /> : <Play className="h-3.5 w-3.5" />}
         </button>
         <div className="nodrag">
           <KebabMenu label="Block menu" width="w-44" trigger={<EllipsisVertical className="h-3.5 w-3.5" />} triggerClassName="flex h-6 w-6 items-center justify-center rounded-full text-[var(--paper-muted)] hover:bg-[var(--paper-quiet)]">
@@ -186,11 +184,9 @@ function BlockNodeInner({ id }: NodeProps) {
           </KebabMenu>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 px-0 pt-2">
-        <Ports ports={block.inputs} side="in" />
-        <Ports ports={block.outputs} side="out" />
-      </div>
-      <div className={cn("px-2.5 pb-2 pt-2", size && "nowheel min-h-0 flex-1 overflow-y-auto")}>{body}</div>
+      <Ports ports={block.inputs} side="in" />
+      <Ports ports={block.outputs} side="out" />
+      <div className={cn("px-2.5 pb-2 pt-3", size && "nowheel min-h-0 flex-1 overflow-y-auto")}>{body}</div>
       {/* The foot: the status and its time; the summary and the notes (what a Data block left out and why) read in the
           right panel, which the info circle at the right end opens (Brendan, 2026-11-10). */}
       <div className="flex min-h-7 shrink-0 items-center gap-2 border-t border-[var(--paper-rule)] px-2.5 py-1 text-[11px] text-[var(--paper-muted)]">
