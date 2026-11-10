@@ -139,7 +139,7 @@ export async function fetchRoute(id: string): Promise<MedDetail> {
   const held = yields.filter((y) => y.held && RELEASES.includes(y.source)).map((y) => y.source)
   const lab: LabPair | null =
     r.target && r.projectile && r.process && r.mt
-      ? { target: r.target, reaction: `${r.projectile.toUpperCase()},${r.process.toUpperCase()}`, mt: r.mt, emin: ex.length ? Math.min(...ex) : undefined, emax: ex.length ? Math.max(...ex) : undefined, releases: held.length ? held : ["B-VIII.1"] }
+      ? { target: r.target, reaction: `${r.projectile.toUpperCase()},${r.process.toUpperCase()}`, mt: r.mt, emin: ex.length ? Math.min(...ex) : undefined, emax: ex.length ? Math.max(...ex) : undefined, releases: held.length ? held : ["B-VIII.1"], sub: r.sublibrary || undefined }
       : null
   return { route: r, yields, series, lab }
 }

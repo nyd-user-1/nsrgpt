@@ -8,7 +8,7 @@ import { SAMPLE_FLAGS, SAMPLE_LIST, SAMPLE_PAIR, SAMPLE_RELEASES, SAMPLE_RETRO }
 // their energy span, no points; the retrodiction's summary per ranking; a flag's datasets as one string) and coerce
 // numbers, so a string or a missing field never breaks a row.
 
-export type LabPair = { target: string; reaction: string; mt: number; emin?: number; emax?: number; releases: string[] }
+export type LabPair = { target: string; reaction: string; mt: number; emin?: number; emax?: number; releases: string[]; sub?: string }
 
 export type SweepRow = {
   target_za: number
@@ -65,7 +65,7 @@ function lab(v: unknown): LabPair | null {
   const o = obj(v)
   if (!o.target || !o.reaction || !o.mt) return null
   const rel = Array.isArray(o.releases) ? o.releases.map(str) : str(o.releases).split(",").filter(Boolean)
-  return { target: str(o.target), reaction: str(o.reaction), mt: int(o.mt), emin: num(o.emin) ?? undefined, emax: num(o.emax) ?? undefined, releases: rel }
+  return { target: str(o.target), reaction: str(o.reaction), mt: int(o.mt), emin: num(o.emin) ?? undefined, emax: num(o.emax) ?? undefined, releases: rel, sub: o.sub ? str(o.sub) : undefined }
 }
 
 const row = (v: unknown): SweepRow => {

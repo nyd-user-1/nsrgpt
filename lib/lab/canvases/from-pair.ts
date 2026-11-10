@@ -4,10 +4,12 @@ import type { Block, BlockKind, Canvas, Edge, Port } from "@/lib/lab/blocks"
 // reaction, MT, window and releases, as a sweep row's `lab` names them (/lab?target=U-235&reaction=N,F&mt=18&emin=&
 // emax=&releases=B-VIII.1,JEFF-3.3). Six blocks: the EXFOR points, the evaluations, their MF33 bands, the comparison,
 // the plot and the Prompt. The evaluations feed the comparison as served (the sweep compares against them as served);
-// there is no Broaden block, so opening a pair never starts a job on the job box: add a Process block to broaden.
+// there is no Broaden block, so opening a pair never starts a job on the job box: add a Process block to broaden. A
+// charged-particle or photon pair carries its projectile (`sub`) to the ENDF and covariance blocks; its EXFOR reaction
+// already names it (P,2N, G,N).
 // The data, comparison and plot open done, so the Lab runs them on open; the Prompt opens idle.
 
-export type PairQuery = { target: string; reaction: string; mt: number; emin?: number; emax?: number; releases: string[] }
+export type PairQuery = { target: string; reaction: string; mt: number; emin?: number; emax?: number; releases: string[]; sub?: string }
 
 /** The pair a /lab URL names, or null when it names none (no target, reaction or MT). */
 export function pairFromParams(p: URLSearchParams): PairQuery | null {
@@ -20,7 +22,8 @@ export function pairFromParams(p: URLSearchParams): PairQuery | null {
     return p.get(k) && Number.isFinite(v) && v > 0 ? v : undefined
   }
   const releases = (p.get("releases") ?? "").split(",").map((s) => s.trim()).filter(Boolean)
-  return { target, reaction, mt, emin: num("emin"), emax: num("emax"), releases: releases.length ? releases : ["B-VIII.1"] }
+  const sub = p.get("sub")?.trim() || undefined
+  return { target, reaction, mt, emin: num("emin"), emax: num("emax"), releases: releases.length ? releases : ["B-VIII.1"], sub: sub && sub !== "neutrons" ? sub : undefined }
 }
 
 /** The /lab address that opens a pair. */
@@ -28,6 +31,7 @@ export function labHref(q: PairQuery): string {
   const s = new URLSearchParams({ target: q.target, reaction: q.reaction, mt: String(q.mt), releases: q.releases.join(",") })
   if (q.emin) s.set("emin", String(q.emin))
   if (q.emax) s.set("emax", String(q.emax))
+  if (q.sub && q.sub !== "neutrons") s.set("sub", q.sub)
   return `/lab?${s.toString()}`
 }
 
@@ -77,8 +81,8 @@ export function canvasFromPair(q: PairQuery): Canvas {
     name: `${q.target} ${r}: measured against evaluated${span}`,
     blocks: [
       block("exfor", "data", `EXFOR: ${q.target} ${r}`, 0, 0, { source: "exfor", target: q.target, reaction: q.reaction, quantity: "SIG", emin: lo, emax: hi }),
-      block("endf", "data", `ENDF: ${q.target} MT${q.mt}`, 0, 340, { source: "endf", name: q.target, mt: q.mt, releases: q.releases, emin: lo, emax: hi }),
-      block("cov", "data", `Covariance: ${q.target} MT${q.mt}`, 0, 680, { source: "cov", name: q.target, mt: q.mt, releases: q.releases, emin: lo, emax: hi }),
+      block("endf", "data", `ENDF: ${q.target} MT${q.mt}`, 0, 340, { source: "endf", name: q.target, mt: q.mt, releases: q.releases, ...(q.sub ? { sub: q.sub } : {}), emin: lo, emax: hi }),
+      block("cov", "data", `Covariance: ${q.target} MT${q.mt}`, 0, 680, { source: "cov", name: q.target, mt: q.mt, releases: q.releases, ...(q.sub ? { sub: q.sub } : {}), emin: lo, emax: hi }),
       block("compare", "compare", "Measured against evaluated", 360, 300, { binsPerDecade: 20, emin: lo, emax: hi, ...(window ? { highlight: window } : {}) }),
       block("plot", "plot", "σ against energy", 720, 0, { mode: "both", ...(window ? { highlight: window } : {}) }),
       block("prompt", "prompt", "Where they part", 720, 580, { prompt }, false),

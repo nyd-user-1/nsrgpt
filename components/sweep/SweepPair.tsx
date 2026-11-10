@@ -135,6 +135,7 @@ export function SweepPairView() {
     emin: bins.length ? Math.min(...bins.map((b) => b.e_lo)) : undefined,
     emax: bins.length ? Math.max(...bins.map((b) => b.e_hi)) : undefined,
     releases: pair?.releases.map((r) => r.release) ?? releases,
+    sub,
   }
   const neutrons = sub === "neutrons"
   return (
@@ -146,9 +147,8 @@ export function SweepPairView() {
           </p>
           <button
             type="button"
-            disabled={!neutrons || !lab.reaction}
-            title={neutrons ? undefined : "The Lab reads neutron data only"}
-            onClick={() => goTo(labHref(lab), "main")}
+            disabled={!lab.reaction}
+            onClick={() => goTo(labHref({ ...lab, sub: lab.sub ?? sub }), "main")}
             className="flex items-center gap-1.5 rounded-full border border-[var(--paper-rule)]/30 px-2.5 py-0.5 text-[12px] transition-colors hover:bg-[var(--paper-quiet)] disabled:opacity-35"
           >
             <FlaskConical className="h-3.5 w-3.5" />

@@ -118,7 +118,7 @@ export function MedicalRoute() {
                   </button>
                 )}
                 {d.lab && (
-                  <button type="button" disabled={r.sublibrary !== "neutrons"} title={r.sublibrary !== "neutrons" ? "The Lab reads neutron data only" : undefined} onClick={() => router.push(labHref(d.lab!))} className={`${BTN} disabled:opacity-35`}>
+                  <button type="button" onClick={() => router.push(labHref(d.lab!))} className={BTN}>
                     <FlaskConical className="h-3.5 w-3.5" />
                     Open in the Lab
                   </button>

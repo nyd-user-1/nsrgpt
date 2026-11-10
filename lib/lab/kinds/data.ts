@@ -20,12 +20,27 @@ export type DataParams = {
   name?: string
   mt?: number
   releases?: string[]
+  /** ENDF and covariance: the projectile's sublibrary, as the API's `sub` takes it (brief 58 follow-up); neutrons when unset. */
+  sub?: string
   emin?: number
   emax?: number
   id?: string
   /** EXFOR: the most points the route returns; it says truncated past it. */
   limit?: number
 }
+
+/** The sublibraries a projectile picks, as /endf/materials, /endf/xs and /endf/cov name them. */
+export const PROJECTILES: { key: string; label: string }[] = [
+  { key: "neutrons", label: "Neutrons" },
+  { key: "protons", label: "Protons" },
+  { key: "deuterons", label: "Deuterons" },
+  { key: "tritons", label: "Tritons" },
+  { key: "helium3s", label: "Helium-3" },
+  { key: "alphas", label: "Alphas" },
+  { key: "gammas", label: "Photons" },
+]
+/** The API's sub for a block: left out for neutrons, the API's default. */
+const subOf = (p: DataParams) => (p.sub && p.sub !== "neutrons" ? p.sub : undefined)
 
 export const DATA_SOURCES: { key: DataSource; label: string }[] = [
   { key: "exfor", label: "EXFOR points" },
@@ -84,7 +99,7 @@ type XsSeries = { release: string; held: boolean; release_served?: string; mat?:
 
 async function endf(p: DataParams, ctx: RunContext) {
   const rel = p.releases?.length ? p.releases : ["B-VIII.1"]
-  const q = query({ name: p.name, mt: p.mt, release: rel[0], compare: rel.slice(1).join(","), emin: p.emin, emax: p.emax })
+  const q = query({ name: p.name, mt: p.mt, release: rel[0], compare: rel.slice(1).join(","), sub: subOf(p), emin: p.emin, emax: p.emax })
   const j = await getJson<{ series: XsSeries[] }>(ctx, `/endf/xs?${q}`)
   const held = j.series.filter((s) => s.held && s.energy_ev?.length)
   const series: Series[] = held.map((s) =>
@@ -103,7 +118,7 @@ type CovSeries = { release: string; held: boolean; mat?: number; lb?: number[]; 
 
 async function cov(p: DataParams, ctx: RunContext) {
   const rel = p.releases?.length ? p.releases : ["B-VIII.1"]
-  const q = query({ name: p.name, mt: p.mt, release: rel.join(","), emin: p.emin, emax: p.emax })
+  const q = query({ name: p.name, mt: p.mt, release: rel.join(","), sub: subOf(p), emin: p.emin, emax: p.emax })
   const j = await getJson<{ series: CovSeries[] }>(ctx, `/endf/cov?${q}`)
   const rows = j.series.flatMap((s) => s.groups.map((g) => ({ release: s.release, e_lo: g.e_lo_ev, e_hi: g.e_hi_ev, rel_sd: g.rel_sd })))
   // A step line: each group's value held from its lower to its upper edge.

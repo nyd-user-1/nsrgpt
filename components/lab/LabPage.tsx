@@ -75,7 +75,7 @@ function LabInner() {
   const canvasParam = params.get("canvas")
   const isNew = !canvasParam && params.get("new") === "1"
   // A sweep pair's address (brief 58, C.2): /lab?target=U-235&reaction=N,F&mt=18&emin=&emax=&releases=.
-  const pairKey = canvasParam || isNew ? "" : ["target", "reaction", "mt", "emin", "emax", "releases"].map((k) => params.get(k) ?? "").join("|")
+  const pairKey = canvasParam || isNew ? "" : ["target", "reaction", "mt", "emin", "emax", "releases", "sub"].map((k) => params.get(k) ?? "").join("|")
   const flow = useReactFlow()
   const [selected, setSelected] = useState<string | null>(null)
   const [subentry, setSubentry] = useState<string | null>(null)

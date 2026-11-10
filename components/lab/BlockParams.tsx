@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 
 import type { Block } from "@/lib/lab/blocks"
-import { DATA_SOURCES, type DataParams, type DataSource } from "@/lib/lab/kinds/data"
+import { DATA_SOURCES, PROJECTILES, type DataParams, type DataSource } from "@/lib/lab/kinds/data"
 import { cn } from "@/lib/utils"
 
 // A block's params (brief 52): the same editors on the block (compact) and in the right panel. Numbers take 1e3 or 1000;
@@ -101,7 +101,17 @@ export function BlockParams({ block, onParams, full = false }: { block: Block; o
             </select>
           </Row>
           {d.source === "exfor" && (<>{text("target", "Target", "U-235")}{text("reaction", "Reaction", "N,F")}{text("quantity", "Quantity", "SIG")}{range()}{full && number("limit", "Limit")}</>)}
-          {(d.source === "endf" || d.source === "cov") && (<>{text("name", "Material", "U-235")}{number("mt", "MT")}{list("releases", "Releases")}{range()}</>)}
+          {(d.source === "endf" || d.source === "cov") && (
+            <>
+              {text("name", "Material", "U-235")}
+              <Row label="Projectile">
+                <select className={FIELD} value={d.sub ?? "neutrons"} onChange={(e) => onParams({ sub: e.target.value === "neutrons" ? undefined : e.target.value })}>
+                  {PROJECTILES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+                </select>
+              </Row>
+              {number("mt", "MT")}{list("releases", "Releases")}{range()}
+            </>
+          )}
           {d.source === "nuclide" && text("name", "Nuclide", "137Cs")}
           {d.source === "view" && text("id", "Saved id")}
         </>
