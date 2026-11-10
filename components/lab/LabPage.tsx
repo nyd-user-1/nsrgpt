@@ -132,18 +132,7 @@ function LabInner() {
     pendingTidy.current = false
     tidy()
   }, [nodesInitialized, tidy])
-  // The blocks grow as their notes and outputs arrive, so the first tidy measured them short and column one overlapped
-  // (Brendan, 2026-11-10). Until the reader drags a block, the default canvas re-tidies when a run finishes.
-  const autoTidy = useRef(false)
-  const anyRunning = canvas.blocks.some((b) => b.state.status === "running")
-  const wasRunning = useRef(false)
-  useEffect(() => {
-    if (wasRunning.current && !anyRunning && autoTidy.current && nodesInitialized) {
-      const t = window.setTimeout(tidy, 80)
-      return () => window.clearTimeout(t)
-    }
-    wasRunning.current = anyRunning
-  }, [anyRunning, nodesInitialized, tidy])
+  // The view fits once, on load; nothing recentres it afterwards (Brendan, 2026-11-10). Tidy is the circle, by hand.
   const [titleOpen, setTitleOpen] = useState(false)
 
   // Open the canvas the URL names, a new one (?new=1), or the default.
@@ -160,7 +149,6 @@ function LabInner() {
     if (!canvasParam) {
       lab.open(structuredClone(DEFAULT_CANVAS))
       pendingTidy.current = true
-      autoTidy.current = true
       requestAnimationFrame(() => flow.fitView(FIT))
       return
     }
@@ -304,8 +292,9 @@ function LabInner() {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               isValidConnection={(c) => c.source !== c.target && portsMatch(portOf(c).from, portOf(c).to)}
-              onNodeDragStop={(_, n) => { autoTidy.current = false; snap(n.id, n.position) }}
-              onNodeClick={(_, n) => { setSelected(n.id); setSubentry(null); setRail("right", false) }}
+              onNodeDragStop={(_, n) => snap(n.id, n.position)}
+              onNodeClick={(_, n) => { setSelected(n.id); setSubentry(null) }}
+              onNodeDoubleClick={(_, n) => void flow.fitView({ nodes: [{ id: n.id }], duration: 400, padding: 0.2, maxZoom: 1.25 })}
               onPaneClick={() => { setSelected(null); setSubentry(null); setEdgeSel(new Set()) }}
               onNodesDelete={(del) => { for (const n of del) lab.remove(n.id); if (del.some((n) => n.id === selected)) setSelected(null) }}
               deleteKeyCode={["Backspace", "Delete"]}
