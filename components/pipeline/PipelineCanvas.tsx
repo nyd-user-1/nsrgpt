@@ -163,7 +163,7 @@ function useGndsLine(): string | null {
       .then((j: { totals?: { materials?: number; converted?: number }; releases?: Record<string, unknown> } | null) => {
         const t = j?.totals
         if (!on || !t || typeof t.converted !== "number" || typeof t.materials !== "number") return
-        setLine(`${short(t.converted)} of ${short(t.materials)} materials, ${Object.keys(j?.releases ?? {}).length} releases`)
+        setLine(`${short(t.converted)} of ${short(t.materials)} materials converted, ${Object.keys(j?.releases ?? {}).length} releases`)
       })
       .catch(() => {})
     return () => {
