@@ -30,8 +30,12 @@
   // NEXT_PUBLIC_DATA_BASE: the chart data's CloudFront distribution (EDQ9A6XJBYEH5, New account), read by
   // lib/data-url.ts. Next.js writes NEXT_PUBLIC_ values into the browser code at build time, so the same value
   // is set in the build step of .github/workflows/cloudflare.yml; "vars" alone reaches only the running worker.
+  // NYSGPT_HOUSEKEEPING_TABLE and _BUCKET: NSRgpt's own housekeeping store (lib/housekeeping.ts; Old account, us-east-1,
+  // reached as nsrgpt-worker; brief 56, 2026-11-10). The code's defaults name NYSgpt's, which NSRgpt doesn't share.
   "vars": {
-    "NEXT_PUBLIC_DATA_BASE": "https://dcl3kyt3ynmb2.cloudfront.net"
+    "NEXT_PUBLIC_DATA_BASE": "https://dcl3kyt3ynmb2.cloudfront.net",
+    "NYSGPT_HOUSEKEEPING_TABLE": "nsrgpt-housekeeping",
+    "NYSGPT_HOUSEKEEPING_BUCKET": "nsrgpt-housekeeping-638175140432"
   },
   "observability": {
     "enabled": true
