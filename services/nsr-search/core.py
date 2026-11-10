@@ -3,7 +3,7 @@ a keyword match over all 303,568 records, and the two fused (hybrid). Runs on AW
 (lambda_function.py), which caps memory at 3,008 MB here, so the records stay as two flat byte strings
 and the vectors as one float32 matrix. Data in s3://nsr-lake-613473203863/work/search/v1/:
 vectors.f16.npy (build_artifacts.py); records.jsonl.gz, search.txt.gz, vec_index.npy (build_records.py);
-encoder/ (export.py).
+encoder/ (export.py). SEARCH_PREFIX=work/search/v2/ serves nsr-encoder-v2 instead (scripts/models/v2_serve.sh).
 """
 import gzip, json, os, re, time
 
@@ -13,7 +13,8 @@ import onnxruntime as ort
 from tokenizers import Tokenizer
 
 BUCKET = "nsr-lake-613473203863"
-PREFIX = "work/search/v1/"
+# SEARCH_PREFIX picks the encoder and its vectors (brief 61): work/search/v1/ is nsr-encoder, work/search/v2/ nsr-encoder-v2.
+PREFIX = os.environ.get("SEARCH_PREFIX", "work/search/v1/")
 FILES = ["vectors.f16.npy", "vec_index.npy", "records.jsonl.gz", "search.txt.gz", "encoder/model.onnx", "encoder/tokenizer.json"]
 RRF_K = 60
 
