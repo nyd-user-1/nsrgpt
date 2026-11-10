@@ -977,6 +977,17 @@ function GraphPageInner() {
       id: keyOf(g), type: "entity", position: pos.get(keyOf(g)) ?? { x: 0, y: 0 }, data: { ...g },
     })));
   }, [setEdges, setNodes]);
+  /** One step back (or forward) through the canvas history: Cmd-Z and the undo circle beside the search share it. */
+  const stepCanvas = useCallback((redo: boolean) => {
+    const from = redo ? future.current : past.current;
+    if (!from.length) return false;
+    const snap = from[from.length - 1];
+    const now = takeSnap();
+    if (redo) { future.current = from.slice(0, -1); past.current = [...past.current.slice(-49), now]; }
+    else { past.current = from.slice(0, -1); future.current = [...future.current.slice(-49), now]; }
+    restore(snap);
+    return true;
+  }, [restore, takeSnap]);
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
@@ -984,19 +995,11 @@ function GraphPageInner() {
       if (k !== "z" && k !== "y") return;
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
-      const redo = k === "y" || (k === "z" && e.shiftKey);
-      const from = redo ? future.current : past.current;
-      if (!from.length) return;
-      e.preventDefault();
-      const snap = from[from.length - 1];
-      const now = takeSnap();
-      if (redo) { future.current = from.slice(0, -1); past.current = [...past.current.slice(-49), now]; }
-      else { past.current = from.slice(0, -1); future.current = [...future.current.slice(-49), now]; }
-      restore(snap);
+      if (stepCanvas(k === "y" || (k === "z" && e.shiftKey))) e.preventDefault();
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [restore, takeSnap]);
+  }, [stepCanvas]);
 
   const syncNodes = useCallback((allEdges: Edge[], relayout: boolean) => {
     setNodes((prevNodes) => {
@@ -1616,12 +1619,29 @@ function GraphPageInner() {
       .catch(() => setDetail({ error: true }));
   }, [selectedKey]);
 
-  // A pick in the header's search centres here, in place (brief 36).
+  // A nuclide picked in the rail or the search is placed on the canvas as its card and shown in the right panel; no
+  // papers fan out (Brendan, 2026-11-09: "I click the nuclide and I should get its card"). One click per nuclide
+  // places it, so a canvas gathers the nuclides a reader wants; a nuclide already there is selected again.
+  const pick = useCallback((g: GNode) => {
+    if (g.type !== "nuclide") return center(g);
+    setDiagram(null);
+    if (!store.current.has(keyOf(g))) {
+      const pane = document.querySelector<HTMLElement>(".react-flow");
+      const box = pane?.getBoundingClientRect();
+      const at = box ? screenToFlowPosition({ x: box.left + box.width / 2 - 100, y: box.top + box.height / 2 - 40 }) : { x: 0, y: 0 };
+      addNodes([g], undefined, false, undefined, at);
+    }
+    setSelectedKey(keyOf(g));
+    setEdgeInfo(null);
+    setRail("right", false);
+  }, [center, addNodes, screenToFlowPosition]);
+
+  // A pick in the canvas's search lands here, in place (brief 36).
   useEffect(() => {
-    const on = (e: Event) => center((e as CustomEvent<GNode>).detail);
+    const on = (e: Event) => pick((e as CustomEvent<GNode>).detail);
     window.addEventListener(GRAPH_CENTER, on);
     return () => window.removeEventListener(GRAPH_CENTER, on);
-  }, [center]);
+  }, [pick]);
 
   /** A saved view or recipe replaces the canvas — nothing on /graph navigates away. */
   const loadView = useCallback((viewId: number | string) => {
@@ -1988,7 +2008,7 @@ function GraphPageInner() {
           /docs, closed on load (GraphPage below). */}
       <LeftInsetPanel>
           <CatalogRail
-            onPick={center}
+            onPick={pick}
             onAdd={(g) => { if (store.current.has(keyOf(g))) toast.info(`${g.label} is already on the canvas`); else { addNodes([g]); if (g.type === "paper") fetchCards([keyOf(g)]); } }}
             onAsk={(g) => { setAttached(g); setDockOpen(true); }}
             onLoadView={loadView}
@@ -2067,8 +2087,14 @@ function GraphPageInner() {
               open, between them: a plain plus (a prompt node), Prompt, Run, Save, Reset, and Back and Forward once the
               diagram has a change to step through. The fold takes 500 ms; the plus turns into a cross while open. */}
           {/* The corpus search, back on the canvas (Brendan, 2026-11-09): top left, in line with the tools opposite. */}
-          <Panel position="top-left">
+          <Panel position="top-left" className="flex items-center gap-1.5">
             <EntitySearch />
+            {/* The canvas's undo (Brendan, 2026-11-09): one step back through the canvas history, what Cmd-Z does. */}
+            <div className="rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
+              <Button variant="outline" aria-label="Undo" title="Undo" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => stepCanvas(false)}>
+                <Undo2 className="h-4 w-4" />
+              </Button>
+            </div>
           </Panel>
           <Panel position="top-right">
             <div className="flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
