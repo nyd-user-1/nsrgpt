@@ -147,7 +147,9 @@ def uploaded(p):
     as uploaded, under its own name (FUDGE reads a thermal-scattering target from it). MAT, ZA and LISO come from its
     first MF1 MT451 section."""
     key = p["file_key"]
-    path = f"/data/uploads/{JOB}/{os.path.basename(key)}"
+    # the upload route renames a taken name with -2, -3 before the extension; the tape keeps the name as given
+    name = re.sub(r"-\d+(\.[A-Za-z0-9]+)$", r"\1", os.path.basename(key))
+    path = f"/data/uploads/{JOB}/{name}"
     os.makedirs(os.path.dirname(path), exist_ok=True)
     s3.download_file(BUCKET, key, path)
     if os.path.getsize(path) > 50 * 1024 * 1024:
