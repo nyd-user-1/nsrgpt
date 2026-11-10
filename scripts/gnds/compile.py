@@ -302,11 +302,24 @@ def run(release, sub, shard, workers):
 
 
 def error_class(err):
-    """FUDGE's last line, its numbers and quoted names stripped, so failures group: 'KeyError: <x>'."""
+    """The cause FUDGE gives, its numbers, paths and quoted names stripped, so failures group. FUDGE prints "read ENDF
+    error: <msg>"; when <msg> is "len( info.doRaise ) > 0" the problems it collected are the lines above it (the first
+    one, warnings left out). Otherwise the last exception or timeout line."""
     lines = [ln.strip() for ln in (err or "").splitlines() if ln.strip()]
-    last = lines[-1] if lines else "unknown"
-    last = re.sub(r"'[^']*'|\"[^\"]*\"", "<x>", last)
-    return re.sub(r"[-+]?\d[\d.eE+-]*", "#", last)[:120]
+    pick = None
+    for i, ln in enumerate(lines):
+        if "read ENDF error:" in ln:
+            pick = ln.split("read ENDF error:", 1)[1].strip()
+            if "info.doRaise" in pick:
+                causes = [c for c in lines[1:i] if not c.startswith("WARNING")]
+                pick = causes[0] if causes else pick
+            break
+    if pick is None:
+        pick = next((ln for ln in reversed(lines) if re.match(r"^[A-Za-z_.]*(Error|Exception|Timeout)\b", ln)),
+                    lines[-1] if lines else "unknown")
+    pick = re.sub(r"/\S+", "<path>", pick)
+    pick = re.sub(r"'[^']*'|\"[^\"]*\"", "<x>", pick)
+    return re.sub(r"[-+]?\d[\d.eE+-]*", "#", pick)[:120]
 
 
 def manifest():
