@@ -8,7 +8,8 @@ import { scopeCursor } from '@/lib/viz-cursor'
 import { useShellPanel } from '@/components/shell'
 import { inspectorOn } from '@/components/dev/inspector-state'
 import { tableOf } from '@/lib/viz-tables'
-import { isEngaged, isTyping, setCamera } from '@/lib/viz-engage'
+import { listenCamera, setCamera } from '@/lib/viz-engage'
+import { CAMERA_PAN, CAMERA_ROT, CAMERA_ZOOM } from '@/lib/viz-3d'
 
 // The /viz pages' one shared mechanism: mount an ECharts canvas in a ref'd div, loading echarts
 // (and echarts-gl, when the chart needs WebGL) on the client only — the GL bundle touches window
@@ -279,15 +280,21 @@ type GLControl = {
   getAlpha: () => number
   getBeta: () => number
   getDistance: () => number
+  getCenter: () => number[]
   setAlpha: (v: number) => void
   setBeta: (v: number) => void
   setDistance: (v: number) => void
+  setCenter: (v: number[]) => void
+  /** Redraws on the next frame; the camera's state then goes back into the chart's option (grid3DChangeCamera). */
+  update: () => void
+  getCamera?: () => { worldTransform?: { x: { array: ArrayLike<number> }; y: { array: ArrayLike<number> } } } | undefined
 }
 
 /** A GL chart's camera (Brendan, 2026-11-06), as the three.js scenes' (lib/viz-3d-controls.tsx): the turn stops at the
  *  first press or scroll and stays stopped (echarts-gl would start it again after 3 s of stillness), Space starts or
- *  stops it, and once the reader has clicked into the chart the keys drive the camera: ← → orbit, ↑ ↓ tilt, + − zoom,
- *  0 resets. Returns the unwiring, or null for a chart with no grid3D. */
+ *  stops it, and the keys and the panel's Camera caps drive it (lib/viz-engage.ts listenCamera): ← → orbit, ↑ ↓ tilt,
+ *  + − zoom, Shift or Option + arrows pan, 0 resets. Pan slides the control's centre, and with it the camera, along the
+ *  screen's right and up (brief 54, Part C). Returns the unwiring, or null for a chart with no grid3D. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function wireGL(chart: any, box: HTMLElement): (() => void) | null {
   const model = chart?.getModel?.()
@@ -295,80 +302,87 @@ function wireGL(chart: any, box: HTMLElement): (() => void) | null {
   if (!gm) return null
   const control = (): GLControl | undefined => chart.getViewOfComponentModel?.(gm)?._control
   setCamera(true)
-  let home: [number, number, number] | null = null
-  const held = new Set<string>()
+  // The view to go back to: the option's, as first drawn.
+  let home: { alpha: number; beta: number; distance: number; center: number[] } | null = null
+  const keepHome = (c: GLControl) => {
+    home ??= { alpha: c.getAlpha(), beta: c.getBeta(), distance: c.getDistance(), center: [...c.getCenter()] }
+    return home
+  }
+  const first = control()
+  if (first) keepHome(first)
   let frame = 0
   let last = 0
   const stop = () => {
     const c = control()
     if (c) c.autoRotate = false
   }
+  const zoomBy = (c: GLControl, f: number) => c.setDistance(Math.min(c.maxDistance, Math.max(c.minDistance, c.getDistance() * f)))
+  const pan = (c: GLControl, x: number, y: number, t: number) => {
+    const m = c.getCamera?.()?.worldTransform
+    if (!m) return
+    const right = Array.from(m.x.array)
+    const up = Array.from(m.y.array)
+    const d = CAMERA_PAN * c.getDistance() * t
+    const centre = [...c.getCenter()]
+    for (let i = 0; i < 3; i++) centre[i] += (right[i] * x + up[i] * y) * d
+    c.setCenter(centre)
+    c.update()
+  }
   const tick = (now: number) => {
     const c = control()
-    if (!c || !held.size) {
+    const k = input.read()
+    if (!c || !k) {
       frame = 0
       return
     }
     const t = Math.min((now - (last || now)) / 1000, 0.05)
     last = now
-    const x = (held.has('ArrowRight') ? 1 : 0) - (held.has('ArrowLeft') ? 1 : 0)
-    const y = (held.has('ArrowUp') ? 1 : 0) - (held.has('ArrowDown') ? 1 : 0)
-    if (x) c.setBeta(c.getBeta() + x * 70 * t)
-    if (y) c.setAlpha(c.getAlpha() + y * 70 * t)
-    const z = (held.has('+') || held.has('=') ? -1 : 0) + (held.has('-') || held.has('_') ? 1 : 0)
-    if (z) c.setDistance(Math.min(c.maxDistance, Math.max(c.minDistance, c.getDistance() * (1 + z * 1.6 * t))))
+    const deg = (CAMERA_ROT * 180) / Math.PI
+    if (k.pan && (k.x || k.y)) pan(c, k.x, k.y, t)
+    else {
+      if (k.x) c.setBeta(c.getBeta() + k.x * deg * t)
+      if (k.y) c.setAlpha(c.getAlpha() + k.y * deg * t)
+    }
+    if (k.zoom) zoomBy(c, 1 - k.zoom * CAMERA_ZOOM * t)
     frame = requestAnimationFrame(tick)
   }
-  const down = (e: KeyboardEvent) => {
-    const c = control()
-    if (!c) return
-    if (!home) home = [c.getAlpha(), c.getBeta(), c.getDistance()]
-    // Cmd + ↑ ↓ zoom, a step a press (macOS sends no key-up while Cmd is held).
-    if (e.metaKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && isEngaged() && !isTyping(e)) {
-      e.preventDefault()
+  const input = listenCamera({
+    spin: () => {
+      const c = control()
+      if (c) c.autoRotate = !c.autoRotate
+    },
+    reset: () => {
+      const c = control()
+      if (!c) return
+      const h = keepHome(c)
+      c.setAlpha(h.alpha)
+      c.setBeta(h.beta)
+      c.setDistance(h.distance)
+      c.setCenter([...h.center])
+      c.update()
+    },
+    zoomStep: (inward) => {
+      const c = control()
+      if (c) zoomBy(c, inward ? 0.87 : 1.15)
+    },
+    moved: () => {
+      const c = control()
+      if (!c) return
+      keepHome(c)
       c.autoRotate = false
-      c.setDistance(Math.min(c.maxDistance, Math.max(c.minDistance, c.getDistance() * (e.key === 'ArrowUp' ? 0.87 : 1.15))))
-      return
-    }
-    if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e)) return
-    if (e.key === ' ') {
-      e.preventDefault()
-      c.autoRotate = !c.autoRotate
-      return
-    }
-    if (!isEngaged()) return
-    if (e.key === '0') {
-      c.setAlpha(home[0])
-      c.setBeta(home[1])
-      c.setDistance(home[2])
-      return
-    }
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '_'].includes(e.key)) return
-    e.preventDefault()
-    c.autoRotate = false
-    held.add(e.key)
-    if (!frame) {
-      last = 0
-      frame = requestAnimationFrame(tick)
-    }
-  }
-  const up = (e: KeyboardEvent) => {
-    held.delete(e.key)
-    if (e.key === 'Meta') held.clear()
-  }
-  const clear = () => held.clear()
+      if (!frame) {
+        last = 0
+        frame = requestAnimationFrame(tick)
+      }
+    },
+  })
   box.addEventListener('pointerdown', stop)
   box.addEventListener('wheel', stop, { passive: true })
-  window.addEventListener('keydown', down)
-  window.addEventListener('keyup', up)
-  window.addEventListener('blur', clear)
   return () => {
     cancelAnimationFrame(frame)
     box.removeEventListener('pointerdown', stop)
     box.removeEventListener('wheel', stop)
-    window.removeEventListener('keydown', down)
-    window.removeEventListener('keyup', up)
-    window.removeEventListener('blur', clear)
+    input.stop()
     setCamera(false)
   }
 }
@@ -706,6 +720,105 @@ function makeMarks(echarts: any, chart: any) {
   }
 }
 
+// ── The GL scatters' picked point (brief 54, Part C, 2026-11-10) ─────────────────────────────────────────────
+// Brendan's "like the first chart": on a scatter3D series the hovered datum, and the datum picked by a click or a table
+// row, draw again at 4× the series' symbolSize, opaque, outlined in ink, as a one-point series (id "mark") set with
+// setOption on hover and pick, the main series left as it is. The mark's own points are taken out of picking, so the
+// pointer goes on hovering the datum beneath it.
+
+const GL_MARK = 'mark'
+const GL_MARK_SCALE = 4
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeGLMarks(chart: any) {
+  let hover: At | null = null
+  let picked: At | null = null
+  let shown = ''
+  let ink = inkNow()
+  const pointOf = (at: At) => {
+    const s = chart.getModel().getSeriesByIndex(at.seriesIndex)
+    if (!s || s.subType !== 'scatter3D' || s.id === GL_MARK) return null
+    const data = s.getData()
+    const i = insideIndex(data, at.dataIndex)
+    if (i < 0) return null
+    const value = ['x', 'y', 'z'].map((d) => data.get(s.coordDimToDataDim(d)[0], i) as number)
+    if (value.some((v) => !Number.isFinite(v))) return null
+    const style = (data.getItemVisual(i, 'style') ?? {}) as { fill?: string }
+    const size = data.getItemVisual(i, 'symbolSize') as number | number[] | undefined
+    const px = Array.isArray(size) ? Math.max(size[0], size[1]) : (size ?? 6)
+    return { value, color: typeof style.fill === 'string' ? style.fill : ink, size: px * GL_MARK_SCALE }
+  }
+  const draw = () => {
+    if (chart.isDisposed?.()) return
+    const pts = [picked, hover].map((at) => (at ? pointOf(at) : null)).filter((p): p is NonNullable<ReturnType<typeof pointOf>> => !!p)
+    const key = JSON.stringify(pts)
+    if (key === shown) return
+    shown = key
+    const grid3DIndex = 0
+    chart.setOption({
+      series: [
+        {
+          id: GL_MARK,
+          type: 'scatter3D',
+          grid3DIndex,
+          silent: true,
+          animation: false,
+          tooltip: { show: false },
+          // The outline is the series' own: echarts-gl reads a point's border from the series' itemStyle alone.
+          itemStyle: { opacity: 1, borderColor: ink, borderWidth: 2 },
+          emphasis: { itemStyle: { opacity: 1 } },
+          data: pts.map((p) => ({ value: p.value, symbolSize: p.size, itemStyle: { color: p.color, opacity: 1 } })),
+        },
+      ],
+    })
+    // Out of picking, so hovering the mark is hovering the datum beneath it.
+    const model = chart.getModel().getSeries().find((x: { id?: string }) => x.id === GL_MARK)
+    const view = model ? chart.getViewOfSeriesModel?.(model) : null
+    for (const b of view?._pointsBuilderList ?? []) for (const m of [b?._mesh, b?._prevMesh]) if (m) m.ignorePicking = true
+  }
+  // echarts-gl sends a datum's mousemove while the pointer is on it, but no mouseout when it leaves for blank space; so
+  // a frame of pointer moves with no datum under them ends the hover.
+  let saw = false
+  let check = 0
+  chart.on('mousemove', (p: MouseParams) => {
+    if (p.componentType !== 'series' || typeof p.seriesIndex !== 'number' || typeof p.dataIndex !== 'number') return
+    if (p.seriesType !== 'scatter3D' || (p as { seriesId?: string }).seriesId === GL_MARK) return
+    saw = true
+    if (hover?.seriesIndex === p.seriesIndex && hover.dataIndex === p.dataIndex) return
+    hover = { seriesIndex: p.seriesIndex, dataIndex: p.dataIndex }
+    draw()
+  })
+  const zr = chart.getZr()
+  zr.on('mousemove', () => {
+    if (check) return
+    check = requestAnimationFrame(() => {
+      check = 0
+      if (!saw && hover) {
+        hover = null
+        draw()
+      }
+      saw = false
+    })
+  })
+  zr.on('globalout', () => {
+    hover = null
+    draw()
+  })
+  return {
+    /** A click or a table row: the datum that stays marked. */
+    pick(at: At | null) {
+      picked = at
+      draw()
+    },
+    /** After a redraw or a theme flip: the mark series may be gone, and the ink may have changed. */
+    refresh() {
+      ink = inkNow()
+      shown = ''
+      draw()
+    },
+  }
+}
+
 export function useEChart<D>(
   load: () => Promise<D>,
   build: (data: D, view: number) => unknown,
@@ -731,6 +844,7 @@ export function useEChart<D>(
     let onEvt: EventListener | undefined
     let rules: ReturnType<typeof makeRules> | undefined
     let marked: ReturnType<typeof makeMarks> | undefined
+    let glMarked: ReturnType<typeof makeGLMarks> | undefined
     // Hidden until the first draw, which fades it in.
     if (ref.current) ref.current.style.opacity = '0'
     let unhook: (() => void) | undefined
@@ -791,6 +905,7 @@ export function useEChart<D>(
       }
       zr.setCursorStyle(scopeCursor())
       marked = latest.current.marks ? makeMarks(echarts, chart) : undefined
+      glMarked = gl && latest.current.marks ? makeGLMarks(chart) : undefined
       if (marked) {
         ownMarks.current = marked.own
         marked.own(latest.current.picked)
@@ -849,6 +964,7 @@ export function useEChart<D>(
           const p = picked ?? np
           hit = null
           picked = null
+          if (p && typeof p.seriesIndex === 'number' && typeof p.dataIndex === 'number') glMarked?.pick({ seriesIndex: p.seriesIndex, dataIndex: p.dataIndex })
           if (latest.current.onPick) {
             if (p) latest.current.onPick(p)
             return
@@ -862,6 +978,7 @@ export function useEChart<D>(
         chart?.resize()
         stale()
         marked?.refresh()
+        glMarked?.refresh()
       })
       ro.observe(box)
       mo = new MutationObserver(() => {
@@ -870,11 +987,13 @@ export function useEChart<D>(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         chart?.setOption(themed(withMarks(withCross(latest.current.build(data, latest.current.view)), latest.current.marks), dark) as any, true)
         marked?.refresh()
+        glMarked?.refresh()
       })
       redraw.current = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         chart?.setOption(themed(withMarks(withCross(latest.current.build(data, latest.current.view)), latest.current.marks), dark) as any, latest.current.replace)
         marked?.refresh()
+        glMarked?.refresh()
       }
       mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
       // A table row pointing here (VIZ_POINT, 2026-11-04): the crosshair walks to that datum —
@@ -889,6 +1008,7 @@ export function useEChart<D>(
         if (typeof d.row !== 'number') return
         const at = latest.current.point ? latest.current.point(d.row) : { seriesIndex: 0, dataIndex: d.row }
         if (!at) return
+        glMarked?.pick(at)
         chart?.dispatchAction({ type: 'showTip', ...at })
         if (over) return
         const p = pixelOf(chart, at)

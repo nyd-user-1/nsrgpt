@@ -3,7 +3,7 @@
 import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
+import { Edges, Html } from '@react-three/drei'
 import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { PARITY, Y_PER_KEV, label, type Model } from './model'
@@ -368,14 +368,16 @@ function Gammas({ model, palette, focus }: { model: Model; palette: Palette; foc
   )
 }
 
-/** The panel row under the pointer, marked on the selected nuclide's stack. */
+/** The panel row under the pointer, marked on the selected nuclide's stack: its level again at 4× (brief 54, Part C, as
+ *  the GL scatters' picked point), in the selected nuclide's accent, edged in ink. */
 function RowMarker({ model, palette, focus, row }: { model: Model; palette: Palette; focus: number; row: number }) {
   if (focus < 0 || row < 0 || row >= model.size[focus]) return null
   const k = model.start[focus] + row
   return (
-    <mesh position={[model.n[focus], model.energy[k] * Y_PER_KEV, -model.z[focus]]}>
-      <boxGeometry args={[1.8, 0.1, 1.8]} />
+    <mesh position={[model.n[focus], model.energy[k] * Y_PER_KEV, -model.z[focus]]} raycast={() => null}>
+      <boxGeometry args={[0.72 * 4, 0.12, 0.72 * 4]} />
       <meshBasicMaterial color={palette.accent} toneMapped={false} />
+      <Edges color={palette.ink} lineWidth={2} raycast={() => null} />
     </mesh>
   )
 }

@@ -24,7 +24,8 @@ import { World, hasWebGPU } from './world'
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
 const YEAR = 3.15576e7
-const KEYS = '← → orbit · ↑ ↓ tilt · Cmd + ↑ ↓ or + − zoom · Shift + arrows pan · Space pause · 0 reset · Click releases smoke · Esc leave'
+// The panel's Camera keys where this scene's differ: Space pauses, and a click releases smoke (lib/viz-engage.ts).
+const KEYS = { space: 'Pause', note: 'Click releases smoke' }
 
 /** Samples with a story in their heat, and a time scale that shows it in about half a minute. */
 const PRESETS: { label: string; z: number; n: number; rate: number }[] = [

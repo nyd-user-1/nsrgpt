@@ -24,7 +24,11 @@ const UNIT = 0.45
 /** Where a light that isn't showing waits. */
 const AWAY = 1e6
 
-type Pal = { paper: THREE.Color; fam: Record<Family, THREE.Color> }
+type Pal = { paper: THREE.Color; ink: THREE.Color; fam: Record<Family, THREE.Color> }
+/** The hovered and pinned nodes draw at 4× (brief 54, Part C, as the GL scatters' picked point), in an ink shell this
+ *  much wider than the node. */
+const MARK = 4
+const SHELL = 1.14
 type Layouts = { m: GraphModel; flat: Float32Array; deep: Float32Array }
 
 export default function Graph3D({ decay, pinned, onPin, flow, open }: { decay: Decay; pinned: number[]; onPin: Pin; flow: boolean; open: boolean }) {
@@ -48,6 +52,7 @@ export default function Graph3D({ decay, pinned, onPin, flow, open }: { decay: D
   const pal = React.useMemo<Pal>(
     () => ({
       paper: new THREE.Color(theme.paper),
+      ink: new THREE.Color(theme.ink),
       fam: Object.fromEntries(FAMILIES.map((f) => [f, new THREE.Color(theme.dark ? FAMILY[f].dark : FAMILY[f].light)])) as Record<Family, THREE.Color>,
     }),
     [theme],
@@ -125,6 +130,7 @@ const Scene = React.memo(function Scene({
   const n = m.xy.length
   const fam = React.useMemo(() => decay.nuclides.map((x) => familyOf(x)), [decay])
   const nodes = React.useRef<THREE.InstancedMesh>(null)
+  const shells = React.useRef<THREE.InstancedMesh>(null)
   // Where each node is now, between its flat and its 3D place.
   const cur = React.useMemo(() => new Float32Array(n * 3), [n])
   const edges = React.useMemo(() => {
@@ -168,11 +174,17 @@ const Scene = React.memo(function Scene({
       const nm = nodes.current
       if (nm) {
         const mat = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3()
+        const sh = shells.current
         for (let i = 0; i < n; i++) {
-          const r = shows(i) ? sizeOf(m.fed[i]) * UNIT * (emphSet.has(i) ? 1.8 : 1) : 0
-          nm.setMatrixAt(i, mat.compose(p.set(cur[i * 3], cur[i * 3 + 1], cur[i * 3 + 2]), q, s.set(r, r, r)))
+          const marked = emphSet.has(i)
+          const r = shows(i) ? sizeOf(m.fed[i]) * UNIT * (marked ? MARK : 1) : 0
+          p.set(cur[i * 3], cur[i * 3 + 1], cur[i * 3 + 2])
+          nm.setMatrixAt(i, mat.compose(p, q, s.set(r, r, r)))
+          const rs = marked ? r * SHELL : 0
+          sh?.setMatrixAt(i, mat.compose(p, q, s.set(rs, rs, rs)))
         }
         nm.instanceMatrix.needsUpdate = true
+        if (sh) sh.instanceMatrix.needsUpdate = true
       }
       const pos = edges.getAttribute('position') as THREE.BufferAttribute
       const a = pos.array as Float32Array
@@ -257,6 +269,11 @@ const Scene = React.memo(function Scene({
       >
         <sphereGeometry args={[1, 10, 8]} />
         <meshBasicMaterial />
+      </instancedMesh>
+      {/* The marked nodes' outline: an ink sphere a little wider, drawn from inside, so only its rim shows. */}
+      <instancedMesh ref={shells} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => null}>
+        <sphereGeometry args={[1, 16, 12]} />
+        <meshBasicMaterial color={pal.ink} side={THREE.BackSide} />
       </instancedMesh>
       <lineSegments geometry={edges} material={edgeMat} frustumCulled={false} />
       <points geometry={lights} material={lightMat} frustumCulled={false} visible={flow} />

@@ -10,8 +10,8 @@ import { pass } from 'three/tsl'
 import { bloom } from 'three/addons/tsl/display/BloomNode.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { FrameStepper, createParticleRenderer } from 'threejs-particle-fluids'
-import { CAMERA_KEYS, CAMERA_PAN, CAMERA_ROT, CAMERA_ZOOM, SPIN_DEG_PER_S } from '@/lib/viz-3d'
-import { isEngaged, isTyping } from '@/lib/viz-engage'
+import { CAMERA_PAN, CAMERA_ROT, CAMERA_ZOOM, SPIN_DEG_PER_S } from '@/lib/viz-3d'
+import { listenCamera } from '@/lib/viz-engage'
 import type { Plume } from './plume'
 
 export type Stats = { fps: number; time: number }
@@ -48,9 +48,8 @@ export class World {
   private pointerStart: Vector2 | undefined
   private click: Vector2 | undefined
   private pipeline!: RenderPipeline
-  private held = new Set<string>()
+  private input: ReturnType<typeof listenCamera> | null = null
   private nextPlume: { make: (renderer: WebGPURenderer) => Plume; ready: (plume: Plume) => void } | null = null
-  private shift = false
 
   constructor(
     private readonly onStats: (stats: Stats) => void,
@@ -140,45 +139,17 @@ export class World {
       this.controls.removeEventListener('start', stopTurn)
     })
 
-    // The camera's keys, once the reader has clicked into the chart (lib/viz-engage.ts); Space plays and pauses.
-    const keydown = (e: KeyboardEvent) => {
-      this.shift = e.shiftKey
-      if (e.metaKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && isEngaged() && !isTyping(e)) {
-        // A step a press: macOS sends no key-up while Cmd is held.
-        e.preventDefault()
-        this.zoom(e.key === 'ArrowUp' ? 1.15 : 1 / 1.15)
-        stopTurn()
-        return
-      }
-      if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e)) return
-      if (e.key === ' ') {
-        e.preventDefault()
-        this.onSpace()
-        return
-      }
-      if (!isEngaged()) return
-      if (e.key === '0') {
-        this.controls.reset()
-        return
-      }
-      if (!CAMERA_KEYS.has(e.key)) return
-      e.preventDefault()
-      this.held.add(e.key)
-      stopTurn()
-    }
-    const keyup = (e: KeyboardEvent) => {
-      this.shift = e.shiftKey
-      this.held.delete(e.key)
-      if (e.key === 'Meta') this.held.clear()
-    }
-    const blur = () => this.held.clear()
-    window.addEventListener('keydown', keydown)
-    window.addEventListener('keyup', keyup)
-    window.addEventListener('blur', blur)
+    // The camera's keys and the panel's Camera caps (lib/viz-engage.ts listenCamera); Space plays and pauses.
+    const input = listenCamera({
+      spin: () => this.onSpace(),
+      reset: () => this.controls.reset(),
+      zoomStep: (inward) => this.zoom(inward ? 1.15 : 1 / 1.15),
+      moved: stopTurn,
+    })
+    this.input = input
     this.cleanup.push(() => {
-      window.removeEventListener('keydown', keydown)
-      window.removeEventListener('keyup', keyup)
-      window.removeEventListener('blur', blur)
+      input.stop()
+      this.input = null
     })
 
     const observer = new ResizeObserver(() => {
@@ -234,12 +205,11 @@ export class World {
   }
 
   private keys(dt: number): void {
-    const k = this.held
-    if (!k.size) return
+    const k = this.input?.read()
+    if (!k) return
     const t = Math.min(dt, 0.05)
-    const x = (k.has('ArrowRight') ? 1 : 0) - (k.has('ArrowLeft') ? 1 : 0)
-    const y = (k.has('ArrowUp') ? 1 : 0) - (k.has('ArrowDown') ? 1 : 0)
-    if (this.shift && (x || y)) {
+    const { x, y } = k
+    if (k.pan && (x || y)) {
       // Pan: the camera and its target slide together along the screen's right and up.
       const d = CAMERA_PAN * this.controls.getDistance() * t
       const right = new Vector3().setFromMatrixColumn(this.camera.matrix, 0).multiplyScalar(x * d)
@@ -251,8 +221,8 @@ export class World {
       if (x) this.controls.rotateLeft(x * CAMERA_ROT * t)
       if (y) this.controls.rotateUp(y * CAMERA_ROT * t)
     }
-    if (k.has('+') || k.has('=')) this.zoom(1 + CAMERA_ZOOM * t)
-    if (k.has('-') || k.has('_')) this.zoom(1 / (1 + CAMERA_ZOOM * t))
+    if (k.zoom > 0) this.zoom(1 + CAMERA_ZOOM * t)
+    if (k.zoom < 0) this.zoom(1 / (1 + CAMERA_ZOOM * t))
   }
 
   private resize(width: number, height: number): void {

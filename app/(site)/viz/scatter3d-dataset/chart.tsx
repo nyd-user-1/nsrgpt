@@ -46,6 +46,6 @@ export function Scatter3dDatasetChart() {
         })),
       },
     ],
-  }), true, firstSeriesRow)
+  }), true, firstSeriesRow, { marks: true })
   return <div ref={ref} className="min-h-0 w-full flex-1" />
 }

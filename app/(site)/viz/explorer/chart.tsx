@@ -177,7 +177,7 @@ export function ExplorerChart() {
     },
     true,
     undefined,
-    { view: rev, replace: true, onPick: () => {} },
+    { view: rev, replace: true, onPick: () => {}, marks: true },
   )
 
   // The axis menus' options, under their group headings.

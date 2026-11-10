@@ -15,5 +15,3 @@ export const CAMERA_ROT = 1.2
 export const CAMERA_ZOOM = 1.6
 export const CAMERA_PAN = 0.6
 export const CAMERA_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '_'])
-/** The frame's list of them (components/viz/FramedBox.tsx). */
-export const CAMERA_KEY_LIST = '← → orbit · ↑ ↓ tilt · Cmd + ↑ ↓ or + − zoom · Shift + arrows pan · Space rotation · 0 reset · Esc leave'

@@ -11,7 +11,7 @@
 import * as React from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Html, Line } from '@react-three/drei'
+import { Edges, Html, Line } from '@react-three/drei'
 import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
@@ -498,10 +498,13 @@ const Chart = React.memo(function Chart({
       </lineSegments>
 
       {chains.map((c, k) => (c.length > 1 ? <Line key={selected[k]} points={c} color={pal.ink} lineWidth={2} transparent opacity={0.85} /> : null))}
+      {/* A selected nuclide's tile again at 4× (brief 54, Part C, as the GL scatters' picked point): its own colour, opaque,
+          edged in ink. */}
       {selected.map((sel) => (
-        <mesh key={sel} position={[model.pos[sel * 3], model.pos[sel * 3 + 1] + 0.9, model.pos[sel * 3 + 2]]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
-          <torusGeometry args={[1.25, 0.12, 8, 32]} />
-          <meshBasicMaterial color={pal.ink} toneMapped={false} />
+        <mesh key={sel} position={[model.pos[sel * 3], model.pos[sel * 3 + 1] + 0.05, model.pos[sel * 3 + 2]]} raycast={() => null}>
+          <boxGeometry args={[0.88 * 4, 0.3, 0.88 * 4]} />
+          <meshBasicMaterial color={pal.tile[model.fam[sel]]} toneMapped={false} />
+          <Edges color={pal.ink} lineWidth={2} raycast={() => null} />
         </mesh>
       ))}
     </>

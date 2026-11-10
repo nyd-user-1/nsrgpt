@@ -5,13 +5,13 @@ import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { HOVER } from '@/components/CopyTitle'
+import { CameraKeys } from '@/components/viz/CameraKeys'
 import { MetricView } from '@/components/viz/MetricView'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { vizNeighbours } from '@/lib/viz-charts'
 import { chartTypes, metricView, type ChartTypeOption } from '@/lib/viz-metrics'
 import { chartForward, markBack } from '@/lib/viz-grow'
 import { isEngaged, isTyping, setEngaged, useEngage } from '@/lib/viz-engage'
-import { CAMERA_KEY_LIST } from '@/lib/viz-3d'
 
 // A framed chart page's frame (Brendan, 2026-11-04): edge to edge across the app's content area below the header,
 // always — the full width is the standard, so there is no column state and no expand. The previous and next chart
@@ -19,8 +19,9 @@ import { CAMERA_KEY_LIST } from '@/lib/viz-3d'
 // clone a /viz press grows ends on this same rect (expand-box.tsx).
 //
 // Keys (2026-11-06): [ and ] step to the previous and next chart at any time. ← → do too, until the reader clicks into
-// the chart; from then the arrows belong to the chart (lib/viz-engage.ts) and the frame wears a thin ring, with the
-// camera's keys listed on a 3D chart. Esc hands the arrows back.
+// the chart; from then the arrows belong to the chart (lib/viz-engage.ts) and the frame wears a thin ring. Esc hands the
+// arrows back. On a 3D chart the camera's keys are caps in the right panel (components/viz/CameraKeys.tsx, brief 54),
+// where the hint strip over the chart used to list them.
 
 // The chart type at the foot is a switcher (Brendan, 2026-11-06): every chart type the metric's data fits
 // (lib/viz-metrics.ts). A type that's a page of its own goes to that page; the rest draw here, as ?view=<type>.
@@ -43,7 +44,7 @@ function Frame({ children, view }: { children: React.ReactNode; view: string | n
   const types = chartTypes(path, view)
   const shown = metricView(path, view)
   const router = useRouter()
-  const { engaged, camera, keys } = useEngage()
+  const { engaged, camera } = useEngage()
 
   // Each chart page starts with the arrows on chart stepping.
   useEffect(() => {
@@ -81,15 +82,7 @@ function Frame({ children, view }: { children: React.ReactNode; view: string | n
         if (!(e.target as HTMLElement).closest('[data-frame-nav]')) setEngaged(true)
       }}
     >
-      {engaged && camera && (
-        <p
-          data-frame-nav
-          className="pointer-events-none absolute bottom-4 left-1/2 z-10 m-0 -translate-x-1/2 rounded-full border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 px-3 py-1 text-[11px] text-[var(--paper-muted)] backdrop-blur-sm"
-          style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
-        >
-          {keys ?? CAMERA_KEY_LIST}
-        </p>
-      )}
+      {camera && <CameraKeys />}
       {shown ? <MetricView value={shown.value} view={shown.view} /> : children}
       {/* The chart type at the foot, inside the border (Brendan, 2026-11-06). */}
       {types.length > 0 && (

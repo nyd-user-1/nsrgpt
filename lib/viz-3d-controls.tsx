@@ -5,85 +5,55 @@ import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import { CAMERA_KEYS, CAMERA_PAN as PAN, CAMERA_ROT as ROT, CAMERA_ZOOM as ZOOM, SPIN_DEG_PER_S } from '@/lib/viz-3d'
+import { CAMERA_PAN as PAN, CAMERA_ROT as ROT, CAMERA_ZOOM as ZOOM, SPIN_DEG_PER_S } from '@/lib/viz-3d'
 import { inspectorOn } from '@/components/dev/inspector-state'
-import { isEngaged, isTyping, setCamera } from '@/lib/viz-engage'
+import { listenCamera, setCamera } from '@/lib/viz-engage'
 import { scopeCursor } from '@/lib/viz-cursor'
 
 /** OrbitControls that turn slowly on open (lib/viz-3d.ts). The turn stops at the first press, drag or scroll, and
  *  Space starts or stops it at any time (Brendan, 2026-11-06). Once the reader has clicked into the chart
- *  (lib/viz-engage.ts), the keys drive the camera: ← → orbit, ↑ ↓ tilt, + − or Cmd + ↑ ↓ zoom, Shift + arrows pan, 0 resets
- *  the view; a held key moves smoothly, frame by frame. `stopped` ends the turn from outside, for a scene that flies
- *  its own camera to a selection. */
+ *  (lib/viz-engage.ts), the keys drive the camera: ← → orbit, ↑ ↓ tilt, + − or Cmd + ↑ ↓ zoom, Shift or Option + arrows
+ *  pan, 0 resets the view; a held key, or a held cap in the panel's Camera keys, moves smoothly, frame by frame.
+ *  `stopped` ends the turn from outside, for a scene that flies its own camera to a selection. */
 export function SpinControls({ stopped = false, onStart, ...props }: React.ComponentProps<typeof OrbitControls> & { stopped?: boolean }) {
   const ref = React.useRef<OrbitControlsImpl>(null)
   const camera = useThree((s) => s.camera)
   const [spinning, setSpinning] = React.useState(true)
-  const held = React.useRef(new Set<string>())
-  const shift = React.useRef(false)
+  const input = React.useRef<ReturnType<typeof listenCamera> | null>(null)
 
-  // The frame lists the camera's keys while a 3D chart is on the page.
+  // The right panel shows the Camera keys while a 3D chart is on the page.
   React.useEffect(() => {
     setCamera(true)
     return () => setCamera(false)
   }, [])
 
   React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      shift.current = e.shiftKey
-      // Cmd + ↑ ↓ zoom too (Brendan, 2026-11-06), a step a press: macOS sends no key-up while Cmd is held, so a held
-      // set would stick.
-      if (e.metaKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && isEngaged() && !isTyping(e)) {
-        e.preventDefault()
+    const cam = listenCamera({
+      spin: () => setSpinning((v) => !v),
+      reset: () => ref.current?.reset(),
+      zoomStep: (inward) => {
         const c = ref.current
-        if (c) {
-          if (e.key === 'ArrowUp') c.dollyIn(1.15)
-          else c.dollyOut(1.15)
-          c.update()
-        }
-        setSpinning(false)
-        return
-      }
-      if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e)) return
-      if (e.key === ' ') {
-        e.preventDefault()
-        setSpinning((s) => !s)
-        return
-      }
-      if (!isEngaged()) return
-      if (e.key === '0') {
-        ref.current?.reset()
-        return
-      }
-      if (!CAMERA_KEYS.has(e.key)) return
-      e.preventDefault()
-      held.current.add(e.key)
-      setSpinning(false)
-    }
-    const up = (e: KeyboardEvent) => {
-      shift.current = e.shiftKey
-      held.current.delete(e.key)
-      if (e.key === 'Meta') held.current.clear()
-    }
-    const clear = () => held.current.clear()
-    window.addEventListener('keydown', down)
-    window.addEventListener('keyup', up)
-    window.addEventListener('blur', clear)
+        if (!c) return
+        if (inward) c.dollyIn(1.15)
+        else c.dollyOut(1.15)
+        c.update()
+      },
+      moved: () => setSpinning(false),
+    })
+    input.current = cam
     return () => {
-      window.removeEventListener('keydown', down)
-      window.removeEventListener('keyup', up)
-      window.removeEventListener('blur', clear)
+      cam.stop()
+      input.current = null
     }
   }, [])
 
   useFrame((_, dt) => {
     const c = ref.current
-    const k = held.current
-    if (!c || !k.size) return
+    const k = input.current?.read()
+    if (!c || !k) return
     const t = Math.min(dt, 0.05)
-    const x = (k.has('ArrowRight') ? 1 : 0) - (k.has('ArrowLeft') ? 1 : 0)
-    const y = (k.has('ArrowUp') ? 1 : 0) - (k.has('ArrowDown') ? 1 : 0)
-    if (shift.current && (x || y)) {
+    const { x, y } = k
+    if (k.pan && (x || y)) {
       // Pan: the camera and its target slide together along the screen's right and up.
       const d = PAN * c.getDistance() * t
       const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0).multiplyScalar(x * d)
@@ -95,8 +65,8 @@ export function SpinControls({ stopped = false, onStart, ...props }: React.Compo
       if (x) c.setAzimuthalAngle(c.getAzimuthalAngle() - x * ROT * t)
       if (y) c.setPolarAngle(c.getPolarAngle() - y * ROT * t)
     }
-    if (k.has('+') || k.has('=')) c.dollyIn(1 + ZOOM * t)
-    if (k.has('-') || k.has('_')) c.dollyOut(1 + ZOOM * t)
+    if (k.zoom > 0) c.dollyIn(1 + ZOOM * t)
+    if (k.zoom < 0) c.dollyOut(1 + ZOOM * t)
     c.update()
   })
 
