@@ -181,12 +181,18 @@ export function compare(
 
 // ── The Compare block's adapters (brief 52's port values) ─────────────────────────────────────────────────────────────
 
-/** Measured points from the EXFOR Data block's rows (dataset_id, e_ev, xs_b, dxs_b). */
+/** Measured points from the EXFOR Data block's rows (dataset_id, e_ev, xs_b, dxs_b). Only cross sections in barns divide by
+ *  an evaluation: a dataset the meta lists in other units (σ√E, "B*RT-EV") or excluded (a ratio to another reaction) is left out. */
 export function pointsFrom(ds: Dataset | undefined): MeasuredPoint[] {
+  const off = new Set(
+    ((ds?.meta?.datasets ?? []) as { dataset_id?: string; units?: string; excluded?: unknown }[])
+      .filter((d) => d.dataset_id && ((d.units && d.units !== "B") || d.excluded))
+      .map((d) => String(d.dataset_id)),
+  )
   const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN)
   return (ds?.rows ?? [])
     .map((r) => ({ dataset_id: String(r.dataset_id ?? r.dataset ?? ""), e_ev: num(r.e_ev), xs_b: num(r.xs_b), dxs_b: r.dxs_b == null ? null : num(r.dxs_b) }))
-    .filter((p) => Number.isFinite(p.e_ev) && Number.isFinite(p.xs_b))
+    .filter((p) => Number.isFinite(p.e_ev) && Number.isFinite(p.xs_b) && !off.has(p.dataset_id))
 }
 
 /** The release a curve belongs to: its meta's, else the start of its name ("B-VIII.1 300 K"). */
