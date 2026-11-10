@@ -162,13 +162,15 @@ function pixelOf(chart: any, at: { seriesIndex: number; dataIndex: number }): [n
 //   bars, candles, OHLC (custom)   a muted full-height band behind the bar, on a canvas layer beneath the chart
 //   heatmap cells                  an ink outline round the cell, above its neighbours
 //   bars on a value axis (sticks)  an ink outline round the stick
+//   tiles (custom, value axes)     the tile again with its labels, 2× (never under 12 px) and outlined in ink, on the
+//                                  dots' layer (the chart of nuclides' cells, Brendan, 2026-11-10)
 // Both layers are separate canvases, so moving a mark repaints that layer alone, never the thousands of marks
 // beneath it: hover costs what it cost before. The series' own emphasis is switched off for the same reason
 // (ECharts would otherwise repaint the hovered datum's layer, and the rule says don't recolour bars or candles).
 // A chart opts in with `marks: true`.
 
 type At = { seriesIndex: number; dataIndex: number }
-type MarkKind = 'dot' | 'band' | 'cell' | 'stick'
+type MarkKind = 'dot' | 'band' | 'cell' | 'stick' | 'tile'
 
 const HOVER_Z = 10
 /** Pixels from the pointer within which the nearest scatter dot hovers. */
@@ -224,6 +226,7 @@ function kindOf(chart: any, seriesIndex: number): MarkKind | null {
   if (type === 'bar' || type === 'candlestick' || type === 'custom') {
     const base = cs.getBaseAxis?.()
     if (base?.type === 'category' && base.dim === 'x') return 'band'
+    if (type === 'custom' && cs.getAxis?.('x')?.type !== 'category' && cs.getAxis?.('y')?.type !== 'category') return 'tile'
     return type === 'bar' ? 'stick' : null
   }
   return null
@@ -442,6 +445,32 @@ function markShape(chart: any, kind: MarkKind, at: At): { circle?: { cx: number;
   return { circle: { cx: p[0], cy: p[1], r: Math.max(Math.max(w, h) * 0.8, 6) }, fill }
 }
 
+/** Grown tiles are never smaller than this across, so a 4 px cell's mark still reads. */
+const TILE_MIN = 12
+
+/** A tile's mark: the custom series' drawn element again (its rect, and any labels on it), scaled about its centre on
+ *  layer `zlevel`, its rect outlined in ink on a halo of the page's ground. The outlines don't scale with it. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function tileMark(G: any, chart: any, at: At, ink: string, zlevel: number): Shape | null {
+  const data = chart.getModel().getSeriesByIndex(at.seriesIndex)?.getData()
+  const i = data ? insideIndex(data, at.dataIndex) : -1
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const el: any = i >= 0 ? data.getItemGraphicEl(i) : null
+  if (!el) return null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parts: any[] = el.isGroup ? el.children() : [el]
+  const rect = parts.find((p) => p.type === 'rect')
+  if (!rect) return null
+  const { x, y, width, height } = rect.shape as { x: number; y: number; width: number; height: number }
+  const k = Math.max(2, TILE_MIN / Math.max(1, Math.min(width, height)))
+  const g = new G.Group({ scaleX: k, scaleY: k, originX: x + width / 2, originY: y + height / 2, silent: true })
+  const place = (p: { x?: number; y?: number }) => ({ x: p.x ?? 0, y: p.y ?? 0, zlevel, silent: true })
+  g.add(new G.Rect({ ...place(rect), shape: { ...rect.shape }, style: { fill: 'none', stroke: paperNow(), lineWidth: 6, strokeNoScale: true } }))
+  g.add(new G.Rect({ ...place(rect), shape: { ...rect.shape }, style: { fill: rect.style?.fill, stroke: ink, lineWidth: 2, strokeNoScale: true } }))
+  for (const p of parts) if (p.type === 'text') g.add(new G.Text({ ...place(p), style: { ...p.style } }))
+  return g
+}
+
 /** Optional extras (2026-11-04, chart batches A and B).
  *  `view`: a state of the chart's own — points or bars, one isotope chain or another, a selected nuclide. When
  *    it changes, build runs again with it: merged, so marks animate to their new places, or replaced whole when
@@ -449,13 +478,16 @@ function markShape(chart: any, kind: MarkKind, at: At): { circle?: { cx: number;
  *  `point`: the datum a table row points at, for charts whose first series isn't drawn in table order; it may
  *    act on the row itself and return null.
  *  `onPick`: a click on a datum goes here instead of opening the data table; a click on blank ground does nothing.
- *  `marks`: the hover and picked-row marks above (brief 06). */
+ *  `marks`: the hover and picked-row marks above (brief 06).
+ *  `picked`: data indices of series 0 the chart holds picked itself (the chart of nuclides' open card), marked as the
+ *    table's picked rows are. */
 export type EChartExtras = {
   view?: number
   replace?: boolean
   point?: (row: number) => { seriesIndex: number; dataIndex: number } | null
   onPick?: (p: ChartClick) => void
   marks?: boolean
+  picked?: number[]
 }
 
 type Shape = { attr: (o: Record<string, unknown>) => void }
@@ -479,8 +511,10 @@ function makeMarks(echarts: any, chart: any) {
   const hoverBox = add(new G.Rect({ shape: { x: 0, y: 0, width: 0, height: 0 }, style: {}, zlevel: HOVER_Z, silent: true, ignore: true }))
   const hoverBands = new Map<number, Shape>()
   let hoverCat: number | null = null
+  let hoverTile: Shape | null = null
   let picked: Shape[] = []
   let pickedRows: number[] = []
+  let ownRows: number[] = []
   let resolve: ((row: number) => At | null) | undefined
 
   /** A mark's two rings, halo first: the page's ground 6 px wide, the ink 2 px on top of it. */
@@ -500,8 +534,16 @@ function makeMarks(echarts: any, chart: any) {
     hoverBox.attr({ ignore: true })
     hoverDotHalo.attr({ ignore: true })
     hoverBoxHalo.attr({ ignore: true })
+    if (hoverTile) zr.remove(hoverTile)
+    hoverTile = null
   }
   const showHover = (kind: MarkKind, at: At) => {
+    if (kind === 'tile') {
+      hideHover()
+      hoverTile = tileMark(G, chart, at, ink, HOVER_Z)
+      if (hoverTile) zr.add(hoverTile)
+      return
+    }
     const m = markShape(chart, kind, at)
     if (!m) return hideHover()
     const style = { fill: m.fill, stroke: ink, lineWidth: 2 }
@@ -535,14 +577,16 @@ function makeMarks(echarts: any, chart: any) {
   const drawPicked = () => {
     for (const el of picked) zr.remove(el)
     picked = []
-    if (!pickedRows.length) return
+    if (!pickedRows.length && !ownRows.length) return
     const at = resolve ?? ((row: number) => ({ seriesIndex: 0, dataIndex: row }))
-    for (const row of pickedRows) {
+    for (const d of [...ownRows.map((dataIndex) => ({ seriesIndex: 0, dataIndex })), ...pickedRows.map(at)]) {
       if (picked.length >= MAX_PICKED) break
-      const d = at(row)
       if (!d) continue
       const kind = kindOf(chart, d.seriesIndex)
-      if (kind === 'band') {
+      if (kind === 'tile') {
+        const t = tileMark(G, chart, d, ink, PICKED_Z)
+        if (t) picked.push(add(t))
+      } else if (kind === 'band') {
         for (const a of axes) {
           const r = bandRect(chart, a, d.dataIndex)
           if (r) picked.push(add(new G.Rect({ shape: r, style: { fill: bandColour(ink) }, zlevel: BAND_Z, silent: true })))
@@ -559,11 +603,15 @@ function makeMarks(echarts: any, chart: any) {
     const kind = kindOf(chart, p.seriesIndex)
     if (kind && kind !== 'band') showHover(kind, { seriesIndex: p.seriesIndex, dataIndex: p.dataIndex })
     if (kind === 'dot') near = { seriesIndex: p.seriesIndex, dataIndex: p.dataIndex }
+    tileAt = kind === 'tile' ? { seriesIndex: p.seriesIndex, dataIndex: p.dataIndex } : null
   })
   chart.on('mouseout', (p: MouseParams) => {
+    tileAt = null
     // A dot's mark stays while the pointer is still near it (the nearest-point hover below).
     if (p.componentType === 'series' && (typeof p.seriesIndex !== 'number' || kindOf(chart, p.seriesIndex) !== 'dot')) hideHover()
   })
+  // The tile under the pointer: a zoom redraws it in place without a new mouseover, so its mark is put back after one.
+  let tileAt: At | null = null
   // The nearest point hovers (Brendan, 2026-11-06): a scatter's dots are a few pixels across, too small to land on, so
   // the dot nearest the pointer within NEAR px takes the hover mark, the tooltip and the click, as if the pointer were
   // on it.
@@ -616,13 +664,18 @@ function makeMarks(echarts: any, chart: any) {
     hideHover()
     showBand(null)
     near = null
+    tileAt = null
     tip = false
   })
-  // A zoom moves every datum: the picked marks follow once it has settled; a hover mark would sit stale.
+  // A zoom moves every datum: the picked marks follow once it has settled; a hover mark would sit stale, but for a
+  // tile's, which goes back on the tile still under the pointer.
   chart.on('datazoom', () => {
     hideHover()
     showBand(null)
-    requestAnimationFrame(drawPicked)
+    requestAnimationFrame(() => {
+      drawPicked()
+      if (tileAt) showHover('tile', tileAt)
+    })
   })
 
   return {
@@ -645,6 +698,11 @@ function makeMarks(echarts: any, chart: any) {
       resolve = point
       drawPicked()
     },
+    /** The chart's own picked data (`extras.picked`). */
+    own(rows: number[]) {
+      ownRows = rows
+      drawPicked()
+    },
   }
 }
 
@@ -658,10 +716,11 @@ export function useEChart<D>(
   const ref = React.useRef<HTMLDivElement>(null)
   const path = usePathname()
   const { openPane } = useShellPanel()
-  const now = { path, openPane, rowOf, build, view: extras.view ?? 0, replace: !!extras.replace, point: extras.point, onPick: extras.onPick, marks: !!extras.marks }
+  const now = { path, openPane, rowOf, build, view: extras.view ?? 0, replace: !!extras.replace, point: extras.point, onPick: extras.onPick, marks: !!extras.marks, picked: extras.picked ?? [] }
   const latest = React.useRef(now)
   latest.current = now
   const redraw = React.useRef<(() => void) | null>(null)
+  const ownMarks = React.useRef<((rows: number[]) => void) | null>(null)
   React.useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let chart: any
@@ -732,6 +791,10 @@ export function useEChart<D>(
       }
       zr.setCursorStyle(scopeCursor())
       marked = latest.current.marks ? makeMarks(echarts, chart) : undefined
+      if (marked) {
+        ownMarks.current = marked.own
+        marked.own(latest.current.picked)
+      }
       // The rules ride the + (Brendan, 2026-11-05): anywhere over the chart — plot, axes, a GL scene —
       // the inspector's two blue lines cross at the pointer; where the cursor is the slider's own, none.
       // While the inspector itself is on, its rules are already there.
@@ -841,6 +904,7 @@ export function useEChart<D>(
     return () => {
       disposed = true
       redraw.current = null
+      ownMarks.current = null
       ro?.disconnect()
       mo?.disconnect()
       if (onMsg) window.removeEventListener('message', onMsg)
@@ -854,5 +918,9 @@ export function useEChart<D>(
   React.useEffect(() => {
     redraw.current?.()
   }, [extras.view])
+  const pickedKey = (extras.picked ?? []).join(',')
+  React.useEffect(() => {
+    ownMarks.current?.(latest.current.picked)
+  }, [pickedKey])
   return ref
 }

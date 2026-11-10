@@ -3,9 +3,10 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { X } from 'lucide-react'
+import { useSwitchboard } from '@/components/SwitchboardPanel'
 import { useEChart } from '@/components/viz/use-echart'
 import { LegendBar, Pills } from '@/components/viz/Pills'
-import { VizControls } from '@/components/viz/VizControls'
+import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { AXIS, FAMILY, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, keyOf, type Decay, type DecayNuclide } from '@/lib/viz-physics'
 import { ELEMENTS, datasetsHref, inkOn, papersHref } from '@/lib/structure'
 import { ELEMENT_NAMES, RADIATION_LABEL, jpi, loadGround, loadRadiation, massMicroU, type Ground, type GroundRow, type Radiation } from './data'
@@ -18,6 +19,9 @@ import { MODES, colouring, loadCounts, modeLine, type Counts, type Mode } from '
 // Colour modes (brief 35, Part 2, 2026-11-09): a Colour by row over the chart picks what the colour says (./colour.ts),
 // its one legend beside it; a Sources line under the chart; the card links to the nuclide's datasets, its papers and
 // its row in the nuclides table; ?nuclide=137Cs opens a card.
+// Off the canvas (brief 54, Part A, 2026-11-10): Colour by, its legend and the card live in the right panel's chart layer
+// (components/viz/VizControls.tsx); a click on a cell opens the panel with the card at the top. The cell under the
+// pointer and the open card's cell are drawn again at 2× on the marks' layer (use-echart's tile mark).
 
 const MAGIC = [2, 8, 20, 28, 50, 82, 126]
 // Labels as cells grow (brief 37), as /viz/structure's chart draws them: the element symbol once a cell is about 28 px
@@ -32,6 +36,12 @@ export function NuclideChart() {
   const [mode, setMode] = React.useState<Mode>('family')
   const [counts, setCounts] = React.useState<Counts | null>(null)
   const dark = useDark()
+  const { openVizControls } = useSwitchboard()
+  // A pick opens the panel on the chart's layer, where the card is.
+  const open = React.useCallback((i: number) => {
+    setPick(i)
+    openVizControls()
+  }, [openVizControls])
   // The structure index and the NSR field load when a mode first needs them.
   React.useEffect(() => {
     if (mode === 'family' || mode === 'halflife' || counts) return
@@ -56,8 +66,8 @@ export function NuclideChart() {
     const raw = numFirst ? m[2] : m[1]
     const z = ELEMENTS.indexOf(raw[0].toUpperCase() + raw.slice(1).toLowerCase())
     const i = data.d.nuclides.findIndex((x) => x.z === z && x.n === a - z)
-    if (i >= 0) setPick(i)
-  }, [data])
+    if (i >= 0) open(i)
+  }, [data, open])
   const view = MODES.findIndex((m) => m.id === mode) * 2 + (counts ? 1 : 0)
   const ref = useEChart(
     load,
@@ -135,49 +145,58 @@ export function NuclideChart() {
     },
     false,
     undefined,
-    { view, onPick: (p) => { if (p.seriesIndex === 0 && typeof p.dataIndex === 'number') setPick(p.dataIndex) } },
+    { view, marks: true, picked: pick === null ? [] : [pick], onPick: (p) => { if (p.seriesIndex === 0 && typeof p.dataIndex === 'number') open(p.dataIndex) } },
   )
   const { legend } = colouring(mode, dark, counts)
   const waiting = mode !== 'family' && mode !== 'halflife' && !counts
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      {/* The chart's header: what the colour says, and its one legend, redrawn per mode. */}
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1 pb-2">
-        <Pills label="Colour by" options={MODES} value={mode} onChange={setMode} />
-        <div className={`min-w-0 transition-opacity ${waiting ? 'opacity-40' : ''}`}>
-          {legend.kind === 'chips' ? (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--paper-muted)]">
-              {legend.items.map((it) => (
-                <span key={it.label} className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: it.color }} />
-                  {it.label}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-end gap-1.5">
-              <LegendBar title={legend.title} segments={legend.segments} />
-              {legend.extras.map((e) => (
-                <span key={e.label} className="shrink-0 rounded-sm px-1 py-0.5 text-[9px] font-bold leading-none" style={{ background: e.color, color: inkOn(e.color) }}>
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex min-h-0 w-full flex-1">
-        <div ref={ref} className="min-h-0 min-w-0 flex-1" />
-        {pick !== null && data && (
-          <NuclideCard x={data.d.nuclides[pick]} d={data.d} ground={data.g.index.get(keyOf(data.d.nuclides[pick].z, data.d.nuclides[pick].n))} onClose={() => setPick(null)} />
-        )}
-      </div>
+      <div ref={ref} className="min-h-0 w-full flex-1" />
       <VizControls>
-        <p className="m-0">
-          Every ENSDF nuclide is a box at its N and Z; the dashed rules are the magic numbers. Colour by its decay family, its
-          half-life, the years since its ENSDF evaluation&apos;s literature cutoff, the XUNDL sets compiled since that cutoff,
-          its NSR papers or the EXFOR entries that take it as target. Scroll to zoom, drag to pan, click a box for its card.
-        </p>
+        {pick !== null && data && (
+          <VizSection>
+            <NuclideCard x={data.d.nuclides[pick]} d={data.d} ground={data.g.index.get(keyOf(data.d.nuclides[pick].z, data.d.nuclides[pick].n))} onClose={() => setPick(null)} />
+          </VizSection>
+        )}
+        <VizSection title="Colour by">
+          <Pills options={MODES} value={mode} onChange={setMode} />
+        </VizSection>
+        {/* The mode's one legend, redrawn per mode. */}
+        <VizSection>
+          <div className={`transition-opacity ${waiting ? 'opacity-40' : ''}`}>
+            {legend.kind === 'chips' ? (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-[var(--paper-muted)]">
+                {legend.items.map((it) => (
+                  <span key={it.label} className="flex items-center gap-1.5">
+                    <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: it.color }} />
+                    {it.label}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                <LegendBar title={legend.title} segments={legend.segments} fill />
+                {legend.extras.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {legend.extras.map((e) => (
+                      <span key={e.label} className="rounded-sm px-1 py-0.5 text-[9px] font-bold leading-none" style={{ background: e.color, color: inkOn(e.color) }}>
+                        {e.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </VizSection>
+        <VizSection>
+          <p className="m-0">
+            Every ENSDF nuclide is a box at its N and Z; the dashed rules are the magic numbers. Colour by its decay family,
+            its half-life, the years since its ENSDF evaluation&apos;s literature cutoff, the XUNDL sets compiled since that
+            cutoff, its NSR papers or the EXFOR entries that take it as target. Scroll to zoom, drag to pan, click a box for
+            its card.
+          </p>
+        </VizSection>
       </VizControls>
     </div>
   )
@@ -227,7 +246,7 @@ function NuclideCard({ x, d, ground: r, onClose }: { x: DecayNuclide; d: Decay; 
     </div>
   )
   return (
-    <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-[var(--paper-rule)] bg-[var(--paper)] p-4">
+    <div className="flex flex-col" data-nuclide-card>
       <div className="mb-2 flex items-start justify-between">
         <div>
           <p className="font-mono text-base font-semibold text-[var(--paper-text)]"><sup>{a}</sup>{x.el} <span className="text-sm font-normal text-[var(--paper-muted)]">{ELEMENT_NAMES[x.z] ?? ''}</span></p>
@@ -277,6 +296,6 @@ function NuclideCard({ x, d, ground: r, onClose }: { x: DecayNuclide; d: Decay; 
         </table>
       )}
       <p className="mt-3 text-[10px] leading-relaxed text-[var(--paper-muted)]">Ground state from the IAEA Live Chart (ENSDF, AME2020, NUBASE2020); radiations from ENSDF decay datasets.</p>
-    </aside>
+    </div>
   )
 }

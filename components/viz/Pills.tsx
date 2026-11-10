@@ -34,15 +34,16 @@ export function Pills<T extends string>({ label, options, value, onChange, class
 }
 
 /** The stacked legend bar (the old structure chart's, after NNDC's): equal segments, each label inside its colour,
- *  an optional "none" chip after. */
-export function LegendBar({ title, segments, none, className = '' }: {
+ *  an optional "none" chip after. `fill`: the bar takes its container's width (the right panel) instead of its own. */
+export function LegendBar({ title, segments, none, className = '', fill = false }: {
   title: string
   segments: { color: string; label: string }[]
   none?: { color: string; label: string }
   className?: string
+  fill?: boolean
 }) {
   return (
-    <div className={`w-full sm:w-[300px] md:w-[400px] ${className}`}>
+    <div className={`${fill ? 'w-full' : 'w-full sm:w-[300px] md:w-[400px]'} ${className}`}>
       <p className="m-0 mb-1 text-[10px] text-[var(--paper-muted)]">{title}</p>
       <div className="flex items-center gap-1.5">
         <div className="flex flex-1 overflow-hidden rounded-sm">
