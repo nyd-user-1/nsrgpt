@@ -134,6 +134,12 @@ function LabInner() {
   }, [nodesInitialized, tidy])
   // The view fits once, on load; nothing recentres it afterwards (Brendan, 2026-11-10). Tidy is the circle, by hand.
   const [titleOpen, setTitleOpen] = useState(false)
+  // The rails close over 500 ms after the page draws, and the canvas widens under the first fit; fit again once they
+  // have settled (Brendan, 2026-11-10).
+  const fitSettled = useCallback(() => {
+    requestAnimationFrame(() => flow.fitView(FIT))
+    for (const ms of [650, 1150]) window.setTimeout(() => flow.fitView(FIT), ms)
+  }, [flow])
 
   // Open the canvas the URL names, a new one (?new=1), or the default.
   useEffect(() => {
@@ -143,17 +149,17 @@ function LabInner() {
     setSubentry(null)
     if (isNew) {
       lab.open(fresh())
-      requestAnimationFrame(() => flow.fitView(FIT))
+      fitSettled()
       return
     }
     if (!canvasParam) {
       lab.open(structuredClone(DEFAULT_CANVAS))
       pendingTidy.current = true
-      requestAnimationFrame(() => flow.fitView(FIT))
+      fitSettled()
       return
     }
     loadCanvas(canvasParam)
-      .then((c) => { lab.open(c); requestAnimationFrame(() => flow.fitView(FIT)) })
+      .then((c) => { lab.open(c); fitSettled() })
       .catch((e) => toast.error((e as Error).message))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasParam, isNew])
@@ -176,6 +182,8 @@ function LabInner() {
     return {
       ...e,
       selected: edgeSel.has(e.id),
+      type: "smoothstep",
+      pathOptions: { borderRadius: 14, offset: 28 },
       animated: from?.state.status === "running",
       style: { stroke: port ? PORT_COLOR[port] : undefined, strokeWidth: edgeSel.has(e.id) ? 2.5 : 1.5 },
     }
