@@ -16,6 +16,7 @@ The ENDF-6 releases in the lake (`lake/endfb/<release>/records/`) compiled to GN
 | `check.py <xml> <release> <sub> <mat>` | the XML parses, `format="2.0"`, MT18 at 1 MeV through FUDGE equals `nsr.endfb_xs_points` within 1e-6 |
 | `cdn.sh` | CloudFront: the bucket as nsr-api's second origin for `/lake/gnds/*` and `/lake/jobs/*` |
 | `ddl/gnds_files.sql` | the catalog table |
+| `qa/drive.js`, `qa/run.sh` | Part D, the morning QA drive on the dev box (Playwright at /opt/shot): every page on production and the box, both themes; screenshots to `lake/_work/qa/<date>/` |
 
 Rerun: `./scripts/gnds/box/create.sh nsr-gnds-1` (and `-2`…), `aws s3 cp scripts/gnds/ s3://nsr-lake-613473203863/lake/_work/gnds/box/
 --recursive --exclude '*' --include '*.py'`, then on each box through `scripts/iaea/box/ssm.sh`:
