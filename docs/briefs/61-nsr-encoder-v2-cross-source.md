@@ -106,3 +106,34 @@ The run: `lake/models/nsr-encoder-v2/run-20261110-1052/` (config.json, train.log
   (A10G), Old account, $1.212 an hour. Training 4,979 s (83 min); the whole box 117 min ≈ $2.36.
 - The lake refuses the Old account's role across accounts (the bucket policy statements alone were not enough), so the
   box read its inputs by presigned links and wrote to s3://nsr-embed-v2; the serve box copies the run into the lake.
+
+### Part D: served (2026-11-10)
+- **Switch:** the search Lambda `nsr-search` reads `SEARCH_PREFIX` (services/nsr-search/core.py). It is now
+  `work/search/v2/` (nsr-encoder-v2: int8 ONNX encoder, tokenizer, the 277,068 paper vectors, vec_index; records and
+  search text copied from v1). Removing the variable, or setting `work/search/v1/`, serves v1 again. The Lambda's role
+  policy `read-search-data` now reads `work/search/v1/*` and `work/search/v2/*`.
+- **As served** (int8 queries over the served vectors, the same 2,900-query sample, `scripts/models/serve_check.mjs`):
+
+| Group | n | v1 R@10 / MRR | v2 R@10 / MRR |
+| --- | ---: | --- | --- |
+| cross-source ex_nsr, ensdf_nsr, endf_nsr | 900 | 0.377 / 0.327 | 0.764 / 0.577 |
+| endf_nsr | 300 | 0.027 / 0.006 | 0.800 / 0.540 |
+| ensdf_nsr | 300 | 0.137 / 0.060 | 0.530 / 0.317 |
+| ex_nsr | 300 | 0.967 / 0.916 | 0.963 / 0.876 |
+| nsr-eval-v1 EX | 1,000 | 0.975 / 0.940 | 0.978 / 0.942 |
+| nsr-eval-v1 KW | 1,000 | 0.485 / 0.322 | 0.473 / 0.313 |
+| nsr-eval-v1 all | 2,000 | 0.730 / 0.631 | 0.726 / 0.627 |
+
+  The int8 encoder costs both models about the same against their fp16 measure. Served, KW loses 1.2 points of R@10 on
+  this sample (its sampling error is about 1.6 points) and the paper task as a whole 0.4; the cross-source gain doubles
+  R@10. The int8 export agrees with v2 at cosine 0.90 to 0.95 on three test queries.
+- **Latency** (direct invoke from the Mac, 4 at a time): median 0.43 s, p90 0.69 s for v1 and for v2; a cold start
+  loads in 7 s (22 s for the first call). One query per record type, v2's top hit: EXFOR line "Th-229(N,F) …" →
+  1982AS02 (229Th(n,f) fragment energies); ENSDF "60Co · 60FE B- DECAY (2.62E6 Y)" → 2007DE56 (59,60Fe); ENDF "U-235
+  evaluated neutron data, ENDF/B-VIII.1, resonance parameters and covariances" → 1956PI43 (resonance parameters of
+  U-235); nuclide "Lu-176 thermal capture cross section" → 2006BE05; reaction "gadolinium-157 neutron-induced radiative
+  capture cross section" → 2019MA18 (155,157Gd(n,γ)). The search Lambda indexes papers only, so one record type is
+  embedded; EXFOR datasets and record lines were embedded for the measure, not served.
+- **Hugging Face:** `NYSgpt/nsr-encoder-v2`, private, with a card of the Part C numbers. Making it public is Brendan's.
+- **Spend:** the training box 118 min ≈ $2.38; three failed boots ≈ $0.46; the serve box (m7i.2xlarge) ≈ $0.11; the
+  CPU box ≈ $0.08; cross-region transfer ≈ $0.11. About $3.14 of the $15 cap. Every box is terminated.

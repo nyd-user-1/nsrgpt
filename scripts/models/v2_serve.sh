@@ -96,4 +96,17 @@ api.create_repo("NYSgpt/nsr-encoder-v2", private=True, exist_ok=True)
 api.upload_folder(repo_id="NYSgpt/nsr-encoder-v2", folder_path=src, ignore_patterns=["checkpoint-*", "*.pt"])
 print("[serve] uploaded to Hugging Face NYSgpt/nsr-encoder-v2 (private)", flush=True)
 PY
+# The run and nsr-eval-v1 into the lake (lake/models/nsr-encoder-v2/), one presigned PUT each
+$PY - <<'PY'
+import json, os, subprocess, urllib.request
+links = json.load(open("/opt/serve/links.json"))["copy"]
+for key, url in links.items():
+    path = "/opt/serve/copy/" + key
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    subprocess.run(["aws", "s3", "cp", f"s3://nsr-embed-v2/{key}", path, "--only-show-errors"], check=True)
+    req = urllib.request.Request(url, data=open(path, "rb"), method="PUT", headers={"Content-Length": str(os.path.getsize(path))})
+    urllib.request.urlopen(req).read()
+    os.remove(path)
+print("[serve] copied", len(links), "files into lake/models/nsr-encoder-v2/", flush=True)
+PY
 echo "[serve] done"
