@@ -16,7 +16,7 @@ import {
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { ChevronLeft, ChevronRight, LayoutDashboard, Play, Plus, Save, type LucideIcon } from "lucide-react"
+import { ChevronDown, ChevronRight, LayoutDashboard, Play, Plus, Save, type LucideIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -52,6 +52,8 @@ const LANE_GUTTER = 120
 type Lane = { label: string; x: number; w: number }
 /** Each lane's icon, the kind's own, beside the lane's name (Brendan, 2026-11-10); the blocks' headers carry none. */
 const LANE_ICON: Record<string, LucideIcon> = { Sources: KIND_ICON.data, Process: KIND_ICON.process, Compare: KIND_ICON.compare, Results: KIND_ICON.plot }
+/** Each stage's colour, for its frame's dotted edge, its tint and its name (Brendan, 2026-11-10). */
+const LANE_COLOR: Record<string, string> = { Sources: "#2a78d6", Process: "#1baf7a", Compare: "#eda100", Results: "#9b6bdf" }
 /** What a port colour carries, for the legend. */
 const PORT_LABEL = { dataset: "Dataset: rows and columns", series: "Series: x and y, a curve or points", text: "Text" } as const
 
@@ -330,28 +332,24 @@ function LabInner() {
               {/* The graph canvas's three groups, in its dress (Brendan, 2026-11-09): top left the title where the search
                   sits on /graph, its circle a click-to-copy; top right the tools, Run all and New canvas with Tidy between;
                   bottom right the save, where /graph keeps share, download and copy. */}
-              {/* The dots' legend (Brendan, 2026-11-10), top left where the title pill was: the three port colours, folded at rest
-                  in the tools' pill; the chevron at its end grows on hover as the rail tabs do and opens it. */}
+              {/* The dots' legend (Brendan, 2026-11-10), top left where the title pill was: an accordion, folded at rest, that
+                  opens to the three port colours. */}
               <Panel position="top-left">
-                <div className={`flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm transition-[width] duration-[500ms] ease-in-out ${legendOpen ? "pl-3" : "pl-3"}`}>
-                  <span className="text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">Legend</span>
-                  <div className={`flex items-center gap-3 overflow-hidden transition-[width,margin] duration-[500ms] ease-in-out ${legendOpen ? "ml-3 w-[24rem]" : "ml-0 w-0"}`}>
-                    {(Object.keys(PORT_COLOR) as (keyof typeof PORT_COLOR)[]).map((port) => (
-                      <span key={port} className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] text-[var(--paper-muted)]">
-                        <span aria-hidden className="inline-block h-3 w-3 rounded-full border-2 border-[var(--paper)]" style={{ background: PORT_COLOR[port] }} />
-                        {PORT_LABEL[port]}
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    aria-label={legendOpen ? "Fold the legend" : "Open the legend"}
-                    aria-expanded={legendOpen}
-                    onClick={() => setLegendOpen((v) => !v)}
-                    className="ml-1 flex h-8 w-4 shrink-0 items-center justify-center rounded-r-full text-[var(--paper-muted)] transition-[width,color] duration-200 ease-out hover:w-[17.5px] hover:text-[var(--paper-text)]"
-                  >
-                    {legendOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                <div className="rounded-lg border border-[var(--paper-rule)] bg-[var(--paper)] text-[11px] text-[var(--paper-muted)] shadow-sm">
+                  <button type="button" aria-expanded={legendOpen} onClick={() => setLegendOpen((v) => !v)} className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:text-[var(--paper-text)]">
+                    {legendOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                    Legend
                   </button>
+                  {legendOpen && (
+                    <ul className="flex flex-col gap-1 border-t border-[var(--paper-rule-soft)] px-2.5 py-1.5">
+                      {(Object.keys(PORT_COLOR) as (keyof typeof PORT_COLOR)[]).map((port) => (
+                        <li key={port} className="flex items-center gap-2">
+                          <span aria-hidden className="inline-block h-3 w-3 rounded-full border-2 border-[var(--paper)]" style={{ background: PORT_COLOR[port] }} />
+                          {PORT_LABEL[port]}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </Panel>
               <Panel position="top-right">
@@ -374,8 +372,8 @@ function LabInner() {
                 {frames.map((f) => {
                   const LaneIcon = LANE_ICON[f.label]
                   return (
-                    <div key={f.label} style={{ position: "absolute", left: f.x, top: f.y, width: f.w, height: f.h, zIndex: -1 }} className="pointer-events-none select-none rounded-2xl border border-[var(--paper-rule-soft)] bg-[var(--paper-quiet)]">
-                      <div className="flex items-center gap-1.5 px-3 pt-2 text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">
+                    <div key={f.label} style={{ position: "absolute", left: f.x, top: f.y, width: f.w, height: f.h, zIndex: -1, borderColor: LANE_COLOR[f.label], background: `${LANE_COLOR[f.label]}14` }} className="pointer-events-none select-none rounded-2xl border border-dotted">
+                      <div className="flex items-center gap-1.5 px-3 pt-2 text-[11px] uppercase tracking-wider" style={{ color: LANE_COLOR[f.label] }}>
                         {LaneIcon && <LaneIcon className="h-3.5 w-3.5" />}
                         {f.label}
                       </div>
