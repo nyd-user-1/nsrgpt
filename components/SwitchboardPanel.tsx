@@ -325,6 +325,9 @@ function ChannelRow({
   )
 }
 
+/** Pages, and the pages under them, whose filters live in the chart layer though they aren't on the Viz list. */
+const CONTROL_PAGES = ['/sweep']
+
 function SwitchboardPanel() {
   const { open, expanded, setExpanded, full, setFull, view, cards, digest, close, openMenu, openProduct, openChannel, openBlocks, openDevtools, openCloudflare, openTheme, openViz, openVizControls, setVizSlot } = useSwitchboard()
   const [mounted, setMounted] = useState(false)
@@ -356,6 +359,8 @@ function SwitchboardPanel() {
   // destination — that pair IS the navigation model, so no view stack is needed.
   const deep = Boolean(product || channel || view.kind === 'blocks' || view.kind === 'devtools' || view.kind === 'cloudflare' || view.kind === 'theme' || view.kind === 'viz' || view.kind === 'vizControls')
   const chartHere = VIZ_CHARTS.find((c) => c.href === path)
+  // Pages that aren't charts but keep their filters in this layer as the charts do (brief 58: the sweep's pages).
+  const controlsHere = !!chartHere || CONTROL_PAGES.some((p) => path === p || path.startsWith(`${p}/`))
   // A product's header is its DOMAIN, not its name — the hero figure + the
   // "Visit <name>" footer already carry the name, and the domain is the one
   // fact the old layout buried in a footnote line (design 2026-08-24).
@@ -364,7 +369,7 @@ function SwitchboardPanel() {
   // back to the menu: a Marketplace buyer did not come from the switchboard.
   const awsTitle = view.kind === 'aws-register' ? view.plan.product : view.kind === 'aws-console' ? view.sub.product : null
   const width = full ? 'sm:w-[calc(100vw-124px)]' : expanded ? 'sm:w-[50vw]' : 'sm:w-[423px]'
-  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'cloudflare' ? 'Cloudflare' : view.kind === 'theme' ? 'Theme' : view.kind === 'viz' ? 'Viz' : view.kind === 'vizControls' ? (chartHere ? (HEADER_TITLES[chartHere.href] ?? chartHere.title) : 'Viz') : channel?.name ?? 'Switchboard')
+  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'cloudflare' ? 'Cloudflare' : view.kind === 'theme' ? 'Theme' : view.kind === 'viz' ? 'Viz' : view.kind === 'vizControls' ? (chartHere ? (HEADER_TITLES[chartHere.href] ?? chartHere.title) : controlsHere ? (HEADER_TITLES[path] ?? 'Viz') : 'Viz') : channel?.name ?? 'Switchboard')
 
   return createPortal(
     <>
@@ -472,7 +477,7 @@ function SwitchboardPanel() {
             ) : view.kind === 'vizControls' ? (
               /* ── VIZ CONTROLS — the chart on the page puts its controls and legend here (components/viz/
                      VizControls.tsx), so the chart keeps its whole area. ── */
-              chartHere ? (
+              controlsHere ? (
                 <div ref={setVizSlot} className="flex flex-col" />
               ) : (
                 <p className="px-5 py-6 text-[13px] text-[var(--paper-muted)]" style={SANS}>

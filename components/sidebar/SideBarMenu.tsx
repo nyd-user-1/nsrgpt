@@ -37,6 +37,7 @@ const ALL: NavEntry[] = [
   { href: "/pipeline", label: "Pipeline", group: "Main" },
   { href: "/schema", label: "Schema", group: "Main" },
   { href: "/search", label: "Search", group: "Main" },
+  { href: "/sweep", label: "Sweep", group: "Main" },
 ]
 
 export function SideBarMenu() {
@@ -66,6 +67,7 @@ export function SideBarMenu() {
         {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={PAGE_ICONS["/pipeline"]} on={path === "/pipeline"} />}
         {place("/schema") && <SideBarMenuItem href="/schema" label="Schema" icon={PAGE_ICONS["/schema"]} on={path === "/schema"} />}
         {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={PAGE_ICONS["/search"]} on={path === "/search"} />}
+        {place("/sweep") && <SideBarMenuItem href="/sweep" label="Sweep" icon={PAGE_ICONS["/sweep"]} on={path === "/sweep" || path === "/sweep/pair"} />}
         <SideBarMenuFoot archived={archived} hiddenCount={hiddenCount} showHidden={showHidden} onShowHidden={setShowHidden} isOn={isOn} />
       </nav>
       <div className="mt-3 flex min-h-0 flex-1 flex-col border-t border-[var(--paper-rule-soft)] pt-3">

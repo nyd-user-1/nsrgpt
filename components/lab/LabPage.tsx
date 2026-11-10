@@ -39,6 +39,7 @@ import { DEFAULT_CANVAS } from "@/lib/lab/default"
 import { KINDS, newBlock } from "@/lib/lab/kinds"
 import { answerOnly, contextOf } from "@/lib/lab/kinds/prompt"
 import { listCanvases, loadCanvas, saveCanvas, type SavedCanvas } from "@/lib/lab/save"
+import { canvasFromPair, pairFromParams } from "@/lib/lab/canvases/from-pair"
 
 // /lab (brief 52): the workbench. Left, the block kinds and the saved canvases; the canvas of blocks that run; right, the
 // selected block's settings and output, or the copilot; beneath, the selected block's output as a table or text and the
@@ -73,6 +74,8 @@ function LabInner() {
   const params = useSearchParams()
   const canvasParam = params.get("canvas")
   const isNew = !canvasParam && params.get("new") === "1"
+  // A sweep pair's address (brief 58, C.2): /lab?target=U-235&reaction=N,F&mt=18&emin=&emax=&releases=.
+  const pairKey = canvasParam || isNew ? "" : ["target", "reaction", "mt", "emin", "emax", "releases"].map((k) => params.get(k) ?? "").join("|")
   const flow = useReactFlow()
   const [selected, setSelected] = useState<string | null>(null)
   const [subentry, setSubentry] = useState<string | null>(null)
@@ -194,6 +197,13 @@ function LabInner() {
       fitSettled()
       return
     }
+    const pair = canvasParam ? null : pairFromParams(params)
+    if (pair) {
+      lab.open(canvasFromPair(pair))
+      pendingTidy.current = true
+      fitSettled()
+      return
+    }
     if (!canvasParam) {
       lab.open(structuredClone(DEFAULT_CANVAS))
       pendingTidy.current = true
@@ -204,7 +214,7 @@ function LabInner() {
       .then((c) => { lab.open(c); fitSettled() })
       .catch((e) => toast.error((e as Error).message))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvasParam, isNew])
+  }, [canvasParam, isNew, pairKey])
 
   // React Flow keeps the nodes (it measures them); the canvas is the record, written back when a drag ends.
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])

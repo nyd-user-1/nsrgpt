@@ -68,6 +68,7 @@ export const PLATE_PAGES: PlatePage[] = [
   { href: "/pipeline", name: "Pipeline", body: "Where the data comes from, where it is kept, and what reads it." },
   { href: "/schema", name: "Schema", body: "The tables the API reads, the tables they are built from, and the keys between them." },
   { href: "/search", name: "Search", body: "Find NSR papers by meaning or by keyword." },
+  { href: "/sweep", name: "Sweep", body: "Every measured cross section against every evaluation, ranked by disagreement." },
   { href: "/datasets/endf", name: "ENDF/B", body: "Evaluated nuclear data files, every ENDF/B release, by material." },
   { href: "/datasets/ensdf", name: "ENSDF", body: "Evaluated nuclear structure datasets, by nuclide or mass." },
   { href: "/datasets/exfor", name: "EXFOR", body: "Experimental nuclear reaction data, by target and reaction." },

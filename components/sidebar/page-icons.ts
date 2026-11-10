@@ -6,6 +6,7 @@ import { Boxes } from "@/components/animate-ui/icons/boxes"
 import { Database } from "@/components/animate-ui/icons/database"
 import { FileText } from "@/components/animate-ui/icons/file-text"
 import { Layers } from "@/components/animate-ui/icons/layers"
+import { ListOrdered } from "@/components/animate-ui/icons/list-ordered"
 import { LayoutDashboard } from "@/components/animate-ui/icons/layout-dashboard"
 import { MessagesSquare } from "@/components/animate-ui/icons/messages-square"
 import { NotebookPen } from "@/components/animate-ui/icons/notebook-pen"
@@ -27,6 +28,7 @@ export const PAGE_ICONS: Record<string, SideBarIcon> = {
   "/pipeline": Layers,
   "/schema": LayoutDashboard,
   "/search": Radar,
+  "/sweep": ListOrdered,
   "/datasets/endf": Activity,
   "/datasets/ensdf": Layers,
   "/datasets/exfor": Database,

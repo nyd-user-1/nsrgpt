@@ -14,11 +14,11 @@ import { offDatasets, releaseOf } from "@/lib/lab/canvases/compare"
 export type PlotMode = "sigma" | "ratio" | "both"
 
 /** The dataviz palette's categorical slots (references/palette.md), light and dark steps. */
-const SLOTS = {
+export const SLOTS = {
   light: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"],
   dark: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
 }
-const RELEASE_SLOT: Record<string, number> = { "B-VIII.1": 0, "JEFF-3.3": 1, "JENDL-5": 2, "B-VIII.0": 3, "B-VII.1": 4, "TENDL-2023": 5, "CENDL-3.2": 6 }
+export const RELEASE_SLOT: Record<string, number> = { "B-VIII.1": 0, "JEFF-3.3": 1, "JENDL-5": 2, "B-VIII.0": 3, "B-VII.1": 4, "TENDL-2023": 5, "CENDL-3.2": 6 }
 
 const rgba = (hex: string, a: number) => {
   const n = parseInt(hex.slice(1), 16)
