@@ -60,7 +60,7 @@ First call after a cold start 3.5 to 4.5 s (the tables load), then 0.2 to 0.7 s;
 | `/sweep/medical`, `/sweep/medical/{route}` | 28 production routes, a yield per evaluation, per the IAEA curve and from the data, and a verdict |
 | `/sweep/releases` | the manifest: method, counts, the U-235 check, sources reached and not, spend |
 
-Tables: 16 `nsr.sweep_*` tables in `lake/sweep/2026-11-10/` (pairs_all, summary, bins, datasets, points, changes,
+Tables: 14 `nsr.sweep_*` tables in `lake/sweep/2026-11-10/` (pairs_all, summary, bins, datasets, points, changes,
 retrodiction, single, flags, exfor_flags, public_list, medical_routes, medical_points, medical_recommended, plus
 `manifest.json`, `public-lists/`, `iaea-medical/`). Scripts and the one-line rerun: `scripts/sweep/README.md`.
 
