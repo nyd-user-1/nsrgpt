@@ -3,6 +3,6 @@
  {"Effect":"Allow","Action":["ec2:DescribeInstances","ssm:DescribeInstanceInformation","ssm:GetCommandInvocation"],"Resource":"*"},
  {"Effect":"Allow","Action":"ec2:StartInstances","Resource":"arn:aws:ec2:us-east-2:613473203863:instance/@BOX@"},
  {"Effect":"Allow","Action":"ssm:SendCommand","Resource":["arn:aws:ec2:us-east-2:613473203863:instance/@BOX@","arn:aws:ssm:us-east-2::document/AWS-RunShellScript"]},
- {"Effect":"Allow","Action":"s3:GetObject","Resource":"arn:aws:s3:::nsr-lake-613473203863/lake/jobs/*"},
+ {"Effect":"Allow","Action":"s3:GetObject","Resource":["arn:aws:s3:::nsr-lake-613473203863/lake/jobs/*","arn:aws:s3:::nsr-lake-613473203863/lake/gnds/*"]},
  {"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::nsr-lake-613473203863","Condition":{"StringLike":{"s3:prefix":["lake/jobs/*"]}}},
  {"Effect":"Allow","Action":"lambda:InvokeFunction","Resource":"arn:aws:lambda:us-east-2:613473203863:function:nsr-jobs"}]}

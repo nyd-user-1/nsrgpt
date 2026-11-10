@@ -2,6 +2,10 @@
 # /jobs and /jobs/{proxy+}. A job is a row in DynamoDB nsrgpt-jobs; the work runs on EC2 nsr-jobs-1, which this Lambda
 # starts when it is stopped and which stops itself after 30 idle minutes.
 #   POST /jobs                       {kind: "broaden", params: {release, name | mat, sub, mt, temps_k}} -> 202 {id, status}
+#                                    {kind: "gnds", params: {release, name | mat, sub}} (brief 60): the material compiled
+#                                    from ENDF-6 to GNDS 2.0 by LLNL FUDGE; when lake/gnds/ already holds it (the
+#                                    precompiled set, lake/gnds/<release>/index.json) the answer is 200 {precompiled:
+#                                    true, url, cov_url, ...} and no job runs
 #                                    x-nsr-write-key must match NSR_WRITE_KEY (as /community); the app proxies it. A
 #                                    queued, running or done job of the same kind, release, material, sub and mt whose
 #                                    temps_k include every requested one is returned instead (200, reused: true);
@@ -28,8 +32,10 @@ import boto3
 REGION, BUCKET, TABLE = "us-east-2", "nsr-lake-613473203863", "nsrgpt-jobs"
 BOX = os.environ.get("JOB_BOX", "")
 CDN = os.environ.get("CDN", "https://daw1qggkn69lv.cloudfront.net")
-KINDS = {"broaden"}
+KINDS = {"broaden", "gnds"}
 RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]
+GNDS_RELEASES = RELEASES + ["B-V", "B-IV", "B-III", "B-II"]  # every ENDF-6 release in the lake (brief 60)
+_index = {}
 STATUSES = ("queued", "running", "done", "failed")
 db = boto3.client("dynamodb", region_name=REGION)
 _clients = {}
@@ -59,6 +65,10 @@ def row_of(item):
     if out.get("status") == "done":
         base = f"{CDN}/jobs/{out['id']}/result"
         out["result_url"] = base
+        if out.get("kind") == "gnds":
+            s = out.get("summary") or {}
+            out.update(url=s.get("url"), cov_url=s.get("cov_url"))
+            return out
         out["result_urls"] = {f"{s['temp_k']:g}": f"{base}?temp_k={s['temp_k']:g}"
                               for s in (out.get("summary") or {}).get("series", [])}
     return out
@@ -73,11 +83,57 @@ def set_fields(jid, **kw):
                    ExpressionAttributeNames=names, ExpressionAttributeValues=vals)
 
 
+def material_name(s):  # copied from services/nsr-api/structure.py
+    t = re.sub(r"[\s_]", "", s or "")
+    m = re.fullmatch(r"([A-Za-z]{1,2})-?(\d{1,3}|nat)(m\d?)?", t, re.I) or None
+    if m:
+        sym, a, iso = m.group(1), m.group(2), m.group(3) or ""
+    else:
+        m = re.fullmatch(r"(\d{1,3})(m\d?)?-?([A-Za-z]{1,2})", t, re.I)
+        if not m:
+            return s.strip()
+        a, iso, sym = m.group(1), m.group(2) or "", m.group(3)
+    a = "nat" if a.lower() == "nat" or a == "0" else str(int(a))
+    return f"{sym[0].upper()}{sym[1:].lower()}-{a}{iso.lower()}"
+
+
+def check_gnds(p):
+    if p.get("release") not in GNDS_RELEASES:
+        raise ValueError(f"params.release is one of {', '.join(GNDS_RELEASES)}")
+    if not (p.get("name") or p.get("mat")):
+        raise ValueError("params.name (U-235) or params.mat (9228) is required")
+    out = {"release": p["release"], "sub": (p.get("sub") or "neutrons").strip().lower()}
+    if p.get("name"):
+        out["name"] = material_name(str(p["name"])[:40])
+    if p.get("mat"):
+        out["mat"] = int(p["mat"])
+    return out
+
+
+def precompiled(params):
+    """The material's row in lake/gnds/<release>/index.json (scripts/gnds/compile.py --manifest), if any."""
+    rel = params["release"]
+    if rel not in _index:
+        try:
+            doc = json.loads(client("s3").get_object(Bucket=BUCKET, Key=f"lake/gnds/{rel}/index.json")["Body"].read())
+            _index[rel] = doc.get("files", [])
+        except Exception:  # noqa: BLE001  (not compiled yet)
+            return None
+    want = (params.get("name") or "").upper()
+    for r in _index[rel]:
+        if r["sublibrary"] == params["sub"] and ((params.get("mat") and r["mat"] == params["mat"]) or
+                                                 (want and r["name"].upper() == want)):
+            return {**r, "release": rel, "url": f"{CDN}/{r['key']}",
+                    "cov_url": f"{CDN}/{r['cov_key']}" if r.get("cov_key") else None}
+    return None
+
 def check(body):
     kind = body.get("kind")
     if kind not in KINDS:
         raise ValueError(f"kind is one of {', '.join(sorted(KINDS))}")
     p = body.get("params") or {}
+    if kind == "gnds":
+        return kind, check_gnds(p)
     if p.get("release") not in RELEASES:
         raise ValueError(f"params.release is one of {', '.join(RELEASES)}")
     if not (p.get("name") or p.get("mat")):
@@ -117,6 +173,10 @@ def existing(kind, params):
 
 def submit(body, context):
     kind, params = check(body)
+    if kind == "gnds" and not body.get("fresh"):
+        pre = precompiled(params)
+        if pre:
+            return reply(200, {"precompiled": True, "status": "done", "kind": kind, "params": params, **pre})
     if not body.get("fresh"):
         it = existing(kind, params)
         if it:
@@ -127,11 +187,11 @@ def submit(body, context):
                                        "status": {"S": "queued"}, "created_at": {"S": created},
                                        "owner": {"S": "write-key"}})
     client("lambda").invoke(FunctionName=context.function_name, InvocationType="Event",
-                            Payload=json.dumps({"start": jid}).encode())
+                            Payload=json.dumps({"start": jid, "kind": kind}).encode())
     return reply(202, {"id": jid, "status": "queued", "created_at": created, "kind": kind, "params": params})
 
 
-def start(jid):
+def start(jid, kind="broaden"):
     """Start the box if it is stopped, wait until SSM sees it, send the job. Runs in the asynchronous invocation."""
     ec2, ssm = client("ec2"), client("ssm")
     try:
@@ -150,7 +210,7 @@ def start(jid):
                 break
             time.sleep(3)
         cmd = ssm.send_command(InstanceIds=[BOX], DocumentName="AWS-RunShellScript",
-                               Parameters={"commands": [f"/opt/jobs/run.sh {jid}"], "executionTimeout": ["3600"]},
+                               Parameters={"commands": [f"/opt/jobs/run.sh {jid} {kind}"], "executionTimeout": ["3600"]},
                                Comment=f"nsr-jobs {jid}")["Command"]["CommandId"]
         set_fields(jid, ssm_command_id=cmd, box_state_at_submit=state, box_ready_s=f"{time.time() - t:.1f}")
     except Exception as e:  # noqa: BLE001
@@ -178,7 +238,7 @@ def series(jid, q):
 
 def lambda_handler(event, context):
     if "start" in event:
-        start(event["start"])
+        start(event["start"], event.get("kind") or "broaden")
         return {"started": event["start"]}
     method = (event.get("requestContext", {}).get("http", {}).get("method") or "GET").upper()
     path = (event.get("rawPath") or "/").rstrip("/")

@@ -9,6 +9,7 @@ and its CloudFront distribution (`https://daw1qggkn69lv.cloudfront.net`), Dynamo
 | Route | What |
 | --- | --- |
 | `POST /jobs` | `{kind: "broaden", params: {release, name or mat, sub, mt, temps_k}}` → `202 {id, status: "queued", created_at, kind, params}` |
+| `POST /jobs` | `{kind: "gnds", params: {release, name or mat, sub}}` → `202 {id, status: "queued", …}`, or `200 {precompiled: true, status: "done", url, cov_url, …}` when `lake/gnds/` already holds the material (no job runs) |
 | `GET /jobs/{id}` | the row: `{id, kind, params, status, created_at, started_at, finished_at, timings, error}`; when done also `summary`, `result_url`, `result_urls` (one per temperature) |
 | `GET /jobs/{id}/result` | `result.json`: `{job, kind, params, release, name, mat, mt, sublibrary, series: [{temp_k, key, n_points, e_min_ev, e_max_ev}], timings}` |
 | `GET /jobs/{id}/result?temp_k=300&emin=9e3&emax=1.8e4` | one temperature: `{job, release, name, mat, mt, temp_k, n_points, interp_law, energy_ev, xs_barn, units, method}`, cut to the window (plus a point each side) with `n_window` and `window` |
@@ -19,6 +20,10 @@ and its CloudFront distribution (`https://daw1qggkn69lv.cloudfront.net`), Dynamo
   and proxies it server-side). `GET` needs no key.
 - A `POST` whose job is already queued, running or done (same kind, release, material, sub and mt, and `temps_k` covered
   by that job's) returns that job with `reused: true`; `{fresh: true}` in the body runs it again.
+- `gnds` `params` (brief 60): `release` any of the 13 ENDF-6 releases in the lake (the nine below and B-V, B-IV, B-III,
+  B-II), `name` (normalised: `u235` is `U-235`) or `mat`, `sub` (default `neutrons`). When done the row also carries `url`
+  and `cov_url` (CloudFront, `/lake/jobs/<id>/<mat>.xml.gz` and `.cov.xml.gz`); a second POST for the same material
+  returns the first job (`reused: true`).
 - `params`: `release` one of B-VIII.1, B-VIII.0, B-VII.1, B-VII.0, B-VI.8, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2;
   `name` (U-235) or `mat` (9228); `sub` defaults to `neutrons`; `mt` a whole number; `temps_k` one to four temperatures
   in (0, 5000] K, default `[300]`.
@@ -39,6 +44,18 @@ failed with the program's last 40 lines.
 Measured on 2026-11-10, box running: U-235 MT18 B-VIII.1 at 300 K, 35 s from POST to done (recent 27 s, sigma1 4 s);
 7 s when recent is cached. Two temperatures (300 and 900 K) take about 40 s. The warm test-case jobs are listed in
 `lake/jobs/warm.json`.
+
+## What a gnds job does (`scripts/jobs/box/gnds.py`, brief 60)
+
+The whole material (every MF) is written as a tape from `lake/endfb/<release>/records/`, named as its source file (FUDGE
+reads a thermal-scattering target from the file name), and LLNL FUDGE 6.14.0 (`/opt/gnds/fudge`, built by
+`gnds-install.sh` from the lake's copy, `raw/github/2026-11-10/LLNL/fudge/`) runs `brownies/bin/endf2gnds.py <tape>
+<mat>.xml --continuumSpectraFix --formatVersion 2.0 --traceback`. The reactionSuite and covarianceSuite go gzip-compressed
+to `lake/jobs/<id>/`, the summary to `result.json`. `run.sh <id> <kind>` picks the script; the Lambda sends the kind.
+A failure keeps FUDGE's last 20 lines.
+
+Measured on 2026-11-10, box running: Pu-239 B-VIII.1 (10.2 MB reactionSuite, 6.4 MB covarianceSuite, gzip) 30 s from POST
+to done (tape 1.5 s, endf2gnds 25 s); U-235 54 s on the compile boxes. The precompiled set is `scripts/gnds/`.
 
 ## The box and its lifecycle
 

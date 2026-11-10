@@ -253,6 +253,25 @@ endf_total, counted_at}`, kept in memory for an hour. 2.4 s when counted, then i
 The card's `/nuclide/{name}` also answers `fy_releases` and `decay_releases` (the releases whose nfy or decay sublibrary
 holds the nuclide) and `icrp` (true when ICRP 107 lists it).
 
+## GNDS 2.0 (brief 60, gnds.py)
+
+| Route | Example |
+| --- | --- |
+| `GET /gnds` | `/gnds?release=B-VIII.1&name=U-235&sub=neutrons` (also `name=u235`, `mat=9228`; `sub` defaults to `neutrons`) |
+| `GET /gnds/releases` | `/gnds/releases` |
+
+`/gnds` answers the precompiled file: `{release, sublibrary, mat, za, name, url, cov_url, bytes, cov_bytes, fudge_version,
+gnds_version}`. `url` is the reactionSuite and `cov_url` the covarianceSuite (null when the evaluation has none), both
+gzip-compressed GNDS 2.0 XML served by CloudFront under `/lake/gnds/` (`scripts/gnds/cdn.sh` added the bucket as the
+distribution's second origin, with `/lake/gnds/*` and `/lake/jobs/*`). A material not precompiled answers 404
+`{error, job}`, `job` being the `POST /jobs` body (`{kind: "gnds", params}`, services/nsr-jobs) that compiles it on demand.
+`/gnds/releases` answers the manifest's counts per release and sublibrary (materials, converted, failed, bytes).
+
+The files come from `scripts/gnds/compile.py` (LLNL FUDGE 6.14.0, `brownies/bin/endf2gnds.py --continuumSpectraFix
+--formatVersion 2.0`), catalogued in `nsr.gnds_files`. The route reads `lake/gnds/<release>/index.json` and
+`lake/gnds/manifest.json` through the CDN (both uploaded with `max-age=300`, kept five minutes in the container too), so
+the Lambda needs no `lake/gnds/` grant.
+
 ## Saved views and files (brief 34, community.py)
 
 Behind the app's `/api/community` and `/api/upload`. These routes are not cached: the app calls the API Gateway origin

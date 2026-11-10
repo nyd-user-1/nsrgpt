@@ -3,7 +3,8 @@
 # self-termination: cron runs idle.sh every 5 minutes and it stops the box after 30 minutes with no job. PREPRO 2023 is
 # built from the lake's copy of IAEA-NDS/PREPRO (commit cc5fd087) with gfortran and the repository's own Makefile flags
 # (-O0, /opt/prepro/bin), plus linear, recent and sigma1 at -O2 (/opt/prepro/bin-o2, the same output, about 3x faster);
-# a venv at /opt/jobs/venv holds boto3, pyarrow and DuckDB; run.sh, broaden.py and idle.sh come from lake/_work/jobs/box/.
+# a venv at /opt/jobs/venv holds boto3, pyarrow and DuckDB; run.sh, broaden.py, gnds.py, gnds-install.sh and idle.sh come
+# from lake/_work/jobs/box/; gnds-install.sh builds LLNL FUDGE 6.14.0 for the gnds kind (brief 60).
 set -x
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
@@ -18,5 +19,6 @@ cd /opt/prepro && /snap/bin/aws s3 cp s3://nsr-lake-613473203863/raw/github/IAEA
   && cp linear recent sigma1 /opt/prepro/bin-o2/ && rm -f linear recent sigma1
 /snap/bin/aws s3 cp --recursive s3://nsr-lake-613473203863/lake/_work/jobs/box/ /opt/jobs/ --region us-east-2
 chmod +x /opt/jobs/*.sh
+/opt/jobs/gnds-install.sh > /opt/jobs/gnds-install.log 2>&1  # FUDGE for the gnds kind (brief 60)
 printf '*/5 * * * * root /opt/jobs/idle.sh\n@reboot root touch /opt/jobs/last\n' > /etc/cron.d/nsr-jobs
 touch /opt/jobs/last /opt/jobs/ready
