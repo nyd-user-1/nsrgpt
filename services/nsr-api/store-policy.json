@@ -1,5 +1,5 @@
 {"Version":"2012-10-17","Statement":[
- {"Effect":"Allow","Action":"s3:GetObject","Resource":["arn:aws:s3:::nsr-lake-613473203863/lake/ensdf/*","arn:aws:s3:::nsr-lake-613473203863/lake/xundl/*","arn:aws:s3:::nsr-lake-613473203863/lake/endfb/*","arn:aws:s3:::nsr-lake-613473203863/lake/nsr-database/*"]},
- {"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::nsr-lake-613473203863","Condition":{"StringLike":{"s3:prefix":["lake/ensdf/*","lake/xundl/*","lake/endfb/*","lake/nsr-database/*","files/pdfs/workspace/*"]}}},
+ {"Effect":"Allow","Action":"s3:GetObject","Resource":["arn:aws:s3:::nsr-lake-613473203863/lake/ensdf/*","arn:aws:s3:::nsr-lake-613473203863/lake/xundl/*","arn:aws:s3:::nsr-lake-613473203863/lake/endfb/*","arn:aws:s3:::nsr-lake-613473203863/lake/nsr-database/*","arn:aws:s3:::nsr-lake-613473203863/lake/icrp107/*"]},
+ {"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::nsr-lake-613473203863","Condition":{"StringLike":{"s3:prefix":["lake/ensdf/*","lake/xundl/*","lake/endfb/*","lake/nsr-database/*","files/pdfs/workspace/*","lake/icrp107/*"]}}},
  {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject"],"Resource":"arn:aws:s3:::nsr-lake-613473203863/files/pdfs/workspace/*"},
  {"Effect":"Allow","Action":["dynamodb:GetItem","dynamodb:PutItem","dynamodb:DeleteItem","dynamodb:Query"],"Resource":["arn:aws:dynamodb:us-east-2:613473203863:table/nsrgpt-views","arn:aws:dynamodb:us-east-2:613473203863:table/nsrgpt-views/index/*"]}]}
