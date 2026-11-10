@@ -63,6 +63,7 @@ export const PLATE_PAGES: PlatePage[] = [
   { href: "/docs", name: "Docs", body: "How to use NSRgpt: where to start, the topics and the video guides." },
   { href: "/factory", name: "Factory", body: "How the data moves from its sources through the lake to the pages." },
   { href: "/glossary", name: "Glossary", body: "Every nuclear data term the app uses, defined." },
+  { href: "/gnds", name: "GNDS 2.0 compiler", body: "ENDF-6 in, GNDS 2.0 out: every release the lake holds, or your own file." },
   { href: "/graph", name: "Graph", body: "Diagrams of the decay series, process chains and production routes, each one editable." },
   { href: "/nsrcpt", name: "NSR-CPT", body: "The retrieval model trained on 277,068 nuclear-physics references, with its benchmark." },
   { href: "/pipeline", name: "Pipeline", body: "Where the data comes from, where it is kept, and what reads it." },

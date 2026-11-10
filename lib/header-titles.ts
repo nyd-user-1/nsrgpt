@@ -50,6 +50,7 @@ export const HEADER_TITLES: Record<string, string> = {
   "/sweep/pair": "Sweep pair",
   "/sweep/medical": "Medical isotope routes",
   "/sweep/icrp": "ICRP 107 half-lives against ENSDF",
+  "/gnds": "GNDS 2.0 compiler",
   // pax2's production map, ported as NSRgpt's sources, lake and roadmap (2026-11-07).
   "/pipeline": "Pipeline",
   // Brief 32 (2026-11-08): pax's factory and schema canvases, pax2's glossary, and our own data dictionary. Working routes;

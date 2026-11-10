@@ -54,3 +54,12 @@ export async function compileUpload(file: File, report: (s: string) => void): Pr
   if (!put.ok) throw new Error(done.error ?? `the upload answered ${put.status}`)
   return runJob({ kind: "gnds", params: { file_key: slot.key } }, report)
 }
+
+/** A held material's files by its name (the /gnds page's examples): the precompiled pair, else the job its 404 names. */
+export async function gndsByName(release: string, name: string, sub: string, report: (s: string) => void): Promise<GndsFiles> {
+  const r = await fetch(apiUrl(`/gnds?${new URLSearchParams({ release, name, sub }).toString()}`))
+  const first = (await r.json().catch(() => ({}))) as GndsFiles & { job?: unknown; error?: string }
+  if (r.ok) return first
+  if (r.status !== 404) throw new Error(first.error ?? `the API answered ${r.status}`)
+  return runJob(first.job ?? { kind: "gnds", params: { release, name, sub } }, report)
+}

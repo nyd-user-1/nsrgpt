@@ -32,6 +32,7 @@ export const PAGE_ICONS: Record<string, SideBarIcon> = {
   "/sweep": ListOrdered,
   "/sweep/medical": FlaskConical,
   "/sweep/icrp": Atom,
+  "/gnds": Boxes,
   "/datasets/endf": Activity,
   "/datasets/ensdf": Layers,
   "/datasets/exfor": Database,
