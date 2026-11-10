@@ -23,6 +23,8 @@ export type DataParams = {
   emin?: number
   emax?: number
   id?: string
+  /** EXFOR: the most points the route returns; it says truncated past it. */
+  limit?: number
 }
 
 export const DATA_SOURCES: { key: DataSource; label: string }[] = [
@@ -47,11 +49,14 @@ const query = (o: Record<string, unknown>) =>
 type ExforDataset = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; institute?: string; n?: number }
 type ExforPoint = { dataset_id: string; e_ev: number; de_ev?: number | null; xs_b: number; dxs_b?: number | null }
 
+/** EXFOR points per query unless a block sets its own limit: U-235 (n,f) from 1 to 200 keV is 38.8K points in 116 datasets. */
+export const EXFOR_LIMIT = 200_000
+
 async function exfor(p: DataParams, ctx: RunContext) {
-  const q = query({ target: p.target, reaction: p.reaction, quantity: p.quantity, emin: p.emin, emax: p.emax, limit: 20000 })
-  const j = await getJson<{ datasets: ExforDataset[]; points: ExforPoint[] }>(ctx, `/exfor/points?${q}`)
+  const q = query({ target: p.target, reaction: p.reaction, quantity: p.quantity, emin: p.emin, emax: p.emax, limit: p.limit ?? EXFOR_LIMIT })
+  const j = await getJson<{ datasets: ExforDataset[]; points: ExforPoint[]; truncated?: boolean }>(ctx, `/exfor/points?${q}`)
   const info = new Map(j.datasets.map((d) => [d.dataset_id, d]))
-  const dataset: Dataset = { columns: ["dataset_id", "e_ev", "de_ev", "xs_b", "dxs_b"], rows: j.points, meta: { datasets: j.datasets } }
+  const dataset: Dataset = { columns: ["dataset_id", "e_ev", "de_ev", "xs_b", "dxs_b"], rows: j.points, meta: { datasets: j.datasets, truncated: !!j.truncated } }
   const byId = new Map<string, ExforPoint[]>()
   for (const pt of j.points) byId.set(pt.dataset_id, [...(byId.get(pt.dataset_id) ?? []), pt])
   const series: Series[] = [...byId].map(([id, pts]) => {
@@ -148,6 +153,6 @@ export const data: KindDef<DataParams> = {
   },
   summary(o) {
     const d = o.dataset as Dataset | undefined
-    return [d ? plural(d.rows.length, "row") : "", describe(o.series)].filter(Boolean).join(" · ")
+    return [d ? plural(d.rows.length, "row") : "", describe(o.series), d?.meta?.truncated ? "truncated: raise the limit" : ""].filter(Boolean).join(" · ")
   },
 }

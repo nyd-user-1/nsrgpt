@@ -100,7 +100,7 @@ export function BlockParams({ block, onParams, full = false }: { block: Block; o
               {DATA_SOURCES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
             </select>
           </Row>
-          {d.source === "exfor" && (<>{text("target", "Target", "U-235")}{text("reaction", "Reaction", "N,F")}{text("quantity", "Quantity", "SIG")}{range()}</>)}
+          {d.source === "exfor" && (<>{text("target", "Target", "U-235")}{text("reaction", "Reaction", "N,F")}{text("quantity", "Quantity", "SIG")}{range()}{full && number("limit", "Limit")}</>)}
           {(d.source === "endf" || d.source === "cov") && (<>{text("name", "Material", "U-235")}{number("mt", "MT")}{list("releases", "Releases")}{range()}</>)}
           {d.source === "nuclide" && text("name", "Nuclide", "137Cs")}
           {d.source === "view" && text("id", "Saved id")}
