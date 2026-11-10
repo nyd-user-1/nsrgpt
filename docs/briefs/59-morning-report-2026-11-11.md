@@ -23,6 +23,10 @@ Every page below was type-checked and linted on the dev box before its push and 
 | Medical isotope routes and a page per route | /sweep/medical, /sweep/medical/{route} | same | acb8e18 |
 | ICRP 107 half-lives against ENSDF (1,246 rows, live) | /sweep/icrp | same | acb8e18 |
 | GNDS 2.0 download on an ENDF/B record (precompiled, or compiled on demand through a job), and a GNDS row on the lake card | /datasets/endf/B-VIII.1/9228, /pipeline | same | a552f3c, ccf0cde |
+| Compile your own ENDF-6 file to GNDS 2.0 (signed in, up to 50 MB) | /datasets/endf | same | dd62f60 |
+| The Lab: a projectile on the ENDF and covariance blocks, POINT temperatures to 1800 K, File 32's band where MF33 is empty; Open in the Lab for every sweep pair and medical route | /lab | same | e522f34, 8d17252 |
+| Retrodiction over five release pairs, side by side | /sweep?tab=retrodiction | same | 6863f0e, 9ca3700 |
+| Nuclide card links its fission yields, decay data and ICRP 107 record | /viz/chart?nuclide=235U | same | 8d17252 |
 | Chat for a signed-out reader: my sign-up message, then the sign-up dialog, then the kept question | /chat | /chat (tested with a 402 answered in Playwright; the box runs NYSGPT_CHAT_OPEN=1) | 8b426f9 |
 
 What it needs from you:
