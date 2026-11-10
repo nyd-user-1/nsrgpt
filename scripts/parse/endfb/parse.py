@@ -843,6 +843,29 @@ RANGE_COLS = {"EL", "EH", "LRU", "LRF", "NRO", "NAPS", "SPI", "AP", "LAD", "NLS"
 CHUNK = 50_000  # rows per extend for the covariance matrices, so a dense 10,000-parameter block never sits in memory whole
 
 
+def squeeze(line):
+    """A data line with every 11-column field rewritten by field() (2.00000+ 3 -> 2.00000E+03, 0.     + 0 -> 0.00000E+00),
+    columns 67-80 untouched. For the pre-ENDF-6 tapes (B-II, B-III) whose floats endf-parserpy refuses."""
+    d = line[:66].ljust(66)
+    return "".join(field(f) for f in (d[i:i + 11] for i in range(0, 66, 11))) + line[66:]
+
+
+IMPLICIT = re.compile(r"([+-]?(?:\d+\.?\d*|\.\d+))([+-]\d+)")
+
+
+def field(f):
+    """One 11-column field for squeeze(): blank stays blank; a float with an implicit exponent (2.00000+ 3, 0.     + 0)
+    is rewritten in E notation; anything else loses its inner spaces."""
+    t = f.replace(" ", "")
+    if not t:
+        return " " * 11
+    m = IMPLICIT.fullmatch(t)
+    if m:
+        v = float(f"{m.group(1)}e{m.group(2)}")
+        t = f"{v:.5E}" if v >= 0 else f"{v:.4E}"
+    return t.rjust(11)
+
+
 def fit(v, k):
     """A column of exactly k values: a list padded with None or cut, a scalar repeated."""
     if not isinstance(v, (list, tuple, dict)):
@@ -1200,6 +1223,7 @@ def main_mf():
     seen = collections.Counter()      # sections met, by table group
     parsed = collections.Counter()    # sections parsed
     rejected = []                     # sections endf-parserpy rejected: file, MAT, MF, MT, error
+    normalized = []                   # --mf=2,32: sections parsed only once their fields' inner spaces were squeezed out
     other_mf8 = collections.Counter()  # MF8 sections outside 454/457/459 (radioactive production), counted only
     files = 0
 
@@ -1218,8 +1242,16 @@ def main_mf():
             try:
                 d = PARSER.parse([TPID] + body + [send] + tail(mat), include=((mf, mt),))[mf][mt]
             except Exception as e:  # noqa: BLE001
-                rejected.append({"file": path, "mat": mat, "mf": mf, "mt": mt, "error": f"{type(e).__name__}: {str(e)[:200]}"})
-                return
+                d = None
+                if RES_MODE:  # the old tapes write 2.00000+ 3: squeeze each field's spaces out and try once more
+                    try:
+                        d = PARSER.parse([TPID] + [squeeze(x) for x in body] + [send] + tail(mat), include=((mf, mt),))[mf][mt]
+                        normalized.append({"file": path, "mat": mat, "mf": mf, "mt": mt})
+                    except Exception:  # noqa: BLE001
+                        d = None
+                if d is None:
+                    rejected.append({"file": path, "mat": mat, "mf": mf, "mt": mt, "error": f"{type(e).__name__}: {str(e)[:200]}"})
+                    return
             base = {"release": RELEASE, "sublibrary": sub, "file_name": path, "mat": mat}
             try:
                 if group == "res":
@@ -1283,6 +1315,7 @@ def main_mf():
              "source": {"keys": KEYS, "files_read": files, "archives": ARCHIVES},
              "sections_seen": dict(seen), "sections_parsed": dict(parsed), "sections_rejected": len(rejected),
              "rejected": rejected[:500], "mf8_other_mts": dict(sorted(other_mf8.items())),
+             **({"normalized": len(normalized), "normalized_sections": normalized[:500]} if RES_MODE else {}),
              "tables": {f"endfb_{t}": {"location": f"s3://{lake.BUCKET}/{PREFIX}/{t}/", "partition": {"release": RELEASE},
                                        **st} for t, st in stats.items()}}
     with open(f"{WORK}/{MF_KEY}.local.json", "w") as f:
