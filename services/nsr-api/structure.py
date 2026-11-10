@@ -13,9 +13,14 @@
 #                                      per release. Where a reconstructed POINT release holds the section (B-VIII.1 and
 #                                      B-VIII.0, temp 0K or 293.6K) it is served instead of the bare MF3, which inside a
 #                                      resonance range is only the background; release_served says which. point=0 forces MF3.
+#                                      &emin=&emax= (eV) cut each series to the window, keeping the point on each side.
+#   GET /endf/cov?name=U-235&mt=18&release=B-VIII.1,JEFF-3.3&emin=&emax=   the MF33 self-covariance as relative standard
+#                                      deviation per energy group, per release (brief 51), read from lake/endfb/<release>/cov/
 #   GET /endf/mt                       MT numbers present, with reaction and name (ENDF-102)
 import array
+import bisect
 import json
+import math
 import os
 import re
 
@@ -24,6 +29,7 @@ import duckdb
 BUCKET = os.environ.get("BUCKET", "nsr-lake-613473203863")
 NUC = f"s3://{BUCKET}/lake/serve/nuclide/2026-11-05"
 ENDF = f"s3://{BUCKET}/lake/serve/endf"
+ENDFB = f"s3://{BUCKET}/lake/endfb"
 RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II",
             "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]  # brief 43 added the last four; xs_<n> indexes this list
 # Releases with too many MF3 rows to load into memory (brief 43): read like the POINT releases, through xs_index (held in
@@ -224,6 +230,7 @@ def xs(q):
     if not temp:
         return 400, {"error": "temp is 0K or 293.6K, the temperatures of the reconstructed (POINT) releases"}
     use_point = (q.get("point") or "1").strip().lower() not in ("0", "false", "no")
+    emin, emax = ev_of(q, "emin"), ev_of(q, "emax")
     wanted = [q.get("release") or DEFAULT_RELEASE] + [c for c in (q.get("compare") or "").split(",") if c.strip()]
     mtrow = records(f"SELECT reaction, name FROM {table('mt')} WHERE mt = ?", [mt])
     series = []
@@ -253,6 +260,8 @@ def xs(q):
                            "note": f"no MF3 MT {mt} for {name} in {r} {sub}"})
             continue
         item = {**row, "release": r, "release_served": served, "held": True}
+        if emin is not None or emax is not None:
+            window(item, emin, emax)
         if served == r and r in RELEASES:
             lrp = records(f"SELECT lrp FROM {table('materials')} WHERE release = ? AND mat = ? AND sublibrary = ? LIMIT 1",
                           [r, row["mat"], sub])  # one MAT can sit in several sublibraries (JEFF-3.3 Fe-56: five)
@@ -271,6 +280,110 @@ def xs(q):
         "units": {"energy": "eV", "xs": "barn"}, "series": series}
 
 
+def ev_of(q, k):
+    try:
+        return float(q[k]) if q.get(k) not in (None, "") else None
+    except ValueError:
+        raise ValueError(f"{k} is an energy in eV, e.g. 9e3")
+
+
+def window(row, emin, emax):
+    """Cut a series to [emin, emax] eV, keeping the point on each side so the curve spans the window; the TAB1
+    interpolation regions (last point of each region, 1-based) are renumbered for the cut."""
+    e, x = row["energy_ev"], row["xs_barn"]
+    lo = bisect.bisect_left(e, emin) if emin is not None else 0
+    hi = bisect.bisect_right(e, emax) if emax is not None else len(e)
+    lo, hi = max(0, lo - 1), min(len(e), hi + 1)
+    nbt, law = [], []
+    for b, l in zip(row.get("interp_nbt") or [], row.get("interp_law") or []):
+        if b <= lo:
+            continue
+        nbt.append(min(b, hi) - lo)
+        law.append(l)
+        if b >= hi:
+            break
+    row.update(energy_ev=list(e[lo:hi]), xs_barn=list(x[lo:hi]), interp_nbt=nbt, interp_law=law, n_window=hi - lo,
+               window={"emin_ev": emin, "emax_ev": emax})
+
+
+# MF33 representations (ENDF-6 manual, section 33.2) and the variance each contributes to its own energy group:
+# LB=1 and 8: F_k is a relative variance for [E_k, E_k+1); LB=2: relative, fully correlated, variance F_k^2;
+# LB=5 and 6: a relative covariance matrix, its diagonal F_kk. LB=0 (absolute, b^2), 3, 4 and 9 are not converted.
+COV_LB = (1, 2, 5, 6, 8)
+
+
+def cov_release(r, name, sub, mt, emin, emax):
+    m = records(f"SELECT mat, file_name FROM {table('materials')} WHERE release = ? AND sublibrary = ? "
+                "AND upper(name) = upper(?) ORDER BY liso, mat LIMIT 1", [r, sub, name])
+    if not m:
+        return {"release": r, "held": True, "mat": None, "mt": mt, "lb": [], "groups": [],
+                "note": f"no {name} in {r} {sub}"}
+    mat, fname = m[0]["mat"], m[0]["file_name"]
+    rows = records(f"SELECT block, mtl, ni_index, lb, pair_set, row_energy_ev AS e, row_energy_hi_ev AS e_hi, value "
+                   f"FROM read_parquet('{ENDFB}/{r}/cov/*.parquet') WHERE mat = ? AND mt = ? AND file_name = ? "
+                   "AND (block = 'lumped' OR (mt1 = ? AND (mat1 = 0 OR mat1 = ?) AND block = 'NI' "
+                   "AND (lb NOT IN (5, 6) OR (row_energy_ev = col_energy_ev AND row_energy_hi_ev = col_energy_hi_ev))))",
+                   [mat, mt, fname, mt, mat])
+    out = {"release": r, "held": True, "mat": mat, "mt": mt, "lb": [], "groups": []}
+    lumped = [x["mtl"] for x in rows if x["block"] == "lumped"]
+    if lumped:
+        out["note"] = f"MT {mt} is part of the lumped reaction MT {lumped[0]}; its covariance is given there"
+        return out
+    if not rows:
+        out["note"] = f"{r} has no MF33 self-covariance for {name} MT {mt}"
+        return out
+    blocks, skipped = {}, []
+    for x in rows:
+        blocks.setdefault(x["ni_index"], []).append(x)
+    parts = []  # per block: sorted (e_lo, e_hi, variance)
+    for i in sorted(blocks):
+        b = blocks[i]
+        lb = b[0]["lb"]
+        if lb not in COV_LB:
+            skipped.append(lb)
+            continue
+        out["lb"].append(lb)
+        if lb in (5, 6):
+            parts.append(sorted((x["e"], x["e_hi"], x["value"]) for x in b))
+        else:
+            pts = sorted((x["e"], x["value"]) for x in b if x["pair_set"] == 1)
+            parts.append([(e0, e1, f * f if lb == 2 else f) for (e0, f), (e1, _) in zip(pts, pts[1:])])
+    edges = sorted({e for p in parts for g in p for e in g[:2]})
+    for lo, hi in zip(edges, edges[1:]):
+        if (emax is not None and lo >= emax) or (emin is not None and hi <= emin):
+            continue
+        mid, var = (lo + hi) / 2, 0.0
+        for p in parts:
+            k = bisect.bisect_right([g[0] for g in p], mid) - 1
+            if k >= 0 and p[k][0] <= mid < p[k][1]:
+                var += p[k][2]
+        out["groups"].append({"e_lo_ev": lo, "e_hi_ev": hi, "rel_sd": math.sqrt(var) if var > 0 else 0.0})
+    if skipped:
+        out["note"] = f"LB {sorted(set(skipped))} not converted (absolute or cross-reaction forms)"
+    return out
+
+
+def cov(q):
+    if not q.get("name") or not q.get("mt"):
+        return 400, {"error": "name and mt are required, e.g. /endf/cov?name=U-235&mt=18&release=B-VIII.1"}
+    name, sub = material_name(q["name"]), (q.get("sub") or q.get("sublibrary") or DEFAULT_SUB).strip().lower()
+    try:
+        mt = int(q["mt"])
+    except ValueError:
+        return 400, {"error": "mt must be a whole number"}
+    emin, emax = ev_of(q, "emin"), ev_of(q, "emax")
+    series = []
+    for w in [x for x in (q.get("release") or DEFAULT_RELEASE).split(",") if x.strip()]:
+        r = release_of(w)
+        if not r or r not in RELEASES:
+            series.append({"release": w.strip(), "held": False, "groups": [],
+                           "note": f"no MF33 here; releases with covariances: {', '.join(RELEASES)}"})
+            continue
+        series.append(cov_release(r, name, sub, mt, emin, emax))
+    return 200, {"name": name, "mt": mt, "sublibrary": sub, "units": {"energy": "eV", "rel_sd": "fraction"},
+                 "series": series}
+
+
 def route(path, q):
     q = q or {}
     p = path.rstrip("/")
@@ -282,9 +395,11 @@ def route(path, q):
             return materials(q)
         if p == "/endf/xs":
             return xs(q)
+        if p == "/endf/cov":
+            return cov(q)
         if p == "/endf/mt":
             return 200, {"rows": records(f"SELECT * FROM {table('mt')} ORDER BY mt")}
         return 404, {"error": "routes: /nuclide/{name}, /nuclide/{name}/levels, /nuclide/{name}/gammas, "
-                              "/endf/materials, /endf/xs, /endf/mt"}
+                              "/endf/materials, /endf/xs, /endf/cov, /endf/mt"}
     except (ValueError, duckdb.Error) as e:
         return 400, {"error": str(e)[:500]}

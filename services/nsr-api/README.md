@@ -38,10 +38,20 @@ Tell the other owner before deploying; the last deploy ships whatever `*.py` fil
 | `GET /exfor/search` | `/exfor/search?target=U-235&reaction=N,F&quantity=SIG&energy=1e6..2e7&page=1` |
 | `GET /exfor/subentry/{id}` | `/exfor/subentry/10003002` (subentry) or `/exfor/subentry/O04060152` (dataset: subentry + pointer) |
 | `GET /exfor/pickers/{name}` | `/exfor/pickers/targets`, `reactions`, `quantities` |
+| `GET /exfor/points` | `/exfor/points?target=U-235&reaction=N,F&quantity=SIG&emin=9e3&emax=1.8e4&limit=20000` (brief 51) |
 
 `/exfor/search` fields: `target`, `reaction`, `quantity`, `product`, `author`, `institute`, `acc`, `year`, `energy` (or
 `emin`, `emax`), in eV; `sort` = `reaction`, `year` or `acc`; 100 rows a page. Syntax as on nds.iaea.org/exfor: `;` for
 alternatives, a leading `^` excludes, `*` is a wildcard, `a..b` is a range.
+
+`/exfor/points` takes the same fields and returns every data point of every matching dataset (at most 2,000 datasets):
+`{datasets: [{dataset_id, subentry, entry, author, year, institute, reaction, quantity, units, n}], points: [{dataset_id,
+e_ev, de_ev, xs_b, dxs_b}], total, limit, truncated, source}`, points sorted by dataset then energy, energies in eV and
+values in the dataset's base unit (`units`; barns for SIG); `emin`/`emax` also cut the points; `limit` defaults to
+20,000, at most 50,000. Read from `nsr.exfor_serve_points` (`lake/serve/exfor/2026-10-28/points/target_z=<Z>/`, built by
+`scripts/parse/serve/points.py`: C5 values where C5 holds the dataset, else J4 converted with the dictionary's unit
+factors; 18.2 M points, 158,685 datasets). The U-235 (n,f) 9–18 keV example (78 datasets, 4,171 points) answers in 0.31 s
+warm, 5 s cold.
 
 ## Search (lake/serve/search/2026-11-08/)
 
@@ -74,7 +84,8 @@ Serving tables: `lake/serve/nuclide/2026-11-05/` (ENSDF 2026-11-05) and `lake/se
 | `GET /nuclide/{name}/levels` | `/nuclide/60Ni/levels?page=2` |
 | `GET /nuclide/{name}/gammas` | `/nuclide/60Co/gammas` |
 | `GET /endf/materials` | `/endf/materials?release=B-VIII.1&sublibrary=neutrons&z=92`; `release=all`; `name=U-235` |
-| `GET /endf/xs` | `/endf/xs?name=U-235&mt=18`, `&compare=B-VIII.0,B-VII.1`, `&temp=293.6K`, `&point=0`, `&sub=protons` |
+| `GET /endf/xs` | `/endf/xs?name=U-235&mt=18`, `&compare=B-VIII.0,B-VII.1`, `&temp=293.6K`, `&point=0`, `&sub=protons`, `&emin=9e3&emax=1.8e4` |
+| `GET /endf/cov` | `/endf/cov?name=U-235&mt=18&release=B-VIII.1,JEFF-3.3,JENDL-5&emin=9e3&emax=1.8e4` (brief 51) |
 | `GET /endf/mt` | `/endf/mt` |
 
 `/nuclide/{name}` returns the nuclide (Z, N, half-life in seconds and as written, decay modes with percentages, ground-state
@@ -88,7 +99,16 @@ library holds the section (B-VIII.1 and B-VIII.0, at 0K or 293.6K) it is served 
 resonance range MF3 holds only the background; `release_served` names the release that answered, and `point=0` asks for
 the MF3 itself. POINT series over 40,000 points are thinned for charting to the lowest and highest point in each of
 20,000 log-energy steps (`thinned`, `n_points`, `n_served`); every point is in `nsr.endfb_xs_points`. A release the lake
-does not hold (`compare=JEFF-3.3`) comes back with `held: false`.
+does not hold comes back with `held: false` (JEFF-3.3, JENDL-5, TENDL-2023 and CENDL-3.2 are held since brief 43).
+`&emin=&emax=` (eV) cut each series to the window plus the point on each side, renumber `interp_nbt`, and add
+`n_window` and `window`: U-235 MT18 in three releases at 9–18 keV is 3.3 KB instead of 253 KB, 0.22–0.30 s warm.
+
+`/endf/cov` returns the MF33 self-covariance (MT with itself) per release as relative standard deviation per energy group:
+`{name, mt, sublibrary, units, series: [{release, held, mat, mt, lb: [...], groups: [{e_lo_ev, e_hi_ev, rel_sd}], note?}]}`,
+read from `lake/endfb/<release>/cov/` (`nsr.endfb_cov`, brief 43). Each NI sub-subsection adds its variance to its own
+group (LB=1 and 8: F_k; LB=2: F_k squared; LB=5 and 6: the diagonal F_kk); `rel_sd` is the square root of the sum on the
+union of the blocks' grids, a fraction. LB=0 (absolute), 3, 4 and 9 are left out with a note; a release with no MF33
+for the section, or a lumped one (MTL), answers `groups: []` with a note. `release` is comma-separated. 0.25 s warm.
 
 The POINT rows are read through `lake/serve/endf/<release>/xs_index/` (held in memory) and `xs_series/series.bin` (one S3
 byte-range request a section). Measured through CloudFront on 2026-11-08 with a warm Lambda: first requests 0.17–0.40 s
@@ -178,9 +198,9 @@ for them, not CloudFront (which passes GET and HEAD only). A write sends `x-nsr-
 
 | Route | Does |
 | --- | --- |
-| `GET /community` | every saved view and recipe, newest first: `{views: [{id, name, saved_by, created_at, kind, state}]}`; `?kind=view` or `recipe` for one kind |
+| `GET /community` | every saved view and recipe, newest first: `{views: [{id, name, saved_by, created_at, kind, state}]}`; `?kind=view`, `recipe` or `lab` for one kind (Lab canvases, brief 52, only with `kind=lab`) |
 | `GET /community/{id}` | `{view}` |
-| `POST /community` | `{name, saved_by, state}` saves one; `kind` is recipe when the state holds a prompt step, else view; returns `{view}` |
+| `POST /community` | `{name, saved_by, state}` saves one; `kind` is lab when `state.kind` is `lab`, recipe when the state holds a prompt step, else view; returns `{view}` |
 | `DELETE /community/{id}` | removes one; `{deleted: id}` |
 | `GET /files` | `{files: [{key, name, size, modified}]}` under `files/pdfs/workspace/` |
 | `POST /files` | `{name, type}` returns `{key, url}`: the key `files/pdfs/workspace/<yyyy-mm>/<name>` (a number added if taken) and a PUT URL good for 10 minutes |

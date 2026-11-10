@@ -6,6 +6,8 @@
 #       Field syntax as on nds.iaea.org/exfor: ";" separates alternatives (OR), a leading "^" excludes, "*" is a
 #       wildcard, "a..b" is a range. Energies are incident energies in eV.
 #   GET /exfor/subentry/{id}      id = subentry (10003002) or dataset (subentry + pointer): bib and data points
+#   GET /exfor/points?target=U-235&reaction=N,F&quantity=SIG&emin=1e3&emax=2e5&limit=20000   every point of every
+#                                 dataset the search fields match (brief 51), from lake/serve/exfor/<version>/points/
 #   GET /exfor/pickers/{name}     targets, reactions or quantities, with counts
 # Other routes live in their own files (MODULES below): /search, /suggest and /nsr/{key} in keyword_search.py (brief 18),
 # /nuclide and /endf in structure.py (brief 17), /dataset, /exfor/entry and /endf/material in dataset.py and /community
@@ -19,6 +21,8 @@ J4 = os.environ.get("J4_FOLDER", "j4-2026-10-28")
 SERVE = f"s3://{BUCKET}/lake/serve/exfor/{VERSION}"
 LAKE = f"s3://{BUCKET}/lake/exfor/{J4}"
 PAGE = 100
+POINTS = f"{SERVE}/points"  # nsr.exfor_serve_points, target_z=<Z>/points.parquet (scripts/parse/serve/points.py)
+POINT_LIMIT, POINT_DATASETS = 50000, 2000
 PICKERS = ("targets", "reactions", "quantities")
 HERE = os.path.dirname(os.path.abspath(__file__))
 _con = None
@@ -38,6 +42,11 @@ def con():
         c = duckdb.connect(config={"home_directory": "/tmp", "extension_directory": f"{HERE}/duckdb_ext",
                                    "temp_directory": "/tmp/duckdb", "threads": 2})
         c.execute("LOAD httpfs")
+        for s in ("enable_object_cache", "enable_http_metadata_cache"):  # keep Parquet footers per container (points)
+            try:
+                c.execute(f"SET {s} = true")
+            except duckdb.Error:
+                pass
         key, secret, token = (os.environ["AWS_ACCESS_KEY_ID"], os.environ["AWS_SECRET_ACCESS_KEY"],
                               os.environ.get("AWS_SESSION_TOKEN", ""))
         c.execute(f"CREATE SECRET lake (TYPE s3, KEY_ID '{key}', SECRET '{secret}', SESSION_TOKEN '{token}', "
@@ -102,7 +111,8 @@ def range_clause(v, col, where, params):
         where.append("NOT " + one(t))
 
 
-def search(q):
+def search_where(q):
+    """The search fields as a WHERE clause over the search index: (clause, params, emin, emax)."""
     where, params = [], []
     if q.get("target"):
         text_clause(q["target"], ["target_sym", "target"], where, params)
@@ -130,7 +140,11 @@ def search(q):
         where.append("energy_max_ev >= ?"); params.append(emin)
     if emax is not None:
         where.append("energy_min_ev <= ?"); params.append(emax)
-    w = " AND ".join(where) or "TRUE"
+    return " AND ".join(where) or "TRUE", params, emin, emax
+
+
+def search(q):
+    w, params, _, _ = search_where(q)
     page = max(1, int(q.get("page") or 1))
     order = SORTS.get(q.get("sort") or "reaction", SORTS["reaction"])
     c = con().cursor()
@@ -185,6 +199,54 @@ def subentry(sid):
                  "columns": data_cols, "rows": rows}
 
 
+def points(q):
+    """Every data point of every dataset the search matches, energies in eV and values in barns (the dataset's base
+    unit, in units), sorted by dataset then energy; emin and emax also cut the points. The points file is sorted by
+    target_za, reaction, sf6 and energy in row groups of 10,000, one file per target element, so a query opens only its
+    elements' files and reads only the row groups its filters need."""
+    w, params, emin, emax = search_where(q)
+    try:
+        limit = max(1, min(POINT_LIMIT, int(q.get("limit") or 20000)))
+    except ValueError:
+        return 400, {"error": "limit is a whole number"}
+    c = con().cursor()
+    ds = records(c, f"SELECT dataset, subent, entry, first_author, year, institute, target_za, reaction, sf6, quantity "
+                    f"FROM si WHERE {w} ORDER BY dataset LIMIT {POINT_DATASETS + 1}", params)
+    if not ds:
+        return 200, {"datasets": [], "points": [], "total": 0, "limit": limit, "truncated": False}
+    if len(ds) > POINT_DATASETS:
+        return 400, {"error": f"more than {POINT_DATASETS} datasets match; narrow the search (target, reaction, quantity, energy)"}
+    where, args = [], []
+    for col in ("target_za", "reaction", "sf6"):  # row-group pruning on the sort columns
+        vals = sorted({d[col] for d in ds if d[col] is not None}, key=str)
+        part = f"{col} IN ({', '.join('?' * len(vals))})" if vals else "FALSE"
+        where.append(f"({part} OR {col} IS NULL)" if any(d[col] is None for d in ds) else part)
+        args += vals
+    where.append(f"dataset IN ({', '.join('?' * len(ds))})")
+    args += [d["dataset"] for d in ds]
+    if emin is not None:
+        where.append("e_ev >= ?"); args.append(emin)
+    if emax is not None:
+        where.append("e_ev <= ?"); args.append(emax)
+    files = ", ".join(f"'{POINTS}/target_z={z}/points.parquet'"
+                      for z in sorted({(d["target_za"] or 0) // 1000 for d in ds}))
+    rows = c.execute(f"SELECT dataset, e_ev, de_ev, xs_b, dxs_b, units FROM read_parquet([{files}]) "
+                     f"WHERE {' AND '.join(where)} ORDER BY dataset, e_ev LIMIT {limit + 1}", args).fetchall()
+    truncated = len(rows) > limit
+    rows = rows[:limit]
+    n, units = {}, {}
+    for r in rows:
+        n[r[0]] = n.get(r[0], 0) + 1
+        units.setdefault(r[0], r[5])
+    return 200, {
+        "datasets": [{"dataset_id": d["dataset"], "subentry": d["subent"], "entry": d["entry"], "author": d["first_author"],
+                      "year": d["year"], "institute": d["institute"], "reaction": d["reaction"], "quantity": d["quantity"],
+                      "units": units.get(d["dataset"]), "n": n.get(d["dataset"], 0)} for d in ds],
+        "points": [{"dataset_id": r[0], "e_ev": r[1], "de_ev": r[2], "xs_b": r[3], "dxs_b": r[4]} for r in rows],
+        "total": len(rows), "limit": limit, "truncated": truncated,
+        "source": "C5 2023-08-28, else J4 2026-10-28 converted with the EXFOR dictionary's unit factors"}
+
+
 def picker(name):
     if name not in PICKERS:
         return 404, {"error": f"pickers: {', '.join(PICKERS)}"}
@@ -234,6 +296,9 @@ def lambda_handler(event, context):
         out = module_route(path, q, t0, event)
         if out:
             return out
+        if path.rstrip("/") == "/exfor/points":
+            status, body = points(q)
+            return respond(status, body, t0)
         if path.rstrip("/") == "/exfor/search":
             return respond(200, search(q), t0)
         m = re.fullmatch(r"/exfor/subentry/([^/]+)/(md|pdf)/?", path)

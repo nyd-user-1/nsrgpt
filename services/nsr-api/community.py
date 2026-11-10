@@ -2,7 +2,8 @@
 # /files here (MODULES) with the whole event, since these routes write. Not cached: the app calls the API Gateway
 # origin for them, and every response says no-store. Every request carries x-nsr-write-key, which must match the
 # Lambda's NSR_WRITE_KEY (SSM /nsrgpt/devbox/nsr-api-write-key); the app holds it server-side, never in a page.
-#   GET    /community[?kind=view|recipe]   {views: [{id, name, saved_by, created_at, kind, state}]}, newest first
+#   GET    /community[?kind=view|recipe|lab]   {views: [{id, name, saved_by, created_at, kind, state}]}, newest first;
+#                                          no kind lists views and recipes (Lab canvases only with kind=lab)
 #   GET    /community/{id}                 {view}
 #   POST   /community                      {name, saved_by, state[, id, created_at]} -> {view}; kind from the state
 #   DELETE /community/{id}                 {deleted: id}
@@ -57,6 +58,8 @@ def row(item):
 
 
 def kind_of(state):
+    if state.get("kind") == "lab":  # a Lab canvas (brief 52), kept out of /graph's lists
+        return "lab"
     return "recipe" if any((n or {}).get("type") == "prompt" for n in (state.get("nodes") or [])) else "view"
 
 
@@ -164,7 +167,7 @@ def handle(event):
         if path == "/community":
             if method == "GET":
                 kind = q.get("kind")
-                return reply(200, {"views": list_views(kind if kind in ("view", "recipe") else None)})
+                return reply(200, {"views": list_views(kind if kind in ("view", "recipe", "lab") else None)})
             if method == "POST":
                 return save_view(body)
         m = re.fullmatch(r"/community/([A-Za-z0-9_-]{1,64})", path)
