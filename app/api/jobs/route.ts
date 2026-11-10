@@ -7,7 +7,7 @@ import { signedInName, store, storeConfigured } from "@/lib/community"
 export const dynamic = "force-dynamic"
 
 const ID = /^[A-Za-z0-9_-]{1,80}$/
-const KINDS = new Set(["broaden"])
+const KINDS = new Set(["broaden", "gnds"])
 
 const fail = (e: unknown) => Response.json({ error: (e as Error).message }, { status: (e as { status?: number }).status ?? 502 })
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   if (!by) return Response.json({ error: "Sign in to run a job." }, { status: 401 })
   const body = (await req.json().catch(() => null)) as { kind?: string; params?: unknown } | null
   if (!body?.kind || !KINDS.has(body.kind) || typeof body.params !== "object" || body.params === null)
-    return Response.json({ error: "A job needs a kind (broaden) and its params." }, { status: 400 })
+    return Response.json({ error: "A job needs a kind (broaden or gnds) and its params." }, { status: 400 })
   try {
     return Response.json(await store("/jobs", { method: "POST", body: { kind: body.kind, params: body.params, owner: by } }))
   } catch (e) {

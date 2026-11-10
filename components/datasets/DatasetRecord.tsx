@@ -3,13 +3,15 @@
 // records; a subentry's data columns; a material's sections; a reference's abstract and keywords), the comments, the
 // references with their NSR links, then the raw text in a mono block, folded. Four icon circles as /graph's: Text (the
 // raw record as held, the API's /text route), Markdown (its /md route), PDF (its /pdf route for ENSDF and XUNDL; for the
-// others the browser's print of this page, ./print.css leaving the record alone on the paper) and Open in Graph (the record's own graph node, centred). The record
+// others the browser's print of this page, ./print.css leaving the record alone on the paper) and Open in Graph (the record's own graph node, centred).
+// An ENDF/B material adds GNDS 2.0 (brief 60): the precompiled file from GET /gnds, or, when the material isn't
+// precompiled, a gnds job through app/api/jobs, its wait shown as the Lab's Broaden shows it, then the file. The record
 // loads after the page paints; a route that isn't live shows the API's answer.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileCode2, FileText, Printer, Waypoints } from "lucide-react";
+import { ArrowLeft, Atom, FileCode2, FileText, Printer, Waypoints } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/nova/skeleton";
@@ -17,6 +19,7 @@ import {
   ApiError, apiBlob, apiJson, apiText, fileBase, graphNodeOf, idFromSegments, isSource, recordView, SOURCES,
   type RecordQuery, type RecordView, type SourceKey,
 } from "@/lib/datasets";
+import { apiUrl } from "@/lib/api-url";
 import { datasetTitle } from "@/lib/header-titles";
 import { ApiErrorNote, cellText, DataTable, UnknownSource } from "./DatasetParts";
 import "./print.css";
@@ -34,6 +37,34 @@ function download(body: string | Blob, name: string, type: string) {
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+type GndsFiles = { url?: string; cov_url?: string | null };
+type GndsJob = GndsFiles & { id?: string; status?: string; started_at?: string; error?: string };
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** An ENDF/B material's GNDS 2.0 files (brief 60): GET /gnds answers the precompiled pair; a 404 carries the job that
+ *  compiles it, run through app/api/jobs and polled every 3 s, its state reported as the Lab's Broaden reports it. */
+async function gndsFiles(release: string, mat: string, sub: string, report: (s: string) => void): Promise<GndsFiles> {
+  const r = await fetch(apiUrl(`/gnds?${new URLSearchParams({ release, mat, sub }).toString()}`));
+  const first = (await r.json().catch(() => ({}))) as GndsFiles & { job?: unknown; error?: string };
+  if (r.ok) return first;
+  if (r.status !== 404) throw new Error(first.error ?? `the API answered ${r.status}`);
+  report("queued");
+  const post = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(first.job ?? { kind: "gnds", params: { release, mat: Number(mat), sub } }) });
+  let job = (await post.json().catch(() => ({}))) as GndsJob;
+  if (!post.ok) throw new Error(post.status === 401 ? "this material isn't compiled yet; sign in to compile it (about 30 s)" : (job.error ?? `the job answered ${post.status}`));
+  const t0 = Date.now();
+  while (job.status !== "done") {
+    if (job.status === "failed") throw new Error(job.error ?? "the compile failed");
+    const since = job.started_at ? Date.parse(job.started_at) : t0;
+    report(job.status === "running" ? `running ${Math.max(0, Math.round((Date.now() - since) / 1000))} s` : "queued");
+    await sleep(3000);
+    const g = await fetch(`/api/jobs?id=${encodeURIComponent(job.id ?? "")}`, { cache: "no-store" });
+    job = (await g.json().catch(() => ({}))) as GndsJob;
+    if (!g.ok) throw new Error(job.error ?? `the job answered ${g.status}`);
+  }
+  return job;
 }
 
 const failed = (what: string, e: unknown) =>
@@ -70,6 +101,20 @@ function RecordPage({ source, id }: { source: SourceKey; id: string }) {
     if (!def.pdfPath) { window.print(); return; }
     try { download(await apiBlob(def.pdfPath(id, query)), `${base}.pdf`, "application/pdf"); } catch (e) { failed("PDF", e); }
   };
+  const saveGnds = async () => {
+    const [release, mat] = id.split("/");
+    const t = toast.loading("GNDS 2.0");
+    try {
+      const f = await gndsFiles(release, mat, query.sub ?? "neutrons", (s) => toast.loading(`GNDS 2.0: ${s}`, { id: t }));
+      if (!f.url) throw new Error("no file came back");
+      const cov = f.cov_url;
+      toast.success("GNDS 2.0: the reactionSuite is downloading", { id: t, ...(cov ? { action: { label: "Covariances", onClick: () => window.location.assign(cov) } } : {}) });
+      // CloudFront serves it as an attachment, so the page stays.
+      window.location.assign(f.url);
+    } catch (e) {
+      toast.error(`GNDS 2.0: ${(e as Error).message}`, { id: t });
+    }
+  };
   const node = view?.graph.node ?? graphNodeOf(source, id);
 
   return (
@@ -93,6 +138,7 @@ function RecordPage({ source, id }: { source: SourceKey; id: string }) {
         </div>
         <div className="flex shrink-0 items-center gap-1.5 print:hidden">
           <Circle label="Text" onClick={saveText}><FileText className="h-4 w-4" /></Circle>
+          {source === "endf" && <Circle label="GNDS 2.0" onClick={saveGnds}><Atom className="h-4 w-4" /></Circle>}
           <Circle label="Markdown" onClick={saveMd}><FileCode2 className="h-4 w-4" /></Circle>
           <Circle label={def.pdfPath ? "PDF" : "Print to PDF"} onClick={savePdf}><Printer className="h-4 w-4" /></Circle>
           <Circle label="Open in Graph" onClick={() => router.push(graphHref(node.type, node.id))}><Waypoints className="h-4 w-4" /></Circle>

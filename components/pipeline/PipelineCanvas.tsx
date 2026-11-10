@@ -19,6 +19,8 @@ import { SideBarFold, SideBarFoldItem } from "@/components/sidebar/SideBarFold"
 import { ICON_ON, ICON_REST, type SideBarIcon } from "@/components/sidebar/SideBarMenuItem"
 import { CORE, LAKE, NUCLIDE, SOURCES, SURFACES, type Status } from "@/lib/pipeline-map"
 import { cn } from "@/lib/utils"
+import { apiUrl } from "@/lib/api-url"
+import { short } from "@/lib/datasets"
 
 // /pipeline on the graph's canvas (Brendan, 2026-11-08): the sources on the left, the NSR Lake in the middle, what
 // reads it on the right, in the paper palette on the dotted infinite canvas /graph uses. Three nodes, one per column;
@@ -151,10 +153,31 @@ function SourcesNode({ id }: NodeProps) {
   )
 }
 
+/** The GNDS 2.0 line (brief 60): the materials converted of those held, across the releases, from GET /gnds/releases. */
+function useGndsLine(): string | null {
+  const [line, setLine] = React.useState<string | null>(null)
+  React.useEffect(() => {
+    let on = true
+    fetch(apiUrl("/gnds/releases"))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { totals?: { materials?: number; converted?: number }; releases?: Record<string, unknown> } | null) => {
+        const t = j?.totals
+        if (!on || !t || typeof t.converted !== "number" || typeof t.materials !== "number") return
+        setLine(`${short(t.converted)} of ${short(t.materials)} materials, ${Object.keys(j?.releases ?? {}).length} releases`)
+      })
+      .catch(() => {})
+    return () => {
+      on = false
+    }
+  }, [])
+  return line
+}
+
 /** The lake: open on load; closed, it shows only the five core dataset cards. The datasets' section keeps its place in
  *  both states, so a dataset card left open stays open. */
 function LakeNode({ id }: NodeProps) {
   const [open, setOpen] = React.useState(true)
+  const gnds = useGndsLine()
   useRemeasure(id, open)
   return (
     <div className={cn(CARD, "pointer-events-auto")} style={{ width: LAKE_W }}>
@@ -166,7 +189,7 @@ function LakeNode({ id }: NodeProps) {
         {open && (
           <section className="px-3.5 py-3">
             <Title>Detail</Title>
-            <Rows rows={[["Size", LAKE.size], ["Files", LAKE.files], ["Records", LAKE.records]]} />
+            <Rows rows={[["Size", LAKE.size], ["Files", LAKE.files], ["Records", LAKE.records], ...(gnds ? [["GNDS 2.0", gnds] as [string, string]] : [])]} />
           </section>
         )}
         <section className="px-3.5 py-3">
