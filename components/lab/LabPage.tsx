@@ -251,8 +251,8 @@ function LabInner() {
     const { s, t } = sidesOf(e)
     return {
       ...e,
-      sourceHandle: `${e.sourceHandle}@${s}`,
-      targetHandle: `${e.targetHandle}@${t}`,
+      sourceHandle: `out:${e.sourceHandle}@${s}`,
+      targetHandle: `in:${e.targetHandle}@${t}`,
       selected: edgeSel.has(e.id),
       type: "smoothstep",
       pathOptions: { borderRadius: 14, offset: 28 },
@@ -265,15 +265,15 @@ function LabInner() {
     const set = new Set<string>()
     for (const e of canvas.edges) {
       const { s, t } = sidesOf(e)
-      set.add(`${e.source}:${e.sourceHandle}@${s}`)
-      set.add(`${e.target}:${e.targetHandle}@${t}`)
+      set.add(`${e.source}:out:${e.sourceHandle}@${s}`)
+      set.add(`${e.target}:in:${e.targetHandle}@${t}`)
     }
     return set
   }, [canvas.edges, sidesOf])
-  /** A handle id on the canvas is `${port}@${side}`. */
+  /** A handle id on the canvas is `in:${port}@${side}` or `out:${port}@${side}`. */
   const splitHandle = (h: string | null | undefined): { port: string; side?: Side } => {
-    const [port, side] = (h ?? "").split("@")
-    return { port, side: side as Side | undefined }
+    const [head, side] = (h ?? "").split("@")
+    return { port: head.replace(/^(in|out):/, ""), side: side as Side | undefined }
   }
 
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {

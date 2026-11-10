@@ -45,7 +45,8 @@ function Ports({ block, used }: { block: Block; used: Set<string> }) {
     <>
       {SIDES.map(({ side, position }) =>
         list.map((p, i) => {
-          const id = `${p.handle}@${side}`
+          // The Prompt has an input and an output both named text, so the id carries the direction too.
+          const id = `${p.type === "target" ? "in" : "out"}:${p.handle}@${side}`
           const at = `${((i + 1) / (list.length + 1)) * 100}%`
           const along = side === "top" || side === "bottom" ? { left: at } : { top: at }
           const on = used.has(`${block.id}:${id}`)
