@@ -327,3 +327,52 @@ For the UI window (not done here):
 
 Spend: the parse box nsr-parse-3 (m7i-flex.large, 400 GB gp3, about $0.14 an hour) for about 1.5 hours, about $0.21;
 Athena about $0.01. The box is terminated (09:35 UTC).
+
+## QA drive (worker-4, brief 60 Part D, 06:15–06:26 ET)
+
+Every page below loaded headless (Playwright, `scripts/gnds/qa/drive.js` on the dev box) on production
+(https://nsrgpt.brendan-stanton.workers.dev) and the box (http://3.133.98.108:3000), in light then dark, 1440 × 900, signed
+out. Rendered: status under 400, no page error, no error text on the page, its text present. Errors: page errors,
+console errors and failed requests, leaving out the box's `/api/housekeeping` 403 and `/api/warm` 429 and the browser's
+aborted navigation requests (`ERR_ABORTED` on the page's own URL or a cancelled `/api/search`). Data painted: the later of
+the largest contentful paint and the last data response, in seconds; light runs first, so its time includes the cold load.
+Screenshots: `lake/_work/qa/2026-11-11/{prod,box}-<shot>-{light,dark}.png` (104), with `results.json`.
+
+| Page | Production | Box | First error | Data painted, prod light / dark | Box light / dark | Shot |
+| --- | --- | --- | --- | --- | --- | --- |
+| / | yes | yes | — | 2 / 1.3 | 7.3 / 3.4 | `home` |
+| /about | yes | yes | — | 6.4 / 0.5 | 3.6 / 1.4 | `about` |
+| /chat | yes | yes | — | 3 / 3 | 7.9 / 2.5 | `chat` |
+| /data-dictionary | yes | yes | — | 0.6 / 0.6 | 5.3 / 3.1 | `data-dictionary` |
+| /datasets/endf | yes | yes | — | 0.6 / 0.5 | 3.3 / 2.1 | `datasets_endf` |
+| /datasets/endf/B-VIII.1/9228 | yes | yes | — | 2.2 / 0.7 | 5 / 2.8 | `datasets_endf_B-VIII.1_9228` |
+| /datasets/exfor/10001 | yes | yes | — | 4.3 / 0.6 | 4 / 2 | `datasets_exfor_10001` |
+| /graph | yes | yes | — | 1.3 / 0.8 | 7.2 / 3.8 | `graph` |
+| /lab | yes | yes | prod: 401 https://nsrgpt.brendan-stanton.workers.dev/api/jobs | 7.9 / 1.1 | 7.9 / 3.8 | `lab` |
+| /nsrcpt | yes | yes | — | 0.6 / 0.5 | 2.1 / 1.5 | `nsrcpt` |
+| /pipeline | yes | yes | — | 1.1 / 0.6 | 3.7 / 2.9 | `pipeline` |
+| /signin | yes | yes | — | 0.3 / 0.2 | 2.5 / 2.4 | `signin` |
+| /signup | yes | yes | — | 0.2 / 0.2 | 4 / 2.8 | `signup` |
+| /sweep | yes | yes | — | 0.9 / 0.6 | 2.4 / 2.1 | `sweep` |
+| /sweep/icrp | yes | yes | — | 1.4 / 1.1 | 2.3 / 2.7 | `sweep_icrp` |
+| /sweep/medical | yes | yes | — | 0.8 / 0.5 | 3.7 / 1.5 | `sweep_medical` |
+| /sweep/medical/ac225-ra226-gn | yes | yes | — | 1.3 / 0.7 | 3.3 / 2.5 | `sweep_medical_ac225-ra226-gn` |
+| /sweep?tab=retrodiction | yes | yes | — | 0.7 / 0.7 | 2.6 / 2.5 | `sweep_tab_retrodiction` |
+| /viz/chart | yes | yes | — | 0.6 / 0.5 | 2.5 / 2.7 | `viz_chart` |
+| /viz/chart?nuclide=235U | yes | yes | — | 2 / 1.4 | 3.6 / 2.3 | `viz_chart_nuclide_235U` |
+| /viz/decay | yes | yes | box light: 19 React "synchronously unmount a root" warnings | 1.1 / 0.7 | 7.6 / 1.4 | `viz_decay` |
+| /viz/graph | yes | yes | — | 0.8 / 0.5 | 6.5 / 1.8 | `viz_graph` |
+| /viz/matrix | yes | yes | — | 0.6 / 0.5 | 4.9 / 1.5 | `viz_matrix` |
+| /viz/scatter3d-dataset | yes | yes | — | 0.7 / 0.5 | 5.5 / 1.7 | `viz_scatter3d-dataset` |
+| /viz/spectra | yes | yes | — | 0.6 / 0.4 | 6.1 / 1.7 | `viz_spectra` |
+| /viz/structure | yes | yes | — | 0.4 / 0.4 | 5.3 / 1.6 | `viz_structure` |
+
+Failures and differences:
+1. **/lab on production, signed out:** `POST /api/jobs` answers 401 three times ("Sign in to run a job."), so the default
+   canvas shows "Sign in to run a job." on Broaden to 300 K and "An input failed: Broaden to 300 K" on Measured against
+   evaluated and σ against energy. On the box the same canvas runs (Broaden 4.3 s, the three 300 K curves drawn). The
+   sign-in rule is `app/api/jobs/route.ts` (brief 52); owner worker-2 (the Lab).
+2. **/viz/decay on the box:** 19 React "Attempted to synchronously unmount a root while React was already rendering"
+   console errors on the first (light) load; production and the box's dark load log none. Known since brief 54 (worker-2's
+   section above: main logs the same 19); owner worker-2.
+3. Every other page rendered on both, in both themes, with no error left after the noise above.

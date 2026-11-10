@@ -8,7 +8,7 @@ const { chromium } = require('/opt/shot/node_modules/playwright')
 const fs = require('fs')
 const [, , out, ...targets] = process.argv
 const PAGES = (process.env.PAGES || [
-  '/', '/nsrcpt', '/about', '/sweep', '/sweep/medical', '/sweep/medical/ac225-ra226-p2n', '/sweep/icrp', '/lab',
+  '/', '/nsrcpt', '/about', '/sweep', '/sweep/medical', '/sweep/medical/ac225-ra226-gn', '/sweep/icrp', '/lab',
   '/graph', '/viz/chart', '/viz/structure', '/viz/matrix', '/viz/decay', '/chat', '/datasets/endf',
   '/datasets/endf/B-VIII.1/9228', '/datasets/exfor/10001', '/pipeline', '/data-dictionary', '/signin',
 ].join(' ')).split(' ')
@@ -53,6 +53,8 @@ async function one(browser, target, base, path, theme) {
   row.errors = errors.length
   row.failed = failed[0] || null
   row.failures = failed.length
+  row.failed_list = failed.slice(0, 10)
+  row.error_list = errors.slice(0, 5)
   const file = `${target}-${slug(path)}-${theme}.png`
   try { await p.screenshot({ path: `${out}/${file}` }); row.shot = file } catch {}
   await ctx.close()
