@@ -186,3 +186,80 @@ My next step is to rerun the older release pair on reconstructed pointwise data 
 293.6 K, or NNDC's POINT2012), which would settle whether the VIII.1 result holds.
 
 Brendan Stanton
+
+## worker-1 (brief 56: site admin, File 2 and File 32, the layers)
+
+API: https://daw1qggkn69lv.cloudfront.net (cached an hour) · origin https://3o2ps7jan4.execute-api.us-east-2.amazonaws.com.
+Every route below was run on a parse box before its deploy and timed live after it.
+
+| Item | Production | Box | Commit |
+| --- | --- | --- | --- |
+| Site admin: brendan@nysgpt.com, the only user in pool nsrgpt; sign-in asks for a new password after the temporary one | /signin | the box's dev reader is admin too (dev@nsrgpt.local in its list) | 6670cef |
+| Housekeeping on NSRgpt's own table and bucket (nsrgpt-housekeeping): /api/housekeeping 200 for the admin | Dev tools → Housekeeping | same, but the box's role can't reach the Old account's table | 26e60a7 |
+| Self sign-up on (your 03:20 decision, relayed by the lead): sign up, confirm, sign in tested with a throwaway address, then deleted | /signup | — | pool setting |
+| Resonance parameters (File 2), every release | /endf/resonances?name=U-235&release=B-VIII.1 | — | b569999 |
+| Resonance covariances (File 32) and correlation matrix | /endf/resonances/cov?name=Pu-240&release=B-VIII.1&matrix=1 | — | b569999 |
+| The uncertainty band in the resolved range, from File 32 (the Lab and the sweep got `groups: []` there) | /endf/cov?name=Pu-240&mt=102&release=B-VIII.1 → `resolved` | — | b569999 |
+| Fission product yields; decay data | /endf/fy?name=U-235&release=B-VIII.1&mt=454 · /endf/decay?name=Co-60&release=B-VIII.1 | — | b569999 |
+| Decay sublibraries against ENSDF, widths excluded | /endf/decay-vs-ensdf?release=B-VIII.1&sort=sigmas | — | b569999; brief 48's last section |
+| ICRP 107: nuclide, radiations, chain, half-lives against ENSDF | /icrp/nuclide/Ac-225 · /icrp/radiations/Ac-225 · /icrp/chain/U-238 · /icrp/vs-ensdf | — | b569999 |
+| Live counts for /about and the lake page | /counts | — | b569999 |
+| The nuclide card's links: fy_releases, decay_releases, icrp | /nuclide/225Ac | — | b569999 |
+| Cross sections at 600, 900, 1200, 1500 and 1800 K (NNDC POINT, B-VIII.1 and B-VIII.0; U-238's 6.67 eV capture peak 22,765 b at 0 K, 5,385 at 600 K, 3,329 at 1800 K) | /endf/xs?name=U-238&mt=102&temp=600K&emin=6&emax=7.5 | — | 9a551f2 |
+| Search: ICRP 107's 1,252 nuclides; decay and yield records open their routes | /search?q=JEFF-3.3 decay · /search?q=Ac-225 ICRP | — | 13f6aa1 |
+| Data dictionary: every table added since brief 43, an ICRP 107 group, the held note fixed | /data-dictionary | /data-dictionary | 13f6aa1 |
+| The lake page's ENDF counts (13 releases) | /pipeline | /pipeline | e96cf62 |
+
+What it needs from you:
+- Your first sign-in: the temporary password is in SSM `/nsrgpt/admin/first-password` (us-east-2, New account). Sign in
+  at /signin with it and the form asks for your own. It expires 7 days after it was set (2026-11-10).
+- Search ranking: "Ac-225" alone ranks ICRP 107's record past the 50th hit (score 5.95 against 6.23 for the top
+  material). ENSDF's own Ac-225 record is past the 50th as well. "Ac-225 ICRP" puts it first. A small boost for
+  nuclide records in keyword_search.py would fix both; I left global ranking alone the night before launch.
+
+File 2 and File 32, per release (the counts check: sections parsed against `endfb_sections`, MF2 and MF32 MT151):
+
+| Release | MF2 sections | MF32 sections | Ranges | Resonance rows | Covariance rows |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| B-VIII.1 | 568 of 568 | 130 of 130 | 891 | 125,104 | 12,209,187 |
+| B-VIII.0 | 566 of 566 | 118 of 118 | 884 | 116,050 | 11,540,579 |
+| B-VII.1 | 423 of 423 | 54 of 54 | 667 | 84,863 | 6,233,610 |
+| B-VII.0 | 393 of 393 | 9 of 10 | 628 | 78,866 | 346,554 |
+| B-VI.8 | 586 of 586 | 10 of 10 | 877 | 87,691 | 5,794 |
+| B-V | 130 of 130 | 6 of 6 | 230 | 11,963 | 3,066 |
+| B-IV | 90 of 90 | none | 152 | 6,775 | 0 |
+| B-III | 116 of 133 | none | 161 | 2,551 | 0 |
+| B-II | 61 of 61 | none | 113 | 3,156 | 0 |
+| JEFF-3.3 | 562 of 562 | 352 of 352 | 1,001 | 140,818 | 3,416,215 |
+| JENDL-5 | 795 of 795 | 43 of 43 | 1,039 | 102,558 | 4,617,457 |
+| TENDL-2023 | 2,850 of 2,850 | 9 of 9 | 5,572 | 709,426 | 2,135,886 |
+| CENDL-3.2 | 272 of 272 | none | 458 | 59,184 | 0 |
+| All | 7,412 of 7,430 | 731 of 732 | 12,673 | 1,529,005 | 40,508,348 |
+
+U-235 (MAT 9228, B-VIII.1): Reich-Moore from 10⁻⁵ eV to 2.25 keV, 3,194 resonances, then unresolved to 25 keV. Fe-56
+(MAT 2631): Reich-Moore to 850 keV, 312 resonances. Neither file carries File 32 in B-VIII.1, so their band stays empty.
+Pu-240, Ni-58, Dy-161 and 127 more B-VIII.1 materials have one. Every LRF (1, 2, 3, 4, 7) and LCOMP (0, 1, 2) form is in
+the tables; the compact correlations are decoded as ENDF-367 gives them, and every one falls within [−1, 1].
+
+The layers (brief 55 item 6):
+
+| Layer | Done | Left, and why |
+| --- | --- | --- |
+| Parsed | File 2 and 32 for 13 releases; MF4, 5, 6 and 9 to 15 counted per release into each manifest (`sections_by_mf`; every release that has them has rows, e.g. B-VIII.1: MF4 15,906 sections, MF6 13,696, MF12 15,416, MF14 15,474); POINT at 600–1800 K for B-VIII.1 and B-VIII.0 | MF4–6 and 9–15 stay sections and lines (`endfb_sections`, `endfb_records`), not tables of their own; 18 File 2/32 sections endf-parserpy refuses (B-III 17 of an older shape, B-VII.0 Th-232's File 32), listed with their MATs |
+| Serving | /endf/resonances, /endf/resonances/cov, /endf/cov's band, /endf/fy, /endf/decay, /endf/decay-vs-ensdf, /icrp/*, /counts, the card's links, /endf/xs at five more temperatures | The band leaves out LRF 4 and 7 ranges (noted in the answer); it is the diagonal only, first order |
+| Catalog | Dictionary entries for every table since brief 43; INVENTORY rows for the resonance tables, ICRP 107's comparison table, the decay comparison and ENDF-367 | — |
+| API | README rows for every route the Lambda answers | /sweep's rows are worker-3's |
+| Search | ICRP 107's nuclides; decay and yield records open /endf/decay and /endf/fy | The bare "Ac-225" ranking above; the search manifest keeps its 2026-11-08 counts (the index's state file was lost on a fresh box; the index itself uploaded) |
+| UI | The lake page's counts (lib/pipeline-map.ts) | Listed below for the UI window |
+
+For the UI window (not done here):
+- `lib/lab/kinds/data.ts` (the cov source) reads `series[].groups` only. Below the unresolved range those are empty and
+  `series[].resolved.groups` (`rel_sd`, `rel_sd_uncorrelated`) holds the File 32 band. Draw it there.
+- The Lab's ENDF block could offer `temp` (0K, 293.6K, 600K, 900K, 1200K, 1500K, 1800K) now that /endf/xs serves them.
+- `lib/lab/canvases/plot.ts` RELEASE_SLOT gives colours to seven releases; B-VII.0, B-VI.8, B-V, B-IV, B-III and B-II
+  have none.
+- The nuclide card can link /endf/fy, /endf/decay and /icrp/nuclide from `/nuclide/{name}`'s `fy_releases`,
+  `decay_releases` and `icrp`.
+
+Spend: the parse box nsr-parse-3 (m7i-flex.large, 400 GB gp3, about $0.14 an hour) for about 1.5 hours, about $0.21;
+Athena about $0.01. The box is terminated (09:35 UTC).
