@@ -3,7 +3,8 @@
 # about $0.096 an hour; the account launches Free Tier types only), Ubuntu 24.04, 60 GB gp3, reached through SSM (scripts/iaea/box/ssm.sh). Instance-initiated
 # shutdown TERMINATES it, and userdata.sh shuts it down after 8 hours (brief 62's cap is $5).
 # Role nsr-jobs-box (brief 51) with an inline policy nsr-ingest added here: read raw/*; write raw/iaea/2026-11-11/*, the
-# brief's tables (lake/stopping/*, lake/ripl/*, lake/conderc/*, lake/iaea-records/*, lake/iaea-cdroms/*) and
+# brief's tables (lake/stopping/*, lake/ripl/*, lake/conderc/*, lake/iaea-records/*, lake/iaea-cdroms/*,
+# lake/iaea-betashape/*) and
 # lake/_work/ingest/*; Athena and Glue for nsr.stopping_*, nsr.ripl_*, nsr.conderc_*, nsr.iaea_*. Tag project=nsr.
 #   ./scripts/ingest/box/create.sh [name] [type] [disk GB]    # prints the instance id
 set -euo pipefail
@@ -17,7 +18,7 @@ T=$(mktemp -d)
 cat > $T/policy.json <<J
 {"Version":"2012-10-17","Statement":[
  {"Effect":"Allow","Action":"s3:GetObject","Resource":["$B/raw/*","$B/work/athena-results/*"]},
- {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["$B/raw/iaea/2026-11-11/*","$B/lake/stopping/*","$B/lake/ripl/*","$B/lake/conderc/*","$B/lake/iaea-records/*","$B/lake/iaea-cdroms/*","$B/lake/_work/ingest/*","$B/work/athena-results/*"]},
+ {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["$B/raw/iaea/2026-11-11/*","$B/lake/stopping/*","$B/lake/ripl/*","$B/lake/conderc/*","$B/lake/iaea-records/*","$B/lake/iaea-cdroms/*","$B/lake/iaea-betashape/*","$B/lake/_work/ingest/*","$B/work/athena-results/*"]},
  {"Effect":"Allow","Action":["athena:StartQueryExecution","athena:GetQueryExecution","athena:GetQueryResults","athena:StopQueryExecution","athena:GetWorkGroup"],"Resource":"arn:aws:athena:us-east-2:613473203863:workgroup/nsrgpt"},
  {"Effect":"Allow","Action":["glue:GetDatabase","glue:GetDatabases","glue:GetTable","glue:GetTables","glue:CreateTable","glue:UpdateTable","glue:DeleteTable","glue:GetPartition","glue:GetPartitions","glue:BatchGetPartition","glue:CreatePartition","glue:BatchCreatePartition","glue:UpdatePartition","glue:DeletePartition","glue:BatchDeletePartition"],"Resource":["$G:catalog","$G:database/nsr","$G:table/nsr/stopping_*","$G:table/nsr/ripl_*","$G:table/nsr/conderc_*","$G:table/nsr/iaea_*"]}]}
 J
