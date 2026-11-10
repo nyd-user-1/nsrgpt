@@ -16,7 +16,7 @@ const KEY_RE = /\b((?:19|20)\d{2}[A-Z]{2}\d{2})\b(?!\]|\))/g;
 const citeMarkdown = (md: string) =>
   md.replace(KEY_RE, (m) => `[${m}](#cite:paper:${m})`);
 
-import type { MessageSources } from "@/hooks/useChat";
+import { SIGN_UP_EVENT, type MessageSources } from "@/hooks/useChat";
 
 /** The type scale per place (brief 50): /chat's column, a side panel, a canvas card. */
 const SCALE = {
@@ -48,6 +48,14 @@ function components(size: ChatMarkdownSize): Components {
     th: ({ children }) => <th className="border-b border-[var(--paper-rule)] px-2 py-1 text-left font-semibold">{children}</th>,
     td: ({ children }) => <td className="border-b border-[var(--paper-rule-soft)] px-2 py-1 align-top">{children}</td>,
     a: ({ href, children }) => {
+      // The sign-up message's way in (hooks/useChat.ts SIGN_UP_TEXT): opens the dialog on the page.
+      if (href === "#sign-up") {
+        return (
+          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent(SIGN_UP_EVENT))} className="link-wipe text-blue-500">
+            {children}
+          </button>
+        );
+      }
       if (href?.startsWith("#cite:")) {
         const [, type, id] = href.slice(1).split(":");
         return (

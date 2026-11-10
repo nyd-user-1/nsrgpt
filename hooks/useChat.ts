@@ -25,7 +25,19 @@ export interface Message {
   isStreaming?: boolean;
   sources?: MessageSources;
   pdfUrl?: string;
+  /** The answer a signed-out reader gets instead of a 402 (Brendan, 2026-11-10): what I hold and do, and the way in. */
+  signup?: boolean;
 }
+
+/** Opens the chat's sign-up dialog (components/chat/SignUpDialog.tsx); the sign-up message's link sends it. */
+export const SIGN_UP_EVENT = "nsrgpt:sign-up";
+
+/** The reply to a signed-out reader's question: the chat API answers 402 until they sign in. */
+export const SIGN_UP_TEXT =
+  "I can answer that once you're signed in. I hold the Nuclear Science References, ENSDF, XUNDL and EXFOR, the thirteen evaluated libraries (ENDF/B from II to VIII.1, JEFF-3.3, JENDL-5, TENDL-2023 and CENDL-3.2) and ICRP 107's decay data. In chat I answer from those records and cite each one I read. A citation opens the paper, the nuclide or the dataset behind it, so you can check every number. I've kept your question, and I'll answer it the moment you're in. [Sign up and ask me again.](#sign-up)";
+
+/** A question kept while its reader signs up, sent again once they're in. */
+type Pending = { userId: string; assistantId: string; args: [string, string?, string?, string?, (File | null)?, SearchBackend?] };
 
 /** A PDF as the chat route takes it: its name and its bytes in base64. */
 function readPdf(file: File): Promise<{ name: string; data: string }> {
@@ -62,6 +74,9 @@ export function useChat() {
   const abortRef = useRef<AbortController | null>(null);
   const messagesRef = useRef<Message[]>([]);
   messagesRef.current = messages;
+  // The question a 402 held back, and when its sign-up message landed (ChatPage opens the dialog 2.5 s after).
+  const pendingRef = useRef<Pending | null>(null);
+  const [signupAt, setSignupAt] = useState<number | null>(null);
   const persistence = useChatPersistence();
 
   const sendMessage = useCallback(
@@ -129,6 +144,14 @@ export function useChat() {
             signal: abortRef.current.signal,
           }
         );
+
+        // Signed out: my answer is the way in, and the question waits for it (Brendan, 2026-11-10).
+        if (res.status === 402) {
+          pendingRef.current = { userId: userMsg.id, assistantId: assistantMsg.id, args: [userText, systemContext, pdfUrl, modelId, pdf, backend] };
+          setMessages((prev) => prev.map((m) => (m.id === assistantMsg.id ? { ...m, content: SIGN_UP_TEXT, isStreaming: false, signup: true } : m)));
+          setSignupAt(Date.now());
+          return;
+        }
 
         if (!res.ok) {
           const err = await res.text();
@@ -249,10 +272,22 @@ export function useChat() {
     persistence.setCurrentSessionId(null);
   }, [persistence]);
 
+  /** Signed in now: the kept question and its sign-up message leave the thread, and the question is asked again. */
+  const resendPending = useCallback(() => {
+    const p = pendingRef.current;
+    if (!p) return;
+    pendingRef.current = null;
+    setSignupAt(null);
+    setMessages((prev) => prev.filter((m) => m.id !== p.userId && m.id !== p.assistantId));
+    void sendMessage(...p.args);
+  }, [sendMessage]);
+
   return {
     messages,
     isLoading,
     sendMessage,
+    signupAt,
+    resendPending,
     stopGeneration,
     clearMessages,
     loadSession,

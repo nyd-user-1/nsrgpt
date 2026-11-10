@@ -7,7 +7,8 @@ import { ChatInputContainer } from "@/components/chat/ChatInput";
 import { DetailBody, type EntityType } from "@/components/chat/EntityDetail";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
-import { useChat } from "@/hooks/useChat";
+import { SIGN_UP_EVENT, useChat } from "@/hooks/useChat";
+import { SignUpDialog } from "@/components/chat/SignUpDialog";
 import { SEED_PREFIX } from "@/lib/pane";
 
 // pax-trinity's typewriter over the empty chat (components/text-type.tsx, brought back 2026-11-07), with NSR's own lines.
@@ -26,8 +27,20 @@ export function ChatPage() {
   const routeSessionId = searchParams.get("c") ?? undefined;
   const router = useRouter();
   const navigate = (to: string) => router.push(to);
-  const { messages, isLoading, sendMessage, stopGeneration, clearMessages, loadSession, sessionId, lambdaLastCall } =
+  const { messages, isLoading, sendMessage, stopGeneration, clearMessages, loadSession, sessionId, lambdaLastCall, signupAt, resendPending } =
     useChat();
+  // A signed-out reader's question (hooks/useChat.ts): my sign-up message, then 2.5 s on, or on its link, the dialog.
+  const [signupOpen, setSignupOpen] = useState(false);
+  useEffect(() => {
+    if (signupAt === null) return;
+    const t = window.setTimeout(() => setSignupOpen(true), 2500);
+    return () => window.clearTimeout(t);
+  }, [signupAt]);
+  useEffect(() => {
+    const open = () => setSignupOpen(true);
+    window.addEventListener(SIGN_UP_EVENT, open);
+    return () => window.removeEventListener(SIGN_UP_EVENT, open);
+  }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
   const [entity, setEntity] = useState<{ type: EntityType; id: string } | null>(null);
@@ -214,6 +227,14 @@ export function ChatPage() {
         </div>
       )}
     </div>
+    <SignUpDialog
+      open={signupOpen}
+      onClose={() => setSignupOpen(false)}
+      onSignedIn={() => {
+        setSignupOpen(false);
+        resendPending();
+      }}
+    />
     {entity && (
       <div className="hidden w-80 shrink-0 overflow-y-auto border-l bg-[var(--paper)] p-4 md:block">
         <div className="mb-2 flex items-start justify-between">
