@@ -5,7 +5,8 @@
 #   GET /sweep?release=B-VIII.1&sort=z|mean|support|bin&dir=desc&nuclide=U-235&mt=18&sub=neutrons&min_datasets=2&page=1
 #            the ranked list: pairs with support (>= 2 datasets and >= 20 points without the driver), 100 a page;
 #            &all=1 every pair compared; &single=1 the pairs one dataset drives (support fails, it disagrees by > 3 z)
-#   GET /sweep/pair?target=U-235&mt=18&sub=neutrons&release=B-VIII.1,JEFF-3.3    the bins and datasets per release
+#   GET /sweep/pair?target=U-235&mt=18&sub=neutrons&release=B-VIII.1,JEFF-3.3    the bins and datasets per release, each
+#            dataset with its ratios as points [[e_ev, ratio], ...] (at most 300; &points=0 leaves them out)
 #   GET /sweep/releases                the releases, sublibraries and counts, the run date, the method
 #   GET /sweep/retrodiction            { summary, rows }: the VIII.0 ranking against what VIII.1 changed (500 rows)
 #   GET /sweep/flags?kind=exfor&rule=b { evaluation, exfor }: VIII.1 entries no public list names; mislabelled EXFOR
@@ -158,6 +159,17 @@ def pair(q):
         d = rows(f"SELECT dataset, entry, author, year, n_points, mean_log_ratio, se, median_rel_unc, median_ratio, "
                  f"e_min_ev, e_max_ev FROM {table('datasets')} WHERE release = ? AND key = ? ORDER BY n_points DESC",
                  [rel, p["key"]])
+        if d and q.get("points") not in ("0", "false"):
+            # each dataset's ratios to this release, [e_ev, ratio], thinned to at most 300 a dataset for the chart
+            # (inside a POINT resolved range one row per dataset and bin: its average over its span)
+            cur = con().cursor().execute(f"SELECT dataset, e_ev, ratio FROM read_parquet('{SWEEP}/points/*.parquet') "
+                                         "WHERE release = ? AND key = ? ORDER BY dataset, e_ev", [rel, p["key"]])
+            by = {}
+            for ds, e, ra in cur.fetchall():
+                by.setdefault(ds, []).append((e, ra))
+            for x in d:
+                v = by.get(x["dataset"], [])
+                x["points"] = clean([[e, ra] for e, ra in v[::max(1, -(-len(v) // 300))]])
         out.append({"release": rel, "held": bool(s), "summary": s[0] if s else None, "bins": b, "datasets": d})
     held = {k[5:]: v for k, v in p.items() if k.startswith("held_")}
     return 200, {"target": p["target"], "target_za": p["target_za"], "sublibrary": p["sublibrary"], "mt": p["mt"],

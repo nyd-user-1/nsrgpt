@@ -763,6 +763,8 @@ TABLES = {
     "exfor_flags": "SELECT * FROM exfor_flags ORDER BY rule, subentry",
     "single": "SELECT * FROM single81 ORDER BY rank",
     "public_list": "SELECT * FROM public_list",
+    "points": """SELECT rel AS release, key, dataset, e AS e_ev, exp(lr) AS ratio, how FROM pr WHERE units = 'B'
+                 ORDER BY release, key, dataset, e""",
 }
 ATHENA = {"VARCHAR": "string", "DOUBLE": "double", "BIGINT": "bigint", "INTEGER": "int", "BOOLEAN": "boolean",
           "FLOAT": "float", "HUGEINT": "bigint", "VARCHAR[]": "array<string>", "SMALLINT": "int", "UBIGINT": "bigint"}
@@ -775,7 +777,7 @@ def write(names=None):
     for t, sql in TABLES.items():
         if names and t not in names:
             continue
-        src = {"flags": "eval_flags", "single": "single81", "datasets": "dstat"}.get(t, t)
+        src = {"flags": "eval_flags", "single": "single81", "datasets": "dstat", "points": "pr"}.get(t, t)
         exists = one(f"SELECT count(*) FROM information_schema.tables WHERE table_name = '{src}'")
         if not exists:
             print("skip", t)

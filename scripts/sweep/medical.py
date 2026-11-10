@@ -24,7 +24,9 @@ recommended curve where held, else the evaluation nearest the data), each datase
 combined by inverse variance; that ratio times the reference's yield. The data's spread: the standard deviation of the
 datasets' ratios. Each evaluation's uncertainty: its MF33 relative sd weighted by the yield integrand (groups taken as
 fully correlated, an upper bound). Verdict: "evaluations disagree beyond the data's spread" when (max - min) / mean of the
-evaluations' yields exceeds the data's spread, else "evaluations agree within the data".
+evaluations' yields exceeds the data's spread, "the data scatter too widely to judge" when that spread is over 50%,
+else "evaluations agree within the data". The spread in percent is 100 times the weighted standard deviation of the
+datasets' log ratios (close to a percent while small).
 """
 import io
 import json
@@ -384,15 +386,24 @@ def iaea_curve(code):
                     lines = [[str(c) for c in sh.row_values(i)] for i in range(sh.nrows)]
                 except Exception as e:  # noqa: BLE001
                     return None, f"{code}.zip has {names}; .xls not read ({str(e)[:80]})"
+        ycol = None  # the IAEA's physical yield column: the one whose unit in the header is MBq/uAh
+        for t in lines[:40]:
+            tl = [str(a).strip() for a in t]
+            if "MBq/uAh" in tl:
+                ycol = tl.index("MBq/uAh")
+                break
         for t in lines:
             try:
-                v = [float(a) for a in t[:4] if str(a).strip() != ""]
+                v = [float(a) for a in t[:3] if str(a).strip() != ""]
             except ValueError:
                 continue
             if len(v) >= 2 and 0 < v[0] < 1e4 and v[1] >= 0:
                 rows.append((v[0] * 1e6, v[1] * 1e-3, v[2] * 1e-3 if len(v) > 2 else None))
-                if len(v) > 3:
-                    ylds.append((v[0] * 1e6, v[3]))
+                if ycol is not None and len(t) > ycol:
+                    try:
+                        ylds.append((v[0] * 1e6, float(t[ycol])))
+                    except ValueError:
+                        pass
     rows = sorted(set(rows))
     if ylds:
         IAEA_YIELDS[code] = sorted(set(ylds))
@@ -635,6 +646,10 @@ def main():
             out["verdict"] = ("no thermal cumulative fission-yield data in EXFOR's serving table" if r["irr"] == "fission"
                               else "no EXFOR data over the irradiation's energies")
             out["verdict_detail"] = f"evaluations spread {out['eval_spread_pct']:.1f}%"
+        elif ds > 50:
+            out["verdict"] = "the data scatter too widely to judge the evaluations"
+            out["verdict_detail"] = (f"data spread {ds:.1f}% over {out['n_datasets']} datasets; evaluations spread "
+                                     f"{out['eval_spread_pct']:.1f}%")
         else:
             bad = out["eval_spread_pct"] > ds
             out["verdict"] = ("evaluations disagree beyond the data's spread" if bad
@@ -690,5 +705,28 @@ def write(routes, points, recommended, t0):
     print(json.dumps(st, indent=1))
 
 
+
+def register():
+    """Athena DDL for the three medical tables from their Parquet schemas; registered as nsr.sweep_<name>."""
+    import pyarrow.parquet as pq
+    ath = boto3.client("athena", region_name="us-east-2")
+    types = {"double": "double", "int64": "bigint", "string": "string", "large_string": "string", "bool": "boolean"}
+    for name in ("medical_routes", "medical_points", "medical_recommended"):
+        sch = pq.read_schema(f"{WORK}/{name}.parquet")
+        cols = ",\n  ".join(f"`{f.name}` {types.get(str(f.type), 'string')}" for f in sch)
+        ddl = (f"CREATE EXTERNAL TABLE `sweep_{name}` (\n  {cols}\n)\nSTORED AS PARQUET\n"
+               f"LOCATION 's3://{BUCKET}/{PREFIX}/{name}/'\nTBLPROPERTIES ('parquet.compression'='SNAPPY')")
+        s3.put_object(Bucket=BUCKET, Key=f"lake/_work/sweep/ddl/sweep_{name}.sql", Body=(ddl + ";\n").encode())
+        for stmt in (f"DROP TABLE IF EXISTS `sweep_{name}`", ddl):
+            qid = ath.start_query_execution(QueryString=stmt, QueryExecutionContext={"Database": "nsr"},
+                                            WorkGroup="nsrgpt")["QueryExecutionId"]
+            while True:
+                st = ath.get_query_execution(QueryExecutionId=qid)["QueryExecution"]["Status"]
+                if st["State"] in ("SUCCEEDED", "FAILED", "CANCELLED"):
+                    break
+                time.sleep(1)
+            print(name, st["State"], st.get("StateChangeReason", "")[:200])
+
+
 if __name__ == "__main__":
-    main()
+    register() if sys.argv[1:] == ["register"] else main()
