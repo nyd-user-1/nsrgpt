@@ -376,3 +376,41 @@ Failures and differences:
    console errors on the first (light) load; production and the box's dark load log none. Known since brief 54 (worker-2's
    section above: main logs the same 19); owner worker-2.
 3. Every other page rendered on both, in both themes, with no error left after the noise above.
+
+## worker-4 (briefs 60 and 62: GNDS 2.0, the reference data, the QA drive above)
+
+**GNDS 2.0.** Every ENDF-6 release in the lake compiled by LLNL FUDGE 6.14.0 on four boxes (nsr-gnds-1..4, m7i-flex.large;
+the account refuses larger types), from `lake/gnds/manifest.json` at 12:12 UTC, the compile still running:
+
+| Release | Materials | Converted | Failed | GB (gzip) | State | Most failures, FUDGE's cause |
+| --- | --- | --- | --- | --- | --- | --- |
+| B-VIII.1 | 5,135 | 5,125 | 10 | 1.25 | done | 7 evaluation dates FUDGE cannot read (thermal scattering); 2 unphysical MF12 gamma probabilities |
+| B-VIII.0 | 4,989 | 4,985 | 4 | 0.88 | done | 2 unphysical MF12 gamma probabilities |
+| B-VII.1 | 4,834 | 4,817 | 17 | 0.57 | done | 4 sub-actinide fission product ZAP |
+| JEFF-3.3 | 18,494 | 10,619 | 7,875 | 5.01 | done | 4,028 sub-actinide fission ZAP, 2,097 non-zero ground-state ELFS (the charged-particle sublibraries) |
+| JENDL-5 | 8,219 | 6,266 | 1,953 | 6.48 | done | 1,821 "Unexpected NT" (decay); 62 thermal-scattering targets FUDGE reads from a file name the IAEA tape lacks |
+| CENDL-3.2 | 272 | 243 | 29 | 0.26 | done | 7 evaluation dates, 7 resonance data not all converted |
+| TENDL-2023 | 19,901 | running | | | neutrons now (3–5 s a material), the other six sublibraries last | |
+| B-VII.0, B-VI.8, B-V, B-IV, B-III, B-II | | queued | | | after TENDL-2023's neutrons | |
+
+FUDGE's strict defaults throughout (no `--ignoreBadDate`, `--skipBadData`); every failure is a row in `nsr.gnds_files`
+with FUDGE's last 20 lines. Cap $10: $1.36 of compute at 12:12 UTC; the chain should end by about 11:00 ET, and the boxes
+end themselves by 15:30 ET whatever happens. On demand: `POST /jobs {kind: "gnds", params: {release, name, sub}}` or
+`{file_key}` for an upload (Pu-239 30 s, H-1 upload 1.1 s), and `GET /gnds`:
+https://daw1qggkn69lv.cloudfront.net/gnds?release=B-VIII.1&name=U-235&sub=neutrons →
+https://daw1qggkn69lv.cloudfront.net/lake/gnds/B-VIII.1/neutrons/9228.xml.gz (U-235 at 1 MeV reads back 1.2029 b
+through FUDGE, the ENDF-6 value). `GET /gnds/releases` gives the counts.
+
+**Reference data (brief 62), new routes**, through CloudFront, first call on a cold container then warm:
+
+| Route | Example | Cold | Warm |
+| --- | --- | --- | --- |
+| Stopping powers (IAEA, 274,092 measured values) | https://daw1qggkn69lv.cloudfront.net/stopping?projectile=p&target=Mo&emin=0.1&emax=10 | 4.2 s | 0.18 s |
+| RIPL-4 levels and gammas | https://daw1qggkn69lv.cloudfront.net/ripl/levels?name=Co-60 | 0.65 s | 0.18 s |
+| AME2020 masses | https://daw1qggkn69lv.cloudfront.net/ripl/masses?name=Co-60 | 0.19 s | 0.09 s |
+| BetaShape spectra (1,396) | https://daw1qggkn69lv.cloudfront.net/betashape?name=Sb-131 | 0.75 s | 0.15 s |
+| CoNDERC OpenMC benchmarks (84 runs) | https://daw1qggkn69lv.cloudfront.net/benchmarks | 0.20 s | 0.14 s |
+
+Also in the lake, not yet served: `nsr.iaea_records` (6,810, 1,569 DOIs), `nsr.iaea_record_files`, `nsr.iaea_cdroms`.
+Left out and why: nds.iaea.org, www-nds.iaea.org and amdis.iaea.org answer a Cloudflare challenge to a plain client, so
+RIPL-3's own files, 46 record data files (4.4 GB), the legacy pages and the AMDIS databases wait (brief 62's Result table).
