@@ -182,7 +182,8 @@ check tightens from 0.965–0.993 to 0.995–1.011 (mean deviation 2.2% to 0.4%)
 0.984 → 1.002, Ga-69(p,2n) 0.993 → 1.001, Mo-100(p,2n) 0.983 → 1.011, Y-89(p,n) 0.965 → 1.001; Th-232(p,x) 1.002 and
 Zn-68(p,2p) 0.992 stay on Bethe. Ra-226(p,2n) does not settle: no Ra measurement exists, and the two methods differ by
 at most 4% everywhere else, so its 1.358 is not a stopping-power effect; the IAEA page does not state the target its
-yield assumes (a compound such as RaCl2 would give about this factor), so it stays open. Verdicts are unchanged.
+yield assumes (a compound target such as RaCl2 would lower its figure by a factor of this order, about 1.5 by Bragg
+additivity), so it stays open. Verdicts are unchanged.
 
 **Left out, and why.** EXFOR datasets with a level or isomer in the product (5,051: the evaluations' isomeric splits are
 MF8/MF10, not parsed); quantity modifiers (35,729: Maxwellian, spectrum-averaged, relative, raw, derived, partial; the
