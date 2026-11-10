@@ -4,7 +4,8 @@
 # over several of these, nsr-gnds-1..N), Ubuntu 24.04, 100 GB gp3, reached through SSM (scripts/iaea/box/ssm.sh). Instance-initiated
 # shutdown TERMINATES it, and userdata.sh shuts it down after 12 hours, so it cannot outlive the night's $10 cap.
 # Role nsr-jobs-box (brief 51) with an inline policy nsr-gnds added here: write lake/gnds/*, lake/_work/gnds/* and the
-# lake's copy of FUDGE (raw/github/2026-11-10/LLNL/fudge/*); Athena and Glue for nsr.gnds_*. Tag project=nsr.
+# lake's copy of FUDGE (raw/github/2026-11-10/LLNL/fudge/*); read uploads (files/pdfs/workspace/*, the gnds job's
+# file_key on nsr-jobs-1, which shares the role); Athena and Glue for nsr.gnds_*. Tag project=nsr.
 #   ./scripts/gnds/box/create.sh [name] [type] [disk GB]    # prints the instance id
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -16,7 +17,7 @@ G=arn:aws:glue:us-east-2:613473203863
 T=$(mktemp -d)
 cat > $T/policy.json <<J
 {"Version":"2012-10-17","Statement":[
- {"Effect":"Allow","Action":"s3:GetObject","Resource":["$B/raw/github/2026-11-10/LLNL/fudge/*","$B/work/athena-results/*"]},
+ {"Effect":"Allow","Action":"s3:GetObject","Resource":["$B/raw/github/2026-11-10/LLNL/fudge/*","$B/work/athena-results/*","$B/files/pdfs/workspace/*"]},
  {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["$B/lake/gnds/*","$B/lake/_work/gnds/*","$B/raw/github/2026-11-10/LLNL/fudge/*","$B/work/athena-results/*"]},
  {"Effect":"Allow","Action":["athena:StartQueryExecution","athena:GetQueryExecution","athena:GetQueryResults","athena:StopQueryExecution","athena:GetWorkGroup"],"Resource":"arn:aws:athena:us-east-2:613473203863:workgroup/nsrgpt"},
  {"Effect":"Allow","Action":["glue:GetDatabase","glue:GetDatabases","glue:GetTable","glue:GetTables","glue:CreateTable","glue:UpdateTable","glue:DeleteTable","glue:GetPartition","glue:GetPartitions","glue:BatchGetPartition","glue:CreatePartition","glue:BatchCreatePartition","glue:UpdatePartition","glue:DeletePartition","glue:BatchDeletePartition"],"Resource":["$G:catalog","$G:database/nsr","$G:table/nsr/gnds_*"]}]}

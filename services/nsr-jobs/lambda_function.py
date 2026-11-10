@@ -5,7 +5,8 @@
 #                                    {kind: "gnds", params: {release, name | mat, sub}} (brief 60): the material compiled
 #                                    from ENDF-6 to GNDS 2.0 by LLNL FUDGE; when lake/gnds/ already holds it (the
 #                                    precompiled set, lake/gnds/<release>/index.json) the answer is 200 {precompiled:
-#                                    true, url, cov_url, ...} and no job runs
+#                                    true, url, cov_url, ...} and no job runs; or {kind: "gnds", params: {file_key}}: an
+#                                    uploaded ENDF-6 file (files/pdfs/workspace/<yyyy-mm>/<name>, up to 50 MB)
 #                                    x-nsr-write-key must match NSR_WRITE_KEY (as /community); the app proxies it. A
 #                                    queued, running or done job of the same kind, release, material, sub and mt whose
 #                                    temps_k include every requested one is returned instead (200, reused: true);
@@ -35,6 +36,7 @@ CDN = os.environ.get("CDN", "https://daw1qggkn69lv.cloudfront.net")
 KINDS = {"broaden", "gnds"}
 RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]
 GNDS_RELEASES = RELEASES + ["B-V", "B-IV", "B-III", "B-II"]  # every ENDF-6 release in the lake (brief 60)
+UPLOAD = re.compile(r"files/pdfs/workspace/\d{4}-\d{2}/[^/\\]{1,200}")
 _index = {}
 STATUSES = ("queued", "running", "done", "failed")
 db = boto3.client("dynamodb", region_name=REGION)
@@ -98,6 +100,20 @@ def material_name(s):  # copied from services/nsr-api/structure.py
 
 
 def check_gnds(p):
+    if p.get("file_key"):  # an uploaded ENDF-6 file (services/nsr-api/community.py /files), compiled as uploaded
+        key = str(p["file_key"])
+        if not UPLOAD.fullmatch(key) or ".." in key:
+            raise ValueError("params.file_key is an upload's key: files/pdfs/workspace/<yyyy-mm>/<name>")
+        try:
+            h = client("s3").head_object(Bucket=BUCKET, Key=key)
+        except Exception:  # noqa: BLE001
+            h = None
+        if not h:
+            raise ValueError(f"no upload at {key}")
+        if h["ContentLength"] > 50 * 1024 * 1024:
+            raise ValueError("an upload compiles up to 50 MB")
+        # the ETag keeps a re-upload under the same key from reusing the earlier job
+        return {"file_key": key, "etag": h["ETag"].strip('"'), "bytes": h["ContentLength"]}
     if p.get("release") not in GNDS_RELEASES:
         raise ValueError(f"params.release is one of {', '.join(GNDS_RELEASES)}")
     if not (p.get("name") or p.get("mat")):
@@ -173,7 +189,7 @@ def existing(kind, params):
 
 def submit(body, context):
     kind, params = check(body)
-    if kind == "gnds" and not body.get("fresh"):
+    if kind == "gnds" and "release" in params and not body.get("fresh"):
         pre = precompiled(params)
         if pre:
             return reply(200, {"precompiled": True, "status": "done", "kind": kind, "params": params, **pre})

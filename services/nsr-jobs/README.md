@@ -21,7 +21,10 @@ and its CloudFront distribution (`https://daw1qggkn69lv.cloudfront.net`), Dynamo
 - A `POST` whose job is already queued, running or done (same kind, release, material, sub and mt, and `temps_k` covered
   by that job's) returns that job with `reused: true`; `{fresh: true}` in the body runs it again.
 - `gnds` `params` (brief 60): `release` any of the 13 ENDF-6 releases in the lake (the nine below and B-V, B-IV, B-III,
-  B-II), `name` (normalised: `u235` is `U-235`) or `mat`, `sub` (default `neutrons`). When done the row also carries `url`
+  B-II), `name` (normalised: `u235` is `U-235`) or `mat`, `sub` (default `neutrons`). Or `{file_key}`: an uploaded ENDF-6 file
+  (`files/pdfs/workspace/<yyyy-mm>/<name>`, the key `/files` gives, up to 50 MB), compiled as uploaded under its own
+  name; the Lambda adds its `etag` and `bytes` to the params, so a re-upload under the same key runs again. The result
+  carries `file_key`, `release` and `sublibrary` `upload`, and the MAT, ZA and name from its MF1 MT451. H-1 (671 KB): 1.1 s. When done the row also carries `url`
   and `cov_url` (CloudFront, `/lake/jobs/<id>/<mat>.xml.gz` and `.cov.xml.gz`); a second POST for the same material
   returns the first job (`reused: true`).
 - `params`: `release` one of B-VIII.1, B-VIII.0, B-VII.1, B-VII.0, B-VI.8, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2;

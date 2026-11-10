@@ -1,6 +1,7 @@
 """Brief 60: one ENDF-6 -> GNDS 2.0 compile on nsr-jobs-1, run by run.sh as  gnds.py <job id>.
 
-1. Reads the job row from DynamoDB nsrgpt-jobs: params {release, name | mat, sub}.
+1. Reads the job row from DynamoDB nsrgpt-jobs: params {release, name | mat, sub}, or {file_key, etag, bytes} for an
+   uploaded ENDF-6 file (files/pdfs/workspace/<yyyy-mm>/<name>, up to 50 MB), compiled as uploaded.
 2. Finds the material in lake/endfb/<release>/materials/ (every release, ENDF/B's folder names read as the word:
    neutrons-version.VIII.1 is neutrons) and writes the whole material, every MF, from lake/endfb/<release>/records/ as a
    tape (broaden.py's tape(), all files kept), cached in /data/tapes.
@@ -125,6 +126,45 @@ def tape(release, m):
     return path
 
 
+def efloat(s):  # copied from broaden.py (Fortran 1.234567+5 and plain floats)
+    s = s.strip()
+    if not s:
+        return 0.0
+    try:
+        return float(s)
+    except ValueError:
+        pass
+    t = s.replace("D", "E").replace("d", "e").replace(" ", "")
+    for i in range(len(t) - 1, 0, -1):
+        if t[i] in "+-" and t[i - 1] not in "Ee":
+            t = t[:i] + "E" + t[i:]
+            break
+    return float(t)
+
+
+def uploaded(p):
+    """An uploaded ENDF-6 file (params.file_key, files/pdfs/workspace/<yyyy-mm>/<name>, checked by the Lambda) compiled
+    as uploaded, under its own name (FUDGE reads a thermal-scattering target from it). MAT, ZA and LISO come from its
+    first MF1 MT451 section."""
+    key = p["file_key"]
+    path = f"/data/uploads/{JOB}/{os.path.basename(key)}"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    s3.download_file(BUCKET, key, path)
+    if os.path.getsize(path) > 50 * 1024 * 1024:
+        raise Failed("an upload compiles up to 50 MB")
+    head = []
+    with open(path, encoding="latin-1") as f:
+        for ln in f:
+            if ln[70:75] == " 1451":
+                head.append(ln)
+                if len(head) == 2:
+                    break
+    if len(head) < 2:
+        raise Failed(f"{os.path.basename(key)} has no MF1 MT451 section: not an ENDF-6 material")
+    za, mat = efloat(head[0][0:11]), int(head[0][66:70])
+    liso = int(efloat(head[1][33:44]))
+    return {"mat": mat, "za": za, "liso": liso, "name": derived_name(za, liso), "file_name": key}, path
+
 def gz_put(src, key, filename):
     dst = src + ".gz"
     with open(src, "rb") as fi, gzip.open(dst, "wb", compresslevel=6) as fo:
@@ -139,14 +179,18 @@ def main():
     item = db.get_item(TableName=TABLE, Key={"id": {"S": JOB}})["Item"]
     p = json.loads(item["params"]["S"])
     update(status="running", started_at=now())
-    release, sub = p["release"], p.get("sub") or "neutrons"
+    upload = bool(p.get("file_key"))
+    release, sub = ("upload", "upload") if upload else (p["release"], p.get("sub") or "neutrons")
     shutil.rmtree(WD, ignore_errors=True)
     os.makedirs(WD)
     timings = {}
     try:
-        m = material(release, sub, p.get("name"), p.get("mat"))
         t = time.time()
-        src = tape(release, m)
+        if upload:
+            m, src = uploaded(p)
+        else:
+            m = material(release, sub, p.get("name"), p.get("mat"))
+            src = tape(release, m)
         timings["tape_s"] = round(time.time() - t, 2)
         t = time.time()
         stem = str(m["mat"])
@@ -164,13 +208,14 @@ def main():
             raise Failed(f"endf2gnds exit {rc}\n{tail}")
         with open(xml, "rb") as f:
             head = f.read(4096).decode("utf-8", "replace")
-        fm = re.search(r'<reactionSuite[^>]*\sformat="([^"]+)"', head)
-        base = f"{release}_{sub}_{m['name']}".replace("/", "-")
+        fm = re.search(r'<reactionSuite[^>]*\sformat="([^"]+)"', head) or re.search(r'\sformat="([^"]+)"', head)
+        base = (os.path.splitext(os.path.basename(p["file_key"]))[0] if upload else f"{release}_{sub}_{m['name']}").replace("/", "-")
         key = f"lake/jobs/{JOB}/{stem}.xml.gz"
         out = {"name": m["name"], "mat": m["mat"], "za": int(m["za"] or 0), "release": release, "sublibrary": sub,
                "key": key, "url": f"{CDN}/{key}", "bytes": gz_put(xml, key, f"{base}.gnds.xml.gz"),
                "xml_bytes": os.path.getsize(xml), "cov_key": None, "cov_url": None, "cov_bytes": None,
-               "gnds_version": fm.group(1) if fm else None, "fudge_version": FUDGE_VERSION}
+               "gnds_version": fm.group(1) if fm else None, "fudge_version": FUDGE_VERSION,
+               **({"file_key": p["file_key"]} if upload else {})}
         covs = [c for c in glob.glob(f"{WD}/**/*.xml", recursive=True) if c != xml]  # Covariances/<stem>-covar.xml
         if covs:
             out["cov_key"] = f"lake/jobs/{JOB}/{stem}.cov.xml.gz"
@@ -191,6 +236,7 @@ def main():
         sys.exit(1)
     finally:
         shutil.rmtree(WD, ignore_errors=True)
+        shutil.rmtree(f"/data/uploads/{JOB}", ignore_errors=True)
 
 
 if __name__ == "__main__":
