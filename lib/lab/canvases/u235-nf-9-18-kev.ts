@@ -11,6 +11,11 @@ const EMIN = 1e3
 const EMAX = 2e5
 const WINDOW: [number, number] = [9e3, 1.8e4]
 
+/** Checked on the dev box (2026-11-09): inside 9 to 18 keV every release's 300 K and 900 K curve equals its 0 K MF3 at every
+ *  point, because PREPRO copies U-235's unresolved resonance range, which holds the window, without broadening. */
+export const U235_NF_NOTE =
+  "Between 9 and 18 keV the 300 K curves equal the 0 K evaluations: PREPRO copies the unresolved resonance range, which holds this window, without broadening."
+
 export const U235_NF_PROMPT =
   "Where do the measurements and the evaluations part on U-235 (n,f) between 9 and 18 keV, by how much, and which measurements carry it? Cite the EXFOR entries and the papers."
 
@@ -49,7 +54,7 @@ export const U235_NF_CANVAS: Canvas = {
     block("endf", "data", "ENDF: U-235 MT18", 0, 340, { source: "endf", name: "U-235", mt: 18, releases: RELEASES, emin: EMIN, emax: EMAX }),
     block("cov", "data", "Covariance: U-235 MT18", 0, 680, { source: "cov", name: "U-235", mt: 18, releases: RELEASES, emin: EMIN, emax: EMAX }),
     block("broaden", "process", "Broaden to 300 K", 360, 100, { op: "broaden", name: "U-235", mt: 18, releases: RELEASES, temperatures: [300], emin: EMIN, emax: EMAX }),
-    block("compare", "compare", "Measured against evaluated", 360, 430, { binsPerDecade: 20, emin: EMIN, emax: EMAX, highlight: WINDOW }),
+    block("compare", "compare", "Measured against evaluated", 360, 430, { binsPerDecade: 20, emin: EMIN, emax: EMAX, highlight: WINDOW, note: U235_NF_NOTE }),
     block("plot", "plot", "σ against energy", 720, 0, { mode: "both", highlight: WINDOW }),
     block("prompt", "prompt", "Where they part", 720, 580, { prompt: U235_NF_PROMPT }, false),
   ],

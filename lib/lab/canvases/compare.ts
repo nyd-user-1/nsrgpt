@@ -17,7 +17,8 @@ export type EvalCurve = { name: string; x: number[]; y: number[] }
 /** An MF33 group: the evaluation's relative standard deviation between two energies. */
 export type CovGroup = { e_lo_ev: number; e_hi_ev: number; rel_sd: number }
 
-export type CompareOptions = { perDecade?: number; emin: number; emax: number; highlight?: readonly [number, number] }
+/** `note`: one plain sentence the Compare carries with its table, e.g. where a broadened curve was copied, not broadened. */
+export type CompareOptions = { perDecade?: number; emin: number; emax: number; highlight?: readonly [number, number]; note?: string }
 
 export type CompareBin = {
   evaluation: string
@@ -211,11 +212,15 @@ export function compareOutputs(points: Dataset | undefined, evaluations: Series[
   const curves = evaluations.map((s) => ({ name: s.name, x: s.x, y: s.y }))
   const res = compare(pointsFrom(points), curves, opts, bandsFrom(band, evaluations))
   const meta = new Map(evaluations.map((s) => [s.name, s.meta]))
+  // PREPRO copies the unresolved resonance range without broadening (window-1's `method`): say so with the table, so a
+  // broadened curve isn't taken for one where it equals 0 K. The canvas's own sentence, when it gives one, says where.
+  const copied = evaluations.some((s) => typeof s.meta?.method === "string" && /not broadened/i.test(s.meta.method))
+  const note = opts.note ?? (copied ? "The broadened curves come from PREPRO, which copies the unresolved resonance range without broadening, so inside that range they equal 0 K." : undefined)
   return {
     bins: {
       columns: ["evaluation", "e_lo", "e_hi", "n_points", "mean_ratio", "sd", "rel_sd_eval"],
       rows: res.bins,
-      meta: { window: res.window, highlight: opts.highlight ?? null, binsPerDecade: opts.perDecade ?? 20 },
+      meta: { window: res.window, highlight: opts.highlight ?? null, binsPerDecade: opts.perDecade ?? 20, ...(note ? { note } : {}) },
     },
     ratio: res.ratios.map((r) => ({ ...r, meta: { ...meta.get(r.name), ratio_of: r.name } })),
   }
@@ -233,6 +238,7 @@ export function compareContext(bins: Dataset, points?: Dataset): string {
   )
   const f = (v: number | null, d = 3) => (v === null || !Number.isFinite(v) ? "—" : v.toFixed(d))
   const lines: string[] = []
+  if (typeof bins.meta?.note === "string") lines.push(bins.meta.note, "")
   for (const w of window) {
     lines.push(
       `${w.evaluation}, ${w.e_lo} to ${w.e_hi} eV: mean measured/evaluated ${f(w.mean_ratio)} (weighted ${f(w.weighted_ratio)}, sd ${f(w.sd)}) over ${w.n_points} points from ${w.n_datasets} datasets; the evaluation's own relative sd there ${f(w.rel_sd_eval)}.`,
