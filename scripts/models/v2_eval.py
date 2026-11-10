@@ -70,6 +70,10 @@ for name, path in MODELS.items():
         emb[cname] = m.encode(c["text"], batch_size=256, normalize_embeddings=True, convert_to_tensor=True,
                               show_progress_bar=False)
         log(name, cname, len(c["text"]), f"{time.time() - t:.0f}s")
+        if name == "v2" and cname == "papers":  # kept for serving (Part D): the search Lambda's vectors, in corpus order
+            import numpy as np
+            np.save(f"{OUT}/v2-papers.f16.npy", emb[cname].cpu().numpy().astype(np.float16))
+            json.dump(c["id"], open(f"{OUT}/v2-papers.ids.json", "w"))
     qe = m.encode([t[3] for t in tasks], batch_size=256, normalize_embeddings=True, convert_to_tensor=True,
                   show_progress_bar=False)
     acc = {}
