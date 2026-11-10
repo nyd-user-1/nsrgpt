@@ -5,7 +5,8 @@ import { compareOutputs, type WindowSummary } from "@/lib/lab/canvases/compare"
 // The arithmetic is lib/lab/canvases/compare.ts (window-2-ui-layer, brief 53), shared with the default canvas. Pure client
 // code. Points come as the EXFOR dataset (`points`) or as curves (`data`).
 
-export type CompareParams = { binsPerDecade: number; emin: number; emax: number; highlight?: [number, number] }
+/** `note`: one sentence the table carries (lib/lab/canvases/compare.ts), e.g. where a broadened curve was copied. */
+export type CompareParams = { binsPerDecade: number; emin: number; emax: number; highlight?: [number, number]; note?: string }
 
 export const compare: KindDef<CompareParams> = {
   kind: "compare",
@@ -27,8 +28,13 @@ export const compare: KindDef<CompareParams> = {
       emin: p.emin,
       emax: p.emax,
       highlight: p.highlight,
+      note: p.note,
     })
     return { bins, ratio }
+  },
+  note: (o) => {
+    const n = (o.bins as Dataset | undefined)?.meta?.note
+    return typeof n === "string" ? n : undefined
   },
   summary(o) {
     const w = ((o.bins as Dataset | undefined)?.meta?.window ?? []) as WindowSummary[]

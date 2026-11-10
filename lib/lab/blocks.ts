@@ -78,6 +78,8 @@ export type KindDef<P extends Record<string, unknown> = Record<string, unknown>>
   run: (params: P, inputs: Inputs, ctx: RunContext) => Promise<Outputs>
   /** The block foot's one line for its outputs, e.g. "1.2K rows · 3 series". */
   summary?: (outputs: Outputs) => string
+  /** One plain sentence the block shows above its foot when its output needs it, e.g. what a job did not do. */
+  note?: (outputs: Outputs) => string | undefined
 }
 
 export const isSeries = (v: unknown): v is Series =>

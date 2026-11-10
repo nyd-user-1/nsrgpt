@@ -91,6 +91,7 @@ function BlockView({ block, onBack }: { block: Block; onBack: () => void }) {
           <div className="mt-4 space-y-1 text-xs text-[var(--paper-muted)]">
             {block.state.status === "failed" && <p className="break-words text-[#b42318] dark:text-[#f97066]">{block.state.error}</p>}
             {out && kind.summary && <p>{kind.summary(out)}</p>}
+            {out && kind.note?.(out) && <p>{kind.note(out)}</p>}
             {notesOf(out).map((n) => <p key={n}>{n}</p>)}
           </div>
         </InsetBody>

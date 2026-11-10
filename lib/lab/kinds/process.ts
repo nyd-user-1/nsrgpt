@@ -1,4 +1,4 @@
-import type { KindDef, RunContext, Series } from "@/lib/lab/blocks"
+import { seriesList, type KindDef, type RunContext, type Series } from "@/lib/lab/blocks"
 import { describe, window } from "@/lib/lab/format"
 
 // Process (brief 52): a job on the box through app/api/jobs/route.ts, the proxy to Lambda nsr-jobs (brief 51). Broaden:
@@ -58,7 +58,7 @@ async function jobFor(ctx: RunContext, body: object): Promise<Job> {
   return p
 }
 
-type Result = { mat?: number; n_points?: number; energy_ev?: number[]; xs_barn?: number[]; error?: string }
+type Result = { mat?: number; n_points?: number; energy_ev?: number[]; xs_barn?: number[]; method?: string; error?: string }
 
 const query = (o: Record<string, unknown>) =>
   new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined && v !== null).map(([k, v]) => [k, String(v)])).toString()
@@ -86,7 +86,7 @@ async function broadenOne(p: ProcessParams, release: string, ctx: RunContext, re
       const j = (await r.json().catch(() => ({}))) as Result
       if (!r.ok) throw new Error(`${release} ${t} K: ${j.error ?? `the result answered ${r.status}`}`)
       return window(
-        { name: `${release} ${t} K`, x: j.energy_ev ?? [], y: j.xs_barn ?? [], unit_x: "eV", unit_y: "b", meta: { release, temp_k: t, mat: j.mat, n_points: j.n_points, job: job.id } },
+        { name: `${release} ${t} K`, x: j.energy_ev ?? [], y: j.xs_barn ?? [], unit_x: "eV", unit_y: "b", meta: { release, temp_k: t, mat: j.mat, n_points: j.n_points, job: job.id, method: j.method } },
         p.emin,
         p.emax,
       )
@@ -111,5 +111,7 @@ export const process: KindDef<ProcessParams> = {
     const all = await Promise.all(p.releases.map((r) => broadenOne(p, r, ctx, report(r))))
     return { series: all.flat() }
   },
+  // PREPRO copies the unresolved resonance range (nsr-jobs' `method`): a curve there is the 0 K one, and the block says so.
+  note: (o) => (seriesList(o.series).some((s) => /not broadened/i.test(String(s.meta?.method ?? ""))) ? "Unresolved resonance range copied, not broadened." : undefined),
   summary: (o) => describe(o.series),
 }

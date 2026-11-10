@@ -71,6 +71,7 @@ function BlockNodeInner({ id }: NodeProps) {
   const Icon = KIND_ICON[block.kind]
   const running = block.state.status === "running"
   const summary = out ? kind.summary?.(out) ?? "" : ""
+  const note = out ? kind.note?.(out) : undefined
   const copyOutput = async () => {
     if (!out) return toast.info("Run the block first")
     const vals = Object.values(out).filter((v) => v !== undefined)
@@ -161,6 +162,7 @@ function BlockNodeInner({ id }: NodeProps) {
         <Ports ports={block.outputs} side="out" />
       </div>
       <div className="px-2.5 pb-2 pt-2">{body}</div>
+      {note && <p className="px-2.5 pb-2 text-[11px] leading-snug text-[var(--paper-muted)]">{note}</p>}
       <div className="flex min-h-7 items-center border-t border-[var(--paper-rule)] px-2.5 py-1 text-[11px] text-[var(--paper-muted)]">
         <Status block={block} summary={block.kind === "plot" && inputs ? plotSummary(((inputs.points ?? []).find(isDataset) as Dataset | undefined)?.rows.length ?? 0, [...(inputs.series ?? []), ...(inputs.ratio ?? [])].flatMap(seriesList).length) : summary} />
       </div>
