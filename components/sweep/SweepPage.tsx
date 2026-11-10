@@ -47,8 +47,8 @@ const LINK = "underline decoration-[var(--paper-rule)]/30 underline-offset-2 hov
 const INPUT = "h-8 w-full rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)] px-2 text-[12px] text-[var(--paper-text)] outline-none placeholder:text-[var(--paper-faint)] focus:border-[var(--paper-text)]"
 const DEFAULT_RELEASES = ["B-VIII.1", "B-VIII.0", "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]
 
-/** "(n,f)" from "N,F". */
-export const reactionText = (r: string) => (r ? `(${r.toLowerCase()})` : "—")
+/** "(n,f)" from "N,F"; a reaction the route already writes "(n,α)" stays as it is. */
+export const reactionText = (r: string) => (!r ? "—" : r.startsWith("(") ? r : `(${r.toLowerCase()})`)
 const fixed = (v: number | null, d: number) => (v === null || !Number.isFinite(v) ? "—" : v.toFixed(d))
 const pct = (v: number | null) => (v === null || !Number.isFinite(v) ? "—" : `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`)
 
@@ -363,7 +363,7 @@ function FlagsTab() {
                 <td className={`${TD} text-right tabular-nums`}>
                   {pctText(r.max_bin_dev)} <span className="text-[var(--paper-faint)]">at {evText(r.max_bin_e_ev)}</span>
                 </td>
-                <td className={`${TD} text-right tabular-nums`}>{pct(r.rel_sd_eval)}</td>
+                <td className={`${TD} text-right tabular-nums`}>{r.mf33 ? pct(r.rel_sd_eval) : "—"}</td>
                 <td className="px-2 py-1.5">
                   {r.datasets.map((d, i) => (
                     <span key={d.subentry}>
@@ -378,6 +378,18 @@ function FlagsTab() {
           </tbody>
         </table>
       </div>
+      {flags.publicLists.length > 0 && (
+        <p className="-mt-6 mb-8 text-[11px] text-[var(--paper-faint)]">
+          Public lists read:{" "}
+          {flags.publicLists.map((p, i) => (
+            <span key={p.url}>
+              {i > 0 && " · "}
+              <a href={p.url} target="_blank" rel="noopener noreferrer" className={LINK}>{new URL(p.url).hostname}</a>
+              {p.n !== null && ` (${p.n})`}
+            </span>
+          ))}
+        </p>
+      )}
       <p className={caption}>EXFOR datasets by rule</p>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse" style={MONO}>
@@ -389,7 +401,7 @@ function FlagsTab() {
               <th className={`${TH} text-right`}>Year</th>
               <th className={TH}>Pair</th>
               <th className={TH}>Finding</th>
-              <th className={TH}>Paper</th>
+              <th className={TH}>Reference</th>
             </tr>
           </thead>
           <tbody>
@@ -408,6 +420,10 @@ function FlagsTab() {
                 <td className={TD}>
                   {r.nsr_key ? (
                     <Link href={`/datasets/nsr/${encodeURIComponent(r.nsr_key)}`} className={LINK}>{r.nsr_key}</Link>
+                  ) : r.reference ? (
+                    <Link href={`/datasets/exfor/${encodeURIComponent(r.entry || r.subentry)}`} className={LINK} title="The EXFOR entry, with its NSR paper">
+                      {r.reference}
+                    </Link>
                   ) : (
                     "—"
                   )}

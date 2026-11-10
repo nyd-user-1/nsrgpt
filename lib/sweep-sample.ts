@@ -69,10 +69,13 @@ export const SAMPLE_PAIR: SweepPair = {
         n: 120,
         mean_log_ratio: 0.03 * (k - 1),
         se: 0.012,
+        e_min: 1e3,
+        e_max: 1e6,
         points: bins.map((b, i) => [b.e_mid * (1 + k * 0.05), Math.exp(0.04 * Math.sin(i / 2) + 0.03 * (k - 1))] as [number, number]),
       })),
     },
   ],
+  lab: null,
 }
 
 export const SAMPLE_RETRO: SweepRetro = {
@@ -85,9 +88,10 @@ export const SAMPLE_RETRO: SweepRetro = {
 }
 
 export const SAMPLE_FLAGS: SweepFlags = {
-  evaluation: SAMPLE_LIST.rows.slice(0, 3).map((r) => ({ target: r.target, mt: r.mt, reaction: r.reaction, sublibrary: r.sublibrary, z: r.z, datasets: [{ subentry: "10003002", author: "Sample A", year: 1970 }], max_bin_dev: r.max_bin_dev, max_bin_e_ev: r.max_bin_e_ev, rel_sd_eval: r.rel_sd_eval })),
+  evaluation: SAMPLE_LIST.rows.slice(0, 3).map((r) => ({ target: r.target, mt: r.mt, reaction: r.reaction, sublibrary: r.sublibrary, z: r.z, datasets: [{ subentry: "10003002", author: "Sample A", year: 1970 }], max_bin_dev: r.max_bin_dev, max_bin_e_ev: r.max_bin_e_ev, rel_sd_eval: r.rel_sd_eval, mf33: r.mf33 })),
   exfor: [
-    { rule: "a", subentry: "10003002", entry: "10003", author: "Sample A", year: 1970, target: "U-235", mt: 18, reaction: "N,F", note: "units MB read as B", nsr_key: null },
-    { rule: "b", subentry: "20826003", entry: "20826", author: "Sample B", year: 1985, target: "Fe-56", mt: 102, reaction: "N,G", note: "median ratio 1000 to every evaluation", nsr_key: null },
+    { rule: "a", subentry: "10003002", entry: "10003", author: "Sample A", year: 1970, target: "U-235", mt: 18, reaction: "N,F", note: "units MB read as B", nsr_key: null, reference: "" },
+    { rule: "b", subentry: "20826003", entry: "20826", author: "Sample B", year: 1985, target: "Fe-56", mt: 102, reaction: "N,G", note: "median ratio 1000 to every evaluation", nsr_key: null, reference: "" },
   ],
+  publicLists: [],
 }

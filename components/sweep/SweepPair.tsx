@@ -13,8 +13,8 @@ import { RELEASE_SLOT, SLOTS, energyLabel, exforHref } from "@/lib/lab/canvases/
 import { evText, fetchPair, pctText, type PairRelease, type SweepPair } from "@/lib/sweep"
 
 // /sweep/pair (brief 58, Part C.1, 2026-11-10): one sweep pair, as a /sweep row opens it in the second panel. The bins as
-// a ratio chart in the Lab's plot style (lib/lab/canvases/plot.ts): every point measured over evaluated, hollow in the
-// paper's ink, one series per dataset; the evaluation's MF33 band 1 ± sd in its colour at low alpha; the bin means in its
+// a ratio chart in the Lab's plot style (lib/lab/canvases/plot.ts): each dataset measured over evaluated, hollow in the
+// paper's ink, as its points where the route gives them, else as its mean ratio across its energy span; the evaluation's MF33 band 1 ± sd in its colour at low alpha; the bin means in its
 // colour; a rule at 1. Beneath, the per-dataset table, each subentry linking to its record, and Open in the Lab, which
 // opens the pair's canvas (lib/lab/canvases/from-pair.ts) in the main panel.
 
@@ -37,16 +37,16 @@ function ratioOption(rel: PairRelease, dark: boolean) {
   const bins = rel.bins.filter((b) => b.e_lo > 0 && b.e_hi > 0)
   // The band: one rectangle per bin, from its lower edge to its upper, 1 ± the evaluation's relative sd.
   const band = bins.filter((b) => b.rel_sd_eval !== null).map((b) => [{ xAxis: b.e_lo, yAxis: 1 - b.rel_sd_eval! }, { xAxis: b.e_hi, yAxis: 1 + b.rel_sd_eval! }])
-  const series: Record<string, unknown>[] = rel.datasets.map((d) => ({
-    id: `exfor:${d.dataset}`,
-    name: [d.author, d.year].filter(Boolean).join(" ") || d.dataset,
-    type: "scatter",
-    symbol: "circle",
-    symbolSize: 5,
-    itemStyle: { color: "transparent", borderColor: ink, borderWidth: 1, opacity: 0.7 },
-    data: d.points,
-    z: 2,
-  }))
+  const name = (d: PairRelease["datasets"][number]) => [d.author, d.year].filter(Boolean).join(" ") || d.dataset
+  const series: Record<string, unknown>[] = rel.datasets.flatMap((d): Record<string, unknown>[] => {
+    if (d.points.length)
+      return [{ id: `exfor:${d.dataset}`, name: name(d), type: "scatter", symbol: "circle", symbolSize: 5, itemStyle: { color: "transparent", borderColor: ink, borderWidth: 1, opacity: 0.7 }, data: d.points, z: 2 }]
+    // The route gives each dataset's mean over its span: a thin ink segment at that ratio, a hollow dot at each end.
+    if (d.mean_log_ratio === null || d.e_min === null || d.e_max === null || d.e_min <= 0) return []
+    const y = Math.exp(d.mean_log_ratio)
+    const ends = d.e_max > d.e_min ? [[d.e_min, y], [d.e_max, y]] : [[d.e_min, y]]
+    return [{ id: `exfor:${d.dataset}`, name: name(d), type: "line", symbol: "circle", symbolSize: 4, lineStyle: { width: 1, color: ink, opacity: 0.45 }, itemStyle: { color: "transparent", borderColor: ink, borderWidth: 1, opacity: 0.7 }, data: ends, z: 2 }]
+  })
   series.push({
     id: `bins:${rel.release}`,
     name: rel.release,
@@ -60,6 +60,9 @@ function ratioOption(rel: PairRelease, dark: boolean) {
     ...(band.length ? { markArea: { silent: true, itemStyle: { color: rgba(c, 0.15) }, data: band } } : {}),
     z: 3,
   })
+  // The energy axis spans the bins and the datasets, to whole decades (left to itself, a log axis ran from 1e-10 eV).
+  const es = [...bins.flatMap((b) => [b.e_lo, b.e_hi]), ...rel.datasets.flatMap((d) => [d.e_min ?? NaN, d.e_max ?? NaN, ...d.points.map((p) => p[0])])].filter((e) => Number.isFinite(e) && e > 0)
+  const span = es.length ? { min: 10 ** Math.floor(Math.log10(Math.min(...es))), max: 10 ** Math.ceil(Math.log10(Math.max(...es))) } : {}
   return {
     backgroundColor: "transparent",
     animation: false,
@@ -71,7 +74,7 @@ function ratioOption(rel: PairRelease, dark: boolean) {
         return `${p.seriesName}<br/>${energyLabel(e)}: measured / evaluated ${y.toFixed(3)}`
       },
     },
-    xAxis: { type: "log", name: "Energy", nameLocation: "middle", nameGap: 26, nameTextStyle: { color: muted }, axisLabel: { color: muted, fontSize: 10, formatter: energyLabel }, axisLine: { lineStyle: { color: rule } }, splitLine: { show: false } },
+    xAxis: { type: "log", ...span, name: "Energy", nameLocation: "middle", nameGap: 26, nameTextStyle: { color: muted }, axisLabel: { color: muted, fontSize: 10, formatter: energyLabel }, axisLine: { lineStyle: { color: rule } }, splitLine: { show: false } },
     yAxis: { type: "value", name: "Measured / evaluated", scale: true, nameTextStyle: { color: muted }, axisLabel: { color: muted, fontSize: 10 }, axisLine: { show: true, lineStyle: { color: rule } }, splitLine: { lineStyle: { color: rule, type: "dashed" } } },
     dataZoom: [{ type: "inside", xAxisIndex: 0, filterMode: "none" }],
     series,
@@ -124,9 +127,10 @@ export function SweepPairView() {
   if (!target || !mt) return <p className="p-5 text-[13px] text-[var(--paper-muted)]">Open a pair from the sweep.</p>
   const rel = pair?.releases.find((r) => r.release === shown) ?? pair?.releases[0]
   const bins = rel?.bins ?? []
-  const lab = {
+  // The route's own Lab pair (its reaction the EXFOR field the Lab's Data block takes), else one built from the bins.
+  const lab = pair?.lab ?? {
     target,
-    reaction: pair?.reaction || "",
+    reaction: pair?.reaction?.replace(/^\(|\)$/g, "").toUpperCase() || "",
     mt,
     emin: bins.length ? Math.min(...bins.map((b) => b.e_lo)) : undefined,
     emax: bins.length ? Math.max(...bins.map((b) => b.e_hi)) : undefined,
