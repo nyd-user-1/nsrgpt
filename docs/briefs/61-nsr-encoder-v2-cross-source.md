@@ -68,3 +68,41 @@ the reason; the GPU box terminated; spend in the report; one final report to `le
 
 ## Kickoff
 `Read ~/Code/nsrgpt/docs/briefs/61-nsr-encoder-v2-cross-source.md and do it; report to lead-agent after each part.`
+
+## Result (2026-11-10, worker-1)
+
+v2 wins on the cross-source benchmark and holds on the paper task, so it is served behind a switch (Part D below).
+
+| Task | Group | n | bge-m3 R@10 / MRR | nsr-encoder v1 R@10 / MRR | nsr-encoder v2 R@10 / MRR |
+| --- | --- | ---: | --- | --- | --- |
+| cross-source | all | 10,000 | 0.636 / 0.530 | 0.673 / 0.585 | 0.870 / 0.763 |
+| cross-source | endf_nsr | 364 | 0.014 / 0.007 | 0.019 / 0.009 | 0.802 / 0.512 |
+| cross-source | ensdf_nsr | 2,500 | 0.166 / 0.087 | 0.138 / 0.063 | 0.563 / 0.330 |
+| cross-source | ex_nsr | 3,136 | 0.917 / 0.820 | 0.970 / 0.919 | 0.969 / 0.891 |
+| cross-source | nuclide | 2,000 | 0.972 / 0.876 | 0.993 / 0.922 | 1.000 / 0.996 |
+| cross-source | reaction | 2,000 | 0.558 / 0.378 | 0.677 / 0.481 | 0.980 / 0.918 |
+| nsr-eval-v1 | EX | 4,997 | 0.969 / 0.916 | 0.980 / 0.947 | 0.983 / 0.949 |
+| nsr-eval-v1 | KW | 4,998 | 0.183 / 0.119 | 0.512 / 0.350 | 0.511 / 0.344 |
+| nsr-eval-v1 | all | 9,995 | 0.576 / 0.517 | 0.746 / 0.648 | 0.747 / 0.646 |
+
+Every model embedded the same texts the same way (sentence-transformers, CLS pooling, normalized, 256 tokens, fp16) and
+was searched exactly over the whole corpus: papers 277,068 (nsr-eval-v1's frozen corpus), EXFOR datasets 190,430,
+record lines 10,110. No benchmark query lost its relevant documents to the corpus. Measured on the box, not rounded.
+
+- **The gain** is where v1 had no signal: an ENDF material line finds the papers its MF1/451 cites (R@10 0.019 → 0.802),
+  an ENSDF dataset its DSREF papers (0.138 → 0.563), a reaction in words its EXFOR datasets (0.677 → 0.980).
+- **The paper task holds:** nsr-eval-v1 overall R@10 0.746 → 0.747, MRR 0.648 → 0.646. The largest loss is KW MRR,
+  0.350 → 0.344 (0.6 point), inside the one-point bar. EXFOR → paper keeps its R@10 (0.970 → 0.969) but its MRR drops
+  0.919 → 0.891.
+- v1's numbers here differ from the NSR-CPT report's (KW R@10 0.487 there, 0.512 here) because this measure embeds every
+  model at 256 tokens with sentence-transformers rather than the report's TEI rig. All three columns are measured alike.
+
+The run: `lake/models/nsr-encoder-v2/run-20261110-1052/` (config.json, train.log, eval/, model/).
+- One pass from the nsr-encoder (v1) weights, FlagEmbedding m3, NSR-CPT's flags: group 8, query 128, passage 256, lr
+  1e-5, temperature 0.02, CLS, normalized, bf16, warmup 10 %. Two changes, both forced by the instance: batch 8 with
+  gradient checkpointing (24 GB A10G; NSR-CPT ran 16 on a 48 GB L40S), and 24,000 of Part A's 46,000 pairs, the same
+  share of every type, plus 7,998 of v1's clean triplets replayed (31,998 rows, 3,999 steps). Loss 1.22 → 0.53.
+- us-east-1 had no g6e capacity in any zone, on-demand or Spot; the New account's GPU quota is 0. The box: g5.2xlarge
+  (A10G), Old account, $1.212 an hour. Training 4,979 s (83 min); the whole box 117 min ≈ $2.36.
+- The lake refuses the Old account's role across accounts (the bucket policy statements alone were not enough), so the
+  box read its inputs by presigned links and wrote to s3://nsr-embed-v2; the serve box copies the run into the lake.
