@@ -11,6 +11,10 @@
 #   GET /sweep/retrodiction            { summary, rows }: the VIII.0 ranking against what VIII.1 changed (500 rows);
 #            ?from=B-VII.1&to=B-VIII.0 (or B-VII.0 to B-VII.1; from=B-VIII.0&to=B-VIII.1&method=mf3) another release pair;
 #            &method=point with B-VII.1 to B-VIII.0: B-VII.1 reconstructed with PREPRO at 293.6 K, the main pair's method
+#            &method=v2 (with from, to; default VIII.0 to VIII.1): the redesign, data published between the releases,
+#            flagged datasets out, >= 3 datasets, the change at those data in the disagreement's units, Spearman
+#            &method=v3: the replicated finding, the disagreement score against the change at the data on both steps
+#            (AUC, Mann-Whitney p, the precision check), the models beside it, the held-out VIII.0 to VIII.1 ranking
 #   GET /sweep/flags?kind=exfor&rule=b { evaluation, exfor }: VIII.1 entries no public list names; mislabelled EXFOR
 #   GET /sweep/medical                 the medical-isotope production routes, a yield and a verdict each
 #   GET /sweep/medical/{route}         one route: its points by source, the yield table, the bins, the verdict
@@ -193,6 +197,36 @@ def retrodiction(q):
     the POINT method (B-VII.1 reconstructed with PREPRO at 293.6 K). summary.pairs lists every pair run."""
     summ = s3json("retrodiction/summary.json")
     f, t = (q.get("from") or "").strip(), (q.get("to") or "").strip()
+    if (q.get("method") or "").lower() == "v3":
+        # the replicated finding (brief 57 follow-up 3): the prior release's disagreement score against the change at
+        # the data, on VII.1 to VIII.0 and VIII.0 to VIII.1; rows: the held-out step VIII.0 to VIII.1 ranked by the score
+        tv = "sweep_retrodiction_v3"
+        if tv not in _loaded:
+            con().execute(f"CREATE OR REPLACE TABLE {tv} AS SELECT * FROM read_parquet('{SWEEP}/retrodiction_v3/test.parquet')")
+            _loaded.add(tv)
+        out = rows(f"SELECT row_number() OVER (ORDER BY z_all DESC NULLS LAST, key) AS score_rank, * FROM {tv} "
+                   "ORDER BY score_rank LIMIT 500")
+        try:
+            conf = s3json("retrodiction/confound-check.json")
+        except Exception:  # noqa: BLE001
+            conf = None
+        return 200, {"summary": summ.get("score_test"), "models": summ.get("v3"), "confound_check": conf,
+                     "pair": "B-VIII.0:B-VIII.1 (held out)", "rows": out}
+    if (q.get("method") or "").lower() == "v2":
+        # the redesign (brief 57 follow-up 2): data published between the releases, flagged datasets out, >= 3 datasets,
+        # the change measured at those data in the disagreement's units, Spearman over the whole list
+        v2 = summ.get("v2") or {}
+        key = f"{f or 'B-VIII.0'}:{t or 'B-VIII.1'}"
+        if key not in v2:
+            return 404, {"error": f"no v2 retrodiction for {key}", "pairs": sorted(v2)}
+        tv = "sweep_retrodiction_v2"
+        if tv not in _loaded:
+            con().execute(f"CREATE OR REPLACE TABLE {tv} AS SELECT * FROM read_parquet('{SWEEP}/retrodiction_v2/*.parquet')")
+            _loaded.add(tv)
+        fr, to = key.split(":")
+        out = rows(f"SELECT * EXCLUDE (release_from, release_to) FROM {tv} WHERE release_from = ? AND release_to = ? "
+                   "ORDER BY rank LIMIT 500", [fr, to])
+        return 200, {"summary": v2[key], "pair": key, "pairs": sorted(v2), "rows": out}
     if not f and not t or ((f, t) == ("B-VIII.0", "B-VIII.1") and (q.get("method") or "") != "mf3"):
         return 200, {"summary": summ, "rows": rows(f"SELECT * FROM {table('retrodiction')} ORDER BY rank LIMIT 500")}
     m = (q.get("method") or "").lower()

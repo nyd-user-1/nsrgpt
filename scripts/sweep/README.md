@@ -27,3 +27,9 @@ allows Free Tier instance types only), the load about six minutes.
 | `manifest.py` | the manifest: every table's rows and bytes, the method, the sources reached and not, the check, timings, spend |
 | `ddl/` | the Athena DDL of every `nsr.sweep_*` table |
 | `icrp-vs-ensdf.sql` | lead-agent's (not part of the sweep) |
+
+**The forward test.** `lake/sweep/2026-11-10/prediction-viii2.json` freezes, dated, the ENDF/B-VIII.1 ranking by the
+redesigned retrodiction's rules (v2: data published after VIII.1, flagged EXFOR datasets out, three datasets a pair; the
+every-year ranking beside it), top 200 with scores. When ENDF/B-VIII.2 ships, parse it and its POINT 293.6 K (or
+reconstruct it with `point.py`), run `SWEEP_PAIR=B-VIII.1,B-VIII.2 SWEEP_METHOD=point sweep.py load floors covs run v2`
+(add the pair's window to `WINDOWS`), and check `/sweep/retrodiction?from=B-VIII.1&to=B-VIII.2&method=v2` against this file.

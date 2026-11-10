@@ -77,6 +77,15 @@ if PAIR:
     STATE = f"{WORK}/state-pair-{PAIR[0]}-{PAIR[1]}-{METHOD}.json"
     STATE_KEY = f"lake/_work/sweep/state-pair-{PAIR[0]}-{PAIR[1]}-{METHOD}.json"
 
+# SWEEP_SET=v3: the releases the change predictor needs (brief 57 follow-up 3): VIII.1, VIII.0 and VII.1 from POINT 293.6 K,
+# VII.0 and VI.8 from MF3 above their own floors (the change history), JEFF-3.3 and JENDL-5 (the cross-library features)
+if os.environ.get("SWEEP_SET") == "v3":
+    COMPARATORS = [(r, f"{r}-point-293.6K", r, r, False) for r in ("B-VIII.1", "B-VIII.0", "B-VII.1")] + \
+                  [(r, r, r, r, True) for r in ("B-VII.0", "B-VI.8", "JEFF-3.3", "JENDL-5")]
+    RELEASES = [c[0] for c in COMPARATORS]
+    DB = f"{WORK}/v3.duckdb"
+    STATE = f"{WORK}/state-v3.json"
+    STATE_KEY = "lake/_work/sweep/state-v3.json"
 
 def held_col(r):
     return "held_" + r.lower().replace("-", "_").replace(".", "_")
@@ -791,6 +800,131 @@ def eval_flags():
     state(flags=st)
 
 
+# ── the retrodiction, redesigned (brief 57 follow-up 2) ─────────────────────────────────────────────────────────────
+# Release dates: ENDF/B-VII.1 2011-12 (Chadwick et al., Nucl. Data Sheets 112, 2887); ENDF/B-VIII.0 2018-02 (Brown et
+# al., Nucl. Data Sheets 148, 1); ENDF/B-VIII.1 2024-10-21 (NNDC's release metadata,
+# lake/sweep/2026-11-10/public-lists/). A pair is ranked on data published between the two releases, by the subentry's
+# year, the later year excluded as the library had frozen by then: the evaluators respond to new measurements.
+CUTOFFS = {"B-VII.1": "2011-12", "B-VIII.0": "2018-02", "B-VIII.1": "2024-10-21"}
+WINDOWS = {("B-VII.1", "B-VIII.0"): (2012, 2017), ("B-VIII.0", "B-VIII.1"): (2018, 2023)}
+V2_DATASETS = 3
+
+
+def v2_rows(rel, y0, y1, tag):
+    """Per release, pair and dataset: the weighted mean log ratio and its se on the window's data, flagged EXFOR datasets
+    (sweep_exfor_flags) left out."""
+    q(f"CREATE OR REPLACE TABLE xflag AS SELECT DISTINCT subentry FROM read_parquet('{B}/{PREFIX}/exfor_flags/*.parquet')")
+    q(f"""CREATE OR REPLACE TABLE v2p_{tag} AS SELECT p.*, s.year FROM pr p JOIN si s USING (dataset)
+          WHERE p.units = 'B' AND p.rel = '{rel}' AND s.year BETWEEN {y0} AND {y1}
+            AND p.dataset NOT IN (SELECT subentry FROM xflag)""")
+    q(f"""CREATE OR REPLACE TABLE v2d_{tag} AS
+          WITH a AS (SELECT rel, key, dataset, count(*) nr, sum(npts) n, sum(w) sw, sum(w * lr) swl, sum(w * lr * lr) swl2,
+                            median(sig) u FROM v2p_{tag} GROUP BY ALL)
+          SELECT *, swl / sw AS m, {DSE} AS se FROM a""")
+    q(f"""CREATE OR REPLACE TABLE v2sd_{tag} AS SELECT p.key, sum(p.npts * coalesce(b.rel_sd_eval, 0)) / sum(p.npts) sd
+          FROM v2p_{tag} p LEFT JOIN bins b ON b.rel = p.rel AND b.key = p.key AND b.k = p.k GROUP BY p.key""")
+
+
+def v2():
+    """Rank FROM on the window's data (three datasets at least), measure the change FROM to TO at those data in units of
+    the same uncertainty, and correlate the two over the whole list (Spearman), with the top-50 numbers for continuity."""
+    from scipy.stats import spearmanr
+    y0, y1 = WINDOWS[(FROM_REL, TO_REL)]
+    v2_rows(FROM_REL, y0, y1, "f")
+    v2_rows(TO_REL, y0, y1, "t")
+    q("""CREATE OR REPLACE TABLE v2pair AS
+         SELECT f.key, f.dataset, f.n, f.m AS m_from, t.m AS m_to, greatest(f.se, t.se) AS se
+         FROM v2d_f f JOIN v2d_t t ON t.key = f.key AND t.dataset = f.dataset""")
+    q(f"""CREATE OR REPLACE TABLE v2s AS
+          WITH t AS (SELECT key, count(*) nd, sum(n) np, sum(1 / (se * se)) s0, sum(m_from / (se * se)) s1f,
+                            sum(m_from * m_from / (se * se)) s2f, sum(m_to / (se * se)) s1t, sum(m_to * m_to / (se * se)) s2t
+                     FROM v2pair GROUP BY key),
+          c AS (SELECT key, nd, np, s1f / s0 AS m_from, s1t / s0 AS m_to,
+                       greatest(CASE WHEN nd > 1 THEN greatest(1, sqrt(greatest(s2f - s1f * s1f / s0, 0) / (nd - 1))) ELSE 1 END,
+                                CASE WHEN nd > 1 THEN greatest(1, sqrt(greatest(s2t - s1t * s1t / s0, 0) / (nd - 1))) ELSE 1 END)
+                         / sqrt(s0) AS se FROM t WHERE nd >= {V2_DATASETS})
+          SELECT c.*, coalesce(f.sd, 0) sd_from, coalesce(t.sd, 0) sd_to,
+                 abs(c.m_from) / sqrt(c.se * c.se + pow(coalesce(f.sd, 0), 2)) AS z_from,
+                 abs(c.m_to) / sqrt(c.se * c.se + pow(coalesce(t.sd, 0), 2)) AS z_to,
+                 abs(c.m_to - c.m_from) / sqrt(c.se * c.se + pow(coalesce(f.sd, 0), 2)) AS change_z,
+                 abs(c.m_to) < abs(c.m_from) AS moved_toward_data
+          FROM c LEFT JOIN v2sd_f f USING (key) LEFT JOIN v2sd_t t USING (key)""")
+    q("""CREATE OR REPLACE TABLE v2rank AS
+         SELECT row_number() OVER (ORDER BY z_from DESC, key) AS rank, s.*, z_from - z_to AS improvement,
+                change_z > 1 AS changed, n.target, n.reaction, k.sub AS sublibrary, k.mt
+         FROM v2s s JOIN pairkeys k USING (key) LEFT JOIN pairnames n USING (key)""")
+    rows = q("SELECT z_from, change_z, z_from - z_to FROM v2rank").fetchall()
+    n = len(rows)
+    zf, cz, imp = [r[0] for r in rows], [r[1] for r in rows], [r[2] for r in rows]
+    rho, p = spearmanr(zf, cz) if n > 2 else (None, None)
+    rho2, p2 = spearmanr(zf, imp) if n > 2 else (None, None)
+    base = one("SELECT avg(changed::INT) FROM v2rank")
+    top = {}
+    for k in (20, 50, 200):
+        hit, dirn, nch = q(f"""SELECT avg(changed::INT), avg(CASE WHEN changed THEN moved_toward_data::INT END),
+                               sum(changed::INT) FROM v2rank WHERE rank <= {k}""").fetchone()
+        top[str(k)] = {"hit_rate": hit, "enrichment": hit / base if base else None, "changed": nch, "direction_rate": dirn}
+    summ = {"from": FROM_REL, "to": TO_REL, "method": "v2: POINT 293.6 K for neutrons, averaged inside the resolved range",
+            "data_years": [y0, y1], "release_dates": {FROM_REL: CUTOFFS.get(FROM_REL), TO_REL: CUTOFFS.get(TO_REL)},
+            "rules": f"data published {y0} to {y1} (subentry year); flagged EXFOR datasets left out; >= {V2_DATASETS} "
+                     "datasets a pair; change = |weighted mean log(sigma_to / sigma_from) at those data| / "
+                     "sqrt(se^2 + MF33 sd^2), the disagreement's own denominator; changed = change > 1",
+            "pairs": n, "spearman_disagreement_change": {"rho": rho, "p": p, "n": n},
+            "spearman_disagreement_improvement": {"rho": rho2, "p": p2, "n": n,
+                                                  "note": "improvement = z_from - z_to (positive: moved toward the data)"},
+            "base_rate_changed": base, "direction_rate_all_changed": one(
+                "SELECT avg(moved_toward_data::INT) FROM v2rank WHERE changed"), "top": top}
+    print(json.dumps(summ, indent=1, default=float))
+    path = f"{WORK}/out/retrodiction_v2-{FROM_REL}_{TO_REL}.parquet"
+    os.makedirs(f"{WORK}/out", exist_ok=True)
+    q(f"""COPY (SELECT '{FROM_REL}' AS release_from, '{TO_REL}' AS release_to, rank, key, target, reaction, sublibrary,
+                 mt, nd AS n_datasets, np AS n_points, m_from AS mean_log_ratio_from, m_to AS mean_log_ratio_to, se,
+                 sd_from, sd_to, z_from, z_to, change_z, improvement, moved_toward_data, changed FROM v2rank ORDER BY rank)
+          TO '{path}' (FORMAT PARQUET, COMPRESSION SNAPPY)""")
+    s3.upload_file(path, BUCKET, f"{PREFIX}/retrodiction_v2/{FROM_REL}_{TO_REL}.parquet")
+    main = json.loads(s3.get_object(Bucket=BUCKET, Key=f"{PREFIX}/retrodiction/summary.json")["Body"].read())
+    main.setdefault("v2", {})[f"{FROM_REL}:{TO_REL}"] = summ
+    s3.put_object(Bucket=BUCKET, Key=f"{PREFIX}/retrodiction/summary.json",
+                  Body=json.dumps(main, indent=1, default=float).encode(), ContentType="application/json")
+    state(v2=summ)
+
+
+def prediction():
+    """The forward test: ENDF/B-VIII.1 ranked now, by v2's rules, frozen with its date, for the day VIII.2 ships. Primary:
+    the data published after VIII.1 (2025 on); also the ranking on every year, as the list stands."""
+    out = {"frozen_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "release": "B-VIII.1",
+           "release_date": CUTOFFS["B-VIII.1"], "exfor": "lake/serve/exfor/2026-10-28 (EXFOR as of 2026-10-28)",
+           "method": "v2 (scripts/sweep/sweep.py v2_rows): POINT 293.6 K, averaged inside the resolved range; flagged "
+                     f"EXFOR datasets left out; >= {V2_DATASETS} datasets; z = |weighted mean log ratio| / sqrt(se^2 + MF33 sd^2)",
+           "test": "When ENDF/B-VIII.2 ships: parse it and its POINT 293.6 K (or reconstruct it with scripts/sweep/point.py), "
+                   "run SWEEP_PAIR=B-VIII.1,B-VIII.2 SWEEP_METHOD=point sweep.py load floors covs run v2 with the window "
+                   "2025 to the year before VIII.2, and correlate (Spearman) this file's z with the change at the data; "
+                   "/sweep/retrodiction?from=B-VIII.1&to=B-VIII.2&method=v2 serves the result.",
+           "rankings": {}}
+    for name, (y0, y1) in (("after_viii1", (2025, 2100)), ("all_years", (1900, 2100))):
+        v2_rows("B-VIII.1", y0, y1, "p")
+        q(f"""CREATE OR REPLACE TABLE v2pr AS
+              WITH t AS (SELECT key, count(*) nd, sum(n) np, sum(1 / (se * se)) s0, sum(m / (se * se)) s1,
+                                sum(m * m / (se * se)) s2 FROM v2d_p GROUP BY key)
+              SELECT t.key, t.nd, t.np, t.s1 / t.s0 AS m,
+                     CASE WHEN nd > 1 THEN greatest(1, sqrt(greatest(s2 - s1 * s1 / s0, 0) / (nd - 1))) ELSE 1 END / sqrt(s0) se,
+                     coalesce(sd.sd, 0) sd FROM t LEFT JOIN v2sd_p sd USING (key) WHERE nd >= {V2_DATASETS}""")
+        rows = q("""SELECT row_number() OVER (ORDER BY abs(m) / sqrt(se * se + sd * sd) DESC, key) rank, n.target, n.reaction,
+                           k.sub, k.mt, abs(m) / sqrt(se * se + sd * sd) z, exp(m) ratio, se, sd, nd, np
+                    FROM v2pr p JOIN pairkeys k USING (key) LEFT JOIN pairnames n USING (key)
+                    ORDER BY rank LIMIT 200""").fetchall()
+        total = one("SELECT count(*) FROM v2pr")
+        out["rankings"][name] = {"data_years": [y0, min(y1, 2026)], "pairs": total, "top": [
+            {"rank": r[0], "target": r[1], "reaction": r[2], "sublibrary": r[3], "mt": r[4], "z": r[5],
+             "ratio_measured_to_evaluated": r[6], "se_log": r[7], "mf33_sd": r[8], "datasets": r[9], "points": r[10]}
+            for r in rows]}
+    out["primary"] = "after_viii1"
+    s3.put_object(Bucket=BUCKET, Key=f"{PREFIX}/prediction-viii2.json", Body=json.dumps(out, indent=1, default=float).encode(),
+                  ContentType="application/json")
+    print(json.dumps({k: {"pairs": v["pairs"], "top3": v["top"][:3]} for k, v in out["rankings"].items()}, indent=1,
+                     default=float))
+
+
 # ── write and register ───────────────────────────────────────────────────────────────────────────────────────────────
 TABLES = {
     "pairs_all": "SELECT * FROM pairs_all ORDER BY target_za, liso, sublibrary, mt",
@@ -860,7 +994,7 @@ def write(names=None):
 
 
 STEPS = {"load": load, "exfor": lambda: load(True), "evals": load_evals, "floors": floors, "covs": covs, "loadstate": loadstate, "check": check, "run": run, "changes": changes, "retro": retro, "flags": flags,
-         "eval_flags": eval_flags, "write": write}
+         "eval_flags": eval_flags, "write": write, "v2": v2, "prediction": prediction}
 
 if __name__ == "__main__":
     args = sys.argv[1:]

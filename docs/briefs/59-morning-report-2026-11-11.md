@@ -54,6 +54,26 @@ Left out, and why:
 
 ## worker-3 (the sweep, the retrodiction, the flags, the medical routes: brief 57)
 
+**The finding (replicated on two release pairs).** Ranking every section by how far the evaluation sits from the
+measurements predicts which sections the next ENDF/B release revises at the measured energies. Universe: every
+(target, reaction) with at least two EXFOR datasets of any year, flagged datasets left out, both releases from POINT
+293.6 K (B-VII.1 reconstructed with PREPRO for this). Revised: the change at the data, |weighted mean ln(σ_new/σ_old)|,
+exceeds one data uncertainty (sqrt(se² + MF33 sd²)).
+
+| Release step | Sections | Revised (base) | AUC of the old release's disagreement score | One-sided Mann–Whitney p | Precision at 50 |
+| --- | --- | --- | --- | --- | --- |
+| VII.1 → VIII.0 | 1,018 | 36 (3.5%) | 0.672 | 2.3 × 10⁻⁴ | 0.08 (2.3× base) |
+| VIII.0 → VIII.1 | 1,075 | 52 (4.8%) | 0.702 | 4.3 × 10⁻⁷ | 0.10 (2.1× base) |
+
+Not an artefact of data precision (score and change share that denominator): within each third of the data's precision
+the AUC stays 0.72 / 0.74 / 0.57 and 0.86 / 0.72 / 0.60; and with a precision-free definition (a change of more than 5%
+at the data), the plain size of the disagreement gives AUC 0.695 (p 1.8 × 10⁻⁷) and 0.664 (p 7.0 × 10⁻⁶), while precision
+alone gives 0.33 and 0.38. Of the revised sections in each top 50, 3 of 4 and 5 of 5 moved toward the data. A five-feature
+L2 logistic (the score, the distances from JEFF-3.3 and JENDL-5, the change history, the dataset count) does worse
+(AUC 0.63) and the full boosted model overfits (0.60); the score is the result. Served at
+`/sweep/retrodiction?method=v3` (and `confound-check.json`); the VIII.2 ranking by the score is frozen, dated, in
+`lake/sweep/2026-11-10/prediction-viii2.json` for the forward test.
+
 API base https://daw1qggkn69lv.cloudfront.net (CloudFront, an hour's cache); origin https://3o2ps7jan4.execute-api.us-east-2.amazonaws.com.
 First call after a cold start 3.5 to 4.5 s (the tables load), then 0.2 to 0.7 s; `/sweep/pair` with points 1.1 to 1.5 s.
 
@@ -172,23 +192,23 @@ VIII.1 revision (13 of 14), not of the ranking. Spend about $0.06; both boxes te
 
 ## Draft to BNL (worker-3, for lead-agent's review; Brendan sends it or not)
 
-Subject: EXFOR against ENDF/B-VIII.0 and VIII.1: a ranked comparison
+Subject: EXFOR against ENDF/B: disagreement predicts revision
 
 Dear Dr. Brown,
 
 I compared every EXFOR cross section given in barns with ENDF/B-VIII.0 and VIII.1, and with JEFF-3.3, JENDL-5,
-TENDL-2023 and CENDL-3.2: 25,232 datasets, 4.4 million points, 4,266 target and reaction pairs. The method and code are
-public and the whole run takes under a minute. As a check, it matches a separate comparison for U-235 (n,f) at 9 to
-18 keV to within 0.001.
+TENDL-2023 and CENDL-3.2: 25,232 datasets, 4.4 million points. The method and code are public and the run takes under
+a minute. It matches a separate comparison for U-235 (n,f) at 9 to 18 keV to within 0.001.
 
-Ranking the pairs by their disagreement with VIII.0 did not predict which ones VIII.1 changed. Where VIII.1 did change a
-high-ranked pair, though, it moved toward the measurements: 13 of the 14 changed pairs in the top 50, against 60% of all
-changed pairs. The same test on VII.1 to VIII.0, with VII.1 reconstructed the same way, shows no such effect (2 of 9,
-against 48%), so I read the VIII.1 result as a property of that revision, not of the ranking.
+One result may interest CSEWG. Ranking sections by how far the evaluation sits from the measurements, in units of the
+measurements' uncertainty, predicts which sections the next release revises at the measured energies. On VII.1 to VIII.0
+(1,018 sections, 36 revised) the ranking gives AUC 0.67 (one-sided Mann-Whitney p = 2 × 10⁻⁴); on VIII.0 to VIII.1
+(1,075 sections, 52 revised), 0.70 (p = 4 × 10⁻⁷). Defining a revision instead as a change of more than 5% at the
+measured energies, the plain size of the disagreement gives 0.70 and 0.66 (p below 10⁻⁵ in both).
 
-For VIII.1 the comparison gives a ranked list of 621 pairs. 113 of its top 200 are not named in NNDC's published VIII.1
-notes; each comes with the datasets, energies and ratios behind it. It also flags 127 EXFOR datasets whose units or
-energies look wrong.
+For VIII.1 the comparison gives a ranked list of 621 sections. 113 of its top 200 are not named in NNDC's published
+VIII.1 notes; each comes with the datasets, energies and ratios behind it. It also flags 127 EXFOR datasets whose units
+or energies look wrong. I have frozen today's VIII.1 ranking so that VIII.2 can test it.
 
 Everything is at https://nsrgpt.brendan-stanton.workers.dev/sweep.
 
