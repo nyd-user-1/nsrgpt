@@ -148,9 +148,14 @@ export function plotOption({ points, series = [], ratio = [], mode = "both", hig
   }
 
   if (showRatio) {
+    // Three evaluations sit within a few percent of each other here: thin lines, a dash and a marker shape per slot, and a
+    // faint band, so none hides another; the legend toggles each (window-3, brief 52 follow-up).
+    const DASH = ["solid", [6, 4], [2, 3], [8, 3, 2, 3]]
+    const SHAPE = ["circle", "triangle", "diamond", "rect"]
     let first = true
     for (const s of ratio) {
       const c = colorOf(s)
+      const k = (slotOf.get(releaseOf(s)) ?? 0) % DASH.length
       if (!evalNames.includes(s.name)) evalNames.push(s.name)
       out.push({
         id: `ratio:${s.name}`,
@@ -158,10 +163,10 @@ export function plotOption({ points, series = [], ratio = [], mode = "both", hig
         type: "line",
         xAxisIndex: ratioGrid,
         yAxisIndex: yAxis.length - 1,
-        symbol: "circle",
-        symbolSize: 8,
-        lineStyle: { width: 2, color: c },
-        itemStyle: { color: c, borderColor: dark ? "#16181d" : "#ffffff", borderWidth: 2 },
+        symbol: SHAPE[k],
+        symbolSize: 6,
+        lineStyle: { width: 1.5, color: c, type: DASH[k] },
+        itemStyle: { color: c, borderColor: dark ? "#16181d" : "#ffffff", borderWidth: 1 },
         data: s.x.map((x, i) => [x, s.y[i]]),
         z: 3,
         ...(first
@@ -172,7 +177,7 @@ export function plotOption({ points, series = [], ratio = [], mode = "both", hig
       if (s.lo && s.hi) {
         const stack = `ratio-band:${s.name}`
         out.push({ name: s.name, type: "line", xAxisIndex: ratioGrid, yAxisIndex: yAxis.length - 1, stack, step: "middle", showSymbol: false, silent: true, lineStyle: { opacity: 0 }, data: s.x.map((x, i) => [x, s.lo![i]]), z: 1, tooltip: { show: false } })
-        out.push({ name: s.name, type: "line", xAxisIndex: ratioGrid, yAxisIndex: yAxis.length - 1, stack, step: "middle", showSymbol: false, silent: true, lineStyle: { opacity: 0 }, areaStyle: { color: rgba(c, 0.12) }, data: s.x.map((x, i) => [x, s.hi![i] - s.lo![i]]), z: 1, tooltip: { show: false } })
+        out.push({ name: s.name, type: "line", xAxisIndex: ratioGrid, yAxisIndex: yAxis.length - 1, stack, step: "middle", showSymbol: false, silent: true, lineStyle: { opacity: 0 }, areaStyle: { color: rgba(c, 0.08) }, data: s.x.map((x, i) => [x, s.hi![i] - s.lo![i]]), z: 1, tooltip: { show: false } })
       }
     }
   }
@@ -187,7 +192,7 @@ export function plotOption({ points, series = [], ratio = [], mode = "both", hig
     axisPointer: { link: [{ xAxisIndex: "all" }] },
     dataZoom: [{ type: "inside", xAxisIndex: grids.map((_, i) => i), filterMode: "none" }],
     legend: [
-      { data: evalNames, top: 4, left: 64, textStyle: { color: ink, fontSize: 11 }, icon: "roundRect", itemWidth: 14, itemHeight: 3 },
+      { data: evalNames, top: 4, left: 64, textStyle: { color: ink, fontSize: 11 }, itemWidth: 22, itemHeight: 8 },
       ...(datasetNames.length ? [{ data: datasetNames, type: "scroll", orient: "vertical", right: 4, top: 36, bottom: 40, width: 140, textStyle: { color: muted, fontSize: 10 }, icon: "circle", itemWidth: 8, itemHeight: 8, pageTextStyle: { color: muted } }] : []),
     ],
     tooltip: {

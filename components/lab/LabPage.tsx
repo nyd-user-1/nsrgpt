@@ -30,7 +30,7 @@ import { streamChat, type ChatTurn } from "@/lib/chat-stream"
 import { inputsFor, newId, portsMatch, type BlockKind, type Canvas } from "@/lib/lab/blocks"
 import { DEFAULT_CANVAS } from "@/lib/lab/default"
 import { KINDS, newBlock } from "@/lib/lab/kinds"
-import { contextOf } from "@/lib/lab/kinds/prompt"
+import { answerOnly, contextOf } from "@/lib/lab/kinds/prompt"
 import { listCanvases, loadCanvas, saveCanvas, type SavedCanvas } from "@/lib/lab/save"
 
 // /lab (brief 52): the workbench. Left, the block kinds and the saved canvases; the canvas of blocks that run; right, the
@@ -171,13 +171,14 @@ function LabInner() {
     lab.setQuietParams(blockId, { chat: [...history, { role: "assistant", content: "" }] })
     setAsking(blockId)
     try {
-      await streamChat(
+      const full = await streamChat(
         {
           messages: [{ role: "user", content: p.prompt ?? "" }, { role: "assistant", content: answer }, ...history],
           systemContext: `The user is on the Lab, asking a follow-up to a prompt block. Its inputs:\n\n${contextOf(inputsFor(b, lab.canvas.edges, lab.outputs)) || "(none connected)"}`,
         },
-        (cur) => lab.setQuietParams(blockId, { chat: [...history, { role: "assistant", content: cur }] }),
+        (cur) => lab.setQuietParams(blockId, { chat: [...history, { role: "assistant", content: answerOnly(cur, true) }] }),
       )
+      lab.setQuietParams(blockId, { chat: [...history, { role: "assistant", content: answerOnly(full) }] })
     } catch (e) {
       lab.setQuietParams(blockId, { chat: [...history, { role: "assistant", content: `Error: ${(e as Error).message}` }] })
     } finally {

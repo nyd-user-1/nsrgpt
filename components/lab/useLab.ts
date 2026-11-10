@@ -108,6 +108,26 @@ export function useLab(initial: Canvas) {
 
   const done = (id: string): boolean => block(id)?.state.status === "done" && !!outRef.current[id]
 
+  /** Run `ids` (in topological order): each starts once those of its inputs in the set are done, so blocks that don't
+   *  feed each other run side by side. A block whose input failed doesn't run and says which. */
+  const runSet = async (ids: string[]): Promise<void> => {
+    const mine = gen.current
+    const set = new Set(ids)
+    const edges = canvasRef.current.edges
+    const runs = new Map<string, Promise<boolean>>()
+    for (const id of ids) {
+      const ups = [...new Set(edges.filter((e) => e.target === id && set.has(e.source)).map((e) => e.source))]
+      runs.set(id, Promise.all(ups.map((u) => runs.get(u) ?? Promise.resolve(true))).then((oks) => {
+        if (mine !== gen.current) return false
+        const failed = ups.find((_, i) => !oks[i])
+        if (failed === undefined) return runOne(id)
+        setState(id, { status: "failed", error: `An input failed: ${block(failed)?.title ?? failed}` })
+        return false
+      }))
+    }
+    await Promise.all(runs.values())
+  }
+
   /** Run a block: its upstream blocks first where they aren't done. */
   const run = useCallback(async (id: string) => {
     const c = canvasRef.current
@@ -118,21 +138,11 @@ export function useLab(initial: Canvas) {
       setState(id, { status: "failed", error: (e as Error).message })
       return
     }
-    const mine = gen.current
-    for (const u of order.slice(0, -1)) {
-      if (done(u)) continue
-      const ok = await runOne(u)
-      if (mine !== gen.current) return
-      if (!ok) {
-        setState(id, { status: "failed", error: `An input failed: ${block(u)?.title ?? u}` })
-        return
-      }
-    }
-    await runOne(id)
+    await runSet([...order.slice(0, -1).filter((u) => !done(u)), id])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setState])
 
-  /** Run every block, each after its inputs. */
+  /** Run every block (or those `only` picks), each after its inputs, the independent ones at once. */
   const runAll = useCallback(async (only?: (b: Block) => boolean) => {
     const c = canvasRef.current
     let order: string[]
@@ -141,12 +151,7 @@ export function useLab(initial: Canvas) {
     } catch {
       return
     }
-    const mine = gen.current
-    for (const id of order) {
-      if (mine !== gen.current) return
-      const b = block(id)
-      if (b && (!only || only(b))) await runOne(id)
-    }
+    await runSet(order.filter((id) => { const b = block(id); return !!b && (!only || only(b)) }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

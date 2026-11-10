@@ -35,6 +35,28 @@ export function contextOf(inputs: Inputs): string {
   return parts.join("\n\n").slice(0, MAX_CONTEXT)
 }
 
+// /api/chat streams every round of its tool loop as plain text, so an answer can open with the model narrating its lookups
+// ("Let me pull the EXFOR records…", "The NSR lookups returned nothing…"), each round a paragraph. The route has no
+// answer-only flag; the block drops those leading paragraphs: short, plain (no heading, list, table or quote) and worded
+// as a lookup. While streaming the newest paragraph may go too, so narration never shows; a finished answer keeps its
+// text when nothing else is left.
+const NARRATION =
+  /^(let me|let's|i'll|i will|i'm going to|i am going to|(now|first|next|okay|ok),? (let me|i'll))\b|\b(let me|i'll|i will) (search|look|pull|check|fetch|try|find|query|run|use)\b|\b(lookups?|searches?|queries?|tools?) (returned|found|came back|gave)\b/i
+const LOOKS_LIKE_ANSWER = /^(#|[-*+] |\d+\. |\||>|```)/
+
+export function answerOnly(text: string, streaming = false): string {
+  const paras = text.split(/\n{2,}/)
+  let i = 0
+  while (i < paras.length - (streaming ? 0 : 1)) {
+    const p = paras[i].trim()
+    if (!p || /^(-{3,}|\*{3,}|_{3,})$/.test(p)) { i++; continue }
+    if (p.length < 500 && !LOOKS_LIKE_ANSWER.test(p) && NARRATION.test(p)) { i++; continue }
+    break
+  }
+  const rest = paras.slice(i).join("\n\n").trimStart()
+  return rest || (streaming ? "" : text)
+}
+
 export const prompt: KindDef<PromptParams> = {
   kind: "prompt",
   title: "Prompt",
@@ -49,11 +71,11 @@ export const prompt: KindDef<PromptParams> = {
         messages: [{ role: "user", content: p.prompt }],
         systemContext: `The user is on the Lab, a canvas of blocks that fetch and compare nuclear data. This prompt block's inputs:\n\n${context || "(none connected)"}`,
       },
-      (cur) => ctx.partial({ text: cur }),
+      (cur) => ctx.partial({ text: answerOnly(cur, true) }),
       ctx.signal,
     )
     if (!text.trim()) throw new Error("No answer came back. Try again.")
-    return { text }
+    return { text: answerOnly(text) }
   },
   summary: (o) => describe(o.text),
 }
