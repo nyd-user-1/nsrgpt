@@ -60,6 +60,22 @@ SUPPORT_DATASETS, SUPPORT_POINTS = 2, 20
 CHANGE_RMS, GRID_PER_DECADE = 0.005, 20
 SINGLE_Z = 3.0
 STATE = f"{WORK}/state.json"
+STATE_KEY = "lake/_work/sweep/state.json"
+# Pair mode, the retrodiction on another release pair: SWEEP_PAIR="B-VII.1,B-VIII.0" compares both releases from MF3 above a
+# common floor (each neutron material's larger MF2 resonance range of the two; no POINT exists before VIII.0), in its own
+# database, and writes only the retrodiction (lake/sweep/2026-11-10/retrodiction_pairs/, and summary.json's pairs).
+PAIR = [x.strip() for x in os.environ.get("SWEEP_PAIR", "").split(",") if x.strip()]
+FROM_REL, TO_REL = (PAIR[0], PAIR[1]) if PAIR else ("B-VIII.0", "B-VIII.1")
+if PAIR:
+    COMPARATORS = [(r, r, r, r, True) for r in PAIR]
+    RELEASES = PAIR
+    DB = f"{WORK}/pair-{PAIR[0]}-{PAIR[1]}.duckdb"
+    STATE = f"{WORK}/state-pair-{PAIR[0]}-{PAIR[1]}.json"
+    STATE_KEY = f"lake/_work/sweep/state-pair-{PAIR[0]}-{PAIR[1]}.json"
+
+
+def held_col(r):
+    return "held_" + r.lower().replace("-", "_").replace(".", "_")
 s3 = boto3.client("s3", region_name="us-east-2")
 _c = None
 
@@ -116,7 +132,7 @@ def state(**kw):
         else:
             s[k] = v
     json.dump(s, open(STATE, "w"), indent=1, default=str)
-    s3.put_object(Bucket=BUCKET, Key="lake/_work/sweep/state.json", Body=json.dumps(s, indent=1, default=str).encode())
+    s3.put_object(Bucket=BUCKET, Key=STATE_KEY, Body=json.dumps(s, indent=1, default=str).encode())
     return s
 
 
@@ -286,6 +302,11 @@ def floors():
           m.rel IN ({floored}) AS applies
           FROM mats1 m JOIN floors0 f ON f.rel = m.rel AND f.file_name = m.file_name AND f.mat = m.mat
           WHERE m.role = 'cov' AND m.sub = 'neutrons'""")
+    if PAIR:  # one floor per material for both releases of the pair: the larger of their two resonance ranges
+        q("""CREATE OR REPLACE TABLE floors AS
+             WITH k AS (SELECT kb, max(floor_ev) floor_ev, max(rrr_eh) rrr_eh, max(urr_eh) urr_eh FROM floors GROUP BY kb)
+             SELECT r.rel, k.kb, k.floor_ev, k.rrr_eh, k.urr_eh, NULL::INTEGER lssf, true AS applies
+             FROM k CROSS JOIN (SELECT DISTINCT rel FROM mats1) r""")
 
 
 COV_LB = (1, 2, 5, 6, 8)
@@ -546,11 +567,8 @@ def run():
          FROM pairkeys k JOIN a USING (key) LEFT JOIN pairnames nm USING (key) LEFT JOIN held h USING (key)""")
     st = {"seconds": round(time.time() - t0), "points_below_floor": below, "points_averaged_in_resolved_range": averaged, "points_left_out_mt5_partial": partial,
           "pairs_with_data": one("SELECT count(*) FROM pairs_all"),
-          "pairs_with_b_viii_1": one("SELECT count(*) FROM pairs_all WHERE held_b_viii_1"),
-          "pairs_with_b_viii_0": one("SELECT count(*) FROM pairs_all WHERE held_b_viii_0"),
-          "pairs_with_b81_jeff_jendl_tendl": one("SELECT count(*) FROM pairs_all WHERE held_b_viii_1 AND held_jeff_3_3 "
-                                                 "AND held_jendl_5 AND held_tendl_2023"),
-          "pairs_with_all_six": one("SELECT count(*) FROM pairs_all WHERE " + " AND ".join(cols)),
+          "pairs_held": {R: one(f"SELECT count(*) FROM pairs_all WHERE {held_col(R)}") for R in RELEASES},
+          "pairs_with_all": one("SELECT count(*) FROM pairs_all WHERE " + " AND ".join(cols)),
           "summary_rows": dict(q("SELECT release, count(*) FROM summary GROUP BY 1").fetchall()),
           "bins_rows": one("SELECT count(*) FROM bins"), "dataset_rows": one("SELECT count(*) FROM dstat")}
     print(json.dumps(st, indent=1))
@@ -579,29 +597,37 @@ def names():
 # ── Part B: what changed VIII.0 to VIII.1, and the retrodiction ─────────────────────────────────────────────────────
 def changes():
     t0 = time.time()
+    hf, ht = held_col(FROM_REL), held_col(TO_REL)
+    # in pair mode the grid starts at the material's common floor (MF3 is the whole cross section only above it)
     q(f"""CREATE OR REPLACE TABLE grid AS
-          WITH s AS (SELECT key, e_min_ev, e_max_ev FROM pairs_all WHERE held_b_viii_0 AND held_b_viii_1),
-          g AS (SELECT s.key, pow(10, r.k / {GRID_PER_DECADE}) e FROM s,
-                       LATERAL (SELECT unnest(range(ceil(log10(s.e_min_ev) * {GRID_PER_DECADE})::BIGINT,
-                                                    floor(log10(s.e_max_ev) * {GRID_PER_DECADE})::BIGINT + 1)) k) r
-                UNION SELECT key, e_min_ev FROM s UNION SELECT key, e_max_ev FROM s)
+          WITH f AS (SELECT kb, max(floor_ev) floor_ev FROM floors WHERE applies AND rel IN ('{FROM_REL}', '{TO_REL}')
+                     GROUP BY kb),
+          s AS (SELECT p.key, greatest(p.e_min_ev, CASE WHEN p.sublibrary = 'neutrons' THEN coalesce(f.floor_ev, 0)
+                                                        ELSE 0 END) e_min_ev, p.e_max_ev
+                FROM pairs_all p LEFT JOIN f ON f.kb = p.key - p.key % 1000 WHERE p.{hf} AND p.{ht}),
+          s2 AS (SELECT * FROM s WHERE e_min_ev <= e_max_ev),
+          g AS (SELECT s2.key, pow(10, r.k / {GRID_PER_DECADE}) e FROM s2,
+                       LATERAL (SELECT unnest(range(ceil(log10(s2.e_min_ev) * {GRID_PER_DECADE})::BIGINT,
+                                                    floor(log10(s2.e_max_ev) * {GRID_PER_DECADE})::BIGINT + 1)) k) r
+                UNION SELECT key, e_min_ev FROM s2 UNION SELECT key, e_max_ev FROM s2)
           SELECT row_number() OVER () gid, key, e FROM g""")
     q("CREATE OR REPLACE TABLE grid_r (gid BIGINT, rel VARCHAR, yev DOUBLE)")
-    for R in ("B-VIII.0", "B-VIII.1"):
+    for R in (FROM_REL, TO_REL):
         interp_into("grid_r", "grid", R, "gid")
-    q("""CREATE OR REPLACE TABLE changes AS
-         WITH a AS (SELECT g.key, g.e, ln(b.yev / a.yev) lr FROM grid g
-                    JOIN grid_r a ON a.gid = g.gid AND a.rel = 'B-VIII.0' JOIN grid_r b ON b.gid = g.gid AND b.rel = 'B-VIII.1'
-                    WHERE a.yev > 0 AND b.yev > 0)
-         SELECT p.key, p.target_za, p.liso, p.sublibrary, p.mt, p.target, p.reaction, p.e_min_ev AS span_lo_ev,
-                p.e_max_ev AS span_hi_ev, count(a.lr) n_grid, sqrt(avg(a.lr * a.lr)) rms_log, max(abs(a.lr)) max_log,
-                coalesce(sqrt(avg(a.lr * a.lr)) > """ + str(CHANGE_RMS) + """, false) AS changed,
-                CASE WHEN p.sublibrary = 'neutrons' THEN 'POINT 293.6 K (File 2 reconstructed and broadened)'
-                     ELSE 'MF3' END AS compared_from
-         FROM pairs_all p LEFT JOIN a USING (key) WHERE p.held_b_viii_0 AND p.held_b_viii_1 GROUP BY ALL""")
+    how = ("'MF3 above the common resonance floor'" if PAIR else
+           "CASE WHEN p.sublibrary = 'neutrons' THEN 'POINT 293.6 K (File 2 reconstructed and broadened)' ELSE 'MF3' END")
+    q(f"""CREATE OR REPLACE TABLE changes AS
+          WITH a AS (SELECT g.key, g.e, ln(b.yev / a.yev) lr FROM grid g
+                     JOIN grid_r a ON a.gid = g.gid AND a.rel = '{FROM_REL}' JOIN grid_r b ON b.gid = g.gid AND b.rel = '{TO_REL}'
+                     WHERE a.yev > 0 AND b.yev > 0)
+          SELECT p.key, p.target_za, p.liso, p.sublibrary, p.mt, p.target, p.reaction, p.e_min_ev AS span_lo_ev,
+                 p.e_max_ev AS span_hi_ev, count(a.lr) n_grid, sqrt(avg(a.lr * a.lr)) rms_log, max(abs(a.lr)) max_log,
+                 coalesce(sqrt(avg(a.lr * a.lr)) > {CHANGE_RMS}, false) AS changed, {how} AS compared_from
+          FROM pairs_all p LEFT JOIN a USING (key) WHERE p.{hf} AND p.{ht} GROUP BY ALL""")
     st = {"seconds": round(time.time() - t0), "pairs": one("SELECT count(*) FROM changes"),
           "changed": one("SELECT count(*) FROM changes WHERE changed"),
-          "no_common_grid": one("SELECT count(*) FROM changes WHERE n_grid = 0"), "threshold_rms_log": CHANGE_RMS}
+          "no_common_grid": one("SELECT count(*) FROM changes WHERE n_grid = 0"), "threshold_rms_log": CHANGE_RMS,
+          "from": FROM_REL, "to": TO_REL}
     print(json.dumps(st))
     state(changes=st)
 
@@ -615,14 +641,14 @@ def retro():
                  s.n_points, s.n_datasets, s.support_points, s.support_datasets,
                  abs(s1.mean_log_ratio) < abs(s.mean_log_ratio) AS moved_toward_data
           FROM summary s JOIN changes c USING (key)
-          LEFT JOIN summary s1 ON s1.key = s.key AND s1.release = 'B-VIII.1'
-          WHERE s.release = 'B-VIII.0' AND {supported.replace('support_', 's.support_')} AND c.n_grid > 0""")
+          LEFT JOIN summary s1 ON s1.key = s.key AND s1.release = '{TO_REL}'
+          WHERE s.release = '{FROM_REL}' AND {supported.replace('support_', 's.support_')} AND c.n_grid > 0""")
     base_n = one("SELECT count(*) FROM retro_base")
     base_changed = one("SELECT count(*) FROM retro_base WHERE changed")
     base = base_changed / base_n if base_n else None
     summ = {"supported_pairs": base_n, "changed_pairs": base_changed, "base_rate": base,
             "support_rule": f">= {SUPPORT_DATASETS} datasets and >= {SUPPORT_POINTS} points after removing the driver",
-            "change_rule": f"rms of log(sigma_VIII.1 / sigma_VIII.0) over the pair's EXFOR span > {CHANGE_RMS}",
+            "change_rule": f"rms of log(sigma_{TO_REL} / sigma_{FROM_REL}) over the pair's EXFOR span > {CHANGE_RMS}", "from": FROM_REL, "to": TO_REL, "method": ("MF3 above the common resonance floor" if PAIR else "POINT 293.6 K for neutrons, averaged inside the resolved range"),
             "rankings": {}}
     for name, order in (("z", "z DESC"), ("abs_mean_log_ratio", "abs(mean_log_ratio_v80) DESC"),
                         ("max_bin_z", "max_bin_z DESC")):
@@ -658,8 +684,24 @@ def retro():
     print(json.dumps(summ, indent=1))
     state(retrodiction=summ)
     os.makedirs(f"{WORK}/out", exist_ok=True)
-    json.dump(summ, open(f"{WORK}/out/retrodiction-summary.json", "w"), indent=1)
-    s3.put_object(Bucket=BUCKET, Key=f"{PREFIX}/retrodiction/summary.json", Body=json.dumps(summ, indent=1).encode(),
+    key = f"{FROM_REL}:{TO_REL}" + (" (MF3)" if PAIR and (FROM_REL, TO_REL) == ("B-VIII.0", "B-VIII.1") else "")
+    try:
+        main = json.loads(s3.get_object(Bucket=BUCKET, Key=f"{PREFIX}/retrodiction/summary.json")["Body"].read())
+    except Exception:  # noqa: BLE001
+        main = {}
+    pairs = main.get("pairs") or {}
+    pairs[key] = {k: v for k, v in summ.items() if k != "pairs"}
+    if PAIR:
+        # the rows, with the pair named, beside the main table (the _v80 columns are the earlier release, _v81 the later)
+        path = f"{WORK}/out/retrodiction_pairs-{FROM_REL}_{TO_REL}.parquet"
+        q(f"""COPY (SELECT '{FROM_REL}' AS release_from, '{TO_REL}' AS release_to, '{key}' AS pair, * FROM rk_z ORDER BY rank)
+              TO '{path}' (FORMAT PARQUET, COMPRESSION SNAPPY)""")
+        s3.upload_file(path, BUCKET, f"{PREFIX}/retrodiction_pairs/{FROM_REL}_{TO_REL}.parquet")
+        main["pairs"] = pairs
+    else:
+        main = {**summ, "pairs": pairs}
+    json.dump(main, open(f"{WORK}/out/retrodiction-summary.json", "w"), indent=1)
+    s3.put_object(Bucket=BUCKET, Key=f"{PREFIX}/retrodiction/summary.json", Body=json.dumps(main, indent=1).encode(),
                   ContentType="application/json")
 
 

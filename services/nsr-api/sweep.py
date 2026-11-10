@@ -8,7 +8,8 @@
 #   GET /sweep/pair?target=U-235&mt=18&sub=neutrons&release=B-VIII.1,JEFF-3.3    the bins and datasets per release, each
 #            dataset with its ratios as points [[e_ev, ratio], ...] (at most 300; &points=0 leaves them out)
 #   GET /sweep/releases                the releases, sublibraries and counts, the run date, the method
-#   GET /sweep/retrodiction            { summary, rows }: the VIII.0 ranking against what VIII.1 changed (500 rows)
+#   GET /sweep/retrodiction            { summary, rows }: the VIII.0 ranking against what VIII.1 changed (500 rows);
+#            ?from=B-VII.1&to=B-VIII.0 (or B-VII.0 to B-VII.1; from=B-VIII.0&to=B-VIII.1&method=mf3) another release pair
 #   GET /sweep/flags?kind=exfor&rule=b { evaluation, exfor }: VIII.1 entries no public list names; mislabelled EXFOR
 #   GET /sweep/medical                 the medical-isotope production routes, a yield and a verdict each
 #   GET /sweep/medical/{route}         one route: its points by source, the yield table, the bins, the verdict
@@ -184,9 +185,24 @@ def releases():
                                          "public_lists", "iaea_pages", "timings", "left_out")}
 
 
-def retrodiction():
+def retrodiction(q):
+    """The main pair (VIII.0 to VIII.1, POINT): the summary and its 500 rows. ?from=B-VII.1&to=B-VIII.0: another release
+    pair (MF3 above the common resonance floor), from summary.json's pairs and lake/sweep/<date>/retrodiction_pairs/;
+    &method=mf3 with from=B-VIII.0&to=B-VIII.1 gives the main pair by that method. summary.pairs lists every pair run."""
     summ = s3json("retrodiction/summary.json")
-    return 200, {"summary": summ, "rows": rows(f"SELECT * FROM {table('retrodiction')} ORDER BY rank LIMIT 500")}
+    f, t = (q.get("from") or "").strip(), (q.get("to") or "").strip()
+    if not f and not t or ((f, t) == ("B-VIII.0", "B-VIII.1") and (q.get("method") or "") != "mf3"):
+        return 200, {"summary": summ, "rows": rows(f"SELECT * FROM {table('retrodiction')} ORDER BY rank LIMIT 500")}
+    key = f"{f}:{t}" + (" (MF3)" if (f, t) == ("B-VIII.0", "B-VIII.1") else "")
+    pairs = summ.get("pairs") or {}
+    if key not in pairs:
+        return 404, {"error": f"no retrodiction for {f} to {t}", "pairs": sorted(pairs)}
+    t_ = "sweep_retrodiction_pairs"
+    if t_ not in _loaded:
+        con().execute(f"CREATE OR REPLACE TABLE {t_} AS SELECT * FROM read_parquet('{SWEEP}/retrodiction_pairs/*.parquet')")
+        _loaded.add(t_)
+    out = rows(f"SELECT * EXCLUDE (release_from, release_to, pair) FROM {t_} WHERE pair = ? ORDER BY rank LIMIT 500", [key])
+    return 200, {"summary": pairs[key], "pair": key, "rows": out}
 
 
 def flags(q):
@@ -257,7 +273,7 @@ def route(path, q):
         if p == "/sweep/releases":
             return releases()
         if p == "/sweep/retrodiction":
-            return retrodiction()
+            return retrodiction(q)
         if p == "/sweep/flags":
             return flags(q)
         if p == "/sweep/medical":

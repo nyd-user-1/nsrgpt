@@ -71,7 +71,9 @@ toward the measurements: 5 of 5 changed pairs in the top 20, 13 of 14 (93%) in t
 60% for all 204 changed pairs. The ranking does not predict which pairs VIII.1 changed: top-20 hit rate 25% against a
 32.8% base rate (enrichment 0.76; 622 supported pairs, 204 changed at an RMS of 0.5%), changed pairs' median rank 318
 of 622. At stricter thresholds (2, 5, 10%: re-evaluations, not grid changes) the top-50 enrichment is 1.05, 1.17, 1.18,
-within chance on 10 to 15 hits; the direction rate stays 89 to 93% in the top 50 at every threshold.
+within chance on 10 to 15 hits; the direction rate stays 89 to 93% in the top 50 at every threshold. It does not
+replicate on the older release pairs (VII.1 to VIII.0, VII.0 to VII.1; table below): against the 60% base it is
+significant for VIII.0 to VIII.1 only (13 of 14, one-sided binomial p about 0.008).
 
 **The U-235 check** reproduces the Lab on the same 4,140 points and 69 datasets: B-VIII.1 0.9949 (Lab 0.995), JEFF-3.3
 0.9755 (0.976), JENDL-5 0.9851 (0.985).
@@ -134,3 +136,47 @@ lake's mirror of 2026-11-07.
 **Spend.** The sweep box nsr-sweep-1 (m7i-flex.large: the account allows Free Tier types only, so not the brief's
 c7i.4xlarge) about $0.16 for its hours; the job box about $0.05 for 55 PREPRO jobs; S3 and Athena under a cent. The box
 is terminated.
+
+**The retrodiction on other release pairs** (`/sweep/retrodiction?from=B-VII.1&to=B-VIII.0`, `?from=B-VII.0&to=B-VII.1`,
+`?from=B-VIII.0&to=B-VIII.1&method=mf3`; `summary.pairs` in `/sweep/retrodiction`). No POINT library exists before
+VIII.0, so these pairs compare both releases from MF3 above a common floor (each neutron material's larger MF2 range of
+the two) on the same points; the VIII.0 to VIII.1 row by that method is the like-for-like check. Changed at RMS 0.5%;
+direction is the share of changed pairs where the later release moved toward the data.
+
+| Pair | Method | Supported | Changed (base) | Top 20 hit, enrichment, direction | Top 50 hit, enrichment, direction | Top 200 direction | All changed, direction | Top 50 enrichment at 2 / 5 / 10% |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| VIII.0 to VIII.1 | POINT, averaged in the resolved range | 622 | 204 (32.8%) | 25%, 0.76, 5 of 5 | 30%, 0.91, 13 of 14 | 70% | 60% | 1.05 / 1.17 / 1.18 |
+| VIII.0 to VIII.1 | MF3 above the common floor | 447 | 100 (22.4%) | 15%, 0.67, 3 of 3 | 22%, 0.98, 80% | 61% | 56% | 1.08 / 1.45 / 1.63 |
+| VII.1 to VIII.0 | MF3 above the common floor | 432 | 67 (15.5%) | 15%, 0.97, 1 of 3 | 14%, 0.90, 3 of 7 | 55% | 57% | 1.03 / 1.14 / 1.44 |
+| VII.0 to VII.1 | MF3 above the common floor | 415 | 83 (20.0%) | 20%, 1.00, 2 of 4 | 18%, 0.90, 5 of 9 | 60% | 56% | 1.04 / 1.09 / 1.29 |
+
+Read plainly: no pair shows the ranking predicting which sections change (enrichment near 1 at 0.5%, rising to 1.3 to
+1.6 at 10% on 5 to 10 hits); the "moved toward the data" excess is clear for VIII.0 to VIII.1 by the POINT method,
+weaker by MF3 alone, and absent for the two older pairs. A second box (nsr-sweep-2, minutes) ran these and is
+terminated.
+
+## Draft to BNL (worker-3, for lead-agent's review; Brendan sends it or not)
+
+Subject: EXFOR against ENDF/B-VIII.0 and VIII.1: a ranked comparison
+
+Dear Dr. Brown,
+
+I compared every EXFOR cross section given in barns with ENDF/B-VIII.0 and VIII.1, and with JEFF-3.3, JENDL-5,
+TENDL-2023 and CENDL-3.2: 25,232 datasets, 4.4 million points, 4,266 target and reaction pairs. The method and code are
+public and the whole run takes under a minute. As a check, it matches a separate comparison for U-235 (n,f) at 9 to
+18 keV to within 0.001.
+
+Ranking the pairs by their disagreement with VIII.0 did not predict which ones VIII.1 changed. Where VIII.1 did change a
+high-ranked pair, though, it moved toward the measurements: 13 of the 14 changed pairs in the top 50, against 60% of all
+changed pairs. The same test on VII.1 to VIII.0 shows no such effect (3 of 7, against 57%), so with this few pairs I
+treat the VIII.1 result as suggestive, not settled.
+
+For VIII.1 the comparison gives a ranked list of 621 pairs. 113 of its top 200 are not named in NNDC's published VIII.1
+notes; each comes with the datasets, energies and ratios behind it. It also flags 127 EXFOR datasets whose units or
+energies look wrong.
+
+Everything is at https://nsrgpt.brendan-stanton.workers.dev/sweep.
+
+Would a list like this be useful to the CSEWG evaluators, and if so, in what form?
+
+Brendan Stanton
