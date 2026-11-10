@@ -4,11 +4,11 @@
 // exact fields) and the serving tables' columns in the Glue catalog nsr. Types are the catalog's. Pages list where the
 // app shows the field; route is the API path that returns it. Paging and timing fields (page, pages, took_ms) are left out.
 
-export type Dataset = "ENSDF" | "ENDF/B" | "EXFOR" | "NSR" | "ICRP 107" | "Every dataset"
+export type Dataset = "ENSDF" | "ENDF/B" | "EXFOR" | "NSR" | "ICRP 107" | "IAEA" | "Every dataset"
 export type Field = { id: string; field: string; type: string; dataset: Dataset; table: string; description: string; pages: string[]; route: string }
 
 /** The groups in the order the page shows them. */
-export const DATASETS: Dataset[] = ["ENSDF", "ENDF/B", "EXFOR", "NSR", "ICRP 107", "Every dataset"]
+export const DATASETS: Dataset[] = ["ENSDF", "ENDF/B", "EXFOR", "NSR", "ICRP 107", "IAEA", "Every dataset"]
 
 type Spec = [field: string, type: string, description: string, pages?: string[]]
 
@@ -261,6 +261,15 @@ export const DICTIONARY: Field[] = [
     ["status", "string", "queued, running, done or failed."],
     ["result_urls", "map", "One result file per temperature once done."],
   ]),
+  ...rows("ENDF/B", "gnds_files", "/gnds", [
+    ["release", "string", "The release the material was converted from; the partition."],
+    ["mat", "int", "The material number."],
+    ["name", "string", "The material, as U-235."],
+    ["key", "string", "The GNDS 2.0 reactionSuite file in the lake (lake/gnds/<release>/…)."],
+    ["cov_key", "string", "The covarianceSuite file, where the material has covariances."],
+    ["fudge_version", "string", "The FUDGE version that converted it."],
+    ["ok", "boolean", "Whether the conversion succeeded; error says why not."],
+  ]),
   // EXFOR: /exfor/search, /exfor/subentry/{id}, /exfor/pickers/{name}
   ...rows("EXFOR", "exfor_serve_search_index", "/exfor/search", [
     ["dataset", "string", "One data table: the subentry and its pointer, as 10001002 or O04060152."],
@@ -398,6 +407,87 @@ export const DICTIONARY: Field[] = [
   ...rows("Every dataset", "API response", "/counts", [
     ["counts", "object", "Rows per dataset counted from the lake's Parquet: NSR papers, ENSDF datasets and nuclides, XUNDL datasets, EXFOR entries, subentries, datasets and points, ICRP nuclides."],
     ["endf", "object", "Per release: materials, sections, MF3 points and resonance rows."],
+  ]),
+
+  // IAEA reference data (brief 62, worker-4): /stopping, /ripl, /betashape, /benchmarks; the records repository and CD-ROMs
+  ...rows("IAEA", "stopping_powers", "/stopping", [
+    ["projectile_name", "string", "The ion, as H, He or C."],
+    ["target_name", "string", "The stopping material."],
+    ["phase", "string", "The target's phase: solid, liquid or gas."],
+    ["energy", "double", "The ion's energy, in energy_unit."],
+    ["stopping_power", "double", "The measured stopping power, in stopping_unit."],
+    ["stopping_power_converted", "double", "The same in one unit for every row, stopping_unit_converted."],
+    ["percentage_error", "string", "The stated uncertainty, percent."],
+    ["ref_id", "string", "The measurement's reference, a row of stopping_refs."],
+  ]),
+  ...rows("IAEA", "stopping_refs", "/stopping", [
+    ["ref_id", "string", "The reference's id in the IAEA stopping power database."],
+    ["authors", "string", "The authors."],
+    ["citation_reference", "string", "The journal reference."],
+    ["year", "int", "The year published."],
+    ["doi", "string", "The DOI, where known."],
+  ]),
+  ...rows("IAEA", "ripl_level_nuclides", "/ripl/levels", [
+    ["z", "int", "Proton number."],
+    ["a", "int", "Mass number."],
+    ["n_levels", "int", "Levels RIPL-4 lists for the nuclide."],
+    ["n_c", "int", "Levels up to which the scheme is complete."],
+    ["sn_mev", "double", "Neutron separation energy, MeV."],
+    ["sp_mev", "double", "Proton separation energy, MeV."],
+  ]),
+  ...rows("IAEA", "ripl_levels", "/ripl/levels", [
+    ["level", "int", "The level's number, from 1 for the ground state."],
+    ["e_mev", "double", "The level energy, MeV."],
+    ["spin", "double", "The level's spin."],
+    ["parity", "int", "The level's parity, +1 or -1."],
+    ["half_life_s", "double", "The level's half-life, seconds."],
+    ["spin_flag", "string", "How the spin was assigned: from ENSDF, or by RIPL's rules where ENSDF leaves it open."],
+  ]),
+  ...rows("IAEA", "ripl_gammas", "/ripl/levels", [
+    ["level", "int", "The level the gamma leaves."],
+    ["final_level", "int", "The level it reaches."],
+    ["e_gamma_mev", "double", "The gamma energy, MeV."],
+    ["p_gamma", "double", "The branching to this gamma among the level's gammas."],
+    ["icc", "double", "The internal conversion coefficient."],
+  ]),
+  ...rows("IAEA", "ripl_masses_ame2020", "/ripl/masses", [
+    ["mass_excess_mev", "double", "The mass excess from AME2020, MeV."],
+    ["err_mev", "double", "Its uncertainty, MeV."],
+    ["flag", "int", "0 measured, 1 estimated from systematics."],
+  ]),
+  ...rows("IAEA", "iaea_betashape_spectra", "/betashape", [
+    ["nuclide", "string", "The decaying nuclide."],
+    ["rad_type", "string", "The decay: beta-minus or beta-plus."],
+    ["bin_en", "double", "The bin's energy, keV."],
+    ["dn_de", "double", "Betas per keV per decay in the bin."],
+    ["dn_de_nu", "double", "Neutrinos per keV per decay in the bin."],
+  ]),
+  ...rows("IAEA", "conderc_openmc", "/benchmarks", [
+    ["benchmark", "string", "The criticality benchmark (CONDERC)."],
+    ["case", "string", "The case within it."],
+    ["library", "string", "The evaluated library the run used."],
+    ["k_eff", "double", "OpenMC's multiplication factor."],
+    ["k_eff_unc", "double", "Its statistical uncertainty."],
+    ["leakage", "double", "The fraction of neutrons that leak."],
+  ]),
+  ...rows("IAEA", "iaea_records", "—", [
+    ["id", "string", "The record's id in IAEA's records repository (nds.iaea.org/records)."],
+    ["title", "string", "The record's title."],
+    ["resource_type", "string", "Dataset, software, publication."],
+    ["n_files", "int", "Files the record lists."],
+    ["held_files", "int", "Of those, the files the lake holds."],
+  ]),
+  ...rows("IAEA", "iaea_record_files", "—", [
+    ["id", "string", "The record the file belongs to."],
+    ["name", "string", "The file's name."],
+    ["size", "bigint", "Its size, bytes."],
+    ["held", "boolean", "Whether the lake holds the file (held_key names it)."],
+  ]),
+  ...rows("IAEA", "iaea_cdroms", "—", [
+    ["product", "string", "The CD-ROM's product code."],
+    ["title", "string", "Its title."],
+    ["year", "int", "The year issued."],
+    ["held", "boolean", "Whether the lake holds the image (held_key names it)."],
   ]),
 
   // Every dataset: /search, /suggest
