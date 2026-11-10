@@ -380,7 +380,8 @@ Failures and differences:
 ## worker-4 (briefs 60 and 62: GNDS 2.0, the reference data, the QA drive above)
 
 **GNDS 2.0.** Every ENDF-6 release in the lake compiled by LLNL FUDGE 6.14.0 on four boxes (nsr-gnds-1..4, m7i-flex.large;
-the account refuses larger types), from `lake/gnds/manifest.json` at 12:12 UTC, the compile still running:
+the account refuses larger types), final at 11:23 ET (`lake/gnds/manifest.json`): 69,201 materials, 56,133 converted,
+13,068 failed, 30.6 GB:
 
 | Release | Materials | Converted | Failed | GB (gzip) | State | Most failures, FUDGE's cause |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -390,12 +391,13 @@ the account refuses larger types), from `lake/gnds/manifest.json` at 12:12 UTC, 
 | JEFF-3.3 | 18,494 | 10,619 | 7,875 | 5.01 | done | 4,028 sub-actinide fission ZAP, 2,097 non-zero ground-state ELFS (the charged-particle sublibraries) |
 | JENDL-5 | 8,219 | 6,266 | 1,953 | 6.48 | done | 1,821 "Unexpected NT" (decay); 62 thermal-scattering targets FUDGE reads from a file name the IAEA tape lacks |
 | CENDL-3.2 | 272 | 243 | 29 | 0.26 | done | 7 evaluation dates, 7 resonance data not all converted |
-| TENDL-2023 | 19,901 | running | | | neutrons now (3–5 s a material), the other six sublibraries last | |
-| B-VII.0, B-VI.8, B-V, B-IV, B-III, B-II | | queued | | | after TENDL-2023's neutrons | |
+| TENDL-2023 | 19,901 | 17,423 | 2,478 | 15.39 | done | 1,264 residual level energies that disagree between two files, 843 non-zero ground-state QM-QI |
+| B-VII.0 | 4,820 | 4,790 | 30 | 0.39 | done | 4 residual level energies, 4 Python tracebacks |
+| B-VI.8 | 2,114 | 1,865 | 249 | 0.36 | done | 95 non-zero EFL in electron files, 54 product ZAP that differs between two files |
+| B-V, B-IV, B-III, B-II | 423 | 0 | 423 | 0 | done | their pre-ENDF-6 formats do not parse ("could not convert string to float") |
 
 FUDGE's strict defaults throughout (no `--ignoreBadDate`, `--skipBadData`); every failure is a row in `nsr.gnds_files`
-with FUDGE's last 20 lines. Cap $10: $1.36 of compute at 12:12 UTC; the chain should end by about 11:00 ET, and the boxes
-end themselves by 15:30 ET whatever happens. On demand: `POST /jobs {kind: "gnds", params: {release, name, sub}}` or
+with FUDGE's last 20 lines. Cap $10: $2.59 of compute; the boxes ran about 32 box-hours (about $3.10) and were terminated at 11:30 ET. On demand: `POST /jobs {kind: "gnds", params: {release, name, sub}}` or
 `{file_key}` for an upload (Pu-239 30 s, H-1 upload 1.1 s), and `GET /gnds`:
 https://daw1qggkn69lv.cloudfront.net/gnds?release=B-VIII.1&name=U-235&sub=neutrons →
 https://daw1qggkn69lv.cloudfront.net/lake/gnds/B-VIII.1/neutrons/9228.xml.gz (U-235 at 1 MeV reads back 1.2029 b
