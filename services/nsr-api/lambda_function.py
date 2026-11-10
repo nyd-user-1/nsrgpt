@@ -296,6 +296,9 @@ def module_route(path, q, t0, event=None):
 
 
 def lambda_handler(event, context):
+    if event.get("counts_refresh"):  # /counts' background rebuild (counts.py), invoked asynchronously by the route
+        import counts
+        return {"counted": counts.refresh().get("total_records")}
     t0 = time.time()
     path = event.get("rawPath") or event.get("path") or "/"
     q = event.get("queryStringParameters") or {}

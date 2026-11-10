@@ -1,5 +1,9 @@
 {"Version":"2012-10-17","Statement":[
- {"Effect":"Allow","Action":"s3:GetObject","Resource":["arn:aws:s3:::nsr-lake-613473203863/lake/ensdf/*","arn:aws:s3:::nsr-lake-613473203863/lake/xundl/*","arn:aws:s3:::nsr-lake-613473203863/lake/endfb/*","arn:aws:s3:::nsr-lake-613473203863/lake/nsr-database/*","arn:aws:s3:::nsr-lake-613473203863/lake/icrp107/*"]},
- {"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::nsr-lake-613473203863","Condition":{"StringLike":{"s3:prefix":["lake/ensdf/*","lake/xundl/*","lake/endfb/*","lake/nsr-database/*","files/pdfs/workspace/*","lake/icrp107/*"]}}},
+ {"Effect":"Allow","Action":"s3:GetObject","Resource":["arn:aws:s3:::nsr-lake-613473203863/lake/ensdf/*","arn:aws:s3:::nsr-lake-613473203863/lake/xundl/*","arn:aws:s3:::nsr-lake-613473203863/lake/endfb/*","arn:aws:s3:::nsr-lake-613473203863/lake/nsr-database/*","arn:aws:s3:::nsr-lake-613473203863/lake/icrp107/*","arn:aws:s3:::nsr-lake-613473203863/lake/*"]},
+ {"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::nsr-lake-613473203863","Condition":{"StringLike":{"s3:prefix":["lake/ensdf/*","lake/xundl/*","lake/endfb/*","lake/nsr-database/*","files/pdfs/workspace/*","lake/icrp107/*","lake/*"]}}},
  {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject"],"Resource":"arn:aws:s3:::nsr-lake-613473203863/files/pdfs/workspace/*"},
- {"Effect":"Allow","Action":["dynamodb:GetItem","dynamodb:PutItem","dynamodb:DeleteItem","dynamodb:Query"],"Resource":["arn:aws:dynamodb:us-east-2:613473203863:table/nsrgpt-views","arn:aws:dynamodb:us-east-2:613473203863:table/nsrgpt-views/index/*"]}]}
+ {"Effect":"Allow","Action":["dynamodb:GetItem","dynamodb:PutItem","dynamodb:DeleteItem","dynamodb:Query"],"Resource":["arn:aws:dynamodb:us-east-2:613473203863:table/nsrgpt-views","arn:aws:dynamodb:us-east-2:613473203863:table/nsrgpt-views/index/*"]},
+ {"Effect":"Allow","Action":"s3:PutObject","Resource":"arn:aws:s3:::nsr-lake-613473203863/lake/serve/counts/*"},
+ {"Effect":"Allow","Action":["glue:GetDatabase","glue:GetTables","glue:GetPartitions"],"Resource":["arn:aws:glue:us-east-2:613473203863:catalog","arn:aws:glue:us-east-2:613473203863:database/nsr","arn:aws:glue:us-east-2:613473203863:table/nsr/*"]},
+ {"Effect":"Allow","Action":"dynamodb:Scan","Resource":"arn:aws:dynamodb:us-east-2:613473203863:table/nsrgpt-jobs"},
+ {"Effect":"Allow","Action":"lambda:InvokeFunction","Resource":"arn:aws:lambda:us-east-2:613473203863:function:nsr-api"}]}

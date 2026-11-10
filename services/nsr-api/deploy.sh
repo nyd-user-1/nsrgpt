@@ -38,7 +38,7 @@ if aws lambda get-function --function-name $FN "${A[@]}" >/dev/null 2>&1; then
   fi
 else
   aws lambda create-function --function-name $FN --runtime python3.12 --handler lambda_function.lambda_handler \
-    --role arn:aws:iam::$ACCT:role/$ROLE --memory-size $MEM --timeout 30 --code S3Bucket=$BUCKET,S3Key=$KEY \
+    --role arn:aws:iam::$ACCT:role/$ROLE --memory-size $MEM --timeout 300 --code S3Bucket=$BUCKET,S3Key=$KEY \
     --tags project=nsr "${A[@]}" --query FunctionArn --output text
 fi
 # Brief 34: the dataset routes read the parsed lake, /community and /files write the views table and the uploads folder
