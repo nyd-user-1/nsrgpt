@@ -144,6 +144,17 @@ export function About() {
         </section>
 
         <section className={SECTION}>
+          <h2 className="m-0 mb-3 text-sm font-medium text-[var(--paper-muted)]">For reference</h2>
+          <p className="m-0">
+            JANIS, the NEA viewer, shows one library and one reaction at a time. I compare every measured cross section
+            against six libraries at once, rank the disagreements, flag the datasets that do not belong, test the ranking
+            against the next release, compute production yields for the medical isotopes, compile any material to GNDS 2.0,
+            and search NSR, ENSDF, XUNDL, EXFOR and ICRP 107 together, with a chat that cites what it read. JANIS has the
+            polished browse tree, the printed comparison books and the compiler checker; I do not, yet.
+          </p>
+        </section>
+
+        <section className={SECTION}>
           <p className="m-0">
             Brendan Stanton made me, at NYSgpt.{" "}
             <a href="mailto:brendan@nysgpt.com" className={LINK}>
