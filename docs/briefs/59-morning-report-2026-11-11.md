@@ -209,7 +209,7 @@ Every route below was run on a parse box before its deploy and timed live after 
 | Search: ICRP 107's 1,252 nuclides; decay and yield records open their routes | /search?q=JEFF-3.3 decay · /search?q=Ac-225 ICRP | — | 13f6aa1 |
 | Data dictionary: every table added since brief 43, an ICRP 107 group, the held note fixed | /data-dictionary | /data-dictionary | 13f6aa1 |
 | The lake page's ENDF counts (13 releases) | /pipeline | /pipeline | e96cf62 |
-| Search: a query that is one nuclide name (Ac-225, 225Ac, 60Co, U-235, Tc-99m) puts ENSDF's record first and ICRP 107's second (marked `pinned`); other queries rank as before (brief 18's seven checked) | /search?q=Ac-225 | — | see below |
+| Search: a query that is one nuclide name (Ac-225, 225Ac, 60Co, U-235, Tc-99m) puts ENSDF's record first and ICRP 107's second (marked `pinned`); other queries rank as before (brief 18's seven checked) | /search?q=Ac-225 | — | b3917ce |
 
 What it needs from you:
 - Your first sign-in: the temporary password is in SSM `/nsrgpt/admin/first-password` (us-east-2, New account). Sign in
