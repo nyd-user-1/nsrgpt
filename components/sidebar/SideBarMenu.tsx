@@ -32,6 +32,7 @@ const ALL: NavEntry[] = [
   { href: "/glossary", label: "Glossary", group: "Main" },
   { href: "/graph", label: "Graph", group: "Main" },
   { href: "/lab", label: "Lab", group: "Main" },
+  { href: "/nsrcpt", label: "NSR-CPT", group: "Main" },
   { href: "/pipeline", label: "Pipeline", group: "Main" },
   { href: "/schema", label: "Schema", group: "Main" },
   { href: "/search", label: "Search", group: "Main" },
@@ -59,6 +60,7 @@ export function SideBarMenu() {
         {place("/glossary") && <SideBarMenuItem href="/glossary" label="Glossary" icon={PAGE_ICONS["/glossary"]} on={path === "/glossary"} />}
         {place("/graph") && <SideBarMenuItem href="/graph" label="Graph" icon={PAGE_ICONS["/graph"]} on={path === "/graph"} />}
         {place("/lab") && <SideBarMenuItem href="/lab" label="Lab" icon={FlaskConical} on={path === "/lab"} />}
+        {place("/nsrcpt") && <SideBarMenuItem href="/nsrcpt" label="NSR-CPT" icon={PAGE_ICONS["/nsrcpt"]} on={path === "/nsrcpt"} />}
         {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={PAGE_ICONS["/pipeline"]} on={path === "/pipeline"} />}
         {place("/schema") && <SideBarMenuItem href="/schema" label="Schema" icon={PAGE_ICONS["/schema"]} on={path === "/schema"} />}
         {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={PAGE_ICONS["/search"]} on={path === "/search"} />}

@@ -1,4 +1,5 @@
 import { Activity } from "@/components/animate-ui/icons/activity"
+import { Atom } from "@/components/animate-ui/icons/atom"
 import { Blocks } from "@/components/animate-ui/icons/blocks"
 import { BookOpen } from "@/components/animate-ui/icons/book-open"
 import { Boxes } from "@/components/animate-ui/icons/boxes"
@@ -20,6 +21,7 @@ export const PAGE_ICONS: Record<string, SideBarIcon> = {
   "/factory": Boxes,
   "/glossary": NotebookPen,
   "/graph": Blocks,
+  "/nsrcpt": Atom,
   "/pipeline": Layers,
   "/schema": LayoutDashboard,
   "/search": Radar,
