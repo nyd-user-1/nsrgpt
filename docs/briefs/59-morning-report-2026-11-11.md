@@ -153,7 +153,10 @@ direction is the share of changed pairs where the later release moved toward the
 Read plainly: no pair shows the ranking predicting which sections change (enrichment near 1 at 0.5%, rising to 1.3 to
 1.6 at 10% on 5 to 10 hits); the "moved toward the data" excess is clear for VIII.0 to VIII.1 by the POINT method,
 weaker by MF3 alone, and absent for the two older pairs. A second box (nsr-sweep-2, minutes) ran these and is
-terminated.
+terminated. The older pairs could only be tested by the weaker MF3-above-floor method, because the lake holds
+POINT for VIII.0 and VIII.1 only, and that method does not show the result at significance on VIII.0 to VIII.1 itself
+(80%, not significant); the test of the finding is to reconstruct VII.1 with PREPRO at 293.6 K (about 600 materials,
+hours on one box) or to fetch NNDC's POINT2012, and rerun the VII.1 to VIII.0 pair by the POINT method.
 
 ## Draft to BNL (worker-3, for lead-agent's review; Brendan sends it or not)
 
@@ -178,5 +181,8 @@ energies look wrong.
 Everything is at https://nsrgpt.brendan-stanton.workers.dev/sweep.
 
 Would a list like this be useful to the CSEWG evaluators, and if so, in what form?
+
+My next step is to rerun the older release pair on reconstructed pointwise data (ENDF/B-VII.1 through PREPRO at
+293.6 K, or NNDC's POINT2012), which would settle whether the VIII.1 result holds.
 
 Brendan Stanton
