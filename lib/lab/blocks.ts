@@ -19,6 +19,8 @@ export type Block = {
   title: string
   params: Record<string, unknown>
   position: { x: number; y: number }
+  /** The reader's size, from the corner handle (Brendan, 2026-11-10); unset, the kind's width and the content's height. */
+  size?: { w: number; h: number }
   inputs: Record<string, Port>
   outputs: Record<string, Port>
   state: BlockState

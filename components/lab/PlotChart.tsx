@@ -1,7 +1,7 @@
 "use client"
 
 import { Copy, Download } from "lucide-react"
-import { useMemo, useRef } from "react"
+import { useMemo, useRef, type CSSProperties } from "react"
 import { toast } from "sonner"
 
 import { useEChart, type ChartClick } from "@/components/viz/use-echart"
@@ -16,7 +16,7 @@ import { datasetOfSeries, plotOption, type PlotMode } from "@/lib/lab/canvases/p
 
 const isDark = () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
 
-export function PlotChart({ points, series, ratio, mode, highlight, title, onPoint, className }: {
+export function PlotChart({ points, series, ratio, mode, highlight, title, onPoint, className, style }: {
   points?: Dataset
   series: Series[]
   ratio: Series[]
@@ -25,6 +25,7 @@ export function PlotChart({ points, series, ratio, mode, highlight, title, onPoi
   title: string
   onPoint?: (datasetId: string) => void
   className?: string
+  style?: CSSProperties
 }) {
   // A new version each time what the chart draws changes, so useEChart rebuilds with it.
   const version = useRef(0)
@@ -81,7 +82,7 @@ export function PlotChart({ points, series, ratio, mode, highlight, title, onPoi
   }
 
   return (
-    <div className={className}>
+    <div className={className} style={style}>
       <div className="nodrag nowheel relative h-full w-full">
         <div ref={ref} className="h-full w-full" />
         <div className="absolute right-1 top-1 flex gap-1">

@@ -59,7 +59,7 @@ export function OutputPane({ block, outputs, logs }: { block: Block | null; outp
   const base = fileName(`${block?.title ?? "output"}${cur ? ` ${cur[0]}` : ""}`)
 
   return (
-    <div className={cn("flex shrink-0 flex-col border-t border-[var(--paper-rule)] bg-[var(--paper)]", open ? "h-[260px]" : "h-9")}>
+    <div className={cn("flex shrink-0 flex-col overflow-hidden border-t border-[var(--paper-rule)] bg-[var(--paper)] transition-[height] duration-[500ms] ease-in-out", open ? "h-[260px]" : "h-9")}>
       <div className="flex h-9 shrink-0 items-center gap-1 px-2">
         <button type="button" className={TAB(tab === "output")} onClick={() => { setTab("output"); setOpen(true) }}>Output</button>
         <button type="button" className={TAB(tab === "logs")} onClick={() => { setTab("logs"); setOpen(true) }}>Logs{logs.length ? ` ${short(logs.length)}` : ""}</button>

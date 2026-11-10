@@ -2,7 +2,7 @@
 
 import { Handle, Position, type NodeProps } from "@xyflow/react"
 import { Copy, CopyPlus, EllipsisVertical, GripVertical, LoaderCircle, Play, Square, Trash2 } from "lucide-react"
-import { lazy, memo, Suspense, useMemo } from "react"
+import { lazy, memo, Suspense, useMemo, type PointerEvent as ReactPointerEvent } from "react"
 import { toast } from "sonner"
 
 import { BlockParams } from "@/components/lab/BlockParams"
@@ -95,7 +95,7 @@ function BlockNodeInner({ id }: NodeProps) {
       <>
         <BlockParams block={block} onParams={(v) => lab.setQuietParams(id, v)} />
         {points || series.length || ratio.length ? (
-          <PlotChart className="mt-2 h-[340px]" points={points} series={series} ratio={ratio} mode={p.mode ?? "both"} highlight={p.highlight} title={block.title} onPoint={openSubentry} />
+          <PlotChart className="mt-2" style={{ height: block.size ? Math.max(160, block.size.h - 230) : 340 }} points={points} series={series} ratio={ratio} mode={p.mode ?? "both"} highlight={p.highlight} title={block.title} onPoint={openSubentry} />
         ) : (
           <p className="mt-2 flex h-24 items-center justify-center rounded-md border border-dashed border-[var(--paper-rule)] text-[11px] text-[var(--paper-muted)]">Connect points or series</p>
         )}
@@ -126,11 +126,34 @@ function BlockNodeInner({ id }: NodeProps) {
     body = <BlockParams block={block} onParams={(v, quiet) => (quiet ? lab.setQuietParams(id, v) : lab.setParams(id, v))} />
   }
 
+  // The bottom-right corner resizes the block as the ShiftNote's does (Brendan, 2026-11-10): right for width, down for
+  // height, both together; no smaller than 240 by 160. The size is the block's, saved with the canvas.
+  const corner = {
+    onPointerDown: (e: ReactPointerEvent<HTMLSpanElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const frame = e.currentTarget.parentElement
+      if (!frame) return
+      const from = { x: e.clientX, y: e.clientY, w: frame.offsetWidth, h: frame.offsetHeight }
+      const zoom = Number(getComputedStyle(frame.closest(".react-flow__viewport") ?? frame).transform.match(/matrix\(([^,]+)/)?.[1] ?? 1) || 1
+      e.currentTarget.setPointerCapture(e.pointerId)
+      const move = (ev: PointerEvent) => {
+        lab.resize(id, { w: Math.max(240, Math.round(from.w + (ev.clientX - from.x) / zoom)), h: Math.max(160, Math.round(from.h + (ev.clientY - from.y) / zoom)) })
+      }
+      const up = () => {
+        window.removeEventListener("pointermove", move)
+        window.removeEventListener("pointerup", up)
+      }
+      window.addEventListener("pointermove", move)
+      window.addEventListener("pointerup", up)
+    },
+  }
+  const size = block.size
   return (
     <div
-      style={{ width: WIDTH[block.kind] }}
+      style={{ width: size?.w ?? WIDTH[block.kind], height: size?.h }}
       className={cn(
-        "rounded-xl border bg-[var(--paper)] text-[var(--paper-text)] shadow-sm transition-shadow",
+        "relative flex flex-col rounded-xl border bg-[var(--paper)] text-[var(--paper-text)] shadow-sm transition-shadow",
         selected === id ? "border-[var(--paper-strong)] shadow-md" : "border-[var(--paper-rule)]",
       )}
     >
@@ -167,11 +190,12 @@ function BlockNodeInner({ id }: NodeProps) {
         <Ports ports={block.inputs} side="in" />
         <Ports ports={block.outputs} side="out" />
       </div>
-      <div className="px-2.5 pb-2 pt-2">{body}</div>
-      {note && <p className="px-2.5 pb-2 text-[11px] leading-snug text-[var(--paper-muted)]">{note}</p>}
-      <div className="flex min-h-7 items-center border-t border-[var(--paper-rule)] px-2.5 py-1 text-[11px] text-[var(--paper-muted)]">
+      <div className={cn("px-2.5 pb-2 pt-2", size && "nowheel min-h-0 flex-1 overflow-y-auto")}>{body}</div>
+      {note && <p className="shrink-0 px-2.5 pb-2 text-[11px] leading-snug text-[var(--paper-muted)]">{note}</p>}
+      <div className="flex min-h-7 shrink-0 items-center border-t border-[var(--paper-rule)] px-2.5 py-1 text-[11px] text-[var(--paper-muted)]">
         <Status block={block} summary={block.kind === "plot" && inputs ? plotSummary(((inputs.points ?? []).find(isDataset) as Dataset | undefined)?.rows.length ?? 0, [...(inputs.series ?? []), ...(inputs.ratio ?? [])].flatMap(seriesList).length) : summary} />
       </div>
+      <span {...corner} aria-label="Resize" title="Resize" className="nodrag absolute right-0 bottom-0 h-4 w-4 cursor-nwse-resize touch-none" />
     </div>
   )
 }

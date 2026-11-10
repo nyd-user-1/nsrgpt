@@ -16,7 +16,7 @@ import {
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import dagre from "@dagrejs/dagre"
-import { Copy, LayoutDashboard, Play, Plus, Save } from "lucide-react"
+import { ChevronLeft, ChevronRight, Copy, LayoutDashboard, Play, Plus, Save } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -43,6 +43,12 @@ import { listCanvases, loadCanvas, saveCanvas, type SavedCanvas } from "@/lib/la
 const nodeTypes = { block: BlockNode }
 /** The fit leaves the toolbar its strip at the top, so it never covers a block's header. */
 const FIT = { padding: { top: "64px", right: "32px", bottom: "32px", left: "32px" }, maxZoom: 1 } as const
+
+/** The title at rest: up to its first colon or comma, with an ellipsis when that cut something. */
+const shortName = (name: string) => {
+  const cut = name.split(/[:,]/)[0].trim()
+  return cut.length < name.trim().length ? `${cut}…` : cut
+}
 
 const fresh = (): Canvas => {
   const now = new Date().toISOString()
@@ -101,6 +107,19 @@ function LabInner() {
     pendingTidy.current = false
     tidy()
   }, [nodesInitialized, tidy])
+  // The blocks grow as their notes and outputs arrive, so the first tidy measured them short and column one overlapped
+  // (Brendan, 2026-11-10). Until the reader drags a block, the default canvas re-tidies when a run finishes.
+  const autoTidy = useRef(false)
+  const anyRunning = canvas.blocks.some((b) => b.state.status === "running")
+  const wasRunning = useRef(false)
+  useEffect(() => {
+    if (wasRunning.current && !anyRunning && autoTidy.current && nodesInitialized) {
+      const t = window.setTimeout(tidy, 80)
+      return () => window.clearTimeout(t)
+    }
+    wasRunning.current = anyRunning
+  }, [anyRunning, nodesInitialized, tidy])
+  const [titleOpen, setTitleOpen] = useState(false)
 
   // Open the canvas the URL names, a new one (?new=1), or the default.
   useEffect(() => {
@@ -116,6 +135,7 @@ function LabInner() {
     if (!canvasParam) {
       lab.open(structuredClone(DEFAULT_CANVAS))
       pendingTidy.current = true
+      autoTidy.current = true
       requestAnimationFrame(() => flow.fitView(FIT))
       return
     }
@@ -259,7 +279,7 @@ function LabInner() {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               isValidConnection={(c) => c.source !== c.target && portsMatch(portOf(c).from, portOf(c).to)}
-              onNodeDragStop={(_, n) => lab.move(n.id, n.position)}
+              onNodeDragStop={(_, n) => { autoTidy.current = false; lab.move(n.id, n.position) }}
               onNodeClick={(_, n) => { setSelected(n.id); setSubentry(null) }}
               onPaneClick={() => { setSelected(null); setSubentry(null); setEdgeSel(new Set()) }}
               onNodesDelete={(del) => { for (const n of del) lab.remove(n.id); if (del.some((n) => n.id === selected)) setSelected(null) }}
@@ -273,18 +293,36 @@ function LabInner() {
                   sits on /graph, its circle a click-to-copy; top right the tools, Run all and New canvas with Tidy between;
                   bottom right the save, where /graph keeps share, download and copy. */}
               <Panel position="top-left">
-                <div className="flex h-10 items-center gap-2 rounded-full border bg-[var(--paper)] p-1 pr-3 shadow-sm backdrop-blur-sm">
+                {/* The title reads short at rest, its first clause and an ellipsis; the rail tab's chevron at its end grows on
+                    hover as the tabs do and opens the pill to the full, editable name over 500 ms (Brendan, 2026-11-10). */}
+                <div className="flex h-10 items-center gap-2 rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
                   <Button variant="outline" aria-label="Copy the canvas name" title="Copy" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => void navigator.clipboard.writeText(canvas.name).then(() => toast.success("Copied"))}>
                     <Copy className="h-4 w-4" />
                   </Button>
-                  <input
-                    className="w-[22rem] min-w-0 bg-transparent text-[13px] text-[var(--paper-text)] outline-none"
-                    defaultValue={canvas.name}
-                    key={`${canvas.id}:${canvas.name}`}
-                    aria-label="Canvas name"
-                    onBlur={(e) => e.target.value.trim() && e.target.value !== canvas.name && lab.setName(e.target.value.trim())}
-                    onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur() }}
-                  />
+                  <div className={`flex min-w-0 items-center overflow-hidden transition-[width] duration-[500ms] ease-in-out ${titleOpen ? "w-[24rem]" : "w-[7.5rem]"}`}>
+                    {titleOpen ? (
+                      <input
+                        className="w-full min-w-0 bg-transparent text-[13px] text-[var(--paper-text)] outline-none"
+                        defaultValue={canvas.name}
+                        key={`${canvas.id}:${canvas.name}`}
+                        aria-label="Canvas name"
+                        autoFocus
+                        onBlur={(e) => e.target.value.trim() && e.target.value !== canvas.name && lab.setName(e.target.value.trim())}
+                        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur() }}
+                      />
+                    ) : (
+                      <span className="truncate text-[13px] text-[var(--paper-text)]" title={canvas.name}>{shortName(canvas.name)}</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={titleOpen ? "Show the short title" : "Show the full title"}
+                    aria-expanded={titleOpen}
+                    onClick={() => setTitleOpen((v) => !v)}
+                    className="flex h-8 w-4 shrink-0 items-center justify-center rounded-r-full text-[var(--paper-muted)] transition-[width,color] duration-200 ease-out hover:w-[17.5px] hover:text-[var(--paper-text)]"
+                  >
+                    {titleOpen ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
               </Panel>
               <Panel position="top-right">

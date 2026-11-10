@@ -45,7 +45,7 @@ function Conversation({ turns, busy, onAsk, onStop }: { turns: ChatTurn[]; busy:
         </Suspense>
         <div ref={end} />
       </InsetBody>
-      <div className="relative shrink-0 px-2 pb-2 pt-1 [&_.rounded-2xl]:p-2.5 [&_textarea]:text-sm">
+      <div className="relative shrink-0 p-3 [&_.rounded-2xl]:p-2.5 [&_textarea]:text-sm">
         <ChatInputContainer onSubmit={(t) => t.trim() && onAsk(t.trim())} isLoading={busy} onStop={onStop} />
       </div>
     </>
@@ -70,7 +70,7 @@ function BlockView({ block, onBack }: { block: Block; onBack: () => void }) {
   const text = typeof out?.text === "string" ? out.text : ""
   return (
     <>
-      <Header onBack={onBack} back="Back to the copilot">
+      <Header onBack={onBack} back="Back to the chat">
         <Icon className={INSET.icon} />
         <h2 className={`${INSET.title} min-w-0 truncate`}>{block.title}</h2>
       </Header>
@@ -207,7 +207,7 @@ function Copilot() {
   return (
     <>
       <Header>
-        <h2 className={INSET.title}>Copilot</h2>
+        <h2 className={INSET.title}>Chat</h2>
       </Header>
       {turns.length ? (
         <Conversation turns={turns} busy={busy} onAsk={send} onStop={() => ctrl.current?.abort()} />
@@ -216,7 +216,7 @@ function Copilot() {
           <InsetBody>
             <p className={INSET.note}>Ask about the canvas: what a block does, why one failed, what to connect next.</p>
           </InsetBody>
-          <div className="relative shrink-0 px-2 pb-2 pt-1 [&_.rounded-2xl]:p-2.5 [&_textarea]:text-sm">
+          <div className="relative shrink-0 p-3 [&_.rounded-2xl]:p-2.5 [&_textarea]:text-sm">
             <ChatInputContainer onSubmit={(t) => t.trim() && send(t.trim())} isLoading={busy} />
           </div>
         </>

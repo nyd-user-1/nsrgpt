@@ -183,6 +183,7 @@ export function useLab(initial: Canvas) {
   const setQuietParams = useCallback((id: string, params: Record<string, unknown>) => patch(id, (b) => ({ ...b, params: { ...b.params, ...params } })), [patch])
   const rename = useCallback((id: string, title: string) => patch(id, (b) => ({ ...b, title })), [patch])
   const move = useCallback((id: string, position: { x: number; y: number }) => patch(id, (b) => ({ ...b, position })), [patch])
+  const resize = useCallback((id: string, size: { w: number; h: number } | undefined) => patch(id, (b) => ({ ...b, size })), [patch])
 
   const duplicate = useCallback((id: string) => {
     const b = block(id)
@@ -206,5 +207,5 @@ export function useLab(initial: Canvas) {
   const setName = useCallback((name: string) => setCanvas((c) => ({ ...c, name })), [setCanvas])
   const setId = useCallback((id: string) => setCanvas((c) => ({ ...c, id })), [setCanvas])
 
-  return { canvas, outputs, logs, run, runAll, stop, open, addBlock, setParams, setQuietParams, rename, move, duplicate, remove, connect, disconnect, setName, setId }
+  return { canvas, outputs, logs, run, runAll, stop, open, addBlock, setParams, setQuietParams, rename, move, resize, duplicate, remove, connect, disconnect, setName, setId }
 }
