@@ -14,9 +14,11 @@ Irradiations, each named in the table with its assumptions:
   target isotope per hour. sigma_th = the Maxwellian flux average below 0.5 eV; RI = integral of sigma/E from 0.5 eV to
   20 MeV. Threshold reactions (n,p) instead use a U-235 Watt fission spectrum (a = 0.988 MeV, b = 2.249 /MeV) at 1e13.
 - cyclotron: the thick-target yield Y = (N_A / M) * integral of sigma(E) / (S(E)/rho) dE from E_out to E_in, the mass
-  stopping power from the Bethe formula with ICRU 37 mean excitation energies (no shell or density corrections; Bragg
-  additivity for water), a target of the pure isotope (O-18 as H2 18O water); the physical yield in MBq/uAh
-  (production rate * lambda * 1 h) and the saturation activity in MBq/uA. The lake holds no SRIM or PSTAR table.
+  stopping power from the IAEA measured proton stopping powers (lake/stopping/2026-11-11, worker-4's brief 62) as a
+  correction to the Bethe formula with ICRU 37 mean excitation energies (each measurement over Bethe, the median per
+  quarter-decade bin, interpolated in log energy), Bethe itself where no measurement reaches (Ra and Th have none; both
+  methods' yields are kept, sweep_medical_yields), a target of the pure isotope (O-18 as H2 18O water, measured liquid
+  water); the physical yield in MBq/uAh (production rate * lambda * 1 h) and the saturation activity in MBq/uA.
 - photon: a flat photon spectrum from the reaction's threshold to the bremsstrahlung end point (30 and 40 MeV), the simplest
   honest shape, named as such; the yield is the flux-averaged cross section (reactions per target atom per photon/cm2).
 The data-derived yield: the EXFOR points over the irradiation's energies divided by the reference curve (the IAEA
@@ -222,12 +224,79 @@ def bethe(e_mev, proj, z, a, i_ev):
     return 0.307075 * zz * zz * (z / a) / b2 * (np.log(np.maximum(arg, 1.0001)) - b2)
 
 
-def stopping(e_mev, r):
+SP = f"{B}/lake/stopping/2026-11-11/powers/*.parquet"
+SP_TARGET = {"water": ("H2O", "l")}  # element targets: their symbol, solid
+ANAT = {"Mo": 95.95, "Zn": 65.38, "Ga": 69.723, "Ni": 58.693, "Y": 88.906, "Ra": 226.0, "Th": 232.04, "O": 15.999, "H": 1.008}
+CORR = {}  # target -> measured/Bethe correction: {"x": log10 MeV bin centres, "f": median ratios, ...}
+
+
+def build_corr(con, routes):
+    """IAEA measured proton stopping powers (nsr.stopping_powers, worker-4's brief 62) as a correction to Bethe: per
+    target, each measurement divided by Bethe at its energy, the median ratio per quarter-decade energy bin (1 MeV up),
+    interpolated in log energy. Outside the measured range the correction is 1: Bethe, the named fallback."""
+    cols = [r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet('{SP}')").fetchall()]
+    sv = "stopping_power_converted" if "stopping_power_converted" in cols else "stopping_power"
+    for r in routes:
+        if r.get("irr") != "cyclotron" or r.get("proj") != "P":
+            continue
+        key = "water" if r.get("water") else r["target"].split("-")[0]
+        if key in CORR:
+            continue
+        name, phase = SP_TARGET.get(key, (key, "s"))
+        pts = con.execute(f"""SELECT CASE lower(energy_unit) WHEN 'kev/u' THEN energy * 1.00728 / 1000 WHEN 'mev/u' THEN energy * 1.00728
+                                   WHEN 'kev' THEN energy / 1000 WHEN 'mev' THEN energy END AS e_mev, {sv} * 1000 AS s, ref_id
+                              FROM read_parquet('{SP}') WHERE projectile_name = 'H' AND target_name = ? AND phase = ?""",
+                          [name, phase]).fetchall()
+        pts = [(e, s, ref) for e, s, ref in pts if e and s and e >= 1.0]
+        if not pts:
+            CORR[key] = {"n": 0, "note": f"no measured proton stopping power for {name} ({phase}) at 1 MeV and above: Bethe"}
+            continue
+        e = np.array([p[0] for p in pts])
+        s = np.array([p[1] for p in pts])
+        # the measurements are per gram of the natural element (or natural water), so the correction is taken against Bethe
+        # at the natural atomic weight; it is then a ratio of stopping numbers and applies to the enriched isotope
+        if key == "water":
+            base = (2 * 1.008 * bethe(e, "P", 1, 1.008, I_EV["H"]) + 15.999 * bethe(e, "P", 8, 15.999, I_EV["O"])) / 18.015
+        else:
+            base = bethe(e, "P", ELEMENTS.index(key), ANAT[key], I_EV[key])
+        ratio = s / base
+        k = np.floor(np.log10(e) * 4)
+        xs, fs, ns = [], [], []
+        for b in sorted(set(k)):
+            m = k == b
+            xs.append((b + 0.5) / 4)
+            fs.append(float(np.median(ratio[m])))
+            ns.append(int(m.sum()))
+        CORR[key] = {"x": xs, "f": fs, "n_bin": ns, "f_median_all": float(np.median(ratio)), "n": len(pts), "refs": len({p[2] for p in pts}),
+                     "e_min_mev": float(e.min()), "e_max_mev": float(e.max()), "target": f"{name} ({phase})"}
+    return CORR
+
+
+def stopping(e_mev, r, method="measured"):
     if r.get("water"):  # H2 18O: Bragg additivity by mass fraction
         mh, mo = 2 * 1.008, 18.0
-        return (mh * bethe(e_mev, r["proj"], 1, 1.008, I_EV["H"]) + mo * bethe(e_mev, r["proj"], 8, 18.0, I_EV["O"])) / (mh + mo)
-    sym = r["target"].split("-")[0]
-    return bethe(e_mev, r["proj"], ELEMENTS.index(sym), float(r["target"].split("-")[1]), I_EV[sym])
+        base = (mh * bethe(e_mev, r["proj"], 1, 1.008, I_EV["H"]) + mo * bethe(e_mev, r["proj"], 8, 18.0, I_EV["O"])) / (mh + mo)
+        key = "water"
+    else:
+        sym = r["target"].split("-")[0]
+        base = bethe(e_mev, r["proj"], ELEMENTS.index(sym), float(r["target"].split("-")[1]), I_EV[sym])
+        key = sym
+    c = CORR.get(key)
+    if method == "measured" and c and c.get("x"):
+        lx = np.log10(np.maximum(e_mev, 1e-9))
+        f = np.interp(lx, c["x"], c["f"], left=np.nan, right=np.nan)
+        base = base * np.where(np.isnan(f), 1.0, f)
+    return base
+
+
+def coverage(r):
+    """The share of the irradiation's log-energy span the measured stopping powers cover."""
+    c = CORR.get("water" if r.get("water") else r["target"].split("-")[0])
+    if not c or not c.get("x"):
+        return 0.0
+    lo, hi = math.log10(r["window"][1] / 1e6), math.log10(r["window"][0] / 1e6)
+    a, b = max(lo, c["x"][0]), min(hi, c["x"][-1])
+    return max(0.0, b - a) / (hi - lo)
 
 
 def molar(r):
@@ -293,12 +362,16 @@ def yield_of(r, x, y, lam, groups, end=None):
         ein, eout = r["window"]
         e = np.linspace(eout, ein, 4000)
         s = interp(e, x, y)
-        sp = stopping(e / 1e6, r)  # MeV cm2/g
-        per_ion = NA / molar(r) * float(np.trapezoid(s * 1e-24 / sp, e / 1e6))  # reactions per incident ion
-        rate = per_ion * 1e-6 / 1.602176634e-19  # per s per uA
-        phys = rate * lam * 3600 / 1e6 if lam else None  # MBq/uAh
-        return phys, "MBq/uAh (physical yield)", sd_weighted(groups, e, s / sp), {
-            "reactions_per_ion": per_ion, "saturation_mbq_per_ua": rate / 1e6, "e_in_ev": ein, "e_out_ev": eout}
+        out = {}
+        for method in ("bethe", "measured"):  # measured stopping powers first-class, Bethe kept beside them
+            sp = stopping(e / 1e6, r, method)  # MeV cm2/g
+            per_ion = NA / molar(r) * float(np.trapezoid(s * 1e-24 / sp, e / 1e6))  # reactions per incident ion
+            rate = per_ion * 1e-6 / 1.602176634e-19  # per s per uA
+            out[method] = (rate * lam * 3600 / 1e6 if lam else None, per_ion, rate)  # MBq/uAh
+        phys, per_ion, rate = out["measured"]
+        return phys, "MBq/uAh (physical yield)", sd_weighted(groups, e, s / stopping(e / 1e6, r)), {
+            "reactions_per_ion": per_ion, "saturation_mbq_per_ua": rate / 1e6, "e_in_ev": ein, "e_out_ev": eout,
+            "yield_bethe": out["bethe"][0], "stopping_coverage": coverage(r)}
     return None, None, None, {}
 
 
@@ -427,6 +500,10 @@ def main():
     con.execute("CREATE TABLE pts AS SELECT dataset, e_ev, xs_b, dxs_b, units, sf6 FROM read_parquet(["
                 + ",".join(f"'{B}/lake/serve/exfor/2026-10-28/points/target_z={z}/points.parquet'" for z in zs) + "])")
     con.execute(f"CREATE TABLE icrp AS SELECT nuclide, half_life_s FROM read_parquet('{B}/lake/icrp107/2008/nuclides/*')")
+    build_corr(con, ROUTES)
+    print("stopping corrections:", json.dumps({k: {kk: v.get(kk) for kk in ("n", "refs", "e_min_mev", "e_max_mev", "target", "note")}
+                                               for k, v in CORR.items()}, default=float), flush=True)
+    yields_long = []
     fy = {}
     for rel in RELEASES:
         try:
@@ -465,7 +542,8 @@ def main():
                   "photon": "flat photon spectrum from threshold to 30 MeV (and 40 MeV), the simplest honest shape",
                   "cyclotron": (f"thick target of the pure isotope{' as H2 18O water' if r.get('water') else ''}, "
                                 f"{r.get('window', (0, 0))[0] / 1e6:g} to {r.get('window', (0, 0))[1] / 1e6:g} MeV, "
-                                "Bethe stopping power with ICRU 37 I values, no shell or density corrections")}[r["irr"]]
+                                "measured IAEA proton stopping powers as a correction to Bethe (ICRU 37 I values, no shell or density "
+                                "corrections), Bethe itself outside the measured range; both methods' yields kept")}[r["irr"]]
         out["assumptions"] = assume
         ends = [30e6, 40e6] if r["irr"] == "photon" else [None]
         evals, curves = {}, {}
@@ -545,6 +623,7 @@ def main():
                         p_yield = float(np.interp(r["window"][0], pe, py) - np.interp(r["window"][1], pe, py))
                         out["iaea_published_yield"] = p_yield
                         out["stopping_check"] = v / p_yield if p_yield > 0 else None
+                        out["stopping_check_bethe"] = det.get("yield_bethe") / p_yield if p_yield > 0 and det.get("yield_bethe") else None
                 for a, b, c in rows:
                     recommended.append((r["route"], a, b, c))
                     points.append((r["route"], "IAEA", None, a, b, c))
@@ -592,6 +671,9 @@ def main():
         ref_yield = (iaea or {}).get("yield") if ref == "IAEA" else (held.get(ref) or {}).get("yield")
         if ref and ref in stats and ref_yield is not None:
             st = stats[ref]
+            rb = ((iaea or {}).get("detail") if ref == "IAEA" else (held.get(ref) or {}).get("detail")) or {}
+            if rb.get("yield_bethe") is not None:
+                out["data_yield_bethe"] = rb["yield_bethe"] * st["ratio"]
             out.update(data_yield=ref_yield * st["ratio"], data_ratio_to_reference=st["ratio"],
                        data_se_pct=100 * st["se"], data_spread_pct=100 * st["spread"], n_datasets=st["n_datasets"],
                        n_points=st["n_points"])
@@ -623,6 +705,9 @@ def main():
         ys = {k: v["yield"] for k, v in held.items() if not r.get("total_only")}
         for rel in RELEASES:
             out[f"yield_{rel.lower().replace('-', '_').replace('.', '_')}"] = (evals.get(rel) or {}).get("yield")
+            if r["irr"] == "cyclotron":
+                out[f"yield_bethe_{rel.lower().replace('-', '_').replace('.', '_')}"] = \
+                    ((evals.get(rel) or {}).get("detail") or {}).get("yield_bethe")
             out[f"sd_{rel.lower().replace('-', '_').replace('.', '_')}"] = (evals.get(rel) or {}).get("rel_sd_mf33")
         out["yield_unit"] = next((v["unit"] for v in held.values()), (iaea or {}).get("unit"))
         ys = {k: v for k, v in ys.items() if v and v > 0}  # an evaluation whose yield is zero over the window holds no data there
@@ -658,10 +743,25 @@ def main():
                                      f"{len(ys)}); data spread {ds:.1f}% over {out['n_datasets']} datasets; "
                                      + "; ".join(f"{k} {v / out['data_yield']:.3f} of the data's yield"
                                                  for k, v in ys.items() if out.get("data_yield")))
+        if r["irr"] == "cyclotron":
+            ck = "water" if r.get("water") else r["target"].split("-")[0]
+            c = CORR.get(ck) or {}
+            out["stopping_method"] = (f"measured (IAEA stopping powers, {c['target']}: {c['n']} points from {c['refs']} papers, "
+                                      f"{c['e_min_mev']:.3g} to {c['e_max_mev']:.3g} MeV, as a correction to Bethe; Bethe outside "
+                                      f"that range)" if c.get("x") else f"Bethe ({c.get('note') or 'no measurement'})")
+            out["stopping_coverage"] = coverage(r)
+            for src, e in list(evals.items()) + ([("IAEA", iaea)] if iaea else []):
+                if e and e.get("yield") is not None:
+                    d = e.get("detail") or {}
+                    yields_long.append((r["route"], "measured", src, e["yield"], e.get("unit")))
+                    yields_long.append((r["route"], "bethe", src, d.get("yield_bethe"), e.get("unit")))
+            if out.get("data_yield") is not None:
+                yields_long.append((r["route"], "measured", "EXFOR", out["data_yield"], out.get("yield_unit")))
+                yields_long.append((r["route"], "bethe", "EXFOR", out.get("data_yield_bethe"), out.get("yield_unit")))
         out["detail"] = json.dumps({"evaluations": evals, "iaea": iaea, "data": stats, "reference": ref}, default=float)
         routes.append(out)
         print(json.dumps({k: out.get(k) for k in ("route", "eval_spread_pct", "data_spread_pct", "verdict")}), flush=True)
-    write(routes, points, recommended, t0)
+    write(routes, points, recommended, t0, yields_long)
 
 
 def maxwell_avg_at(x, y, kt):
@@ -671,7 +771,7 @@ def maxwell_avg_at(x, y, kt):
     return float(2 / math.sqrt(math.pi) * np.trapezoid(interp(e, x, y) * phi, e) / np.trapezoid(phi, e))
 
 
-def write(routes, points, recommended, t0):
+def write(routes, points, recommended, t0, yields_long=()):
     import pyarrow as pa
     import pyarrow.parquet as pq
     cols = sorted({k for r in routes for k in r})
@@ -695,7 +795,11 @@ def write(routes, points, recommended, t0):
                     ("medical_recommended", pa.table({"route": [p[0] for p in recommended],
                                                       "e_ev": [p[1] for p in recommended],
                                                       "xs_b": [p[2] for p in recommended],
-                                                      "dxs_b": [p[3] for p in recommended]}))):
+                                                      "dxs_b": [p[3] for p in recommended]})),
+                    ("medical_yields", pa.table({"route": [y[0] for y in yields_long], "method": [y[1] for y in yields_long],
+                                                 "source": [y[2] for y in yields_long],
+                                                 "yield": pa.array([y[3] for y in yields_long], type=pa.float64()),
+                                                 "unit": [y[4] for y in yields_long]}))):
         path = f"{WORK}/{name}.parquet"
         pq.write_table(t, path, compression="snappy")
         s3.upload_file(path, BUCKET, f"{PREFIX}/{name}/part-0.parquet")
@@ -711,7 +815,7 @@ def register():
     import pyarrow.parquet as pq
     ath = boto3.client("athena", region_name="us-east-2")
     types = {"double": "double", "int64": "bigint", "string": "string", "large_string": "string", "bool": "boolean"}
-    for name in ("medical_routes", "medical_points", "medical_recommended"):
+    for name in ("medical_routes", "medical_points", "medical_recommended", "medical_yields"):
         sch = pq.read_schema(f"{WORK}/{name}.parquet")
         cols = ",\n  ".join(f"`{f.name}` {types.get(str(f.type), 'string')}" for f in sch)
         ddl = (f"CREATE EXTERNAL TABLE `sweep_{name}` (\n  {cols}\n)\nSTORED AS PARQUET\n"

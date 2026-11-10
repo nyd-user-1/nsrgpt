@@ -301,8 +301,13 @@ def medical(name):
         bins = rows(f"SELECT release, bin, e_lo_ev, e_hi_ev, n_points, n_datasets, mean_log_ratio, se, mean_ratio, "
                     f"rel_sd_eval, z FROM {table('bins')} WHERE target = ? AND sublibrary = ? AND mt = ? "
                     "ORDER BY release, bin", [row["target"], row["sublibrary"], int(row["mt"])])
-    return 200, {"route": row, "yields": clean(yields), "data": clean(detail.get("data")), "bins": bins,
-                 "series": series}
+    try:  # both stopping-power methods' yields (measured, the primary, and Bethe), cyclotron routes only
+        by_method = rows(f"SELECT method, source, yield, unit FROM {table('medical_yields')} WHERE route = ? "
+                         "ORDER BY source, method", [name])
+    except Exception:  # noqa: BLE001
+        by_method = []
+    return 200, {"route": row, "yields": clean(yields), "yields_by_method": by_method, "data": clean(detail.get("data")),
+                 "bins": bins, "series": series}
 
 
 def route(path, q):

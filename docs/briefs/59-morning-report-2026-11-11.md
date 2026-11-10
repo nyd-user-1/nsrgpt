@@ -173,8 +173,16 @@ MF33 relative sd, propagated through the yield):
 | F-18 | O-18(p,n) | 3.6% | 12.8% (6) | 5.7% | 20–22% | agree |
 | Pb-212, Tc-99m | generators | – | – | – | – | decay only |
 
-The cyclotron yields use Bethe stopping powers with ICRU 37 I values; on the IAEA curves they reproduce the IAEA's own
-published thick-target yields to 0.965–1.002 on 7 of 8 routes (Ra-226(p,2n): 1.358, cause not found).
+The cyclotron yields now use the IAEA measured proton stopping powers (worker-4's `nsr.stopping_powers`, as a
+correction to Bethe, each measurement over Bethe at the element's natural weight, the median per quarter-decade bin),
+with Bethe the named fallback where no measurement reaches (Ra, Th, and Zn above 30 MeV); both methods' yields are in
+`nsr.sweep_medical_yields` and `/sweep/medical/{route}`'s `yields_by_method`. The move is +0.8 to +3.7% (Bethe without
+shell corrections overstates the stopping). Against the IAEA's own published thick-target yields on the IAEA curves the
+check tightens from 0.965–0.993 to 0.995–1.011 (mean deviation 2.2% to 0.4%): Ni-64(p,n) 0.967 → 0.995, Zn-70(p,α)
+0.984 → 1.002, Ga-69(p,2n) 0.993 → 1.001, Mo-100(p,2n) 0.983 → 1.011, Y-89(p,n) 0.965 → 1.001; Th-232(p,x) 1.002 and
+Zn-68(p,2p) 0.992 stay on Bethe. Ra-226(p,2n) does not settle: no Ra measurement exists, and the two methods differ by
+at most 4% everywhere else, so its 1.358 is not a stopping-power effect; the IAEA page does not state the target its
+yield assumes (a compound such as RaCl2 would give about this factor), so it stays open. Verdicts are unchanged.
 
 **Left out, and why.** EXFOR datasets with a level or isomer in the product (5,051: the evaluations' isomeric splits are
 MF8/MF10, not parsed); quantity modifiers (35,729: Maxwellian, spectrum-averaged, relative, raw, derived, partial; the
