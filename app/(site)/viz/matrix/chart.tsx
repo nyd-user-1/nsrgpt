@@ -2,7 +2,9 @@
 
 import * as React from 'react'
 import { X } from 'lucide-react'
+import { useSwitchboard } from '@/components/SwitchboardPanel'
 import { useEChart, valueRow, type ChartClick } from '@/components/viz/use-echart'
+import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { loadMatrixRows, loadNuclideMatrix, nuclideName, type NuclideMatrix } from '@/lib/viz-data'
 import { useData } from '@/lib/use-data'
 import { isDark } from '@/lib/viz-physics'
@@ -14,7 +16,9 @@ import { isDark } from '@/lib/viz-physics'
 //
 // Brief 06 (2026-11-05): every cell keeps a visible 1px border, hovered or not (the old 2px gap in the paper's own
 // colour vanished, and the hover outline replaced it); a click on an off-diagonal cell opens the scatter of its two
-// measures beside the matrix, one dot per nuclide.
+// measures, one dot per nuclide.
+// Off the canvas (brief 54, Part B, 2026-11-10): the scatter opens at the top of the right panel's chart layer, and the
+// colour scale, with its range of r to show, sits beneath it; the visualMap stays, hidden, to colour the cells.
 
 const SERIF = { fontFamily: 'var(--font-display), Georgia, serif' } as const
 const MONO = { fontFamily: 'var(--font-mono), ui-monospace, monospace' } as const
@@ -22,6 +26,8 @@ const full = new Intl.NumberFormat('en', { maximumSignificantDigits: 4 })
 
 /** The nine measures as axis names, with their units. */
 const AXIS_NAMES = ['log₁₀ T½ (s)', 'Qα (keV)', 'Qβ− (keV)', 'Sₙ (keV)', 'Sₚ (keV)', 'log₁₀ E(2⁺) (keV)', 'log₁₀ B(E2) (e²b²)', 'Mass excess (keV)', 'log₁₀ levels']
+/** The matrix's diverging ramp, r = −1 to 1. */
+const RAMP = ['#dc2626', '#fca5a5', '#f8fafc', '#93c5fd', '#1e3a8a']
 const AXIS = { nameTextStyle: { color: '#64748b' }, axisLabel: { color: '#475569', fontSize: 10 }, axisLine: { lineStyle: { color: '#94a3b8' } } }
 
 function PairScatter({ pair }: { pair: [number, number] }) {
@@ -47,7 +53,7 @@ function PairScatter({ pair }: { pair: [number, number] }) {
     undefined,
     { onPick: () => {}, marks: true },
   )
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <div ref={ref} className="h-[320px] w-full" />
 }
 
 /** The labels, the nuclide count, and each pair's r by "i-j", for the scatter a cell opens. */
@@ -56,6 +62,18 @@ const metaOf = (d: NuclideMatrix) => ({ labels: d.labels, n: d.n, r: new Map(d.c
 export function MatrixChart() {
   const [pair, setPair] = React.useState<[number, number] | null>(null)
   const { data: meta } = useData('nuclide-matrix.json', { select: metaOf })
+  const { openVizControls } = useSwitchboard()
+  // The range of r shown, as the visualMap's handles had it.
+  const [range, setRange] = React.useState<[number, number]>([-1, 1])
+  const rangeRef = React.useRef(range)
+  rangeRef.current = range
+  const show = (next: [number, number]) => {
+    setRange(next)
+    void import('echarts').then((echarts) => {
+      const c = ref.current ? echarts.getInstanceByDom(ref.current) : undefined
+      c?.dispatchAction({ type: 'selectDataRange', visualMapIndex: 0, selected: next })
+    })
+  }
 
   const ref = useEChart(
     loadNuclideMatrix,
@@ -74,18 +92,18 @@ export function MatrixChart() {
             return `${names[v[0]]} × ${names[v[1]]} — r = ${v[2].toFixed(3)} over ${d.n} nuclides`
           },
         },
-        grid: { left: 110, right: 90, top: 16, bottom: 90 },
+        grid: { left: 110, right: 24, top: 16, bottom: 90 },
         xAxis: { type: 'category', data: names, axisLabel: { color: '#334155', rotate: 40 }, axisLine: { lineStyle: { color: '#94a3b8' } }, splitArea: { show: true, areaStyle: { color: ['rgba(148,163,184,0.04)', 'rgba(148,163,184,0.08)'] } } },
         yAxis: { type: 'category', data: names, inverse: true, axisLabel: { color: '#334155' }, axisLine: { lineStyle: { color: '#94a3b8' } }, splitArea: { show: true, areaStyle: { color: ['rgba(148,163,184,0.04)', 'rgba(148,163,184,0.08)'] } } },
         visualMap: {
+          show: false,
+          // r, the third value (the last, ECharts' default, is the pair's table row, which coloured every cell navy).
+          dimension: 2,
           min: -1,
           max: 1,
           calculable: true,
-          orient: 'vertical',
-          right: 8,
-          top: 'center',
-          inRange: { color: ['#dc2626', '#fca5a5', '#f8fafc', '#93c5fd', '#1e3a8a'] },
-          textStyle: { color: '#64748b' },
+          range: rangeRef.current,
+          inRange: { color: RAMP },
         },
         series: [
           {
@@ -109,7 +127,10 @@ export function MatrixChart() {
       point: (row) => ({ seriesIndex: 0, dataIndex: row * 2 }),
       onPick: (p: ChartClick) => {
         const v = p.value as number[] | undefined
-        if (Array.isArray(v) && v[0] !== v[1]) setPair([v[0], v[1]])
+        if (Array.isArray(v) && v[0] !== v[1]) {
+          setPair([v[0], v[1]])
+          openVizControls()
+        }
       },
     },
   )
@@ -117,32 +138,60 @@ export function MatrixChart() {
   const key = pair ? `${Math.min(pair[0], pair[1])}-${Math.max(pair[0], pair[1])}` : ''
   const r = meta?.r.get(key)
   return (
-    <div className="flex min-h-0 w-full flex-1 gap-4">
+    <div className="flex min-h-0 w-full flex-1">
       <div ref={ref} className="min-h-0 min-w-0 flex-1" />
-      {pair && meta ? (
-        <div className="flex w-[380px] shrink-0 flex-col text-[var(--paper-text)]">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="text-[22px] leading-none" style={SERIF}>
-                {meta.labels[pair[0]]} × {meta.labels[pair[1]]}
+      <VizControls>
+        {pair && meta ? (
+          <VizSection>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="text-[22px] leading-none" style={SERIF}>
+                  {meta.labels[pair[0]]} × {meta.labels[pair[1]]}
+                </div>
+                <div className="mt-2 text-[11px] text-[var(--paper-muted)]" style={MONO}>
+                  {r !== undefined ? `r = ${r.toFixed(3)} · ` : ''}
+                  {meta.n} nuclides
+                </div>
               </div>
-              <div className="mt-2 text-[11px] text-[var(--paper-muted)]" style={MONO}>
-                {r !== undefined ? `r = ${r.toFixed(3)} · ` : ''}
-                {meta.n} nuclides
-              </div>
+              <button
+                type="button"
+                aria-label="Close the scatter"
+                onClick={() => setPair(null)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              type="button"
-              aria-label="Close the scatter"
-              onClick={() => setPair(null)}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--paper-faint)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <PairScatter key={`${pair[0]}-${pair[1]}`} pair={pair} />
+          </VizSection>
+        ) : null}
+        <VizSection title="Pearson r">
+          <div className="h-2.5 w-full rounded-sm" style={{ background: `linear-gradient(to right, ${RAMP.join(', ')})` }} />
+          <div className="flex justify-between text-[10px] text-[var(--paper-muted)]" style={MONO}>
+            <span>−1</span>
+            <span>0</span>
+            <span>1</span>
           </div>
-          <PairScatter key={`${pair[0]}-${pair[1]}`} pair={pair} />
-        </div>
-      ) : null}
+          {(['From', 'To'] as const).map((label, k) => (
+            <label key={label} className="grid grid-cols-[40px_1fr_44px] items-center gap-2 text-[11px] text-[var(--paper-muted)]">
+              {label}
+              <input
+                type="range"
+                min={-1}
+                max={1}
+                step={0.05}
+                value={range[k]}
+                onChange={(e) => {
+                  const v = Number(e.target.value)
+                  show(k === 0 ? [Math.min(v, range[1]), range[1]] : [range[0], Math.max(v, range[0])])
+                }}
+                className="w-full accent-[var(--paper-text)]"
+              />
+              <span className="text-right text-[var(--paper-text)]" style={MONO}>{range[k].toFixed(2)}</span>
+            </label>
+          ))}
+        </VizSection>
+      </VizControls>
     </div>
   )
 }

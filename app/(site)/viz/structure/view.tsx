@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Maximize2, Minimize2, X } from 'lucide-react'
+import { ChevronDown, Maximize2, Minus, Plus, X } from 'lucide-react'
 import { LegendBar, Pills } from '@/components/viz/Pills'
-import { VizControls } from '@/components/viz/VizControls'
+import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { usePaperTheme } from '@/lib/use-paper-theme'
 import { AGE_LABELS, DIVERGE7, ELEMENTS, XUNDL_LABELS, datasetsHref, parseMassQuery, useStructureIndex } from '@/lib/structure'
 import { ChartOfNuclides, type ChartMode } from './chart'
@@ -13,13 +13,15 @@ import { EvaluationIndex } from './index-table'
 // /viz/structure (brief 35, 2026-11-09): the old nsr app's ENSDF and XUNDL landings (src/pages/Structure.tsx's chart)
 // and its evaluation index (src/pages/ensdf/Evaluation.tsx), ported whole onto one page. The old app gave each colour
 // code its own page (/ensdf by evaluation age, /xundl by XUNDL sets since the cutoff); here they are two pills over
-// the chart. Over the canvas, as the old chart had them: the expand toggle and the three quick-search boxes top left
-// (typing in Nuclide zooms; Enter opens), zoom top right, the legend bar bottom right. A click on a cell opens the
-// nuclide's datasets.
+// the chart. The old chart had its expand toggle, quick search, zoom and legend over the canvas; here they, the tabs and
+// the pills are in the right panel (brief 54, Part B, 2026-11-10). Typing in Nuclide zooms; Enter opens. A click on a
+// cell opens the nuclide's datasets.
 
 type Tab = 'chart' | 'index'
 const TABS = [{ id: 'chart', label: 'Chart' }, { id: 'index', label: 'Evaluation index' }] as const
 const MODES = [{ id: 'age', label: 'Years since cutoff' }, { id: 'xundl', label: 'XUNDL sets since cutoff' }] as const
+const VIEW_BTN =
+  'flex h-7 w-7 items-center justify-center rounded-md border border-[var(--paper-rule)]/30 text-[var(--paper-text)] transition-colors hover:bg-[var(--paper-quiet)]'
 
 /** "148Gd" / "Pb-208" → {a,z} · "148" → {a} · "Gd" → {z} · anything else → null. */
 function parseTarget(t: string): { a?: number; z?: number } | null {
@@ -61,6 +63,7 @@ export function StructureView() {
   const focus = useMemo(() => parseTarget(cq.trim()), [cq])
   // Expand fills the screen (the old ExpandFrame grew over the app shell); Esc collapses, as the browser does.
   const frame = useRef<HTMLDivElement>(null)
+  const zoom = useRef<((factor: number) => void) | null>(null)
   const [expanded, setExpanded] = useState(false)
   useEffect(() => {
     const on = () => setExpanded(document.fullscreenElement === frame.current && frame.current !== null)
@@ -107,38 +110,10 @@ export function StructureView() {
   }
 
   return (
-    <div ref={root} className="flex min-h-0 w-full flex-1 flex-col gap-2">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-1">
-        <Pills options={TABS} value={tab} onChange={setTab} />
-        {tab === 'chart' && <Pills label="Colour by" options={MODES} value={mode} onChange={setMode} />}
-      </div>
-
+    <div ref={root} className="flex min-h-0 w-full flex-1 flex-col">
       {/* The chart stays mounted under the index, so its view is kept and the frame's skeleton stays away. */}
       <div ref={frame} className={`relative min-h-0 flex-1 bg-[var(--paper)] ${expanded ? 'p-2' : ''} ${tab === 'chart' ? '' : 'hidden'}`}>
-        {data ? (
-          <div className="relative h-full w-full">
-            <ChartOfNuclides grid={data.grid} mode={mode} focus={focus} onSelect={open} />
-            {/* Top left: the expand toggle, then the quick search (typing zooms; Enter opens). */}
-            <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 text-[var(--paper-text)] shadow-sm backdrop-blur transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_10%,var(--paper))]"
-                title={expanded ? 'Collapse (Esc)' : 'Expand to fill the screen'}
-                aria-label={expanded ? 'Collapse' : 'Expand'}
-                onClick={toggleExpand}
-              >
-                {expanded ? <Minimize2 className="h-4 w-4 -scale-x-100" /> : <Maximize2 className="h-4 w-4 -scale-x-100" />}
-              </button>
-              {/* Three boxes, one applied value: Nuclide is live (typing zooms), Mass and Symbol apply on pick. */}
-              <ChartCombobox placeholder="Nuclide, Mass, or Symbol" className="w-[200px]" options={nuclideCombo} applied={cq} onApply={setCq} live clearable onEnter={goTo} />
-              <ChartCombobox placeholder="Mass" className="hidden w-[100px] sm:block" options={massCombo} applied={cq} appliedMatches={(v) => /^\d{1,3}$/.test(v)} onApply={setCq} />
-              <ChartCombobox placeholder="Symbol" className="hidden w-[100px] sm:block" options={symbolCombo} applied={cq} appliedMatches={(v) => /^[A-Za-z]{1,2}$/.test(v)} onApply={setCq} />
-            </div>
-            <div className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-[var(--paper)]/85 p-1.5 backdrop-blur">
-              <LegendBar title={legend.title} segments={legend.segments} />
-            </div>
-          </div>
-        ) : null}
+        {data ? <ChartOfNuclides grid={data.grid} mode={mode} focus={focus} onSelect={open} zoomRef={zoom} /> : null}
       </div>
 
       {tab === 'index' && (data ? (
@@ -147,13 +122,48 @@ export function StructureView() {
         <p className="px-1 text-[13px] text-[var(--paper-muted)]">Loading the index…</p>
       ))}
 
+      {/* Off the canvas (brief 54, Part B): the tabs, Colour by and its legend, the quick search, zoom and expand. */}
       <VizControls>
-        <p className="m-0">
-          Every nuclide with an ENSDF or XUNDL dataset, at its N and Z. Years since cutoff: how long since the literature cutoff
-          of the evaluation its data follows. XUNDL sets since cutoff: measurements compiled since then, waiting for the next
-          evaluation. Scroll to zoom, drag to pan, click a cell for the nuclide&apos;s datasets.
-        </p>
-        {data && <p className="m-0 text-[var(--paper-faint)]">{data.source}</p>}
+        <VizSection>
+          <Pills options={TABS} value={tab} onChange={setTab} />
+        </VizSection>
+        {tab === 'chart' && (
+          <>
+            <VizSection title="Colour by">
+              <Pills options={MODES} value={mode} onChange={setMode} />
+              <LegendBar title={legend.title} segments={legend.segments} fill className="mt-1" />
+            </VizSection>
+            {/* Three boxes, one applied value: Nuclide is live (typing zooms; Enter opens), Mass and Symbol apply on pick. */}
+            <VizSection title="Find">
+              <ChartCombobox placeholder="Nuclide, Mass, or Symbol" options={nuclideCombo} applied={cq} onApply={setCq} live clearable onEnter={goTo} />
+              <div className="grid grid-cols-2 gap-2">
+                <ChartCombobox placeholder="Mass" options={massCombo} applied={cq} appliedMatches={(v) => /^\d{1,3}$/.test(v)} onApply={setCq} />
+                <ChartCombobox placeholder="Symbol" options={symbolCombo} applied={cq} appliedMatches={(v) => /^[A-Za-z]{1,2}$/.test(v)} onApply={setCq} />
+              </div>
+            </VizSection>
+            <VizSection title="View">
+              <div className="flex items-center gap-1.5">
+                <button type="button" className={VIEW_BTN} title="Zoom in" aria-label="Zoom in" onClick={() => zoom.current?.(1.4)}>
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+                <button type="button" className={VIEW_BTN} title="Zoom out" aria-label="Zoom out" onClick={() => zoom.current?.(1 / 1.4)}>
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <button type="button" className={VIEW_BTN} title="Expand to fill the screen (Esc collapses)" aria-label="Expand" onClick={toggleExpand}>
+                  <Maximize2 className="h-3.5 w-3.5 -scale-x-100" />
+                </button>
+              </div>
+            </VizSection>
+          </>
+        )}
+        <VizSection>
+          <p className="m-0">
+            Every nuclide with an ENSDF or XUNDL dataset, at its N and Z. Years since cutoff: how long since the literature
+            cutoff of the evaluation its data follows. XUNDL sets since cutoff: measurements compiled since then, waiting for
+            the next evaluation. Scroll to zoom, drag to pan, click a cell for the nuclide&apos;s datasets.
+          </p>
+          {data && <p className="m-0 text-[var(--paper-faint)]">{data.source}</p>}
+        </VizSection>
       </VizControls>
     </div>
   )

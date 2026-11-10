@@ -13,7 +13,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
 import { FAMILIES, FAMILY, familyOf, halfLifeText, modesText, nucName, type Decay, type Family } from '@/lib/viz-physics'
 import { usePaperTheme } from '@/lib/use-paper-theme'
-import { VizControls } from '@/components/viz/VizControls'
+import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { chainsOf, graphModel, positions3d, sizeOf, type GraphModel, type LayoutFile, type Layout3dFile, type Pin } from './model'
 import { useData } from '@/lib/use-data'
 
@@ -75,18 +75,22 @@ export default function Graph3D({ decay, pinned, onPin, flow, open }: { decay: D
 
       {/* The legend, as the 2D graph's: a click hides or shows a decay mode. */}
       <VizControls>
-        {present.map((f) => (
-          <button
-            key={f}
-            type="button"
-            aria-pressed={!hidden.has(f)}
-            onClick={() => setHidden((cur) => { const n = new Set(cur); if (n.has(f)) n.delete(f); else n.add(f); return n })}
-            className={`flex items-center gap-1.5 rounded-md px-1 py-0.5 transition-opacity hover:bg-[var(--paper-quiet)] ${hidden.has(f) ? 'opacity-35' : ''}`}
-          >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: theme.dark ? FAMILY[f].dark : FAMILY[f].light }} />
-            {FAMILY[f].label}
-          </button>
-        ))}
+        <VizSection>
+          <div className="flex flex-col gap-0.5">
+            {present.map((f) => (
+              <button
+                key={f}
+                type="button"
+                aria-pressed={!hidden.has(f)}
+                onClick={() => setHidden((cur) => { const n = new Set(cur); if (n.has(f)) n.delete(f); else n.add(f); return n })}
+                className={`flex items-center gap-1.5 rounded-md px-1 py-0.5 transition-opacity hover:bg-[var(--paper-quiet)] ${hidden.has(f) ? 'opacity-35' : ''}`}
+              >
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: theme.dark ? FAMILY[f].dark : FAMILY[f].light }} />
+                {FAMILY[f].label}
+              </button>
+            ))}
+          </div>
+        </VizSection>
       </VizControls>
 
       {hovered && (

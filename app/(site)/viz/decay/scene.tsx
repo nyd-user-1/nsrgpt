@@ -13,7 +13,7 @@ import * as THREE from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
 import { CrossFloor, SpinControls, useCrossRules } from '@/lib/viz-3d-controls'
-import { VizControls } from '@/components/viz/VizControls'
+import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Pause, Play, RotateCcw, X } from 'lucide-react'
 import {
@@ -637,21 +637,25 @@ export default function DecayScene() {
 
       {/* Legend: a click isolates a mode (the others dim); a second click, or another mode, changes it. */}
       <VizControls>
-        {FAMILIES.map((f) => (
-          <button
-            key={f}
-            type="button"
-            aria-pressed={focus === f}
-            onClick={() => setFocus((cur) => (cur === f ? null : f))}
-            className={`flex items-center gap-2 rounded-md px-1.5 py-0.5 text-left transition-opacity hover:bg-[var(--paper-quiet)] ${focus && focus !== f ? 'opacity-35' : ''} ${focus === f ? 'font-medium' : ''}`}
-          >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: theme.dark ? FAMILY[f].dark : FAMILY[f].light }} />
-            {FAMILY[f].label}
-          </button>
-        ))}
-        <span className="mt-1 px-1.5 text-[10px] text-[var(--paper-faint)]" style={MONO}>
-          height: log₁₀ half-life
-        </span>
+        <VizSection>
+          <div className="flex flex-col gap-0.5">
+            {FAMILIES.map((f) => (
+              <button
+                key={f}
+                type="button"
+                aria-pressed={focus === f}
+                onClick={() => setFocus((cur) => (cur === f ? null : f))}
+                className={`flex items-center gap-2 rounded-md px-1.5 py-0.5 text-left transition-opacity hover:bg-[var(--paper-quiet)] ${focus && focus !== f ? 'opacity-35' : ''} ${focus === f ? 'font-medium' : ''}`}
+              >
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: theme.dark ? FAMILY[f].dark : FAMILY[f].light }} />
+                {FAMILY[f].label}
+              </button>
+            ))}
+          </div>
+          <span className="px-1.5 text-[10px] text-[var(--paper-faint)]" style={MONO}>
+            height: log₁₀ half-life
+          </span>
+        </VizSection>
       </VizControls>
 
       {/* Controls */}

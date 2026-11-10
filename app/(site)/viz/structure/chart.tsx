@@ -1,7 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Minus, Plus } from 'lucide-react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import { usePaperTheme } from '@/lib/use-paper-theme'
 import { ELEMENTS, ageColor, inkOn, xundlColor } from '@/lib/structure'
 
@@ -9,8 +8,9 @@ import { ELEMENTS, ageColor, inkOn, xundlColor } from '@/lib/structure'
 // src/components/ChartOfNuclides.tsx: N along x, Z along y, one cell per known nuclide, coloured by years since the
 // ENSDF evaluation cutoff or by XUNDL sets compiled since it. Canvas instead of thousands of SVG rects; zoom and pan
 // live in one {k, tx, ty} transform, so hit-testing is its inverse. Wheel zooms about the pointer, drag pans, the
-// buttons zoom about the centre, labels appear as cells grow, the hovered cell pops with its name, and a search focus
-// dims what it doesn't match. Then the paper palette: the ramps are lib/structure.ts's, per theme.
+// panel's zoom buttons (zoomRef, brief 54) zoom about the centre, labels appear as cells grow, the hovered cell pops
+// with its name, and a search focus dims what it doesn't match. Then the paper palette: the ramps are
+// lib/structure.ts's, per theme.
 
 export type ChartMode = 'age' | 'xundl'
 
@@ -31,6 +31,8 @@ interface Props {
   onSelect: (a: number, z: number) => void
   /** Zoom the view onto a mass chain (a), an element (z), or one nuclide (both). null = leave alone. */
   focus?: { a?: number; z?: number } | null
+  /** Set to a zoom about the centre by a factor, for buttons outside the canvas (the right panel's, brief 54). */
+  zoomRef?: MutableRefObject<((factor: number) => void) | null>
 }
 
 /** Logical size of one nuclide cell; the view transform does the rest. */
@@ -49,10 +51,7 @@ const cellColor = (c: Cell, mode: ChartMode, dark: boolean) => (mode === 'age' ?
 const ageWords = (b: number) => (b >= 12 ? 'no cutoff' : b >= 11 ? '11 or more years since cutoff' : b <= 0 ? 'under a year since cutoff' : `${b}–${b + 1} years since cutoff`)
 export const cellValue = (c: Cell, mode: ChartMode) => (mode === 'age' ? ageWords(c[3]) : `${c[4]} XUNDL ${c[4] === 1 ? 'set' : 'sets'} since cutoff`)
 
-const ZOOM_BTN =
-  'flex h-7 w-7 items-center justify-center rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)]/90 text-[var(--paper-text)] shadow-sm backdrop-blur transition-colors hover:bg-[color-mix(in_oklab,var(--paper-text)_10%,var(--paper))]'
-
-export function ChartOfNuclides({ grid, mode, onSelect, focus }: Props) {
+export function ChartOfNuclides({ grid, mode, onSelect, focus, zoomRef }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { dark } = usePaperTheme(wrapRef)
@@ -232,6 +231,11 @@ export function ChartOfNuclides({ grid, mode, onSelect, focus }: Props) {
       }),
     [fit],
   )
+  useEffect(() => {
+    if (!zoomRef) return
+    zoomRef.current = (factor) => zoomAt(factor, size.w / 2, size.h / 2)
+    return () => { zoomRef.current = null }
+  }, [zoomRef, zoomAt, size])
 
   // React's wheel handler is passive; preventDefault needs a native one.
   useEffect(() => {
@@ -300,16 +304,6 @@ export function ChartOfNuclides({ grid, mode, onSelect, focus }: Props) {
           setHover(null)
         }}
       />
-
-      {/* Zoom controls, inside the canvas frame, top right. */}
-      <div className="absolute right-2 top-2 z-10 flex flex-col gap-1">
-        <button type="button" className={ZOOM_BTN} title="Zoom in" aria-label="Zoom in" onClick={() => zoomAt(1.4, size.w / 2, size.h / 2)}>
-          <Plus className="h-3.5 w-3.5" />
-        </button>
-        <button type="button" className={ZOOM_BTN} title="Zoom out" aria-label="Zoom out" onClick={() => zoomAt(1 / 1.4, size.w / 2, size.h / 2)}>
-          <Minus className="h-3.5 w-3.5" />
-        </button>
-      </div>
 
       {hover && (
         <div

@@ -4,9 +4,13 @@
 // foot — drag its handles, or brush across it, to stretch a run of nuclei over the width — and a column beside it
 // with the picked nucleus's whole spectrum: every line as a stick at its energy, height its intensity on a log
 // scale, primaries in red, then its strongest lines. A click on a strip picks its nucleus.
+// Off the canvas (brief 54, Part B, 2026-11-10): the picked nucleus's column is in the right panel's chart layer, and a
+// click on a strip opens it there; the strips take the whole width.
 
 import * as React from 'react'
+import { useSwitchboard } from '@/components/SwitchboardPanel'
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { E_MAX_KEV, I_FLOOR, allLines, loadCapgam, logI, openWindow, setLabel, setName, type Capgam, type GammaLine } from '@/lib/viz-gamma'
 import { useData } from '@/lib/use-data'
 
@@ -110,6 +114,11 @@ function Spectrum({ index }: { index: number }) {
 export function SpectraChart() {
   const { data = null } = useData<Capgam>('capgam.json')
   const [pick, setPick] = React.useState<number | null>(null)
+  const { openVizControls } = useSwitchboard()
+  const onPick = React.useCallback((k: number) => {
+    setPick(k)
+    openVizControls()
+  }, [openVizControls])
   // Opens on ¹⁵⁸Gd: ¹⁵⁷Gd's 254,000 b capture, the largest in the set.
   const index = pick ?? (data ? Math.max(0, data.sets.findIndex((s) => s.el === 'Gd' && s.z + s.n === 158)) : null)
   const set = data && index !== null ? data.sets[index] : null
@@ -122,13 +131,13 @@ export function SpectraChart() {
     : []
 
   return (
-    <div className="flex min-h-0 w-full flex-1 gap-4">
+    <div className="flex min-h-0 w-full flex-1">
       <div className="min-w-0 flex-1">
-        <Strips onPick={setPick} />
+        <Strips onPick={onPick} />
       </div>
-      <div className="flex w-[340px] shrink-0 flex-col overflow-hidden text-[var(--paper-text)]">
+      <VizControls>
         {set && index !== null ? (
-          <>
+          <VizSection>
             <div className="text-[24px] leading-none" style={SERIF}>
               {setLabel(set)}
             </div>
@@ -139,7 +148,7 @@ export function SpectraChart() {
             <div className="mt-3">
               <Spectrum key={index} index={index} />
             </div>
-            <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+            <div className="mt-2">
               <table className="w-full border-collapse text-[11.5px]" style={MONO}>
                 <thead>
                   <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-[var(--paper-faint)]" style={{ fontFamily: 'inherit' }}>
@@ -159,9 +168,9 @@ export function SpectraChart() {
                 </tbody>
               </table>
             </div>
-          </>
+          </VizSection>
         ) : null}
-      </div>
+      </VizControls>
     </div>
   )
 }
