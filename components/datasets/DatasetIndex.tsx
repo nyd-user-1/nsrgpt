@@ -1,8 +1,11 @@
 "use client";
 // /datasets/{source}, the index (brief 33, Part 1): a filter by nuclide or mass (ENSDF, XUNDL), target and reaction
 // (EXFOR), material and release (ENDF/B), key or author (NSR), and the rows the API's list route returns, each opening
-// its record. The filter lives in the URL, so a list can be linked; the rows load after the page paints.
-import { useEffect, useMemo, useState } from "react";
+// its record. The filter lives in the URL, so a list can be linked; the rows load after the page paints. ENDF/B's index
+// compiles a reader's own ENDF-6 file to GNDS 2.0 (Brendan, 2026-11-10; lib/gnds.ts): upload, the job, the download.
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FileUp } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/nova/skeleton";
 import { apiJson, isSource, short, SOURCES, type SourceDef } from "@/lib/datasets";
+import { compileUpload } from "@/lib/gnds";
 import { ApiErrorNote, DataTable, UnknownSource } from "./DatasetParts";
 
 export function DatasetIndex() {
@@ -46,7 +50,10 @@ function Index({ def }: { def: SourceDef }) {
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-      <p className="text-sm text-[var(--paper-muted)]">{def.name}</p>
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-sm text-[var(--paper-muted)]">{def.name}</p>
+        {def.key === "endf" && <CompileGnds />}
+      </div>
       <form
         className="mt-4 flex flex-wrap items-end gap-3"
         onSubmit={(e) => { e.preventDefault(); go({ ...draft, page: "1" }); }}
@@ -110,4 +117,43 @@ function PageLink({ def, f, page, disabled, children }: { def: SourceDef; f: Rec
   for (const x of def.filters) if (f[x.key]) p.set(x.key, f[x.key]);
   p.set("page", String(page));
   return <Link href={`/datasets/${def.key}?${p}`} className="rounded-full border border-[var(--paper-rule)] px-3 py-1 text-[var(--paper-text)] hover:bg-[var(--paper-quiet)]">{children}</Link>;
+}
+
+/** Compile to GNDS 2.0: a signed-in reader's ENDF-6 file (one material, 50 MB at most) goes up and comes back as the
+ *  GNDS 2.0 reactionSuite, its covariances one click away in the toast. */
+function CompileGnds() {
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const run = async (file: File) => {
+    setBusy(true);
+    const t = toast.loading(`GNDS 2.0: ${file.name}`);
+    try {
+      const f = await compileUpload(file, (s) => toast.loading(`GNDS 2.0, ${file.name}: ${s}`, { id: t }));
+      if (!f.url) throw new Error("no file came back");
+      const cov = f.cov_url;
+      toast.success(`GNDS 2.0: ${file.name} is downloading`, { id: t, ...(cov ? { action: { label: "Covariances", onClick: () => window.location.assign(cov) } } : {}) });
+      window.location.assign(f.url);
+    } catch (e) {
+      toast.error(`GNDS 2.0: ${(e as Error).message}`, { id: t });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <input
+        ref={input}
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void run(file);
+        }}
+      />
+      <Button variant="outline" aria-label="Compile to GNDS 2.0" title="Compile an ENDF-6 file to GNDS 2.0" disabled={busy} className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => input.current?.click()}>
+        <FileUp className="h-4 w-4" />
+      </Button>
+    </>
+  );
 }

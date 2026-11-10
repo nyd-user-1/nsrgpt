@@ -19,7 +19,7 @@ import {
   ApiError, apiBlob, apiJson, apiText, fileBase, graphNodeOf, idFromSegments, isSource, recordView, SOURCES,
   type RecordQuery, type RecordView, type SourceKey,
 } from "@/lib/datasets";
-import { apiUrl } from "@/lib/api-url";
+import { gndsFiles } from "@/lib/gnds";
 import { datasetTitle } from "@/lib/header-titles";
 import { ApiErrorNote, cellText, DataTable, UnknownSource } from "./DatasetParts";
 import "./print.css";
@@ -37,34 +37,6 @@ function download(body: string | Blob, name: string, type: string) {
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-
-type GndsFiles = { url?: string; cov_url?: string | null };
-type GndsJob = GndsFiles & { id?: string; status?: string; started_at?: string; error?: string };
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/** An ENDF/B material's GNDS 2.0 files (brief 60): GET /gnds answers the precompiled pair; a 404 carries the job that
- *  compiles it, run through app/api/jobs and polled every 3 s, its state reported as the Lab's Broaden reports it. */
-async function gndsFiles(release: string, mat: string, sub: string, report: (s: string) => void): Promise<GndsFiles> {
-  const r = await fetch(apiUrl(`/gnds?${new URLSearchParams({ release, mat, sub }).toString()}`));
-  const first = (await r.json().catch(() => ({}))) as GndsFiles & { job?: unknown; error?: string };
-  if (r.ok) return first;
-  if (r.status !== 404) throw new Error(first.error ?? `the API answered ${r.status}`);
-  report("queued");
-  const post = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(first.job ?? { kind: "gnds", params: { release, mat: Number(mat), sub } }) });
-  let job = (await post.json().catch(() => ({}))) as GndsJob;
-  if (!post.ok) throw new Error(post.status === 401 ? "this material isn't compiled yet; sign in to compile it (about 30 s)" : (job.error ?? `the job answered ${post.status}`));
-  const t0 = Date.now();
-  while (job.status !== "done") {
-    if (job.status === "failed") throw new Error(job.error ?? "the compile failed");
-    const since = job.started_at ? Date.parse(job.started_at) : t0;
-    report(job.status === "running" ? `running ${Math.max(0, Math.round((Date.now() - since) / 1000))} s` : "queued");
-    await sleep(3000);
-    const g = await fetch(`/api/jobs?id=${encodeURIComponent(job.id ?? "")}`, { cache: "no-store" });
-    job = (await g.json().catch(() => ({}))) as GndsJob;
-    if (!g.ok) throw new Error(job.error ?? `the job answered ${g.status}`);
-  }
-  return job;
 }
 
 const failed = (what: string, e: unknown) =>

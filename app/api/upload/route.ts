@@ -10,6 +10,8 @@ import { signedInName, store, storeConfigured, type LibFile } from "@/lib/commun
 // Uploads need a signed-in reader. Without NSR_API_WRITE_KEY the list is the seeds and an upload says it isn't set up.
 
 const MAX = 25 * 1024 * 1024
+/** An ENDF-6 file going to the GNDS compile (?for=gnds, /datasets/endf's Compile to GNDS 2.0): one material, 50 MB at most. */
+const MAX_GNDS = 50 * 1024 * 1024
 const PREFIX = "files/pdfs/workspace/"
 
 export async function GET(req: Request) {
@@ -47,9 +49,11 @@ export async function PUT(req: Request) {
   const key = params.get("key") ?? ""
   const type = params.get("type") || "application/octet-stream"
   if (!key.startsWith(PREFIX) || key.includes("..")) return Response.json({ error: "Not an upload key." }, { status: 400 })
-  if (Number(req.headers.get("content-length") ?? 0) > MAX) return Response.json({ error: "Files go up to 25 MB." }, { status: 413 })
+  const max = params.get("for") === "gnds" ? MAX_GNDS : MAX
+  const tooBig = `Files go up to ${max / 1024 / 1024} MB.`
+  if (Number(req.headers.get("content-length") ?? 0) > max) return Response.json({ error: tooBig }, { status: 413 })
   const bytes = await req.arrayBuffer()
-  if (bytes.byteLength > MAX) return Response.json({ error: "Files go up to 25 MB." }, { status: 413 })
+  if (bytes.byteLength > max) return Response.json({ error: tooBig }, { status: 413 })
   try {
     const { url } = await store<{ url: string }>("/files", { method: "POST", body: { key, type } })
     const put = await fetch(url, { method: "PUT", headers: { "Content-Type": type }, body: bytes })

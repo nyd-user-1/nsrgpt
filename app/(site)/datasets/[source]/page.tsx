@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import { Toaster } from "sonner"
 import { DatasetIndex } from "@/components/datasets/DatasetIndex"
 import { isSource, SOURCES } from "@/lib/datasets"
 
@@ -10,8 +11,12 @@ export async function generateMetadata({ params }: { params: Promise<{ source: s
 
 export default function DatasetIndexPage() {
   return (
-    <Suspense>
-      <DatasetIndex />
-    </Suspense>
+    <>
+      <Suspense>
+        <DatasetIndex />
+      </Suspense>
+      {/* ENDF/B's Compile to GNDS 2.0 reports in toasts. */}
+      <Toaster position="bottom-center" />
+    </>
   )
 }
