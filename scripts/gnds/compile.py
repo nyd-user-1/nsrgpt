@@ -78,7 +78,8 @@ def materials(release, sub=None):
     rows = t.to_table(columns=["sublibrary", "file_name", "mat", "za", "liso", "line_count"]).to_pylist()
     for r in rows:
         r["sublibrary"] = word(r["sublibrary"])
-    rows = [r for r in rows if not sub or r["sublibrary"] == sub]
+    subs = sub.split(",") if sub else None  # a comma list: those sublibraries, converted in that order
+    rows = [r for r in rows if not subs or r["sublibrary"] in subs]
     names = {}
     try:
         st = ds.dataset(f"{BUCKET}/lake/serve/endf/{release}/materials/", filesystem=fs, format="parquet")
@@ -113,6 +114,16 @@ def tape_path(release, r):
     return f"/data/tapes/{release}/{r['sublibrary']}/{r['stem']}/{os.path.basename(r['file_name'])}"
 
 
+def records(release):
+    """The release's record parts on local disk (synced once; run() deletes them at the end)."""
+    rec = f"/data/rec/{release}"
+    if not os.path.exists(f"{rec}/.done"):
+        subprocess.run(["/snap/bin/aws", "s3", "sync", f"s3://{BUCKET}/lake/endfb/{release}/records/", rec,
+                        "--only-show-errors", "--region", REGION], check=True)
+        open(f"{rec}/.done", "w").close()
+    return rec
+
+
 def write_tapes(release, rows):
     """Every wanted material's lines from the release's record parts, read once, appended to its tape."""
     want = {(r["file_name"], r["mat"]): tape_path(release, r) for r in rows}
@@ -123,16 +134,17 @@ def write_tapes(release, rows):
         os.makedirs(os.path.dirname(p), exist_ok=True)
         with open(p + ".part", "w", encoding="latin-1") as f:
             f.write(f"{'nsr-gnds ' + release:66s}{1:4d}{0:2d}{0:3d}{0:5d}\n")
-    rec = f"/data/rec/{release}"
-    subprocess.run(["/snap/bin/aws", "s3", "sync", f"s3://{BUCKET}/lake/endfb/{release}/records/", rec,
-                    "--only-show-errors", "--region", REGION], check=True)
+    rec = records(release)
     mats = pa.array(sorted({k[1] for k in todo}), pa.int32())
+    files = pa.array(sorted({k[0] for k in todo}), pa.string())
     started = set()
     t0 = time.time()
     for part in sorted(glob.glob(f"{rec}/*.parquet")):
         pf = pq.ParquetFile(part)
         for b in pf.iter_batches(batch_size=2_000_000, columns=["file_name", "mat", "mf", "text"]):
             b = b.filter(pc.is_in(b.column("mat"), value_set=mats))
+            if b.num_rows:
+                b = b.filter(pc.is_in(b.column("file_name"), value_set=files))
             if not b.num_rows:
                 continue
             out = {}
@@ -153,7 +165,6 @@ def write_tapes(release, rows):
         with open(p + ".part", "a", encoding="latin-1") as f:
             f.write(f"{ZERO}{0:4d}{0:2d}{0:3d}{0:5d}\n{ZERO}{-1:4d}{0:2d}{0:3d}{0:5d}\n")
         os.replace(p + ".part", p)
-    shutil.rmtree(rec, ignore_errors=True)
 
 
 def gz_put(src, key, filename):
@@ -240,30 +251,42 @@ def register(release):
 def run(release, sub, shard, workers):
     t0, started = time.time(), now()
     rows = materials(release, sub)
-    mine = share(rows, shard) if shard[1] > 1 else sorted(rows, key=lambda r: -(r["line_count"] or 0))
+    mine = share(rows, shard) if shard[1] > 1 else list(rows)
+    order = sub.split(",") if sub else []
+    mine.sort(key=lambda r: (order.index(r["sublibrary"]) if r["sublibrary"] in order else 0, -(r["line_count"] or 0)))
     tag = f"s{shard[0]}of{shard[1]}"
     print(f"{release} {sub or 'every sublibrary'}: {len(rows)} materials, {len(mine)} on this box ({tag})", flush=True)
-    write_tapes(release, mine)
-    t_tapes = time.time() - t0
-    done = {}
+    subs = list(dict.fromkeys(r["sublibrary"] for r in mine))
+    if not order:
+        subs.sort(key=lambda s: (s != "neutrons", s))
+    t_tapes, done, i = 0.0, {}, 0
     with cf.ThreadPoolExecutor(workers) as pool:
-        futs = {pool.submit(convert, release, r): r for r in mine}
-        for i, f in enumerate(cf.as_completed(futs), 1):
-            r = futs[f]
-            try:
-                row = f.result()
-            except Exception as e:  # noqa: BLE001
-                row = {"release": release, "sublibrary": r["sublibrary"], "mat": r["mat"], "za": r["za"],
-                       "name": r["name"], "file_name": r["file_name"], "fudge_version": FUDGE_VERSION, "ok": False,
-                       "error": f"compile.py: {type(e).__name__}: {e}"[-6000:]}
-            done.setdefault(row["sublibrary"], []).append(row)
-            print(f"{i}/{len(mine)} {row['sublibrary']} {row['mat']} {row['name']} ok={row['ok']} {row.get('seconds')}s",
-                  flush=True)
-            if i % 25 == 0:
-                for s, rs in done.items():
-                    save_catalog(release, s, tag, rs)
-    for s, rs in done.items():
-        save_catalog(release, s, tag, rs)
+        for s in subs:  # one sublibrary at a time: its tapes written, converted, deleted (TENDL's would fill the disk)
+            part = [r for r in mine if r["sublibrary"] == s]
+            t = time.time()
+            write_tapes(release, part)
+            t_tapes += time.time() - t
+            futs = {pool.submit(convert, release, r): r for r in part}
+            for f in cf.as_completed(futs):
+                i += 1
+                r = futs[f]
+                try:
+                    row = f.result()
+                except Exception as e:  # noqa: BLE001
+                    row = {"release": release, "sublibrary": r["sublibrary"], "mat": r["mat"], "za": r["za"],
+                           "name": r["name"], "file_name": r["file_name"], "fudge_version": FUDGE_VERSION, "ok": False,
+                           "error": f"compile.py: {type(e).__name__}: {e}"[-6000:]}
+                done.setdefault(row["sublibrary"], []).append(row)
+                print(f"{i}/{len(mine)} {row['sublibrary']} {row['mat']} {row['name']} ok={row['ok']} {row.get('seconds')}s",
+                      flush=True)
+                if os.path.exists(tape_path(release, r)):
+                    os.remove(tape_path(release, r))
+                if i % 25 == 0:
+                    save_catalog(release, s, tag, done[row["sublibrary"]])
+            if s in done:
+                save_catalog(release, s, tag, done[s])
+            shutil.rmtree(f"/data/tapes/{release}/{s}", ignore_errors=True)
+    shutil.rmtree(f"/data/rec/{release}", ignore_errors=True)
     allrows = [x for rs in done.values() for x in rs]
     wall = time.time() - t0
     run_doc = {"release": release, "sublibrary": sub, "shard": tag, "started_at": started, "finished_at": now(),
@@ -271,7 +294,7 @@ def run(release, sub, shard, workers):
                "rate_usd_h": RATE, "spend_usd": round(wall / 3600 * RATE, 4), "materials": len(mine),
                "converted": sum(1 for x in allrows if x["ok"]), "failed": sum(1 for x in allrows if not x["ok"]),
                "fudge_version": FUDGE_VERSION}
-    s3.put_object(Bucket=BUCKET, Key=f"lake/gnds/{release}/runs/{sub or 'all'}.{tag}.json",
+    s3.put_object(Bucket=BUCKET, Key=f"lake/gnds/{release}/runs/{(sub or 'all').replace(',', '+')}.{tag}.json",
                   Body=json.dumps(run_doc, indent=1).encode(), ContentType="application/json")
     register(release)
     shutil.rmtree(f"/data/tapes/{release}", ignore_errors=True)
@@ -303,7 +326,7 @@ def manifest():
         mats = {}
         for r in pq.read_table(f"{BUCKET}/lake/endfb/{rel}/materials/", filesystem=fs,
                                columns=["sublibrary"]).column("sublibrary").to_pylist():
-            mats[r] = mats.get(r, 0) + 1
+            mats[word(r)] = mats.get(word(r), 0) + 1
         runs = []
         for o in s3.list_objects_v2(Bucket=BUCKET, Prefix=f"lake/gnds/{rel}/runs/").get("Contents", []):
             runs.append(json.loads(s3.get_object(Bucket=BUCKET, Key=o["Key"])["Body"].read()))
@@ -358,6 +381,7 @@ def main():
         r = [x for x in materials(release, sub) if x["mat"] == mat][0]
         t = time.time()
         write_tapes(release, [r])
+        shutil.rmtree(f"/data/rec/{release}", ignore_errors=True)
         print(f"tape {tape_path(release, r)} written in {time.time() - t:.1f}s", flush=True)
         print(json.dumps(convert(release, r), indent=1))
         return
