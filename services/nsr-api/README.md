@@ -296,7 +296,8 @@ The store is DynamoDB `nsrgpt-views` (on demand; key `id`; index `kind-created_a
 
 Every measured cross section in EXFOR against six evaluations (ENDF/B-VIII.1 and VIII.0 from the POINT 293.6 K releases
 for neutrons, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2), ranked; the method is in `scripts/sweep/README.md` and
-`lake/sweep/2026-11-10/manifest.json`. Tables load into memory from `lake/sweep/2026-11-10/<table>/` on first use.
+`lake/sweep/2026-11-10/manifest.json`. Tables load into memory from `lake/sweep/2026-11-10/<table>/` on first use. The
+Lambda reads `lake/sweep/*` through the inline policy `nsr-api-sweep` (`sweep-policy.json`, put on the role `nsr-api-lambda`).
 
 | Route | Example |
 | --- | --- |

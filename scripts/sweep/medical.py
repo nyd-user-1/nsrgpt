@@ -122,10 +122,19 @@ ROUTES = [
 
 
 def get(url, tries=3):
+    err = None
     for i in range(tries):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "nsr-sweep/1.0"}), timeout=120) as r:
                 return json.loads(r.read())
+        except urllib.error.HTTPError as e:  # a 4xx is an answer (not held, bad name): its JSON body says why
+            if 400 <= e.code < 500:
+                try:
+                    return json.loads(e.read())
+                except Exception:  # noqa: BLE001
+                    return None
+            err = e
+            time.sleep(2 * (i + 1))
         except Exception as e:  # noqa: BLE001
             err = e
             time.sleep(2 * (i + 1))
@@ -337,33 +346,57 @@ def ratio_stats(points, x, y, transform=None):
     if len(per) > 1:
         chi2 = float(np.sum(w * (m - mean) ** 2))
         se *= max(1.0, math.sqrt(chi2 / (len(per) - 1)))
-    spread = float(np.std(np.exp(m), ddof=1)) if len(per) > 1 else per[0][3]
+    # the datasets' scatter: the inverse-variance weighted standard deviation of their log ratios (an outlier with a
+    # large uncertainty weighs little); one dataset: its own standard error
+    spread = float(math.sqrt(np.sum(w * (m - mean) ** 2) / np.sum(w))) if len(per) > 1 else per[0][3]
     return {"ratio": math.exp(mean), "log_ratio": mean, "se": se, "spread": spread, "n_datasets": len(per),
             "n_points": sum(p[1] for p in per), "datasets": [{"dataset": p[0], "n": p[1], "ratio": math.exp(p[2]),
                                                             "se": p[3]} for p in per]}
 
 
 # ── IAEA recommended ─────────────────────────────────────────────────────────────────────────────────────────────────
+IAEA_YIELDS = {}  # code -> [(e_ev, IAEA physical yield MBq/uAh from threshold to e)]
+
+
 def iaea_curve(code):
+    """The IAEA recommended cross section from the mirror's zip: its text table (Energy MeV, sigma mb, uncertainty mb,
+    and where given the IAEA's own physical thick-target yield in MBq/uAh), else its .xls (xlrd)."""
     try:
-        body = s3.get_object(Bucket=BUCKET, Key=f"{MED}/{code}t.zip")["Body"].read()
+        body = s3.get_object(Bucket=BUCKET, Key=f"{MED}/{code}.zip")["Body"].read()
     except Exception as e:  # noqa: BLE001
         return None, f"not in the mirror ({str(e)[:80]})"
-    s3.put_object(Bucket=BUCKET, Key=f"{PREFIX}/iaea-medical/{code}t.zip", Body=body)
-    rows = []
+    s3.put_object(Bucket=BUCKET, Key=f"{PREFIX}/iaea-medical/{code}.zip", Body=body)
+    rows, ylds, used = [], [], None
     with zipfile.ZipFile(io.BytesIO(body)) as z:
         names = z.namelist()
-        for n in names:
-            for line in z.read(n).decode("latin-1").splitlines():
-                t = line.replace(",", " ").split()
+        lines = []
+        txt = [n for n in names if n.lower().endswith(".txt")]
+        if txt:
+            used = txt[0]
+            lines = [ln.replace(",", " ").split() for ln in z.read(used).decode("latin-1").splitlines()]
+        else:
+            xls = [n for n in names if n.lower().endswith(".xls")]
+            if xls:
                 try:
-                    v = [float(a) for a in t[:3]]
-                except ValueError:
-                    continue
-                if len(v) >= 2 and v[0] > 0 and v[1] >= 0:
-                    rows.append((v[0] * 1e6, v[1] * 1e-3, v[2] * 1e-3 if len(v) > 2 else None))
+                    import xlrd
+                    used = xls[0]
+                    sh = xlrd.open_workbook(file_contents=z.read(used)).sheet_by_index(0)
+                    lines = [[str(c) for c in sh.row_values(i)] for i in range(sh.nrows)]
+                except Exception as e:  # noqa: BLE001
+                    return None, f"{code}.zip has {names}; .xls not read ({str(e)[:80]})"
+        for t in lines:
+            try:
+                v = [float(a) for a in t[:4] if str(a).strip() != ""]
+            except ValueError:
+                continue
+            if len(v) >= 2 and 0 < v[0] < 1e4 and v[1] >= 0:
+                rows.append((v[0] * 1e6, v[1] * 1e-3, v[2] * 1e-3 if len(v) > 2 else None))
+                if len(v) > 3:
+                    ylds.append((v[0] * 1e6, v[3]))
     rows = sorted(set(rows))
-    return (rows, f"{MED}/{code}t.zip: {', '.join(names)}") if rows else (None, f"no table read from {names}")
+    if ylds:
+        IAEA_YIELDS[code] = sorted(set(ylds))
+    return (rows, f"{MED}/{code}.zip: {used}") if rows else (None, f"no table read from {names}")
 
 
 def main():
@@ -494,6 +527,13 @@ def main():
                 curves["IAEA"] = (ix, iy)
                 v, unit, sd, det = yield_of(r, ix, iy, lam, [], ends[0])
                 iaea = {"yield": v, "unit": unit, "detail": det}
+                pub = IAEA_YIELDS.get(r["iaea"])
+                if pub and r["irr"] == "cyclotron" and v:
+                    pe, py = np.array([a for a, _ in pub]), np.array([b for _, b in pub])
+                    if pe.min() <= r["window"][1] and pe.max() >= r["window"][0]:
+                        p_yield = float(np.interp(r["window"][0], pe, py) - np.interp(r["window"][1], pe, py))
+                        out["iaea_published_yield"] = p_yield
+                        out["stopping_check"] = v / p_yield if p_yield > 0 else None
                 for a, b, c in rows:
                     recommended.append((r["route"], a, b, c))
                     points.append((r["route"], "IAEA", None, a, b, c))
@@ -546,11 +586,35 @@ def main():
                        n_points=st["n_points"])
         else:
             out.update(n_datasets=len({p[0] for p in pts}), n_points=len(pts))
+        if r["irr"] == "fission":
+            # the yield's data side: EXFOR's thermal cumulative fission yields of the product against the reference
+            # release's MT 459 yield, combined with the fission cross section's data (spreads added in quadrature)
+            prod = {"42099": "42-MO-99", "53131": "53-I-131", "38090": "38-SR-90"}[r["fy"]]
+            fref = fy.get((ref, r["fy"])) if ref else None
+            fpts = con.execute("""SELECT p.dataset, s.first_author, s.year, s.quantity, p.e_ev, p.xs_b, p.dxs_b
+                                  FROM pts p JOIN si s USING (dataset) WHERE s.target_za = 92235 AND s.projectile = 'N'
+                                  AND s.process = 'F' AND s.sf6 = 'FY' AND s.product = ? AND s.quantity LIKE 'CUM%'
+                                  AND p.e_ev BETWEEN 0.01 AND 0.1 AND p.xs_b > 0""", [prod]).fetchall()
+            fst = ratio_stats(fpts, None, None, transform=lambda e, qty, y=(fref or (0,))[0]: y) if fref else None
+            stats["fission_yield_data"] = fst
+            for p in fpts:
+                points.append((r["route"], "EXFOR fission yield", p[0], p[4], p[5], p[6]))
+            if fst and out.get("data_yield") is not None:
+                out["data_yield"] *= fst["ratio"]
+                out["data_spread_pct"] = 100 * math.sqrt((out["data_spread_pct"] / 100) ** 2 + fst["spread"] ** 2)
+                out["data_se_pct"] = 100 * math.sqrt((out["data_se_pct"] / 100) ** 2 + fst["se"] ** 2)
+                out["n_datasets"] = out["n_datasets"] + fst["n_datasets"]
+                out["n_points"] = out["n_points"] + fst["n_points"]
+                out["fission_yield_datasets"] = fst["n_datasets"]
+            else:
+                out["fission_yield_datasets"] = 0
+                out["data_spread_pct"] = None  # no thermal cumulative-yield data: the verdict cannot be judged
         ys = {k: v["yield"] for k, v in held.items() if not r.get("total_only")}
         for rel in RELEASES:
             out[f"yield_{rel.lower().replace('-', '_').replace('.', '_')}"] = (evals.get(rel) or {}).get("yield")
             out[f"sd_{rel.lower().replace('-', '_').replace('.', '_')}"] = (evals.get(rel) or {}).get("rel_sd_mf33")
         out["yield_unit"] = next((v["unit"] for v in held.values()), (iaea or {}).get("unit"))
+        ys = {k: v for k, v in ys.items() if v and v > 0}  # an evaluation whose yield is zero over the window holds no data there
         if len(ys) >= 2:
             vals = list(ys.values())
             out["eval_spread_pct"] = 100 * (max(vals) - min(vals)) / (sum(vals) / len(vals))
@@ -560,11 +624,16 @@ def main():
         if r.get("total_only"):
             out["verdict"] = "evaluations hold the total (p,2n), both states: not comparable to Tc-99m"
             out["verdict_detail"] = "data against the IAEA recommended curve only"
+        elif not r["mt"]:
+            out["verdict"] = "no evaluation holds this as a cross section (residual production, MT 5 with MF6 yields, not parsed)"
+            out["verdict_detail"] = (f"data against the IAEA recommended curve: ratio {out['data_ratio_to_reference']:.3f} over "
+                                     f"{out['n_datasets']} datasets" if out.get("data_ratio_to_reference") else "no data over the window")
         elif out["eval_spread_pct"] is None:
             out["verdict"] = "fewer than two evaluations hold this reaction"
             out["verdict_detail"] = ", ".join(f"{k}: {v.get('note')}" for k, v in evals.items() if not v.get("held"))[:400]
         elif ds is None:
-            out["verdict"] = "no EXFOR data over the irradiation's energies"
+            out["verdict"] = ("no thermal cumulative fission-yield data in EXFOR's serving table" if r["irr"] == "fission"
+                              else "no EXFOR data over the irradiation's energies")
             out["verdict_detail"] = f"evaluations spread {out['eval_spread_pct']:.1f}%"
         else:
             bad = out["eval_spread_pct"] > ds

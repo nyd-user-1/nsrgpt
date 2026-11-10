@@ -83,12 +83,12 @@ def main():
         tables.setdefault(t, {}).update(rows=v.get("rows"), athena=v.get("athena"))
     for t, v in (med.get("tables") or {}).items():
         tables.setdefault(t, {}).update(rows=v.get("rows"))
-    ec2 = boto3.client("ec2", region_name="us-east-2")
-    launch = None
-    for r in ec2.describe_instances(Filters=[{"Name": "tag:Name", "Values": ["nsr-sweep-1"]}])["Reservations"]:
-        for i in r["Instances"]:
-            launch = i["LaunchTime"]
     now = datetime.datetime.now(datetime.timezone.utc)
+    launch = None
+    try:  # the box itself: its uptime (the role may not describe instances)
+        launch = now - datetime.timedelta(seconds=float(open("/proc/uptime").read().split()[0]) + 60)
+    except OSError:
+        pass
     hours = (now - launch).total_seconds() / 3600 if launch else None
     m = {
         "run_date": "2026-11-10", "written_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "brief": "docs/briefs/57-sweep-retrodiction-flags-medical.md",

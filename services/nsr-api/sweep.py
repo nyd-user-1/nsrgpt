@@ -196,7 +196,7 @@ def flags(q):
 def medical(name):
     t = table("medical_routes")
     if not name:
-        return 200, {"rows": rows(f"SELECT * FROM {t} ORDER BY product, route")}
+        return 200, {"rows": rows(f"SELECT * EXCLUDE (detail) FROM {t} ORDER BY product, route")}
     r = rows(f"SELECT * FROM {t} WHERE route = ?", [name])
     if not r:
         return 404, {"error": f"no route {name}; GET /sweep/medical lists them"}
@@ -208,7 +208,30 @@ def medical(name):
     series = [{"source": s, "points": len(v), "e_ev": [p["e_ev"] for p in v], "xs_b": [p["xs_b"] for p in v],
                "dxs_b": [p["dxs_b"] for p in v], "dataset": [p["dataset"] for p in v] if s == "EXFOR" else None}
               for s, v in by.items()]
-    return 200, {"route": r[0], "series": series}
+    row = r[0]
+    try:
+        detail = json.loads(row.pop("detail", None) or "{}")
+    except ValueError:
+        detail = {}
+    yields = []
+    for src, e in (detail.get("evaluations") or {}).items():
+        yields.append({"source": src, "held": e.get("held"), "yield": e.get("yield"), "unit": e.get("unit"),
+                       "rel_sd_mf33": e.get("rel_sd_mf33"), "mf33": e.get("mf33"), "from": e.get("source"),
+                       "detail": e.get("detail"), "note": e.get("note")})
+    if detail.get("iaea"):
+        yields.append({"source": "IAEA", "held": True, "yield": detail["iaea"].get("yield"),
+                       "unit": detail["iaea"].get("unit"), "detail": detail["iaea"].get("detail")})
+    if row.get("data_yield") is not None:
+        yields.append({"source": "EXFOR", "held": True, "yield": row["data_yield"], "unit": row.get("yield_unit"),
+                       "spread_pct": row.get("data_spread_pct"), "se_pct": row.get("data_se_pct"),
+                       "reference": row.get("reference")})
+    bins = []
+    if row.get("mt") and row.get("sublibrary"):
+        bins = rows(f"SELECT release, bin, e_lo_ev, e_hi_ev, n_points, n_datasets, mean_log_ratio, se, mean_ratio, "
+                    f"rel_sd_eval, z FROM {table('bins')} WHERE target = ? AND sublibrary = ? AND mt = ? "
+                    "ORDER BY release, bin", [row["target"], row["sublibrary"], int(row["mt"])])
+    return 200, {"route": row, "yields": clean(yields), "data": clean(detail.get("data")), "bins": bins,
+                 "series": series}
 
 
 def route(path, q):

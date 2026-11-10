@@ -155,6 +155,11 @@ def load(exfor_only=False):
            CASE WHEN s.sf6 <> 'SIG' THEN 'other_quantity'
                 WHEN s.dataset LIKE 'V%' THEN 'evaluated_compilation'
                 WHEN s.quantity <> ',SIG' THEN 'quantity_modifier'
+                -- the index's quantity can drop SF7 to SF9 (MXW, SPA, FIS, BRS, RAW, DERIV): read them from the code itself
+                WHEN coalesce(string_split(regexp_extract(s.code, '\)([^)]*)$', 1), ',')[4], '') <> ''
+                  OR coalesce(string_split(regexp_extract(s.code, '\)([^)]*)$', 1), ',')[5], '') NOT IN ('', 'AV')
+                  OR coalesce(string_split(regexp_extract(s.code, '\)([^)]*)$', 1), ',')[6], '') NOT IN ('', 'EXP')
+                  THEN 'quantity_modifier'
                 WHEN r.mt IS NULL THEN 'no_mt'
                 WHEN s.target_za IS NULL OR s.target_za <= 0 THEN 'no_target'
                 WHEN s.target_state NOT IN ('', 'M', 'M1', 'M2') THEN 'target_state'
@@ -630,6 +635,23 @@ def retro():
                             "changed": nch, "direction_rate": dirn}
         med, dec = q(f"""SELECT median(rank), avg((rank <= {base_n} / 10.0)::INTEGER) FROM rk_{name} WHERE changed""").fetchone()
         summ["rankings"][name] = {"top": tops, "changed_median_rank": med, "changed_in_top_decile": dec}
+    # the same test at stricter definitions of "changed" (0.5% counts grid and format changes; 2, 5 and 10% are
+    # re-evaluations), on the z ranking
+    byt = {}
+    for t in (0.005, 0.02, 0.05, 0.10):
+        bn, bc = q(f"SELECT count(*), sum((coalesce(rms_log, 0) > {t})::INT) FROM rk_z").fetchone()
+        base_t = bc / bn if bn else None
+        tops = {}
+        for n in (10, 20, 50, 100, 200):
+            hit, dirn, nch = q(f"""SELECT avg((coalesce(rms_log, 0) > {t})::INT),
+                                   avg(CASE WHEN rms_log > {t} THEN moved_toward_data::INT END),
+                                   sum((coalesce(rms_log, 0) > {t})::INT) FROM rk_z WHERE rank <= {n}""").fetchone()
+            tops[str(n)] = {"hit_rate": hit, "enrichment": hit / base_t if base_t else None, "changed": nch,
+                            "direction_rate": dirn}
+        byt[str(t)] = {"changed_pairs": bc, "base_rate": base_t, "top": tops,
+                       "direction_rate_all_changed": one(f"SELECT avg(moved_toward_data::INT) FROM rk_z WHERE rms_log > {t}")}
+    summ["by_threshold"] = byt
+    summ["direction_rate_all_changed"] = one("SELECT avg(moved_toward_data::INT) FROM retro_base WHERE changed")
     q("""CREATE OR REPLACE TABLE retrodiction AS SELECT rank, key, target, reaction, sublibrary, mt, z, max_bin_z,
          mean_log_ratio_v80, mean_log_ratio_v81, weighted_log_ratio_v80, weighted_log_ratio_v81, z_v81, changed, rms_log,
          max_log, moved_toward_data, n_points, n_datasets, support_points, support_datasets FROM rk_z ORDER BY rank""")
