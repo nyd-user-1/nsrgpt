@@ -42,6 +42,34 @@ SELECT d.type, d.id, d.name, d.title, top.score, d.url_path, top.total FROM top 
 ORDER BY top.score DESC, top.rid"""
 
 
+# A bare nuclide name (brief 56, lead's ruling): when the whole query is one nuclide (Ac-225, 225Ac, ac225, 60Co, U-235,
+# Tc-99m), ENSDF's record for it comes first and ICRP 107's second, each with its own score, ahead of the many
+# material and cross-section records whose names repeat it. Every other query is ranked as before.
+SYMBOLS = set(("n H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr Rb Sr "
+               "Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W "
+               "Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt "
+               "Ds Rg Cn Nh Fl Mc Lv Ts Og").split())
+PIN_TYPES = ("nuclide", "icrp_nuclide")
+
+
+def bare_nuclide(text):
+    """The ids to pin when the query is one nuclide name: [ENSDF's nuclide record (none for an isomer), ICRP 107's]."""
+    t = re.sub(r"[\s_]", "", text)
+    m = re.fullmatch(r"(\d{1,3})(m\d?)?-?([A-Za-z]{1,2})", t)
+    if m:
+        a, iso, sym = m.group(1), m.group(2) or "", m.group(3)
+    else:
+        m = re.fullmatch(r"([A-Za-z]{1,2})-?(\d{1,3})(m\d?)?", t)
+        if not m:
+            return []
+        sym, a, iso = m.group(1), m.group(2), m.group(3) or ""
+    sym = sym[0].upper() + sym[1:].lower()
+    if sym not in SYMBOLS:
+        return []
+    a = str(int(a))
+    return ([] if iso else [f"{a}{sym}"]) + [f"icrp:{sym}-{a}{iso.lower()}"]
+
+
 def con():
     """The index, copied from S3 to /tmp once per container and opened read-only."""
     global _con
@@ -93,8 +121,16 @@ def search(q):
     c = con()
     t1 = time.time()
     rows = c.execute(SEARCH.format(join=join, limit=limit), [text] + types).fetchall()
+    pins = bare_nuclide(text) if not types or any(t in PIN_TYPES for t in types) else []
+    pinned = set()
+    if pins:
+        pj = f"JOIN docs AS dt ON dt.rid = fd.name WHERE dt.type IN ({', '.join('?' * len(PIN_TYPES))})"
+        mine = {r[1]: r for r in c.execute(SEARCH.format(join=pj, limit=50), [text, *PIN_TYPES]).fetchall()}
+        front = [mine[i] for i in pins if i in mine and (not types or mine[i][0] in types)]
+        pinned = {r[1] for r in front}
+        rows = (front + [r for r in rows if r[1] not in pinned])[:limit]
     body = {"q": text, "hits": [{"type": r[0], "id": r[1], "name": r[2], "title": r[3], "score": round(r[4], 4),
-                                 "url_path": r[5]} for r in rows],
+                                 "url_path": r[5], **({"pinned": "nuclide name"} if r[1] in pinned else {})} for r in rows],
             "total": rows[0][6] if rows else 0, "took_ms": round((time.time() - t1) * 1000)}
     info = cold_info()
     if info:

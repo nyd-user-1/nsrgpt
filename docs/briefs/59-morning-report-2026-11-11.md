@@ -209,13 +209,11 @@ Every route below was run on a parse box before its deploy and timed live after 
 | Search: ICRP 107's 1,252 nuclides; decay and yield records open their routes | /search?q=JEFF-3.3 decay · /search?q=Ac-225 ICRP | — | 13f6aa1 |
 | Data dictionary: every table added since brief 43, an ICRP 107 group, the held note fixed | /data-dictionary | /data-dictionary | 13f6aa1 |
 | The lake page's ENDF counts (13 releases) | /pipeline | /pipeline | e96cf62 |
+| Search: a query that is one nuclide name (Ac-225, 225Ac, 60Co, U-235, Tc-99m) puts ENSDF's record first and ICRP 107's second (marked `pinned`); other queries rank as before (brief 18's seven checked) | /search?q=Ac-225 | — | see below |
 
 What it needs from you:
 - Your first sign-in: the temporary password is in SSM `/nsrgpt/admin/first-password` (us-east-2, New account). Sign in
   at /signin with it and the form asks for your own. It expires 7 days after it was set (2026-11-10).
-- Search ranking: "Ac-225" alone ranks ICRP 107's record past the 50th hit (score 5.95 against 6.23 for the top
-  material). ENSDF's own Ac-225 record is past the 50th as well. "Ac-225 ICRP" puts it first. A small boost for
-  nuclide records in keyword_search.py would fix both; I left global ranking alone the night before launch.
 
 File 2 and File 32, per release (the counts check: sections parsed against `endfb_sections`, MF2 and MF32 MT151):
 
