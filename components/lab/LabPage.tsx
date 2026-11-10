@@ -9,13 +9,13 @@ import {
   useNodesInitialized,
   useNodesState,
   useReactFlow,
+  ViewportPortal,
   type Connection,
   type Edge as FlowEdge,
   type EdgeChange,
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import dagre from "@dagrejs/dagre"
 import { ChevronLeft, ChevronRight, Copy, LayoutDashboard, Play, Plus, Save } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -30,7 +30,7 @@ import { useLab } from "@/components/lab/useLab"
 import { setRail } from "@/components/rail-toggle"
 import { Button } from "@/components/ui/button"
 import { streamChat, type ChatTurn } from "@/lib/chat-stream"
-import { inputsFor, newId, portsMatch, type BlockKind, type Canvas } from "@/lib/lab/blocks"
+import { inputsFor, newId, portsMatch, type Block, type BlockKind, type Canvas } from "@/lib/lab/blocks"
 import { DEFAULT_CANVAS } from "@/lib/lab/default"
 import { KINDS, newBlock } from "@/lib/lab/kinds"
 import { answerOnly, contextOf } from "@/lib/lab/kinds/prompt"
@@ -43,6 +43,13 @@ import { listCanvases, loadCanvas, saveCanvas, type SavedCanvas } from "@/lib/la
 const nodeTypes = { block: BlockNode }
 /** The fit leaves the toolbar its strip at the top, so it never covers a block's header. */
 const FIT = { padding: { top: "64px", right: "32px", bottom: "32px", left: "32px" }, maxZoom: 1 } as const
+
+/** The lanes (Brendan, 2026-11-10): a block's kind puts it in a stage, and the stages stand left to right. */
+const LANES = ["Sources", "Process", "Compare", "Results"] as const
+const STAGE: Record<BlockKind, number> = { data: 0, process: 1, compare: 2, plot: 3, prompt: 3 }
+const LANE_GAP = 40
+const LANE_GUTTER = 120
+type Lane = { label: string; x: number; w: number }
 
 /** The title at rest: up to its first colon or comma, with an ellipsis when that cut something. */
 const shortName = (name: string) => {
@@ -80,28 +87,46 @@ function LabInner() {
     setRail("right", true)
   }, [])
 
-  // Tidy: the blocks laid out left to right in the order they feed one another (dagre, rank by edge), each block's
-  // measured size respected, so every block reads both in relation to the others and in its place in the flow
-  // (Brendan, 2026-11-09). The default canvas opens tidied; the top-right circle re-tidies after edits.
+  // Tidy, lanes by stage (Brendan, 2026-11-10): four columns, Sources, Process, Compare, Results, each as wide as its widest
+  // block; a block stands in its kind's lane, the lane's blocks stacked in the order of the blocks that feed them, each
+  // block's measured size respected. The default canvas opens in lanes; the top-right circle re-tidies after edits; a
+  // dragged block snaps back to a lane's left edge and keeps its height.
   const pendingTidy = useRef(false)
   const nodesInitialized = useNodesInitialized()
+  const [lanes, setLanes] = useState<Lane[]>([])
   const tidy = useCallback(() => {
-    const g = new dagre.graphlib.Graph()
-    g.setGraph({ rankdir: "LR", nodesep: 36, ranksep: 120, align: "UL", marginx: 0, marginy: 0 })
-    g.setDefaultEdgeLabel(() => ({}))
     const measured = new Map(flow.getNodes().map((n) => [n.id, n.measured]))
-    for (const b of canvas.blocks) {
-      const m = measured.get(b.id)
-      g.setNode(b.id, { width: m?.width ?? 300, height: m?.height ?? 320 })
-    }
-    for (const e of canvas.edges) if (e.source !== e.target) g.setEdge(e.source, e.target)
-    dagre.layout(g)
-    for (const b of canvas.blocks) {
-      const n = g.node(b.id)
-      if (n) lab.move(b.id, { x: Math.round(n.x - n.width / 2), y: Math.round(n.y - n.height / 2) })
-    }
+    const sizeOf = (b: Block) => ({ w: measured.get(b.id)?.width ?? b.size?.w ?? 300, h: measured.get(b.id)?.height ?? b.size?.h ?? 320 })
+    const byLane: Block[][] = LANES.map(() => [])
+    for (const b of canvas.blocks) byLane[STAGE[b.kind]].push(b)
+    const order = new Map<string, number>()
+    const out: Lane[] = []
+    let x = 0
+    byLane.forEach((list, i) => {
+      const w = Math.max(240, ...list.map((b) => sizeOf(b).w))
+      // Blocks fed from the lane before stand level with their sources; the unfed keep the canvas's order after them.
+      const key = (b: Block) => {
+        const from = canvas.edges.filter((e) => e.target === b.id).map((e) => order.get(e.source)).filter((n): n is number => n !== undefined)
+        return from.length ? from.reduce((a, c) => a + c, 0) / from.length : Number.POSITIVE_INFINITY
+      }
+      const sorted = [...list].sort((a, b) => key(a) - key(b))
+      let y = 0
+      sorted.forEach((b, k) => {
+        order.set(b.id, k)
+        lab.move(b.id, { x, y })
+        y += sizeOf(b).h + LANE_GAP
+      })
+      out.push({ label: LANES[i], x, w })
+      x += w + LANE_GUTTER
+    })
+    setLanes(out)
     requestAnimationFrame(() => flow.fitView(FIT))
   }, [canvas.blocks, canvas.edges, flow, lab])
+  /** A dropped block lands on the nearest lane's left edge; its height stays where it was put. */
+  const snap = useCallback((id: string, p: { x: number; y: number }) => {
+    const lane = lanes.length ? lanes.reduce((best, l) => (Math.abs(l.x - p.x) < Math.abs(best.x - p.x) ? l : best)) : null
+    lab.move(id, { x: lane ? lane.x : p.x, y: p.y })
+  }, [lanes, lab])
   useEffect(() => {
     if (!nodesInitialized || !pendingTidy.current) return
     pendingTidy.current = false
@@ -279,7 +304,7 @@ function LabInner() {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               isValidConnection={(c) => c.source !== c.target && portsMatch(portOf(c).from, portOf(c).to)}
-              onNodeDragStop={(_, n) => { autoTidy.current = false; lab.move(n.id, n.position) }}
+              onNodeDragStop={(_, n) => { autoTidy.current = false; snap(n.id, n.position) }}
               onNodeClick={(_, n) => { setSelected(n.id); setSubentry(null) }}
               onPaneClick={() => { setSelected(null); setSubentry(null); setEdgeSel(new Set()) }}
               onNodesDelete={(del) => { for (const n of del) lab.remove(n.id); if (del.some((n) => n.id === selected)) setSelected(null) }}
@@ -338,6 +363,14 @@ function LabInner() {
                   </Button>
                 </div>
               </Panel>
+              {/* The lanes' names over their columns, in the canvas's own coordinates, so they pan and zoom with the blocks. */}
+              <ViewportPortal>
+                {lanes.map((l) => (
+                  <div key={l.label} style={{ position: "absolute", left: l.x, top: -34, width: l.w }} className="pointer-events-none select-none border-b border-[var(--paper-rule-soft)] pb-1 text-[11px] uppercase tracking-wider text-[var(--paper-faint)]">
+                    {l.label}
+                  </div>
+                ))}
+              </ViewportPortal>
               <Background gap={24} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>
