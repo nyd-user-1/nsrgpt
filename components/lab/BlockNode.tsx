@@ -5,7 +5,6 @@ import { Copy, CopyPlus, EllipsisVertical, GripVertical, LoaderCircle, Play, Squ
 import { lazy, memo, Suspense, useMemo, type PointerEvent as ReactPointerEvent } from "react"
 import { toast } from "sonner"
 
-import { BlockParams } from "@/components/lab/BlockParams"
 import { KIND_ICON, PORT_COLOR, useLabContext } from "@/components/lab/LabContext"
 import { PlotChart } from "@/components/lab/PlotChart"
 import { KebabMenu, MenuRow, MenuSeparator } from "@/components/kebab-menu"
@@ -23,7 +22,22 @@ const ChatMessage = lazy(() => import("@/components/chat/ChatMessage").then((m) 
 // input ports on the left and outputs on the right, a body of its params (the Plot draws, the Prompt streams its answer),
 // and a foot with its status and output summary.
 
-const WIDTH: Record<Block["kind"], number> = { data: 300, process: 300, compare: 300, plot: 560, prompt: 420 }
+const WIDTH: Record<Block["kind"], number> = { data: 260, process: 260, compare: 260, plot: 560, prompt: 420 }
+
+/** A block's settings in one line, for the compact card: each value in the kind's order, a pair of numbers as a range,
+ *  a list joined by commas; the chat and the prompt's text left out (the panel holds them). */
+const paramsLine = (block: Block) =>
+  Object.entries(block.params)
+    .filter(([k, v]) => v !== undefined && v !== null && v !== "" && k !== "chat" && k !== "prompt")
+    .map(([, v]) => {
+      if (Array.isArray(v)) return v.length === 2 && v.every((x) => typeof x === "number") ? `${fmt(v[0] as number)} to ${fmt(v[1] as number)}` : v.map(String).join(", ")
+      if (typeof v === "number") return fmt(v)
+      if (typeof v === "object") return ""
+      return String(v)
+    })
+    .filter(Boolean)
+    .join(" · ")
+const fmt = (n: number) => (Math.abs(n) >= 1e4 || (Math.abs(n) < 1e-2 && n !== 0) ? n.toExponential(0).replace("e+", "e") : String(n))
 
 function Ports({ ports, side }: { ports: Record<string, Port>; side: "in" | "out" }) {
   const list = Object.entries(ports)
@@ -87,13 +101,17 @@ function BlockNodeInner({ id }: NodeProps) {
     toast.success("Output copied")
   }
 
+  // Compact blocks (Brendan, 2026-11-10): a block shows its title, ports, a one-line reading of its settings and its
+  // status; the settings themselves are edited in the right panel, which a click opens. The Plot keeps its chart and
+  // the Prompt its answer, the visible outputs.
+  const settings = <p className="line-clamp-2 text-[11px] leading-snug text-[var(--paper-muted)]" title={paramsLine(block)}>{paramsLine(block) || "No settings"}</p>
   let body
   if (block.kind === "plot" && inputs && plotData) {
     const { points, series, ratio } = plotData
     const p = block.params as { mode?: PlotMode; highlight?: [number, number] }
     body = (
       <>
-        <BlockParams block={block} onParams={(v) => lab.setQuietParams(id, v)} />
+        {settings}
         {points || series.length || ratio.length ? (
           <PlotChart className="mt-2" style={{ height: block.size ? Math.max(160, block.size.h - 230) : 340 }} points={points} series={series} ratio={ratio} mode={p.mode ?? "both"} highlight={p.highlight} title={block.title} onPoint={openSubentry} />
         ) : (
@@ -106,7 +124,7 @@ function BlockNodeInner({ id }: NodeProps) {
     const p = block.params as { prompt?: string; chat?: ChatTurn[] }
     body = (
       <>
-        <BlockParams block={block} onParams={(v, quiet) => (quiet ? lab.setQuietParams(id, v) : lab.setParams(id, v))} />
+        {settings}
         {(text || running) && (
           <div className="nowheel nodrag mt-2 max-h-[320px] overflow-y-auto rounded-md border border-[var(--paper-rule)] px-2.5 py-2">
             <Suspense fallback={<p className="whitespace-pre-wrap text-xs">{text}</p>}>
@@ -123,7 +141,7 @@ function BlockNodeInner({ id }: NodeProps) {
       </>
     )
   } else {
-    body = <BlockParams block={block} onParams={(v, quiet) => (quiet ? lab.setQuietParams(id, v) : lab.setParams(id, v))} />
+    body = settings
   }
 
   // The bottom-right corner resizes the block as the ShiftNote's does (Brendan, 2026-11-10): right for width, down for

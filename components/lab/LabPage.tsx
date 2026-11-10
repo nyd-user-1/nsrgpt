@@ -305,7 +305,7 @@ function LabInner() {
               onConnect={onConnect}
               isValidConnection={(c) => c.source !== c.target && portsMatch(portOf(c).from, portOf(c).to)}
               onNodeDragStop={(_, n) => { autoTidy.current = false; snap(n.id, n.position) }}
-              onNodeClick={(_, n) => { setSelected(n.id); setSubentry(null) }}
+              onNodeClick={(_, n) => { setSelected(n.id); setSubentry(null); setRail("right", false) }}
               onPaneClick={() => { setSelected(null); setSubentry(null); setEdgeSel(new Set()) }}
               onNodesDelete={(del) => { for (const n of del) lab.remove(n.id); if (del.some((n) => n.id === selected)) setSelected(null) }}
               deleteKeyCode={["Backspace", "Delete"]}
