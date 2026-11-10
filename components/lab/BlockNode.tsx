@@ -66,6 +66,14 @@ function BlockNodeInner({ id }: NodeProps) {
   const block = lab.canvas.blocks.find((b) => b.id === id)
   const out: Outputs | undefined = lab.outputs[id]
   const inputs = useMemo(() => (block?.kind === "plot" ? inputsFor(block, lab.canvas.edges, lab.outputs) : null), [block, lab.canvas.edges, lab.outputs])
+  // The plot's data, memoized with its inputs: built fresh on every render, the arrays changed identity on each drag
+  // frame and PlotChart rebuilt its 38K-point chart every frame, which is what made the blocks feel heavy to drag
+  // (Brendan, 2026-11-09).
+  const plotData = useMemo(() => inputs ? {
+    points: (inputs.points ?? []).find(isDataset) as Dataset | undefined,
+    series: (inputs.series ?? []).flatMap(seriesList),
+    ratio: (inputs.ratio ?? []).flatMap(seriesList),
+  } : null, [inputs])
   if (!block) return null
   const kind = KINDS[block.kind]
   const Icon = KIND_ICON[block.kind]
@@ -80,10 +88,8 @@ function BlockNodeInner({ id }: NodeProps) {
   }
 
   let body
-  if (block.kind === "plot" && inputs) {
-    const points = (inputs.points ?? []).find(isDataset) as Dataset | undefined
-    const series = (inputs.series ?? []).flatMap(seriesList)
-    const ratio = (inputs.ratio ?? []).flatMap(seriesList)
+  if (block.kind === "plot" && inputs && plotData) {
+    const { points, series, ratio } = plotData
     const p = block.params as { mode?: PlotMode; highlight?: [number, number] }
     body = (
       <>

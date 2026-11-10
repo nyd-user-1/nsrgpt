@@ -6,6 +6,7 @@ import {
   Panel,
   ReactFlow,
   ReactFlowProvider,
+  useNodesInitialized,
   useNodesState,
   useReactFlow,
   type Connection,
@@ -14,7 +15,8 @@ import {
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { FilePlus, Play, Save } from "lucide-react"
+import dagre from "@dagrejs/dagre"
+import { Copy, LayoutDashboard, Play, Plus, Save } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -25,6 +27,7 @@ import { KIND_DRAG, LabRail } from "@/components/lab/LabRail"
 import { LabRight } from "@/components/lab/LabRight"
 import { OutputPane } from "@/components/lab/OutputPane"
 import { useLab } from "@/components/lab/useLab"
+import { setRail } from "@/components/rail-toggle"
 import { Button } from "@/components/ui/button"
 import { streamChat, type ChatTurn } from "@/lib/chat-stream"
 import { inputsFor, newId, portsMatch, type BlockKind, type Canvas } from "@/lib/lab/blocks"
@@ -65,6 +68,40 @@ function LabInner() {
   const refreshSaved = useCallback(() => listCanvases().then(setSaved).catch(() => setSaved([])), [])
   useEffect(() => { void refreshSaved() }, [refreshSaved])
 
+  // The drawers and the output sheet open shut (Brendan, 2026-11-09); the rail tabs open them.
+  useEffect(() => {
+    setRail("left", true)
+    setRail("right", true)
+  }, [])
+
+  // Tidy: the blocks laid out left to right in the order they feed one another (dagre, rank by edge), each block's
+  // measured size respected, so every block reads both in relation to the others and in its place in the flow
+  // (Brendan, 2026-11-09). The default canvas opens tidied; the top-right circle re-tidies after edits.
+  const pendingTidy = useRef(false)
+  const nodesInitialized = useNodesInitialized()
+  const tidy = useCallback(() => {
+    const g = new dagre.graphlib.Graph()
+    g.setGraph({ rankdir: "LR", nodesep: 36, ranksep: 120, align: "UL", marginx: 0, marginy: 0 })
+    g.setDefaultEdgeLabel(() => ({}))
+    const measured = new Map(flow.getNodes().map((n) => [n.id, n.measured]))
+    for (const b of canvas.blocks) {
+      const m = measured.get(b.id)
+      g.setNode(b.id, { width: m?.width ?? 300, height: m?.height ?? 320 })
+    }
+    for (const e of canvas.edges) if (e.source !== e.target) g.setEdge(e.source, e.target)
+    dagre.layout(g)
+    for (const b of canvas.blocks) {
+      const n = g.node(b.id)
+      if (n) lab.move(b.id, { x: Math.round(n.x - n.width / 2), y: Math.round(n.y - n.height / 2) })
+    }
+    requestAnimationFrame(() => flow.fitView(FIT))
+  }, [canvas.blocks, canvas.edges, flow, lab])
+  useEffect(() => {
+    if (!nodesInitialized || !pendingTidy.current) return
+    pendingTidy.current = false
+    tidy()
+  }, [nodesInitialized, tidy])
+
   // Open the canvas the URL names, a new one (?new=1), or the default.
   useEffect(() => {
     if (skipLoad.current !== null && skipLoad.current === canvasParam) return
@@ -78,6 +115,7 @@ function LabInner() {
     }
     if (!canvasParam) {
       lab.open(structuredClone(DEFAULT_CANVAS))
+      pendingTidy.current = true
       requestAnimationFrame(() => flow.fitView(FIT))
       return
     }
@@ -231,30 +269,45 @@ function LabInner() {
               minZoom={0.2}
               proOptions={{ hideAttribution: true }}
             >
+              {/* The graph canvas's three groups, in its dress (Brendan, 2026-11-09): top left the title where the search
+                  sits on /graph, its circle a click-to-copy; top right the tools, Run all and New canvas with Tidy between;
+                  bottom right the save, where /graph keeps share, download and copy. */}
               <Panel position="top-left">
-                <div className="flex items-center gap-1.5 rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] p-1 pl-3 shadow-sm">
+                <div className="flex h-10 items-center gap-2 rounded-full border bg-[var(--paper)] p-1 pr-3 shadow-sm backdrop-blur-sm">
+                  <Button variant="outline" aria-label="Copy the canvas name" title="Copy" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => void navigator.clipboard.writeText(canvas.name).then(() => toast.success("Copied"))}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
                   <input
-                    className="w-[26rem] min-w-0 bg-transparent text-[13px] text-[var(--paper-text)] outline-none"
+                    className="w-[22rem] min-w-0 bg-transparent text-[13px] text-[var(--paper-text)] outline-none"
                     defaultValue={canvas.name}
                     key={`${canvas.id}:${canvas.name}`}
                     aria-label="Canvas name"
                     onBlur={(e) => e.target.value.trim() && e.target.value !== canvas.name && lab.setName(e.target.value.trim())}
                     onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur() }}
                   />
-                  <Button variant="outline" className="h-8 shrink-0 gap-1.5 rounded-full px-3 text-xs" onClick={() => void lab.runAll()} disabled={running} title="Run every block">
-                    <Play className="h-3.5 w-3.5" />Run all
+                </div>
+              </Panel>
+              <Panel position="top-right">
+                <div className="flex items-center gap-1.5 rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
+                  <Button variant="outline" aria-label="Run all" title="Run all" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={() => void lab.runAll()} disabled={running}>
+                    <Play className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" aria-label="Save the canvas" title="Save" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={save} disabled={saving}>
-                    <Save className="h-4 w-4" />
+                  <Button variant="outline" aria-label="Tidy the layout" title="Tidy" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={tidy}>
+                    <LayoutDashboard className="h-4 w-4" />
                   </Button>
                   <Button variant="outline" aria-label="New canvas" title="New canvas" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={newCanvas}>
-                    <FilePlus className="h-4 w-4" />
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </Panel>
               <Background gap={24} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>
+            <div className="absolute bottom-4 right-4 z-10 flex items-center rounded-full border bg-[var(--paper)] p-1 shadow-sm backdrop-blur-sm">
+              <Button variant="outline" aria-label="Save the canvas" title="Save" className="h-8 w-8 shrink-0 rounded-full p-0" onClick={save} disabled={saving}>
+                <Save className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <OutputPane block={sel} outputs={sel ? outputs[sel.id] : undefined} logs={lab.logs} />
         </div>

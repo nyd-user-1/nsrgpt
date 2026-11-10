@@ -51,7 +51,8 @@ const asTable = (v: AnyValue): Dataset | null => (isDataset(v) ? v : typeof v ==
 export function OutputPane({ block, outputs, logs }: { block: Block | null; outputs: Outputs | undefined; logs: RunLog[] }) {
   const [tab, setTab] = useState<"output" | "logs">("output")
   const [handle, setHandle] = useState<string | null>(null)
-  const [open, setOpen] = useState(true)
+  // Shut on load (Brendan, 2026-11-09); a tab opens it.
+  const [open, setOpen] = useState(false)
   const handles = Object.entries(outputs ?? {}).filter(([, v]) => v !== undefined) as [string, AnyValue][]
   const cur = handles.find(([h]) => h === handle) ?? handles[0]
   const table = cur ? asTable(cur[1]) : null
