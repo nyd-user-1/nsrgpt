@@ -32,11 +32,12 @@ What it needs from you:
   submit a real sign-up on the box (it spends the day's allowance).
 
 Left out, and why:
-- /sweep and /sweep/medical show sample rows, labelled "Sample rows", until worker-3's routes answer: at this writing
-  `GET /sweep`, `/sweep/releases`, `/sweep/retrodiction`, `/sweep/flags` and `/sweep/medical` all return 404. The pages
-  read the routes first and switch to them the moment they answer; no number in a sample is measured. So the
-  retrodiction hit rate, the VIII.1 list's size and top ten, the mislabelled EXFOR count and the medical yield
-  uncertainties are worker-3's to report.
+- /sweep reads worker-3's live routes since 84dc362: 621 supported VIII.1 pairs (first Pd-108 (n,α), z 23.2), the
+  retrodiction's top 20 at 25% changed (0.8× the 33% base rate, all five moved toward the data), 113 VIII.1 entries no
+  public list names, 127 EXFOR datasets flagged. The pair's route gives each dataset's mean over its span, not its
+  points, so /sweep/pair draws a segment per dataset; the Lab has the points.
+- /sweep/medical shows sample rows, labelled "Sample rows", until worker-3's `/sweep/medical` answers; the page switches
+  the moment it does, and no number in the sample is measured. The medical yield uncertainties are worker-3's to report.
 - Open in the Lab is offered on neutron pairs only: the Lab's ENDF block reads the neutron sublibrary. The pair's canvas
   has no Broaden block, so opening a pair never starts a job on the job box; add a Process block to broaden.
 - Kept on the charts by decision: hover readouts that ignore the pointer (decay, 3D graph, knowledge) and the ECharts
