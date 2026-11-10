@@ -57,6 +57,7 @@ export const PLATE_TABLES: (VizChart & { name: string })[] = [
  *  like the tables. The five dataset pages have no sidebar row of their own. */
 export type PlatePage = { href: string; name: string; body: string }
 export const PLATE_PAGES: PlatePage[] = [
+  { href: "/about", name: "About", body: "Who I am for, what I hold, what I do, and how I am built." },
   { href: "/chat", name: "Chat", body: "Ask about nuclear data and the papers behind it." },
   { href: "/data-dictionary", name: "Data dictionary", body: "Every field the API returns or a page shows, by dataset." },
   { href: "/docs", name: "Docs", body: "How to use NSRgpt: where to start, the topics and the video guides." },

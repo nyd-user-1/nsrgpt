@@ -813,10 +813,11 @@ function FinePrint() {
 
 /** The ones this site uses. The search runs the encoder (lib/nsr-search.ts); nothing here runs the reranker yet. */
 const SERVED = new Set(["https://huggingface.co/NYSgpt/nsr-encoder"]);
-/** The NSR pair first, then the rest of the family as lib/home-data.ts lists it. */
+/** The NSR pair first, then the rest of the family as lib/home-data.ts lists it, less the two that failed their gates and
+ *  are published only for the record: they are not coming. */
 const MODELS = [
   ...HF_MODELS.filter((m) => m.href.includes("/nsr-")),
-  ...HF_MODELS.filter((m) => !m.href.includes("/nsr-")),
+  ...HF_MODELS.filter((m) => !m.href.includes("/nsr-") && !m.body.includes("Failed its gate")),
 ];
 
 function Models() {

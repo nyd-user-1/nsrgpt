@@ -24,6 +24,7 @@ const TABLES = Object.keys(VIZ_TABLES).map((slug) => ({ href: `/viz/data/${slug}
 // Every row the menu can show, for Pin to top, Hide and Archive (lib/nav-rows.ts).
 const ALL: NavEntry[] = [
   { href: "/chat", label: "Chat", group: "Main" },
+  { href: "/about", label: "About", group: "Main" },
   ...CHARTS.map((c) => ({ ...c, group: "Charts" })),
   ...TABLES.map((c) => ({ ...c, group: "Data" })),
   { href: "/data-dictionary", label: "Data dictionary", group: "Main" },
@@ -52,6 +53,7 @@ export function SideBarMenu() {
       <nav className="-mx-1 flex max-h-[55%] shrink-0 flex-col gap-0.5 overflow-y-auto px-1">
         <SideBarMenuPinned pinned={pinned} isOn={isOn} />
         {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={PAGE_ICONS["/chat"]} on={path === "/chat"} />}
+        {place("/about") && <SideBarMenuItem href="/about" label="About" icon={PAGE_ICONS["/about"]} on={path === "/about"} />}
         <SideBarMenuGroup label="Charts" icon={Activity} items={CHARTS} isOn={isOn} place={place} />
         <SideBarMenuGroup label="Data" icon={Database} items={TABLES} isOn={isOn} place={place} />
         {place("/data-dictionary") && <SideBarMenuItem href="/data-dictionary" label="Data dictionary" icon={PAGE_ICONS["/data-dictionary"]} on={path === "/data-dictionary"} />}
