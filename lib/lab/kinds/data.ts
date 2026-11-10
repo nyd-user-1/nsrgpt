@@ -49,8 +49,9 @@ const query = (o: Record<string, unknown>) =>
 type ExforDataset = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; institute?: string; n?: number }
 type ExforPoint = { dataset_id: string; e_ev: number; de_ev?: number | null; xs_b: number; dxs_b?: number | null }
 
-/** EXFOR points per query unless a block sets its own limit: U-235 (n,f) from 1 to 200 keV is 38.8K points in 116 datasets. */
-export const EXFOR_LIMIT = 200_000
+/** EXFOR points per query unless a block sets its own limit: the route's most (50K). U-235 (n,f) from 1 to 200 keV is 38.8K
+ *  points in 116 datasets. */
+export const EXFOR_LIMIT = 50_000
 
 async function exfor(p: DataParams, ctx: RunContext) {
   const q = query({ target: p.target, reaction: p.reaction, quantity: p.quantity, emin: p.emin, emax: p.emax, limit: p.limit ?? EXFOR_LIMIT })
