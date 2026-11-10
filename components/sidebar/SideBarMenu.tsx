@@ -38,6 +38,8 @@ const ALL: NavEntry[] = [
   { href: "/schema", label: "Schema", group: "Main" },
   { href: "/search", label: "Search", group: "Main" },
   { href: "/sweep", label: "Sweep", group: "Main" },
+  { href: "/sweep/medical", label: "Medical isotope routes", group: "Main" },
+  { href: "/sweep/icrp", label: "ICRP 107 half-lives against ENSDF", group: "Main" },
 ]
 
 export function SideBarMenu() {
@@ -68,6 +70,9 @@ export function SideBarMenu() {
         {place("/schema") && <SideBarMenuItem href="/schema" label="Schema" icon={PAGE_ICONS["/schema"]} on={path === "/schema"} />}
         {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={PAGE_ICONS["/search"]} on={path === "/search"} />}
         {place("/sweep") && <SideBarMenuItem href="/sweep" label="Sweep" icon={PAGE_ICONS["/sweep"]} on={path === "/sweep" || path === "/sweep/pair"} />}
+        {/* Under the sweep, as a slice of it (brief 58, D). */}
+        {place("/sweep/medical") && <SideBarMenuItem href="/sweep/medical" label="Medical isotope routes" icon={PAGE_ICONS["/sweep/medical"]} on={path.startsWith("/sweep/medical")} />}
+        {place("/sweep/icrp") && <SideBarMenuItem href="/sweep/icrp" label="ICRP 107 half-lives against ENSDF" icon={PAGE_ICONS["/sweep/icrp"]} on={path === "/sweep/icrp"} />}
         <SideBarMenuFoot archived={archived} hiddenCount={hiddenCount} showHidden={showHidden} onShowHidden={setShowHidden} isOn={isOn} />
       </nav>
       <div className="mt-3 flex min-h-0 flex-1 flex-col border-t border-[var(--paper-rule-soft)] pt-3">

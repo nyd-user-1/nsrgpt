@@ -35,8 +35,8 @@ function ratioOption(rel: PairRelease, dark: boolean) {
   const rule = dark ? "rgba(240,233,216,0.14)" : "rgba(22,24,29,0.12)"
   const c = (dark ? SLOTS.dark : SLOTS.light)[RELEASE_SLOT[rel.release] ?? 0]
   const bins = rel.bins.filter((b) => b.e_lo > 0 && b.e_hi > 0)
-  // The band: two stacked step lines from each bin's lower edge to its upper, 1 ± the evaluation's relative sd.
-  const band = bins.filter((b) => b.rel_sd_eval !== null).flatMap((b) => [[b.e_lo, b.rel_sd_eval!], [b.e_hi, b.rel_sd_eval!]] as [number, number][])
+  // The band: one rectangle per bin, from its lower edge to its upper, 1 ± the evaluation's relative sd.
+  const band = bins.filter((b) => b.rel_sd_eval !== null).map((b) => [{ xAxis: b.e_lo, yAxis: 1 - b.rel_sd_eval! }, { xAxis: b.e_hi, yAxis: 1 + b.rel_sd_eval! }])
   const series: Record<string, unknown>[] = rel.datasets.map((d) => ({
     id: `exfor:${d.dataset}`,
     name: [d.author, d.year].filter(Boolean).join(" ") || d.dataset,
@@ -47,10 +47,6 @@ function ratioOption(rel: PairRelease, dark: boolean) {
     data: d.points,
     z: 2,
   }))
-  if (band.length) {
-    series.push({ name: "band", type: "line", stack: "band", showSymbol: false, silent: true, lineStyle: { opacity: 0 }, data: band.map(([e, s]) => [e, 1 - s]), z: 1, tooltip: { show: false } })
-    series.push({ name: "band", type: "line", stack: "band", showSymbol: false, silent: true, lineStyle: { opacity: 0 }, areaStyle: { color: rgba(c, 0.15) }, data: band.map(([e, s]) => [e, 2 * s]), z: 1, tooltip: { show: false } })
-  }
   series.push({
     id: `bins:${rel.release}`,
     name: rel.release,
@@ -61,6 +57,7 @@ function ratioOption(rel: PairRelease, dark: boolean) {
     itemStyle: { color: c },
     data: bins.filter((b) => b.mean_log_ratio !== null).map((b) => [b.e_mid, Math.exp(b.mean_log_ratio!)]),
     markLine: { silent: true, symbol: "none", lineStyle: { color: muted, type: "dashed", width: 1 }, label: { show: false }, data: [{ yAxis: 1 }] },
+    ...(band.length ? { markArea: { silent: true, itemStyle: { color: rgba(c, 0.15) }, data: band } } : {}),
     z: 3,
   })
   return {

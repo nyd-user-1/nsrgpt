@@ -1,5 +1,6 @@
 import { Activity } from "@/components/animate-ui/icons/activity"
 import { Atom } from "@/components/animate-ui/icons/atom"
+import { FlaskConical } from "@/components/animate-ui/icons/flask-conical"
 import { Blocks } from "@/components/animate-ui/icons/blocks"
 import { BookOpen } from "@/components/animate-ui/icons/book-open"
 import { Boxes } from "@/components/animate-ui/icons/boxes"
@@ -29,6 +30,8 @@ export const PAGE_ICONS: Record<string, SideBarIcon> = {
   "/schema": LayoutDashboard,
   "/search": Radar,
   "/sweep": ListOrdered,
+  "/sweep/medical": FlaskConical,
+  "/sweep/icrp": Atom,
   "/datasets/endf": Activity,
   "/datasets/ensdf": Layers,
   "/datasets/exfor": Database,

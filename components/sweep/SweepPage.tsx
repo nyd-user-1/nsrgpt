@@ -364,7 +364,7 @@ function FlagsTab() {
                   {pctText(r.max_bin_dev)} <span className="text-[var(--paper-faint)]">at {evText(r.max_bin_e_ev)}</span>
                 </td>
                 <td className={`${TD} text-right tabular-nums`}>{pct(r.rel_sd_eval)}</td>
-                <td className={`${TD} whitespace-normal`}>
+                <td className="px-2 py-1.5">
                   {r.datasets.map((d, i) => (
                     <span key={d.subentry}>
                       {i > 0 && ", "}
@@ -404,7 +404,7 @@ function FlagsTab() {
                 <td className={TD}>
                   {r.target} {reactionText(r.reaction)}
                 </td>
-                <td className={`${TD} whitespace-normal`}>{r.note || "—"}</td>
+                <td className="px-2 py-1.5">{r.note || "—"}</td>
                 <td className={TD}>
                   {r.nsr_key ? (
                     <Link href={`/datasets/nsr/${encodeURIComponent(r.nsr_key)}`} className={LINK}>{r.nsr_key}</Link>

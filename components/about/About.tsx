@@ -4,12 +4,12 @@ import * as React from "react"
 import Link from "next/link"
 import { apiUrl } from "@/lib/api-url"
 import { short } from "@/lib/datasets"
-import { CORE, LAKE } from "@/lib/pipeline-map"
+import { LAKE } from "@/lib/pipeline-map"
 
 // /about (brief 58, Part B, 2026-11-10): who I am for, what I hold, what I do, how I am built and who made me, in the
-// first person, one short paragraph or list each, no headings that rename what sits under them. NSR, ENSDF and XUNDL
-// read the pipeline page's counts (lib/pipeline-map.ts); EXFOR and the evaluated libraries are counted live from the API
-// after the page paints (the EXFOR targets picker, and ENDF materials across every release, neutron sublibrary).
+// first person, one short paragraph or list each, no headings that rename what sits under them. Every count is live from
+// GET /counts (worker-1, b569999; cached an hour), read after the page paints; a count that fails reads "—". The lake's
+// size is the pipeline page's (lib/pipeline-map.ts).
 
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 const MONO = { fontFamily: "var(--font-mono), ui-monospace, monospace" } as const
@@ -19,49 +19,34 @@ const LINK = "text-[var(--paper-text)] underline decoration-[var(--paper-rule)]/
 /** The libraries in the order a reader knows them: ENDF/B's nine releases, then the four others. */
 const LIBRARIES = ["B-II", "B-III", "B-IV", "B-V", "B-VI.8", "B-VII.0", "B-VII.1", "B-VIII.0", "B-VIII.1", "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]
 
-type Library = { release: string; materials: number; sections: number; points: number }
-type Live = { exfor: { datasets: number; points: number } | null; libraries: Library[] | null }
+type Library = { release: string; materials: unknown; sections: unknown; points: unknown }
+type Counts = { counts: Record<string, unknown>; endf: Record<string, Record<string, unknown>> }
 
-const core = (id: string) => CORE.find((c) => c.id === id)
-const inside = (id: string, label: string) => core(id)?.inside.find(([l]) => l === label)?.[1] ?? "—"
-
-function useLive(): Live {
-  const [live, setLive] = React.useState<Live>({ exfor: null, libraries: null })
+/** GET /counts, once, after the page paints; null until it answers. */
+function useCounts(): Counts | null {
+  const [c, setC] = React.useState<Counts | null>(null)
   React.useEffect(() => {
     let on = true
-    fetch(apiUrl("/exfor/pickers/targets"))
+    fetch(apiUrl("/counts"))
       .then((r) => (r.ok ? r.json() : null))
-      .then((j: { rows?: { datasets?: number; points?: number }[] } | null) => {
-        if (!on || !j?.rows) return
-        const sum = (k: "datasets" | "points") => j.rows!.reduce((n, r) => n + (r[k] ?? 0), 0)
-        setLive((l) => ({ ...l, exfor: { datasets: sum("datasets"), points: sum("points") } }))
-      })
-      .catch(() => {})
-    fetch(apiUrl("/endf/materials?release=all&sublibrary=neutrons"))
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j: { rows?: { release: string; n_mf3_sections?: number | null; n_points?: number | null }[] } | null) => {
-        if (!on || !j?.rows) return
-        const by = new Map<string, Library>()
-        for (const r of j.rows) {
-          const l = by.get(r.release) ?? { release: r.release, materials: 0, sections: 0, points: 0 }
-          l.materials += 1
-          l.sections += r.n_mf3_sections ?? 0
-          l.points += r.n_points ?? 0
-          by.set(r.release, l)
-        }
-        setLive((s) => ({ ...s, libraries: LIBRARIES.map((name) => by.get(name)).filter((l): l is Library => !!l) }))
+      .then((j: Partial<Counts> | null) => {
+        if (on && j) setC({ counts: j.counts ?? {}, endf: j.endf ?? {} })
       })
       .catch(() => {})
     return () => {
       on = false
     }
   }, [])
-  return live
+  return c
 }
 
 export function About() {
-  const live = useLive()
+  const live = useCounts()
   const pending = <span className="text-[var(--paper-faint)]">…</span>
+  // A count as the page-wide formatter writes it; "…" until /counts answers, "—" where its count failed.
+  const n = (v: unknown) => (live === null ? pending : typeof v === "number" ? short(v) : "—")
+  const c = (k: string) => n(live?.counts[k])
+  const libraries: Library[] = LIBRARIES.map((release) => ({ release, materials: live?.endf[release]?.materials, sections: live?.endf[release]?.sections, points: live?.endf[release]?.points }))
   return (
     <div className="min-h-0 flex-1 overflow-y-auto text-[var(--paper-text)]" style={SANS}>
       <div className="mx-auto max-w-[760px] px-5 pb-20 pt-10 text-[15px] leading-relaxed md:px-8">
@@ -73,23 +58,21 @@ export function About() {
         <section className={SECTION}>
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
             <li>
-              <b>NSR</b>, the Nuclear Science References: {core("nsr")?.count} papers from 1857 to 2026, each linked to the nuclides
+              <b>NSR</b>, the Nuclear Science References: {c("nsr_papers")} papers from 1857 to 2026, each linked to the nuclides
               and reactions it covers.
             </li>
             <li>
-              <b>ENSDF</b>, evaluated structure and decay data: {core("ensdf")?.count} datasets, {inside("ensdf", "Levels")} levels,{" "}
-              {inside("ensdf", "Gammas")} γ rays.
+              <b>ENSDF</b>, evaluated structure and decay data: {c("ensdf_datasets")} datasets over {c("ensdf_nuclides")} nuclides.
             </li>
             <li>
-              <b>XUNDL</b>, structure data as published, before evaluation: {core("xundl")?.count} datasets.
+              <b>XUNDL</b>, structure data as published, before evaluation: {c("xundl_datasets")} datasets.
             </li>
             <li>
-              <b>EXFOR</b>, measured reaction data: {live.exfor ? short(live.exfor.datasets) : pending} datasets,{" "}
-              {live.exfor ? short(live.exfor.points) : pending} data points.
+              <b>EXFOR</b>, measured reaction data: {c("exfor_entries")} entries, {c("exfor_datasets")} datasets, {c("exfor_points")} data
+              points.
             </li>
             <li>
-              <b>The evaluated libraries</b>: ENDF/B&apos;s nine releases, JEFF-3.3, JENDL-5, TENDL-2023 and CENDL-3.2, their
-              neutron sublibraries counted here.
+              <b>The evaluated libraries</b>: ENDF/B&apos;s nine releases, JEFF-3.3, JENDL-5, TENDL-2023 and CENDL-3.2.
               <table className="mt-3 w-full border-collapse text-[13px]" style={MONO}>
                 <thead>
                   <tr className="text-left text-[11px] text-[var(--paper-faint)]">
@@ -100,11 +83,11 @@ export function About() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(live.libraries ?? LIBRARIES.map((release) => ({ release, materials: -1, sections: -1, points: -1 }))).map((l) => (
+                  {libraries.map((l) => (
                     <tr key={l.release} className="border-t border-[var(--paper-rule)]/10">
                       <td className="py-1">{l.release}</td>
                       {[l.materials, l.sections, l.points].map((v, i) => (
-                        <td key={i} className="py-1 text-right tabular-nums">{v < 0 ? pending : short(v)}</td>
+                        <td key={i} className="py-1 text-right tabular-nums">{n(v)}</td>
                       ))}
                     </tr>
                   ))}
@@ -112,8 +95,8 @@ export function About() {
               </table>
             </li>
             <li>
-              <b>ICRP 107</b>, the decay data internal dosimetry uses: 1,252 radionuclides, its half-lives checked against
-              ENSDF&apos;s.
+              <b>ICRP 107</b>, the decay data internal dosimetry uses: {c("icrp_nuclides")} radionuclides, their half-lives{" "}
+              <Link href="/sweep/icrp" className={LINK}>checked against ENSDF&apos;s</Link>.
             </li>
             <li>
               <b>The decay chains</b>: every ENSDF ground state&apos;s decay modes and branchings, on the{" "}

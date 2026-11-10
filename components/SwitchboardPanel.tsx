@@ -369,7 +369,7 @@ function SwitchboardPanel() {
   // back to the menu: a Marketplace buyer did not come from the switchboard.
   const awsTitle = view.kind === 'aws-register' ? view.plan.product : view.kind === 'aws-console' ? view.sub.product : null
   const width = full ? 'sm:w-[calc(100vw-124px)]' : expanded ? 'sm:w-[50vw]' : 'sm:w-[423px]'
-  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'cloudflare' ? 'Cloudflare' : view.kind === 'theme' ? 'Theme' : view.kind === 'viz' ? 'Viz' : view.kind === 'vizControls' ? (chartHere ? (HEADER_TITLES[chartHere.href] ?? chartHere.title) : controlsHere ? (HEADER_TITLES[path] ?? 'Viz') : 'Viz') : channel?.name ?? 'Switchboard')
+  const title = awsTitle ?? (product ? (product.domain ?? (product.href ? product.href.replace(/^https?:\/\//, '') : product.title)) : view.kind === 'blocks' ? 'Blocks' : view.kind === 'devtools' ? 'Dev tools' : view.kind === 'cloudflare' ? 'Cloudflare' : view.kind === 'theme' ? 'Theme' : view.kind === 'viz' ? 'Viz' : view.kind === 'vizControls' ? (chartHere ? (HEADER_TITLES[chartHere.href] ?? chartHere.title) : controlsHere ? (HEADER_TITLES[path] ?? HEADER_TITLES[path.split('/').slice(0, 3).join('/')] ?? 'Viz') : 'Viz') : channel?.name ?? 'Switchboard')
 
   return createPortal(
     <>
