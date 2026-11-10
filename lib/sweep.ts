@@ -55,7 +55,7 @@ export type SweepRetro = {
   sample?: boolean
 }
 /** A release pair the retrodiction route takes: VIII.0 → VIII.1 on the POINT files (the default) or on MF3, and the two before. */
-export type RetroQuery = { from?: string; to?: string; method?: "mf3" }
+export type RetroQuery = { from?: string; to?: string; method?: "mf3" | "point" }
 
 export type FlagDataset = { subentry: string; author: string; year: number | null }
 export type EvalFlag = { target: string; mt: number; reaction: string; sublibrary: string; z: number | null; datasets: FlagDataset[]; max_bin_dev: number | null; max_bin_e_ev: number | null; rel_sd_eval: number | null; mf33: boolean }

@@ -272,11 +272,12 @@ function ApplyInput({ value, placeholder, numeric, onApply }: { value: string; p
 // ── The retrodiction ─────────────────────────────────────────────────────────────────────────────────────────────
 
 /** The release pairs the retrodiction route takes (worker-3, 2026-11-10): VIII.0 → VIII.1 on the POINT files (the
- *  default) and on MF3, and the two pairs before it. */
+ *  default) and on MF3, VII.1 → VIII.0 the same two ways (VII.1 reconstructed with PREPRO at 293.6 K), and VII.0 → VII.1. */
 const RETRO_PAIRS: { id: string; label: string; q: RetroQuery }[] = [
   { id: "B-VIII.0:B-VIII.1", label: "VIII.0 → VIII.1", q: {} },
   { id: "B-VIII.0:B-VIII.1 (MF3)", label: "VIII.0 → VIII.1, MF3", q: { from: "B-VIII.0", to: "B-VIII.1", method: "mf3" } },
-  { id: "B-VII.1:B-VIII.0", label: "VII.1 → VIII.0", q: { from: "B-VII.1", to: "B-VIII.0" } },
+  { id: "B-VII.1:B-VIII.0 (POINT)", label: "VII.1 → VIII.0, POINT", q: { from: "B-VII.1", to: "B-VIII.0", method: "point" } },
+  { id: "B-VII.1:B-VIII.0", label: "VII.1 → VIII.0, MF3", q: { from: "B-VII.1", to: "B-VIII.0" } },
   { id: "B-VII.0:B-VII.1", label: "VII.0 → VII.1", q: { from: "B-VII.0", to: "B-VII.1" } },
 ]
 const short1 = (r: string) => r.replace(/^B-/, "")
