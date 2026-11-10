@@ -158,6 +158,14 @@ POINT for VIII.0 and VIII.1 only, and that method does not show the result at si
 (80%, not significant); the test of the finding is to reconstruct VII.1 with PREPRO at 293.6 K (about 600 materials,
 hours on one box) or to fetch NNDC's POINT2012, and rerun the VII.1 to VIII.0 pair by the POINT method.
 
+**Done (04:40 ET):** B-VII.1 reconstructed with PREPRO at 293.6 K as release `B-VII.1-point-293.6K` (423 neutron
+materials, none failed, 16,769 MF3 sections, 12.78 M points, 262 s on two m7i-flex.large boxes in parallel; `nsr.endfb_xs_points` and
+`endfb_materials` partitions registered; `lake/endfb/B-VII.1-point-293.6K/manifest.json`), and VII.1 to VIII.0 rerun by
+the POINT method (`/sweep/retrodiction?from=B-VII.1&to=B-VIII.0&method=point`): 595 supported pairs, 130 changed (base
+21.8%); top 20: none changed; top 50: 9 changed (enrichment 0.82), 2 of 9 moved toward the data; top 200: 46%;
+all changed pairs 48%. The direction result does not replicate by the same method: it is a property of the VIII.0 to
+VIII.1 revision (13 of 14), not of the ranking. Spend about $0.06; both boxes terminated.
+
 ## Draft to BNL (worker-3, for lead-agent's review; Brendan sends it or not)
 
 Subject: EXFOR against ENDF/B-VIII.0 and VIII.1: a ranked comparison
@@ -171,8 +179,8 @@ public and the whole run takes under a minute. As a check, it matches a separate
 
 Ranking the pairs by their disagreement with VIII.0 did not predict which ones VIII.1 changed. Where VIII.1 did change a
 high-ranked pair, though, it moved toward the measurements: 13 of the 14 changed pairs in the top 50, against 60% of all
-changed pairs. The same test on VII.1 to VIII.0 shows no such effect (3 of 7, against 57%), so with this few pairs I
-treat the VIII.1 result as suggestive, not settled.
+changed pairs. The same test on VII.1 to VIII.0, with VII.1 reconstructed the same way, shows no such effect (2 of 9,
+against 48%), so I read the VIII.1 result as a property of that revision, not of the ranking.
 
 For VIII.1 the comparison gives a ranked list of 621 pairs. 113 of its top 200 are not named in NNDC's published VIII.1
 notes; each comes with the datasets, energies and ratios behind it. It also flags 127 EXFOR datasets whose units or
@@ -181,9 +189,6 @@ energies look wrong.
 Everything is at https://nsrgpt.brendan-stanton.workers.dev/sweep.
 
 Would a list like this be useful to the CSEWG evaluators, and if so, in what form?
-
-My next step is to rerun the older release pair on reconstructed pointwise data (ENDF/B-VII.1 through PREPRO at
-293.6 K, or NNDC's POINT2012), which would settle whether the VIII.1 result holds.
 
 Brendan Stanton
 

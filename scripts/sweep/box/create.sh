@@ -6,10 +6,10 @@
 # IAEA medical pages (raw/iaea/2026-11-07/medical/), Athena in workgroup
 # nsrgpt and Glue tables nsr.sweep_* (to register them). Remove it with
 #   aws iam delete-role-policy --role-name nsr-jobs-box --policy-name nsr-sweep
-#   ./scripts/sweep/box/create.sh [name] [type] [disk GB]    # prints the instance id
+#   ./scripts/sweep/box/create.sh [name] [type] [disk GB] [user-data file]    # prints the instance id (userdata-prepro.sh: PREPRO too)
 set -euo pipefail
 cd "$(dirname "$0")"
-NAME=${1:-nsr-sweep-1}; TYPE=${2:-m7i-flex.large}; DISK=${3:-100}
+NAME=${1:-nsr-sweep-1}; TYPE=${2:-m7i-flex.large}; DISK=${3:-100}; UD=${4:-userdata.sh}
 A=(--profile nysgpt-new --region us-east-2)
 ROLE=nsr-jobs-box
 B=arn:aws:s3:::nsr-lake-613473203863
@@ -17,8 +17,8 @@ G=arn:aws:glue:us-east-2:613473203863
 T=$(mktemp -d)
 cat > $T/policy.json <<J
 {"Version":"2012-10-17","Statement":[
- {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["$B/lake/sweep/*","$B/lake/_work/sweep/*"]},
- {"Effect":"Allow","Action":"s3:GetObject","Resource":"$B/raw/iaea/2026-11-07/medical/*"},
+ {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["$B/lake/sweep/*","$B/lake/_work/sweep/*","$B/lake/endfb/B-VII.1-point-293.6K/*"]},
+ {"Effect":"Allow","Action":"s3:GetObject","Resource":["$B/raw/iaea/2026-11-07/medical/*","$B/raw/github/IAEA-NDS/PREPRO/*"]},
  {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:AbortMultipartUpload"],"Resource":"$B/work/athena-results/*"},
  {"Effect":"Allow","Action":["athena:StartQueryExecution","athena:GetQueryExecution","athena:GetQueryResults","athena:StopQueryExecution","athena:GetWorkGroup"],"Resource":"arn:aws:athena:us-east-2:613473203863:workgroup/nsrgpt"},
  {"Effect":"Allow","Action":["glue:GetDatabase","glue:GetDatabases","glue:GetTable","glue:GetTables","glue:CreateTable","glue:UpdateTable","glue:DeleteTable","glue:GetPartition","glue:GetPartitions","glue:BatchGetPartition","glue:CreatePartition","glue:BatchCreatePartition"],"Resource":["$G:catalog","$G:database/nsr","$G:table/nsr/sweep_*"]}]}
@@ -31,4 +31,4 @@ aws ec2 run-instances "${A[@]}" --image-id "$AMI" --instance-type "$TYPE" --coun
   --metadata-options HttpTokens=required,HttpEndpoint=enabled \
   --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":'"$DISK"',"VolumeType":"gp3","DeleteOnTermination":true}}]' \
   --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$NAME},{Key=project,Value=nsr}]" "ResourceType=volume,Tags=[{Key=project,Value=nsr}]" \
-  --user-data file://userdata.sh --query 'Instances[0].InstanceId' --output text
+  --user-data file://$UD --query 'Instances[0].InstanceId' --output text

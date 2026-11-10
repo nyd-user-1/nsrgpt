@@ -66,12 +66,16 @@ STATE_KEY = "lake/_work/sweep/state.json"
 # database, and writes only the retrodiction (lake/sweep/2026-11-10/retrodiction_pairs/, and summary.json's pairs).
 PAIR = [x.strip() for x in os.environ.get("SWEEP_PAIR", "").split(",") if x.strip()]
 FROM_REL, TO_REL = (PAIR[0], PAIR[1]) if PAIR else ("B-VIII.0", "B-VIII.1")
+# SWEEP_METHOD=point: both releases from their POINT 293.6 K release (B-VII.1-point-293.6K is reconstructed by point.py),
+# averaged inside the resolved range, as the main pair is; mf3 (the default in pair mode): MF3 above the common floor
+METHOD = os.environ.get("SWEEP_METHOD", "mf3") if PAIR else "point"
 if PAIR:
-    COMPARATORS = [(r, r, r, r, True) for r in PAIR]
+    COMPARATORS = ([(r, f"{r}-point-293.6K", r, r, False) for r in PAIR] if METHOD == "point"
+                   else [(r, r, r, r, True) for r in PAIR])
     RELEASES = PAIR
-    DB = f"{WORK}/pair-{PAIR[0]}-{PAIR[1]}.duckdb"
-    STATE = f"{WORK}/state-pair-{PAIR[0]}-{PAIR[1]}.json"
-    STATE_KEY = f"lake/_work/sweep/state-pair-{PAIR[0]}-{PAIR[1]}.json"
+    DB = f"{WORK}/pair-{PAIR[0]}-{PAIR[1]}-{METHOD}.duckdb"
+    STATE = f"{WORK}/state-pair-{PAIR[0]}-{PAIR[1]}-{METHOD}.json"
+    STATE_KEY = f"lake/_work/sweep/state-pair-{PAIR[0]}-{PAIR[1]}-{METHOD}.json"
 
 
 def held_col(r):
@@ -302,7 +306,7 @@ def floors():
           m.rel IN ({floored}) AS applies
           FROM mats1 m JOIN floors0 f ON f.rel = m.rel AND f.file_name = m.file_name AND f.mat = m.mat
           WHERE m.role = 'cov' AND m.sub = 'neutrons'""")
-    if PAIR:  # one floor per material for both releases of the pair: the larger of their two resonance ranges
+    if PAIR and METHOD == "mf3":  # one floor per material for both releases: the larger of their two resonance ranges
         q("""CREATE OR REPLACE TABLE floors AS
              WITH k AS (SELECT kb, max(floor_ev) floor_ev, max(rrr_eh) rrr_eh, max(urr_eh) urr_eh FROM floors GROUP BY kb)
              SELECT r.rel, k.kb, k.floor_ev, k.rrr_eh, k.urr_eh, NULL::INTEGER lssf, true AS applies
@@ -614,7 +618,7 @@ def changes():
     q("CREATE OR REPLACE TABLE grid_r (gid BIGINT, rel VARCHAR, yev DOUBLE)")
     for R in (FROM_REL, TO_REL):
         interp_into("grid_r", "grid", R, "gid")
-    how = ("'MF3 above the common resonance floor'" if PAIR else
+    how = ("'MF3 above the common resonance floor'" if METHOD == "mf3" else
            "CASE WHEN p.sublibrary = 'neutrons' THEN 'POINT 293.6 K (File 2 reconstructed and broadened)' ELSE 'MF3' END")
     q(f"""CREATE OR REPLACE TABLE changes AS
           WITH a AS (SELECT g.key, g.e, ln(b.yev / a.yev) lr FROM grid g
@@ -648,7 +652,7 @@ def retro():
     base = base_changed / base_n if base_n else None
     summ = {"supported_pairs": base_n, "changed_pairs": base_changed, "base_rate": base,
             "support_rule": f">= {SUPPORT_DATASETS} datasets and >= {SUPPORT_POINTS} points after removing the driver",
-            "change_rule": f"rms of log(sigma_{TO_REL} / sigma_{FROM_REL}) over the pair's EXFOR span > {CHANGE_RMS}", "from": FROM_REL, "to": TO_REL, "method": ("MF3 above the common resonance floor" if PAIR else "POINT 293.6 K for neutrons, averaged inside the resolved range"),
+            "change_rule": f"rms of log(sigma_{TO_REL} / sigma_{FROM_REL}) over the pair's EXFOR span > {CHANGE_RMS}", "from": FROM_REL, "to": TO_REL, "method": ("MF3 above the common resonance floor" if METHOD == "mf3" else "POINT 293.6 K for neutrons, averaged inside the resolved range"),
             "rankings": {}}
     for name, order in (("z", "z DESC"), ("abs_mean_log_ratio", "abs(mean_log_ratio_v80) DESC"),
                         ("max_bin_z", "max_bin_z DESC")):
@@ -684,7 +688,8 @@ def retro():
     print(json.dumps(summ, indent=1))
     state(retrodiction=summ)
     os.makedirs(f"{WORK}/out", exist_ok=True)
-    key = f"{FROM_REL}:{TO_REL}" + (" (MF3)" if PAIR and (FROM_REL, TO_REL) == ("B-VIII.0", "B-VIII.1") else "")
+    key = f"{FROM_REL}:{TO_REL}" + (" (MF3)" if METHOD == "mf3" and (FROM_REL, TO_REL) == ("B-VIII.0", "B-VIII.1") else
+                                    " (POINT)" if PAIR and METHOD == "point" else "")
     try:
         main = json.loads(s3.get_object(Bucket=BUCKET, Key=f"{PREFIX}/retrodiction/summary.json")["Body"].read())
     except Exception:  # noqa: BLE001
@@ -693,10 +698,10 @@ def retro():
     pairs[key] = {k: v for k, v in summ.items() if k != "pairs"}
     if PAIR:
         # the rows, with the pair named, beside the main table (the _v80 columns are the earlier release, _v81 the later)
-        path = f"{WORK}/out/retrodiction_pairs-{FROM_REL}_{TO_REL}.parquet"
+        path = f"{WORK}/out/retrodiction_pairs-{FROM_REL}_{TO_REL}_{METHOD}.parquet"
         q(f"""COPY (SELECT '{FROM_REL}' AS release_from, '{TO_REL}' AS release_to, '{key}' AS pair, * FROM rk_z ORDER BY rank)
               TO '{path}' (FORMAT PARQUET, COMPRESSION SNAPPY)""")
-        s3.upload_file(path, BUCKET, f"{PREFIX}/retrodiction_pairs/{FROM_REL}_{TO_REL}.parquet")
+        s3.upload_file(path, BUCKET, f"{PREFIX}/retrodiction_pairs/{FROM_REL}_{TO_REL}" + ("_point" if METHOD == "point" else "") + ".parquet")
         main["pairs"] = pairs
     else:
         main = {**summ, "pairs": pairs}
