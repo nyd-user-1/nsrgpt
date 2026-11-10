@@ -39,8 +39,9 @@ Left out, and why:
 - /sweep/medical reads the live routes since 28b535b: 28 routes, a page each with the yields per source, the EXFOR
   points, the IAEA curve and the evaluations, the verdict and the stopping-power check. The figures are in worker-3's
   section below.
-- Open in the Lab is offered on neutron pairs only: the Lab's ENDF block reads the neutron sublibrary. The pair's canvas
-  has no Broaden block, so opening a pair never starts a job on the job box; add a Process block to broaden.
+- Open in the Lab works for every projectile since e522f34: the Lab's ENDF and covariance blocks take a projectile
+  (sent as the API's `sub`). The pair's canvas has no Broaden block, so opening a pair never starts a job on the job
+  box; add a Process block to broaden (neutrons only).
 - Kept on the charts by decision: hover readouts that ignore the pointer (decay, 3D graph, knowledge) and the ECharts
   zoom sliders. Nothing a reader operates sits over a chart.
 - Found and fixed on the way: /viz/matrix had been colouring every cell by its pair's row number, not by r.
