@@ -15,6 +15,9 @@ export type Ctx = {
   email: string | null;
   /** True once /api/auth/me has answered: from then on a null email means signed out, not unknown. */
   checked: boolean;
+  /** The reader is a site admin (an email in NSRGPT_ADMIN_EMAILS, lib/auth.ts); false while signed out or unknown. */
+  admin: boolean;
+  superAdmin: boolean;
   /** "idle" while signed out (or not yet known); then loading → ready per product. */
   statusOf: (url: string) => Status;
   /** Where a product link goes and what a click does, given the reader and the product's state. */
@@ -22,6 +25,6 @@ export type Ctx = {
 };
 
 /** The default stands only outside the provider, which wraps every page. */
-export const ProductStatusContext = createContext<Ctx>({ email: null, checked: false, statusOf: () => "idle", linkProps: (url) => ({ href: url }) });
+export const ProductStatusContext = createContext<Ctx>({ email: null, checked: false, admin: false, superAdmin: false, statusOf: () => "idle", linkProps: (url) => ({ href: url }) });
 
 export const useProductStatus = () => useContext(ProductStatusContext);

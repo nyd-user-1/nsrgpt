@@ -8,6 +8,7 @@ import type { ChipOffer } from "@/lib/question-resolver"
 import { PANE_MAIN, PANE_MESSAGE, PANE_PARAM, PANE_SECOND, SEED_PREFIX, VIZ_POINT, isEmbedded, isPanePath } from "@/lib/pane"
 import { PaneFrame, PaneSync } from "@/components/pane"
 import { useSwitchboard } from "@/components/SwitchboardPanel"
+import { useProductStatus } from "@/components/ProductStatusContext"
 
 // The shell, made real (2026-11-04, ported from pax-trinity's components/shell.tsx). It holds trinity's
 // panel contract — the chat tree and the note card call it unchanged — and the second panel: a page of
@@ -131,6 +132,8 @@ function storeSeed(text: string): string {
 export function Shell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const switchboard = useSwitchboard()
+  // The reader and their roles, from /api/auth/me (ProductStatusProvider, once per load; lib/auth.ts reads NSRGPT_ADMIN_EMAILS).
+  const reader = useProductStatus()
   // The second panel: the page it opened on (its frame's src, fixed per opening), where it is now, and `n`,
   // which reloads the frame when a page is opened into it again.
   const [pane, setPane] = React.useState<{ src: string; href: string; n: number } | null>(null)
@@ -305,9 +308,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
         openPane(`/chat?seed=${storeSeed(s.context())}${s.ask ? `&prompt=${encodeURIComponent(s.ask.ask)}` : ""}`)
       },
       discussSeed: seed,
-      signedIn: false,
-      admin: false,
-      superAdmin: false,
+      signedIn: reader.email !== null,
+      admin: reader.admin,
+      superAdmin: reader.superAdmin,
       openPane,
       paneHref: pane?.href ?? null,
       nav,
@@ -318,7 +321,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       mainHere: mainHereNow,
       closePage,
     }),
-    [size, nextSize, pane, seed, openPane, nav, headerMenu, goTo, closePage],
+    [size, nextSize, pane, seed, openPane, nav, headerMenu, goTo, closePage, reader.email, reader.admin, reader.superAdmin],
   )
 
   return (

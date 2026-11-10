@@ -93,6 +93,10 @@ chmod 600 /etc/systemd/system/nsrgpt-dev.service.d/store.conf
 ssm() { aws ssm get-parameter --region us-east-2 --name "/nsrgpt/devbox/$1" --with-decryption --query Parameter.Value --output text; }
 printf '[Service]\nEnvironment=NYSGPT_COGNITO_POOL_ID=%s\nEnvironment=NYSGPT_COGNITO_CLIENT_ID=%s\n' "$(ssm cognito-pool-id)" "$(ssm cognito-client-id)" > /etc/systemd/system/nsrgpt-dev.service.d/cognito.conf
 chmod 600 /etc/systemd/system/nsrgpt-dev.service.d/cognito.conf
+# Site admins (brief 56): NSRGPT_ADMIN_EMAILS, comma-separated, read by lib/auth.ts. The box's value also names the
+# dev reader (dev@nsrgpt.local), so the admin surfaces show on the box's dev sign-in.
+printf '[Service]\nEnvironment=NSRGPT_ADMIN_EMAILS=%s\n' "$(ssm admin-emails)" > /etc/systemd/system/nsrgpt-dev.service.d/admin.conf
+chmod 600 /etc/systemd/system/nsrgpt-dev.service.d/admin.conf
 systemctl daemon-reload
 systemctl enable --now nsrgpt-dev nsrgpt-pull
 echo "nsr-devbox ready"

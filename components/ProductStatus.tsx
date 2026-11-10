@@ -36,6 +36,7 @@ const hostOf = (url: string) => {
 export function ProductStatusProvider({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const [roles, setRoles] = useState({ admin: false, superAdmin: false });
   const signedIn = email !== null;
   const [status, setStatus] = useState<Record<string, Status>>({});
   const [notice, setNotice] = useState<string | null>(null);
@@ -61,11 +62,12 @@ export function ProductStatusProvider({ children }: { children: React.ReactNode 
     };
 
     (async () => {
-      const me = (await fetch("/api/auth/me", { cache: "no-store" }).then((r) => r.json()).catch(() => ({}))) as { user?: { email?: string } | null };
+      const me = (await fetch("/api/auth/me", { cache: "no-store" }).then((r) => r.json()).catch(() => ({}))) as { user?: { email?: string; admin?: boolean; superAdmin?: boolean } | null };
       if (!live) return;
       setChecked(true);
       if (!me.user) return;
       setEmail(me.user.email ?? "");
+      setRoles({ admin: !!me.user.admin, superAdmin: !!me.user.superAdmin });
       setStatus(Object.fromEntries(products.map((c) => [hostOf(c.href), "loading" as Status])));
       products.forEach((c) => void watch(c));
     })();
@@ -95,7 +97,7 @@ export function ProductStatusProvider({ children }: { children: React.ReactNode 
   );
 
   return (
-    <ProductStatusContext.Provider value={{ email, checked, statusOf, linkProps }}>
+    <ProductStatusContext.Provider value={{ email, checked, ...roles, statusOf, linkProps }}>
       {children}
       <AnimatePresence>
         {notice && (

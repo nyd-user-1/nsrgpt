@@ -13,7 +13,7 @@ const BUTTON = "flex h-12 w-full items-center justify-center gap-2 rounded-xl bg
 
 const post = async (action: string, body: object) => {
   const r = await fetch(`/api/auth/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; confirm?: boolean };
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; confirm?: boolean; newPassword?: boolean; session?: string };
   return { status: r.status, ...j };
 };
 
@@ -40,7 +40,9 @@ export function SignInForm({ mode }: { mode: Mode }) {
   useEffect(() => {
     if (checked && reader !== null) router.replace(nextOf(window.location.search));
   }, [checked, reader, router]);
-  const [step, setStep] = useState<"form" | "code" | "forgot" | "reset">("form");
+  const [step, setStep] = useState<"form" | "code" | "forgot" | "reset" | "newpassword">("form");
+  // Cognito's session for an account signing in with a temporary password, until it chooses its own (brief 56).
+  const [challenge, setChallenge] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -55,6 +57,10 @@ export function SignInForm({ mode }: { mode: Mode }) {
       await post("resend", { email });
       setNotice(`Confirm the email first. A new code is on its way to ${email}.`);
       setStep("code");
+    } else if (r.newPassword && r.session) {
+      setChallenge(r.session);
+      setPassword("");
+      setStep("newpassword");
     } else if (r.ok) window.location.assign(next);
     else setError(r.error ?? "Something went wrong. Try again.");
   };
@@ -65,7 +71,18 @@ export function SignInForm({ mode }: { mode: Mode }) {
     setError(null);
     setNotice(null);
     try {
-      if (step === "forgot") {
+      if (step === "newpassword") {
+        const r = await post("newpassword", { email, password, session: challenge });
+        if (r.ok) window.location.assign(next);
+        else {
+          setError(r.error ?? "Something went wrong. Try again.");
+          if (/too long/.test(r.error ?? "")) {
+            setChallenge(null);
+            setPassword("");
+            setStep("form");
+          }
+        }
+      } else if (step === "forgot") {
         const r = await post("forgot", { email });
         if (r.ok) {
           setCode("");
@@ -106,6 +123,23 @@ export function SignInForm({ mode }: { mode: Mode }) {
       Back to sign in
     </button>
   );
+
+  if (step === "newpassword")
+    return (
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <p className="m-0 rounded-xl bg-muted/60 px-4 py-3 text-sm leading-relaxed">Choose your own password to finish signing in.</p>
+        <label className="flex flex-col gap-1.5 text-sm font-medium">
+          New password
+          <input type="password" required autoFocus minLength={10} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} />
+          <span className="text-xs font-normal text-muted-foreground">At least 10 characters, with a lowercase letter and a number.</span>
+        </label>
+        {error && <p className="m-0 text-sm font-medium text-red-600">{error}</p>}
+        <button type="submit" disabled={busy || !password} className={BUTTON}>
+          {busy ? "One moment…" : "Set password and sign in"} <ArrowRight className="size-4" aria-hidden />
+        </button>
+        {back}
+      </form>
+    );
 
   if (step === "forgot")
     return (

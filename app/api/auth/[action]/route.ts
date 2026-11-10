@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { cognito, currentUser, SESSION_COOKIE, signIn } from "@/lib/auth";
+import { cognito, currentUser, newPassword, SESSION_COOKIE, signIn } from "@/lib/auth";
 import { LIMITS, within } from "@/lib/limits";
 
 // Sign-in, sign-up, sign-out and "who am I" for nysgpt.com (2026-10-07,
@@ -47,11 +47,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ action:
     (await cookies()).delete(SESSION_COOKIE);
     return NextResponse.json({ ok: true });
   }
-  const body = (await req.json().catch(() => ({}))) as { email?: string; password?: string; code?: string };
+  const body = (await req.json().catch(() => ({}))) as { email?: string; password?: string; code?: string; session?: string };
   const email = (body.email ?? "").trim().toLowerCase();
   try {
     if (action === "signin") {
-      await signIn(email, body.password ?? "");
+      // An admin-created account signs in first with a temporary password and chooses its own (brief 56).
+      const r = await signIn(email, body.password ?? "");
+      if (r.newPassword) return NextResponse.json({ newPassword: true, session: r.newPassword });
+      return NextResponse.json({ ok: true });
+    }
+    if (action === "newpassword") {
+      if (weak(body.password ?? "")) return NextResponse.json({ error: FRIENDLY.InvalidPasswordException }, { status: 400 });
+      await newPassword(email, body.password ?? "", body.session ?? "");
       return NextResponse.json({ ok: true });
     }
     if (!CLIENT) return NextResponse.json({ error: FRIENDLY.NotConfigured }, { status: 503 });
@@ -96,6 +103,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ action:
     const name = (e as { name?: string }).name ?? "";
     // An unconfirmed account isn't an error: the next step is its code.
     if (name === "UserNotConfirmedException") return NextResponse.json({ confirm: true }, { status: 409 });
+    // The challenge session lasts three minutes; past it Cognito answers NotAuthorizedException.
+    if (action === "newpassword" && name === "NotAuthorizedException") return NextResponse.json({ error: "That took too long. Sign in again with the temporary password." }, { status: 400 });
     return NextResponse.json({ error: FRIENDLY[name] ?? "Something went wrong. Try again." }, { status: 400 });
   }
 }

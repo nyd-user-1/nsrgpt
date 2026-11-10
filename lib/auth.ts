@@ -1,4 +1,4 @@
-import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
+import { CognitoIdentityProviderClient, InitiateAuthCommand, RespondToAuthChallengeCommand, type AuthenticationResultType } from "@aws-sdk/client-cognito-identity-provider";
 import { cookies } from "next/headers";
 import { DEV_SIGNED_IN, DEV_USER } from "@/lib/dev-session";
 
@@ -52,22 +52,33 @@ async function verifyIdToken(token: string): Promise<Record<string, unknown> | n
 
 export const SESSION_COOKIE = "nysgpt_session";
 
-/** admin / superAdmin / demo are what trinity's housekeeping routes read (ported 2026-11-04). nysgpt.com has no
- *  roles yet, so every reader is none of them — the same falsy value those routes already saw at runtime. id and name
- *  are the dev box's fixed reader's (lib/dev-session.ts). */
+/** admin / superAdmin / demo are what trinity's housekeeping routes read (ported 2026-11-04). admin and superAdmin
+ *  are true for an email in NSRGPT_ADMIN_EMAILS (comma-separated; a Worker secret and the dev box's service
+ *  environment, brief 56); demo accounts don't exist here. id and name are the dev box's fixed reader's
+ *  (lib/dev-session.ts). */
 export type SessionUser = { email: string; admin: boolean; superAdmin: boolean; demo: boolean; id?: string; name?: string };
 
 /** Demo accounts don't exist here; the housekeeping routes (ported from pax-trinity) call this guard. */
 export function forbidDemo(_user: unknown) {}
 
+/** The roles for an email: both true for a site admin, both false for everyone else. The list is read per call, so a
+ *  changed secret needs no rebuild. */
+const roles = (email: string) => {
+  const admins = (process.env.NSRGPT_ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase());
+  const admin = !!email && admins.includes(email.toLowerCase());
+  return { admin, superAdmin: admin };
+};
+
 export async function currentUser(): Promise<SessionUser | null> {
   // The dev box's reader (brief 33): never in a production build, see lib/dev-session.ts.
-  if (DEV_SIGNED_IN) return { ...DEV_USER, admin: false, superAdmin: false, demo: false };
+  if (DEV_SIGNED_IN) return { ...DEV_USER, ...roles(DEV_USER.email), demo: false };
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token || !POOL || !CLIENT) return null;
   try {
     const claims = await verifyIdToken(token);
-    return claims ? { email: String(claims.email ?? "").toLowerCase(), admin: false, superAdmin: false, demo: false } : null;
+    if (!claims) return null;
+    const email = String(claims.email ?? "").toLowerCase();
+    return { email, ...roles(email), demo: false };
   } catch (e) {
     console.error("auth: token check failed", (e as Error).message);
     return null;
@@ -77,14 +88,31 @@ export async function currentUser(): Promise<SessionUser | null> {
 export const cognito = new CognitoIdentityProviderClient({ region: "us-east-1" });
 export const POOL_ID = POOL;
 
-/**
- * Signs in with email and password and sets the session cookie. Throws
- * Cognito's own error (its `name` says why) when the pair is refused.
- */
-export async function signIn(email: string, password: string): Promise<void> {
-  if (!CLIENT) throw Object.assign(new Error("Sign-in isn't configured here."), { name: "NotConfigured" });
-  const r = await cognito.send(new InitiateAuthCommand({ ClientId: CLIENT, AuthFlow: "USER_PASSWORD_AUTH", AuthParameters: { USERNAME: email.trim().toLowerCase(), PASSWORD: password } }));
-  const t = r.AuthenticationResult;
+const startSession = async (t: AuthenticationResultType | undefined) => {
   if (!t?.IdToken) throw Object.assign(new Error("This account needs a step the form doesn't support."), { name: "ChallengeRequired" });
   (await cookies()).set(SESSION_COOKIE, t.IdToken, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: t.ExpiresIn ?? 3600, path: "/" });
+};
+
+/**
+ * Signs in with email and password and sets the session cookie. Throws
+ * Cognito's own error (its `name` says why) when the pair is refused. An
+ * account given a temporary password (admin-created, brief 56) must choose its
+ * own first: then no cookie is set and Cognito's challenge session comes back,
+ * for newPassword (pax-trinity's pattern, 2026-10-30).
+ */
+export async function signIn(email: string, password: string): Promise<{ newPassword?: string }> {
+  if (!CLIENT) throw Object.assign(new Error("Sign-in isn't configured here."), { name: "NotConfigured" });
+  const r = await cognito.send(new InitiateAuthCommand({ ClientId: CLIENT, AuthFlow: "USER_PASSWORD_AUTH", AuthParameters: { USERNAME: email.trim().toLowerCase(), PASSWORD: password } }));
+  if (r.ChallengeName === "NEW_PASSWORD_REQUIRED" && r.Session) return { newPassword: r.Session };
+  await startSession(r.AuthenticationResult);
+  return {};
+}
+
+/** Answers the temporary-password challenge with the reader's own password and sets the session cookie. */
+export async function newPassword(email: string, password: string, session: string): Promise<void> {
+  if (!CLIENT) throw Object.assign(new Error("Sign-in isn't configured here."), { name: "NotConfigured" });
+  const r = await cognito.send(
+    new RespondToAuthChallengeCommand({ ClientId: CLIENT, ChallengeName: "NEW_PASSWORD_REQUIRED", Session: session, ChallengeResponses: { USERNAME: email.trim().toLowerCase(), NEW_PASSWORD: password } }),
+  );
+  await startSession(r.AuthenticationResult);
 }
