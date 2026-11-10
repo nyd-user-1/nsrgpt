@@ -560,7 +560,7 @@ export function Announcing() {
           <p>
             Nobody else has this supervision signal. Every record in NSR carries a keyword abstract:
             an indexer at the National Nuclear Data Center describing that specific paper in the
-            canonical vocabulary of nuclear physics. Alongside them sit EXFOR's experiment records,
+            canonical vocabulary of nuclear physics. Alongside them sit EXFOR&apos;s experiment records,
             each already linked by hand to the paper that reported it. Between them, hundreds of
             thousands of real questions with known right answers.
           </p>
@@ -585,8 +585,8 @@ export function Announcing() {
           </p>
           <p>
             This is live rather than staged. Every semantic search here runs my encoder over its own
-            277,068 vectors, the Hybrid mode fuses it with a keyword match, and the chat's sources and
-            the graph's "similar papers" read the same vectors.
+            277,068 vectors, the Hybrid mode fuses it with a keyword match, and the chat&apos;s sources and
+            the graph&apos;s &quot;similar papers&quot; read the same vectors.
           </p>
         </Claim>
 
@@ -631,7 +631,7 @@ export function Announcing() {
           <p>
             One thing this program did not do, and the fine print says so plainly: it ran no
             statistical significance tests. The gains are large and they hold in every segment, but
-            "significant" is a word that has to be earned by a test that was not run here.
+            &quot;significant&quot; is a word that has to be earned by a test that was not run here.
           </p>
         </Claim>
 
@@ -696,7 +696,7 @@ function FinePrint() {
               <span className="font-mono">nsr-eval-v1</span>, frozen before training: 4,998
               keyword-abstract queries and 4,997 EXFOR queries, one gold paper each, retrieved against
               the full 277,068-record corpus. Papers are held out by the first quartile of{" "}
-              <span className="font-mono">md5('holdout:' || key_number)</span>, so a paper's queries
+              <span className="font-mono">md5(&apos;holdout:&apos; || key_number)</span>, so a paper&apos;s queries
               cannot straddle the split. Queries are stratified over era × richness × reference type
               with a floor of 100 per bucket, so every segment reported is one the sample can actually
               support.
@@ -735,7 +735,7 @@ function FinePrint() {
               </FootRow>
               <FootRow verdict="tie">
                 EXFOR family: 0.958 → 0.966 R@10, about +1%. Dense retrieval was already near the
-                ceiling; the fine-tune's real gain there is on the has-abstract segment (+9%).
+                ceiling; the fine-tune&apos;s real gain there is on the has-abstract segment (+9%).
               </FootRow>
               <FootRow verdict="loss">
                 Full-text search alone still beats the stock dense model at R@1 on keyword queries
@@ -783,7 +783,7 @@ function FinePrint() {
         <div>
           <p className="font-semibold text-[var(--paper-text)]">What is and is not deployed</p>
           <p className="mt-1">
-            Live: the encoder, int8 on AWS Lambda, serving every semantic search, the Hybrid mode's
+            Live: the encoder, int8 on AWS Lambda, serving every semantic search, the Hybrid mode&apos;s
             dense half, chat retrieval and graph similarity. Not yet served: the reranker, per the
             latency above. Both models are published privately, pending confirmation of
             redistribution terms for NNDC-authored keyword-abstract text.
