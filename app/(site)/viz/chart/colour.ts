@@ -1,8 +1,8 @@
-// The chart of nuclides' colour modes (brief 35, Part 2, 2026-11-09): what a box's colour says. Decay family is the
-// chart's own categorical code (lib/nuclide.ts FAMILY). Evaluation age and XUNDL sets since the cutoff carry a
-// direction, fresh to stale, so they take the structure index's diverging ramp (lib/structure.ts DIVERGE7). Half-life,
-// papers and EXFOR entries are plain magnitudes, so they take one-hue ramps. Every ramp passed the dataviz validator
-// on both papers.
+// The chart of nuclides' colour modes (brief 35, Part 2, 2026-11-09): what a box's colour says. Decay chain ("Decay
+// family" until brief 54, Part D, 2026-11-10; the code keeps family) is the chart's own categorical code (lib/nuclide.ts
+// FAMILY). Evaluation age and XUNDL sets since the cutoff carry a direction, fresh to stale, so they take the structure
+// index's diverging ramp (lib/structure.ts DIVERGE7). Half-life, papers and EXFOR entries are plain magnitudes, so they
+// take one-hue ramps. Every ramp passed the dataviz validator on both papers.
 
 import { FAMILIES, FAMILY, familyOf, type DecayNuclide } from '@/lib/nuclide'
 import { fetchData } from '@/lib/use-data'
@@ -10,7 +10,7 @@ import { AGE_LABELS, DIVERGE7, NONE, RAMP6, RAMP7, XUNDL_LABELS, ageStep, loadSt
 
 export type Mode = 'family' | 'halflife' | 'age' | 'xundl' | 'papers' | 'exfor'
 export const MODES: readonly { id: Mode; label: string }[] = [
-  { id: 'family', label: 'Decay family' },
+  { id: 'family', label: 'Decay chain' },
   { id: 'halflife', label: 'Half-life' },
   { id: 'age', label: 'Evaluation age' },
   { id: 'xundl', label: 'XUNDL sets since cutoff' },

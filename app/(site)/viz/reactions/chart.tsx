@@ -262,7 +262,7 @@ export function ReactionsChart() {
         <p className="m-0 text-[var(--paper-text)]">{summary}</p>
         <p className="m-0 mt-1">
           Every decay step in ENSDF is a faint line on the chart of nuclides, coloured by decay mode; each dot behind is a nuclide in
-          its decay family&apos;s colour. The lit route follows every branch of at least 0.001%. A light&apos;s speed follows its
+          its decay chain&apos;s colour. The lit route follows every branch of at least 0.001%. A light&apos;s speed follows its
           parent&apos;s half-life: the fast lights are the short-lived steps. Scroll to zoom, drag to pan, click any nuclide to route
           from it; the legend switches each decay mode&apos;s lines off and on.
         </p>

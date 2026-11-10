@@ -191,7 +191,7 @@ export function NuclideChart() {
         </VizSection>
         <VizSection>
           <p className="m-0">
-            Every ENSDF nuclide is a box at its N and Z; the dashed rules are the magic numbers. Colour by its decay family,
+            Every ENSDF nuclide is a box at its N and Z; the dashed rules are the magic numbers. Colour by its decay chain,
             its half-life, the years since its ENSDF evaluation&apos;s literature cutoff, the XUNDL sets compiled since that
             cutoff, its NSR papers or the EXFOR entries that take it as target. Scroll to zoom, drag to pan, click a box for
             its card.
