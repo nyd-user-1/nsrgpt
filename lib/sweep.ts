@@ -45,7 +45,17 @@ export type SweepReleases = { releases: ReleaseInfo[]; run_date: string | null; 
 
 export type RetroTop = { n: number; hit_rate: number | null; enrichment: number | null; toward: number | null }
 export type RetroRow = { rank: number; target: string; mt: number; reaction: string; sublibrary: string; z: number | null; mean_log_ratio_v80: number | null; mean_log_ratio_v81: number | null; changed: boolean; rms_log: number | null; moved_toward_data: boolean | null }
-export type SweepRetro = { summary: { base_rate: number | null; top: RetroTop[]; changed_median_rank: number | null }; rows: RetroRow[]; sample?: boolean }
+/** One release pair's headline rates (summary.pairs on the plain route): the z ranking's top 20 and the direction over
+ *  every changed pair. */
+export type RetroPair = { key: string; from: string; to: string; method: string; supported: number | null; changed: number | null; base_rate: number | null; top20: RetroTop | null; all_toward: number | null }
+export type SweepRetro = {
+  summary: { base_rate: number | null; top: RetroTop[]; changed_median_rank: number | null; all_toward: number | null; from: string; to: string; method: string }
+  pairs: RetroPair[]
+  rows: RetroRow[]
+  sample?: boolean
+}
+/** A release pair the retrodiction route takes: VIII.0 → VIII.1 on the POINT files (the default) or on MF3, and the two before. */
+export type RetroQuery = { from?: string; to?: string; method?: "mf3" }
 
 export type FlagDataset = { subentry: string; author: string; year: number | null }
 export type EvalFlag = { target: string; mt: number; reaction: string; sublibrary: string; z: number | null; datasets: FlagDataset[]; max_bin_dev: number | null; max_bin_e_ev: number | null; rel_sd_eval: number | null; mf33: boolean }
@@ -172,19 +182,34 @@ export async function fetchPair(target: string, mt: number, sub: string, release
   return { target: str(o.target || target), mt: int(o.mt) || mt, sub: str(o.sublibrary || o.sub || sub), reaction: str(o.reaction || o.exfor_reaction), releases: rels.filter((r) => r.bins.length || r.datasets.length), lab: lab(o.lab) }
 }
 
-export async function fetchRetro(): Promise<SweepRetro> {
-  const j = await get("/sweep/retrodiction")
+/** The z ranking's tops, keyed by N, as a list. */
+function topsOf(sm: Obj): RetroTop[] {
+  const z = obj(obj(sm.rankings).z)
+  const tops = z.top ?? sm.top ?? sm.tops
+  return (Array.isArray(tops) ? tops.map((t) => [obj(t).n, t] as const) : Object.entries(obj(tops))).map(([n, t]) => {
+    const x = obj(t)
+    return { n: int(n), hit_rate: num(x.hit_rate ?? x.fraction_changed), enrichment: num(x.enrichment), toward: num(x.direction_rate ?? x.toward ?? x.moved_toward_data) }
+  })
+}
+
+export async function fetchRetro(q: RetroQuery = {}): Promise<SweepRetro> {
+  const s = new URLSearchParams()
+  if (q.from) s.set("from", q.from)
+  if (q.to) s.set("to", q.to)
+  if (q.method) s.set("method", q.method)
+  const j = await get(`/sweep/retrodiction${s.size ? `?${s.toString()}` : ""}`)
   if (!j) return { ...SAMPLE_RETRO, sample: true }
   const o = obj(j)
   const sm = obj(o.summary)
   const z = obj(obj(sm.rankings).z)
-  const tops = z.top ?? sm.top ?? sm.tops
-  const top = (Array.isArray(tops) ? tops.map((t) => [obj(t).n, t] as const) : Object.entries(obj(tops))).map(([n, t]) => {
-    const x = obj(t)
-    return { n: int(n), hit_rate: num(x.hit_rate ?? x.fraction_changed), enrichment: num(x.enrichment), toward: num(x.direction_rate ?? x.toward ?? x.moved_toward_data) }
+  const top = topsOf(sm)
+  const pairs: RetroPair[] = Object.entries(obj(sm.pairs)).map(([key, v]) => {
+    const p = obj(v)
+    return { key, from: str(p.from), to: str(p.to), method: str(p.method), supported: num(p.supported_pairs), changed: num(p.changed_pairs), base_rate: num(p.base_rate), top20: topsOf(p).find((t) => t.n === 20) ?? null, all_toward: num(p.direction_rate_all_changed) }
   })
   return {
-    summary: { base_rate: num(sm.base_rate), top, changed_median_rank: num(z.changed_median_rank ?? sm.changed_median_rank ?? sm.median_rank) },
+    pairs,
+    summary: { base_rate: num(sm.base_rate), top, changed_median_rank: num(z.changed_median_rank ?? sm.changed_median_rank ?? sm.median_rank), all_toward: num(sm.direction_rate_all_changed), from: str(sm.from || "B-VIII.0"), to: str(sm.to || "B-VIII.1"), method: str(sm.method) },
     rows: arr(o.rows).map((r) => {
       const x = obj(r)
       return { rank: int(x.rank), target: str(x.target), mt: int(x.mt), reaction: str(x.reaction), sublibrary: str(x.sublibrary || x.sub || "neutrons"), z: num(x.z), mean_log_ratio_v80: num(x.mean_log_ratio_v80), mean_log_ratio_v81: num(x.mean_log_ratio_v81), changed: bool(x.changed), rms_log: num(x.rms_log), moved_toward_data: x.moved_toward_data === null || x.moved_toward_data === undefined ? null : bool(x.moved_toward_data) }

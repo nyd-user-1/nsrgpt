@@ -21,6 +21,7 @@ import {
   type SweepFlags,
   type SweepList,
   type SweepReleases,
+  type RetroQuery,
   type SweepRetro,
   type SweepRow,
 } from "@/lib/sweep"
@@ -270,20 +271,46 @@ function ApplyInput({ value, placeholder, numeric, onApply }: { value: string; p
 
 // ── The retrodiction ─────────────────────────────────────────────────────────────────────────────────────────────
 
+/** The release pairs the retrodiction route takes (worker-3, 2026-11-10): VIII.0 → VIII.1 on the POINT files (the
+ *  default) and on MF3, and the two pairs before it. */
+const RETRO_PAIRS: { id: string; label: string; q: RetroQuery }[] = [
+  { id: "B-VIII.0:B-VIII.1", label: "VIII.0 → VIII.1", q: {} },
+  { id: "B-VIII.0:B-VIII.1 (MF3)", label: "VIII.0 → VIII.1, MF3", q: { from: "B-VIII.0", to: "B-VIII.1", method: "mf3" } },
+  { id: "B-VII.1:B-VIII.0", label: "VII.1 → VIII.0", q: { from: "B-VII.1", to: "B-VIII.0" } },
+  { id: "B-VII.0:B-VII.1", label: "VII.0 → VII.1", q: { from: "B-VII.0", to: "B-VII.1" } },
+]
+const short1 = (r: string) => r.replace(/^B-/, "")
+
 function RetroTab() {
+  const [pairId, setPairId] = React.useState(RETRO_PAIRS[0].id)
   const [retro, setRetro] = React.useState<SweepRetro | null>(null)
+  // The four pairs side by side come with the plain route's summary; kept from the first answer.
+  const [pairs, setPairs] = React.useState<SweepRetro["pairs"]>([])
   React.useEffect(() => {
-    void fetchRetro().then(setRetro)
-  }, [])
-  if (!retro) return <p className="text-[var(--paper-muted)]">Loading…</p>
+    let on = true
+    setRetro(null)
+    void fetchRetro(RETRO_PAIRS.find((p) => p.id === pairId)?.q ?? {}).then((r) => {
+      if (!on) return
+      setRetro(r)
+      if (r.pairs.length) setPairs(r.pairs)
+    })
+    return () => {
+      on = false
+    }
+  }, [pairId])
+  const picker = <Pills className="mb-4" options={RETRO_PAIRS.map((p) => ({ id: p.id, label: p.label }))} value={pairId} onChange={setPairId} />
+  if (!retro) return <>{picker}<p className="text-[var(--paper-muted)]">Loading…</p></>
+  const from = short1(retro.summary.from)
+  const to = short1(retro.summary.to)
   const top20 = retro.summary.top.find((t) => t.n === 20)
   const tiles = [
-    { label: "Top 20 changed in VIII.1", value: pct(top20?.hit_rate ?? null) },
+    { label: `Top 20 changed in ${to}`, value: pct(top20?.hit_rate ?? null) },
     { label: "Over the base rate", value: top20?.enrichment == null ? "—" : `${top20.enrichment.toFixed(1)}×` },
     { label: "Of those, moved toward the data", value: pct(top20?.toward ?? null) },
   ]
   return (
     <>
+      {picker}
       <Sample on={retro.sample} />
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {tiles.map((t) => (
@@ -293,6 +320,41 @@ function RetroTab() {
           </div>
         ))}
       </div>
+      {/* The four release pairs side by side: the direction result read beside the pairs that show none. */}
+      {pairs.length > 1 && (
+        <div className="mb-8 overflow-x-auto">
+          <table className="w-full border-collapse" style={MONO}>
+            <thead>
+              <tr>
+                <th className={TH}>Releases</th>
+                <th className={TH}>Compared on</th>
+                <th className={`${TH} text-right`}>Pairs</th>
+                <th className={`${TH} text-right`}>Changed</th>
+                <th className={`${TH} text-right`}>Base rate</th>
+                <th className={`${TH} text-right`}>Top 20 changed</th>
+                <th className={`${TH} text-right`}>Over base</th>
+                <th className={`${TH} text-right`}>Top 20 toward the data</th>
+                <th className={`${TH} text-right`}>All changed toward the data</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RETRO_PAIRS.map((rp) => pairs.find((p) => p.key === rp.id)).filter((p): p is SweepRetro["pairs"][number] => !!p).map((p) => (
+                <tr key={p.key} onClick={() => setPairId(p.key)} className={`${ROW} cursor-pointer hover:bg-[var(--paper-quiet)] ${p.key === pairId ? "font-semibold" : ""}`}>
+                  <td className={TD}>{short1(p.from)} → {short1(p.to)}</td>
+                  <td className="px-2 py-1.5 text-[11px] text-[var(--paper-muted)]">{p.method}</td>
+                  <td className={`${TD} text-right tabular-nums`}>{p.supported ?? "—"}</td>
+                  <td className={`${TD} text-right tabular-nums`}>{p.changed ?? "—"}</td>
+                  <td className={`${TD} text-right tabular-nums`}>{pct(p.base_rate)}</td>
+                  <td className={`${TD} text-right tabular-nums`}>{pct(p.top20?.hit_rate ?? null)}</td>
+                  <td className={`${TD} text-right tabular-nums`}>{p.top20?.enrichment == null ? "—" : `${p.top20.enrichment.toFixed(2)}×`}</td>
+                  <td className={`${TD} text-right tabular-nums`}>{pct(p.top20?.toward ?? null)}</td>
+                  <td className={`${TD} text-right tabular-nums`}>{pct(p.all_toward)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse" style={MONO}>
           <thead>
@@ -300,9 +362,9 @@ function RetroTab() {
               <th className={`${TH} text-right`}>Rank</th>
               <th className={TH}>Target</th>
               <th className={TH}>Reaction</th>
-              <th className={`${TH} text-right`}>z on VIII.0</th>
-              <th className={`${TH} text-right`}>VIII.0 off the data</th>
-              <th className={`${TH} text-right`}>VIII.1 off the data</th>
+              <th className={`${TH} text-right`}>z on {from}</th>
+              <th className={`${TH} text-right`}>{from} off the data</th>
+              <th className={`${TH} text-right`}>{to} off the data</th>
               <th className={`${TH} text-center`}>Changed</th>
               <th className={`${TH} text-center`}>Moved toward the data</th>
               <th className={`${TH} text-right`}>RMS change</th>

@@ -83,7 +83,12 @@ export const SAMPLE_RETRO: SweepRetro = {
     base_rate: 0.18,
     top: [10, 20, 50, 100, 200].map((n, i) => ({ n, hit_rate: 0.6 - i * 0.08, enrichment: (0.6 - i * 0.08) / 0.18, toward: 0.7 })),
     changed_median_rank: 140,
+    all_toward: null,
+    from: "B-VIII.0",
+    to: "B-VIII.1",
+    method: "",
   },
+  pairs: [],
   rows: SAMPLE_LIST.rows.map((r, i) => ({ rank: i + 1, target: r.target, mt: r.mt, reaction: r.reaction, sublibrary: r.sublibrary, z: r.z, mean_log_ratio_v80: (r.mean_log_ratio ?? 0) * 1.4, mean_log_ratio_v81: r.mean_log_ratio, changed: i % 2 === 0, rms_log: i % 2 === 0 ? 0.012 : 0.001, moved_toward_data: i % 2 === 0 ? true : null })),
 }
 
