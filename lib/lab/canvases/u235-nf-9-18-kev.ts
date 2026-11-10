@@ -51,7 +51,7 @@ export const U235_NF_CANVAS: Canvas = {
     block("broaden", "process", "Broaden to 300 K", 360, 100, { op: "broaden", name: "U-235", mt: 18, releases: RELEASES, temperatures: [300], emin: EMIN, emax: EMAX }),
     block("compare", "compare", "Measured against evaluated", 360, 430, { binsPerDecade: 20, emin: EMIN, emax: EMAX, highlight: WINDOW }),
     block("plot", "plot", "σ against energy", 720, 0, { mode: "both", highlight: WINDOW }),
-    block("prompt", "prompt", "Where they part", 720, 540, { prompt: U235_NF_PROMPT }, false),
+    block("prompt", "prompt", "Where they part", 720, 580, { prompt: U235_NF_PROMPT }, false),
   ],
   edges: [
     edge("exfor", "dataset", "compare", "points"),
