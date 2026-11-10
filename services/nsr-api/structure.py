@@ -11,7 +11,7 @@
 #   GET /endf/materials?release=B-VIII.1&sublibrary=neutrons&z=92&name=U-235     the material index (release=all for every one)
 #   GET /endf/xs?name=U-235&mt=18&release=B-VIII.1&sub=neutrons&compare=B-VIII.0,B-VII.1&temp=0K   energy and xs arrays
 #                                      per release. Where a reconstructed POINT release holds the section (B-VIII.1 and
-#                                      B-VIII.0, temp 0K or 293.6K) it is served instead of the bare MF3, which inside a
+#                                      B-VIII.0, temp 0K, 293.6K, 600K, 900K, 1200K, 1500K or 1800K) it is served instead of the bare MF3, which inside a
 #                                      resonance range is only the background; release_served says which. point=0 forces MF3.
 #                                      &emin=&emax= (eV) cut each series to the window, keeping the point on each side.
 #   GET /endf/cov?name=U-235&mt=18&release=B-VIII.1,JEFF-3.3&emin=&emax=   the MF33 self-covariance as relative standard
@@ -37,8 +37,12 @@ RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV
 # Releases with too many MF3 rows to load into memory (brief 43): read like the POINT releases, through xs_index (held in
 # memory) and xs_series/series.bin (one S3 byte-range request a section), built by serve.py point_files.
 INDEXED = ["JEFF-3.3", "JENDL-5", "TENDL-2023"]
-# NNDC's reconstructed, linearized libraries (POINT2025 for B-VIII.1, POINT2018 for B-VIII.0), one release per temperature
-POINT_RELEASES = ["B-VIII.1-point-0K", "B-VIII.1-point-293.6K", "B-VIII.0-point-0K", "B-VIII.0-point-293.6K"]
+# NNDC's reconstructed, linearized libraries (POINT2025 for B-VIII.1, POINT2018 for B-VIII.0), one release per temperature;
+# 600 to 1800 K since brief 56 (scripts/parse/serve-structure/point_hot.sh)
+HOT = ["600K", "900K", "1200K", "1500K", "1800K"]
+POINT_RELEASES = (["B-VIII.1-point-0K", "B-VIII.1-point-293.6K", "B-VIII.0-point-0K", "B-VIII.0-point-293.6K"]
+                  + [f"B-VIII.1-point-{t}" for t in HOT] + [f"B-VIII.0-point-{t}" for t in HOT])
+TEMPS = ["0K", "293.6K"] + HOT
 DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
 PAGE = 500
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -206,11 +210,18 @@ def materials(q):
 
 
 def temp_of(v):
-    """0, 0K -> 0K; 293.6, 293.6K, room -> 293.6K (the temperatures the POINT releases hold)."""
+    """0, 0K -> 0K; 293.6, 293.6K, room -> 293.6K; 600, 900, 1200, 1500, 1800 (K) -> themselves (the temperatures the
+    POINT releases hold)."""
     v = (v or "0K").strip().lower().rstrip("k")
     if v in ("room", "293", "293.6", "300"):
         return "293.6K"
-    return "0K" if v in ("0", "", "0.0") else None
+    if v in ("0", "", "0.0"):
+        return "0K"
+    try:
+        t = f"{int(float(v))}K"
+    except ValueError:
+        return None
+    return t if t in HOT else None
 
 
 def point_series(pr, name, sub, mt):
@@ -246,7 +257,7 @@ def xs(q):
         return 400, {"error": "mt must be a whole number"}
     temp = temp_of(q.get("temp"))
     if not temp:
-        return 400, {"error": "temp is 0K or 293.6K, the temperatures of the reconstructed (POINT) releases"}
+        return 400, {"error": f"temp is one of {', '.join(TEMPS)}, the temperatures of the reconstructed (POINT) releases"}
     use_point = (q.get("point") or "1").strip().lower() not in ("0", "false", "no")
     emin, emax = ev_of(q, "emin"), ev_of(q, "emax")
     wanted = [q.get("release") or DEFAULT_RELEASE] + [c for c in (q.get("compare") or "").split(",") if c.strip()]

@@ -13,6 +13,7 @@ JSON; CloudFront keeps each one for an hour, keyed on the whole query string.
 | `lambda_function.py` | `/exfor/*`; sends the other prefixes to their module (`MODULES`) | parsing-2 (briefs 16, 18) |
 | `keyword_search.py` | `/search`, `/suggest`, `/nsr/{key}` | parsing-2 (brief 18) |
 | `structure.py` | `/nuclide/*`, `/endf/*` | parsing-1 (brief 17) |
+| `sweep.py` | `/sweep`, `/sweep/*` (the sweep, retrodiction, flags, medical routes) | worker-3 (brief 57) |
 | `build.sh` | builds the package on a parse box (every `*.py` here, DuckDB, the httpfs and fts extensions) and puts it in S3 | |
 | `deploy.sh` | creates or updates the Lambda, the HTTP API and CloudFront from the package in S3 | |
 | `test_box.py` | runs the handler on a parse box before deploying | |
@@ -102,7 +103,8 @@ by 500.
 
 `/endf/xs` returns one series per release: `energy_ev` and `xs_barn` arrays with the section's interpolation, Q-values
 and point counts. Defaults: release `B-VIII.1`, sublibrary `neutrons`, `temp=0K`. Where NNDC's reconstructed POINT
-library holds the section (B-VIII.1 and B-VIII.0, at 0K or 293.6K) it is served instead of the bare MF3, because inside a
+library holds the section (B-VIII.1 and B-VIII.0, at 0K, 293.6K, 600K, 900K, 1200K, 1500K or 1800K; the five above
+293.6K since brief 56) it is served instead of the bare MF3, because inside a
 resonance range MF3 holds only the background; `release_served` names the release that answered, and `point=0` asks for
 the MF3 itself. POINT series over 40,000 points are thinned for charting to the lowest and highest point in each of
 20,000 log-energy steps (`thinned`, `n_points`, `n_served`); every point is in `nsr.endfb_xs_points`. A release the lake
@@ -289,6 +291,22 @@ for them, not CloudFront (which passes GET and HEAD only). A write sends `x-nsr-
 
 The store is DynamoDB `nsrgpt-views` (on demand; key `id`; index `kind-created_at`). The seeds are rows written once by
 `scripts/community/seed.mjs`.
+
+## The sweep (brief 57, sweep.py)
+
+Every measured cross section in EXFOR against six evaluations (ENDF/B-VIII.1 and VIII.0 from the POINT 293.6 K releases
+for neutrons, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2), ranked; the method is in `scripts/sweep/README.md` and
+`lake/sweep/2026-11-10/manifest.json`. Tables load into memory from `lake/sweep/2026-11-10/<table>/` on first use.
+
+| Route | Example |
+| --- | --- |
+| `GET /sweep` | `/sweep?release=B-VIII.1` (the ranked list: pairs with ≥ 2 datasets and ≥ 20 points without the driver, by z); `&sort=z\|mean\|support\|bin&dir=desc&nuclide=U-235&mt=18&sub=neutrons&min_datasets=2&page=1`; `&all=1` every pair; `&single=1` the pairs one dataset drives |
+| `GET /sweep/pair` | `/sweep/pair?target=U-235&mt=18&sub=neutrons&release=B-VIII.1,JEFF-3.3` (bins and datasets per release) |
+| `GET /sweep/releases` | the releases, sublibraries and counts, the run date, the method, the U-235 check |
+| `GET /sweep/retrodiction` | `{summary, rows}`: the VIII.0 ranking against what VIII.1 changed, 500 rows |
+| `GET /sweep/flags` | `{evaluation, exfor}`; `?kind=exfor&rule=b` (rules a: not barns, b: factor 10 or 1000 off, c: energies a decade outside every evaluation) |
+| `GET /sweep/medical` | the medical-isotope production routes, a yield per evaluation and a verdict each |
+| `GET /sweep/medical/{route}` | `/sweep/medical/mo99-u235-nf`: the route, its points by source (EXFOR, each evaluation, IAEA) |
 
 ## Packages and build (brief 34)
 

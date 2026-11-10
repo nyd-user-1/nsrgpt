@@ -196,6 +196,7 @@ def build(with_structure=True):
           "docs": rid, "dropped_as_duplicates": dropped, "suggest_rows": len(sug), "build_s": round(time.time() - t0), "tokenizer":
           {"ignore": IGNORE, "stemmer": "none", "stopwords": "none", "lower": 1, "strip_accents": 1},
           "duckdb": duckdb.__version__, "built_at": now()}
+    os.makedirs("/data/state", exist_ok=True)  # a fresh box has no /data/state (brief 56)
     json.dump(st, open("/data/state/search-index.json", "w"), indent=1)
     put_json(f"lake/_work/parse/search/state/search-index.json", st)
     print(json.dumps(st))
