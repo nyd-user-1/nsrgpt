@@ -22,7 +22,9 @@ type Opt = { legend?: { data?: (string | { name: string })[]; selected?: Record<
  * force graph's overlay) hears it as before. Without `items`, the names and colours are read from the chart after
  * each draw: the legend's own list where the option gives one, else the series, each in its drawn colour.
  */
-export function EChartLegend({ chart, items }: { chart: React.RefObject<HTMLDivElement | null>; items?: Item[] }) {
+/** `visualMap`: the items are a piecewise visualMap's pieces, in its order (the heatmap's half-life bands; Brendan, 2026-11-10);
+ *  a click toggles the piece through ECharts' selectDataRange action and the chart's own event keeps the list in step. */
+export function EChartLegend({ chart, items, visualMap }: { chart: React.RefObject<HTMLDivElement | null>; items?: Item[]; visualMap?: number }) {
   const [off, setOff] = React.useState<Set<string>>(new Set())
   const [read, setRead] = React.useState<Item[]>([])
   const instance = React.useRef<Chart | null>(null)
@@ -58,13 +60,21 @@ export function EChartLegend({ chart, items }: { chart: React.RefObject<HTMLDivE
             const sel = (e as { selected: Record<string, boolean> }).selected
             setOff(new Set(Object.keys(sel).filter((k) => sel[k] === false)))
           }
-          sync()
-          c.on('finished', sync)
-          c.on('legendselectchanged', changed)
+          // A visualMap's pieces are keyed by index in its event; the names come from the items given.
+          const pieces = (e: unknown) => {
+            const sel = (e as { selected: Record<string, boolean> }).selected
+            setOff(new Set(Object.keys(sel).filter((k) => sel[k] === false).map((k) => itemsRef.current?.[Number(k)]?.name ?? k)))
+          }
+          if (visualMap === undefined) {
+            sync()
+            c.on('finished', sync)
+            c.on('legendselectchanged', changed)
+          } else c.on('datarangeselected', pieces)
           unhook = () => {
             if (c.isDisposed()) return
             c.off('finished', sync)
             c.off('legendselectchanged', changed)
+            c.off('datarangeselected', pieces)
           }
           return
         }
@@ -75,8 +85,16 @@ export function EChartLegend({ chart, items }: { chart: React.RefObject<HTMLDivE
       live = false
       unhook()
     }
-  }, [chart])
+  }, [chart, visualMap])
+  const itemsRef = React.useRef(items)
+  itemsRef.current = items
   const list = items ?? read
+  const toggle = (name: string) => {
+    if (visualMap === undefined) return instance.current?.dispatchAction({ type: 'legendToggleSelect', name })
+    const selected: Record<string, boolean> = {}
+    list.forEach((it, i) => { selected[String(i)] = it.name === name ? off.has(name) : !off.has(it.name) })
+    instance.current?.dispatchAction({ type: 'selectDataRange', visualMapIndex: visualMap, selected })
+  }
   if (!list.length) return null
   return (
     <div className="flex flex-wrap gap-1">
@@ -85,7 +103,7 @@ export function EChartLegend({ chart, items }: { chart: React.RefObject<HTMLDivE
           key={it.name}
           type="button"
           aria-pressed={!off.has(it.name)}
-          onClick={() => instance.current?.dispatchAction({ type: 'legendToggleSelect', name: it.name })}
+          onClick={() => toggle(it.name)}
           className={`flex items-center gap-1.5 rounded-full border border-[var(--paper-rule)]/30 px-2 py-0.5 transition-opacity hover:bg-[var(--paper-quiet)] ${off.has(it.name) ? 'opacity-35' : ''}`}
           style={MONO}
         >

@@ -1,6 +1,8 @@
 'use client'
 
+import { EChartLegend } from '@/components/viz/EChartLegend'
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { VizControls } from '@/components/viz/VizControls'
 import { halfLifeText, ink, isDark, loadDecay, modesText, nucName } from '@/lib/viz-physics'
 
 // Half-life over the chart of nuclides (chart batch A, 2026-11-04): every ENSDF ground state at (N, Z), coloured
@@ -25,6 +27,14 @@ const BANDS: [number, number, string][] = [
 const LIGHT = ['#1b2f80', '#2f6fdc', '#2aa1d6', '#22b39a', '#5cbf4a', '#b5c935', '#f2c230', '#f08a24', '#e0482f', '#b8246b']
 const DARK = ['#5468d9', '#4d8cf0', '#38b6e8', '#2fcfb0', '#6fd65a', '#c8dc45', '#ffd447', '#ff9a3c', '#ff6047', '#e0428e']
 
+/** The legend's rows, the visualMap's pieces in order (the chart hides its own; the right panel shows these). */
+const pieces = (dark: boolean) => [
+  { name: 'Stable', color: ink(dark) },
+  ...BANDS.map(([, , label], i) => ({ name: label, color: (dark ? DARK : LIGHT)[i] })),
+  { name: 'Observed, T½ not measured', color: dark ? '#6b6b6b' : '#a3a3a3' },
+  { name: 'Expected, not observed', color: dark ? '#3a3a3a' : '#dcdcdc' },
+]
+
 export function HeatmapChart() {
   const ref = useEChart(loadDecay, (decay) => {
     const dark = isDark()
@@ -42,11 +52,13 @@ export function HeatmapChart() {
           return `${nucName(x)} · Z ${x.z} · N ${x.n} — ${x.exp ? 'Expected, not observed' : halfLifeText(x)}${modes ? ` · ${modes}` : ''}`
         },
       },
-      grid: { left: 48, right: 170, top: 16, bottom: 44 },
+      grid: { left: 48, right: 24, top: 16, bottom: 44 },
       xAxis: { type: 'category', data: Array.from({ length: 179 }, (_, i) => i), name: 'N', nameTextStyle: { color: '#64748b' }, axisLabel: { color: '#475569', fontSize: 10, interval: 19 }, axisLine: { lineStyle: { color: '#94a3b8' } }, splitArea: { show: false } },
       yAxis: { type: 'category', data: Array.from({ length: 119 }, (_, i) => i), name: 'Z', nameTextStyle: { color: '#64748b' }, axisLabel: { color: '#475569', fontSize: 10, interval: 19 }, axisLine: { lineStyle: { color: '#94a3b8' } }, splitArea: { show: false } },
+      // The legend lives in the right panel (Brendan, 2026-11-10); the visualMap stays, hidden, to colour the cells.
       visualMap: {
         type: 'piecewise',
+        show: false,
         dimension: 2,
         right: 8,
         top: 'middle',
@@ -64,5 +76,12 @@ export function HeatmapChart() {
       series: [{ type: 'heatmap', data, progressive: 2000 }],
     }
   }, false, firstSeriesRow, { marks: true })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return (
+    <>
+      <VizControls>
+        <EChartLegend chart={ref} items={pieces(isDark())} visualMap={0} />
+      </VizControls>
+      <div ref={ref} className="min-h-0 w-full flex-1" />
+    </>
+  )
 }
