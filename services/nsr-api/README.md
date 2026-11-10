@@ -50,8 +50,10 @@ e_ev, de_ev, xs_b, dxs_b}], total, limit, truncated, source}`, points sorted by 
 values in the dataset's base unit (`units`; barns for SIG); `emin`/`emax` also cut the points; `limit` defaults to
 20,000, at most 50,000. Read from `nsr.exfor_serve_points` (`lake/serve/exfor/2026-10-28/points/target_z=<Z>/`, built by
 `scripts/parse/serve/points.py`: C5 values where C5 holds the dataset, else J4 converted with the dictionary's unit
-factors; 18.2 M points, 158,685 datasets). The U-235 (n,f) 9–18 keV example (78 datasets, 4,171 points) answers in 0.31 s
-warm, 5 s cold.
+factors; 17.8 M points, 153,664 datasets). Datasets whose reaction code combines reactions (ratios such as
+(U-235(N,F),,SIG)/(LI-6(N,T),,SIG), sums, products) match the search fields but have no points: their values are not the
+reaction's cross section, and the dataset entry says so in `excluded`. The U-235 (n,f) 9–18 keV example (78 datasets, 4,156
+points) answers in 0.3–0.7 s warm, 5 s cold.
 
 ## Search (lake/serve/search/2026-11-08/)
 

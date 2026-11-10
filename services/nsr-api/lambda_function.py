@@ -210,7 +210,7 @@ def points(q):
     except ValueError:
         return 400, {"error": "limit is a whole number"}
     c = con().cursor()
-    ds = records(c, f"SELECT dataset, subent, entry, first_author, year, institute, target_za, reaction, sf6, quantity "
+    ds = records(c, f"SELECT dataset, subent, entry, first_author, year, institute, target_za, reaction, sf6, quantity, code "
                     f"FROM si WHERE {w} ORDER BY dataset LIMIT {POINT_DATASETS + 1}", params)
     if not ds:
         return 200, {"datasets": [], "points": [], "total": 0, "limit": limit, "truncated": False}
@@ -241,7 +241,10 @@ def points(q):
     return 200, {
         "datasets": [{"dataset_id": d["dataset"], "subentry": d["subent"], "entry": d["entry"], "author": d["first_author"],
                       "year": d["year"], "institute": d["institute"], "reaction": d["reaction"], "quantity": d["quantity"],
-                      "units": units.get(d["dataset"]), "n": n.get(d["dataset"], 0)} for d in ds],
+                      "units": units.get(d["dataset"]), "n": n.get(d["dataset"], 0),
+                      **({"excluded": f"a ratio or combination of reactions ({d['code']}): its values are not the reaction's "
+                                      "cross section, so no points are served"}
+                         if (d["code"] or "").startswith("(") else {})} for d in ds],
         "points": [{"dataset_id": r[0], "e_ev": r[1], "de_ev": r[2], "xs_b": r[3], "dxs_b": r[4]} for r in rows],
         "total": len(rows), "limit": limit, "truncated": truncated,
         "source": "C5 2023-08-28, else J4 2026-10-28 converted with the EXFOR dictionary's unit factors"}
