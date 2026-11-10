@@ -110,10 +110,10 @@ export const CORE: Core[] = [
   {
     id: "endf",
     name: "ENDF/B",
-    what: "Evaluated libraries: B-II to B-VIII.1",
-    count: "22K",
+    what: "Evaluated libraries: B-II to B-VIII.1, JEFF-3.3, JENDL-5, TENDL-2023, CENDL-3.2",
+    count: "69K",
     keys: "E.g. MAT 9228 (U-235)",
-    inside: [["Materials in B-VIII.1", "5.1K"], ["Cross-section points", "9.1M"]],
+    inside: [["Materials in B-VIII.1", "5.1K"], ["Cross-section points", "48.5M"], ["Resonance parameters", "1.5M"], ["Covariance rows", "220M"]],
     links: [["Nuclide", "MAT ↔ ZA"], ["EXFOR", "measured vs evaluated"], ["ENSDF", "decay data"]],
   },
 ]
@@ -128,7 +128,7 @@ export const SURFACES: Surface[] = [
   { id: "search", title: "Search", href: "/search", open: "Open Search", rows: [["Encoder", "NSR-CPT"], ["Records", "675,427 across the lake"], ["Warm", "0.25–0.5 s"]] },
   { id: "graph", title: "Graph", href: "/graph", open: "Open Graph", rows: [["Expand a node", "Athena, 2–5 s"], ["Similar papers", "nsr-search Lambda"], ["Decay chains", "ENSDF"]] },
   { id: "charts", title: "Charts", href: "/", open: "Open the charts", rows: [["ENSDF", "levels, decays"], ["IAEA Live Chart", "radiation, fission yields"], ["EXFOR", "50,000-point sample"], ["Chart of nuclides", "every nuclide, its card"]] },
-  { id: "endf", title: "ENDF/B", soon: true, rows: [["Materials", "22,315"], ["Cross-section points", "9,127,277"], ["API", "/endf/xs, live"]] },
+  { id: "endf", title: "ENDF/B", soon: true, rows: [["Materials", "69,201 in 13 releases"], ["Cross-section points", "48,501,742"], ["Resonance parameters", "1,529,005"], ["API", "/endf/xs, /endf/resonances, live"]] },
   { id: "exfor", title: "EXFOR", soon: true, rows: [["Data rows", "19,439,354"], ["In the app now", "27,070 entry descriptions"], ["API", "/exfor/search, live"]] },
   { id: "cite", title: "Answers Traced", soon: true, rows: [["Cites", "record, dataset or data point"]] },
   { id: "saved", title: "Saved chats", soon: true, rows: [["Store", "not created yet"]] },
