@@ -12,8 +12,7 @@ import { describe, window } from "@/lib/lab/format"
 
 export type ProcessParams = { op: "broaden"; name: string; mt: number; releases: string[]; temperatures: number[]; emin?: number; emax?: number }
 
-type Job = { id: string; status: "queued" | "running" | "done" | "failed"; started_at?: string; result_url?: string; error?: string }
-type Curve = { temp_k?: number; energy_ev?: number[]; xs_barn?: number[]; mat?: number }
+type Job = { id: string; status: "queued" | "running" | "done" | "failed"; started_at?: string; error?: string; summary?: { series?: { temp_k: number }[] } }
 
 const sleep = (ms: number, signal: AbortSignal) =>
   new Promise<void>((res, rej) => {
@@ -59,13 +58,10 @@ async function jobFor(ctx: RunContext, body: object): Promise<Job> {
   return p
 }
 
-/** The runner's result file as curves, whichever way it lists the temperatures. */
-function curvesOf(result: unknown): Curve[] {
-  const r = result as Record<string, unknown>
-  if (Array.isArray(result)) return result as Curve[]
-  for (const k of ["results", "temps", "series", "curves"]) if (Array.isArray(r[k])) return r[k] as Curve[]
-  return [r as Curve]
-}
+type Result = { mat?: number; n_points?: number; energy_ev?: number[]; xs_barn?: number[]; error?: string }
+
+const query = (o: Record<string, unknown>) =>
+  new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined && v !== null).map(([k, v]) => [k, String(v)])).toString()
 
 async function broadenOne(p: ProcessParams, release: string, ctx: RunContext, report: (s: string) => void): Promise<Series[]> {
   const body = { kind: "broaden", params: { release, name: p.name, sub: "neutrons", mt: p.mt, temps_k: p.temperatures } }
@@ -80,22 +76,21 @@ async function broadenOne(p: ProcessParams, release: string, ctx: RunContext, re
     job = await jobJson(await ctx.jobs(`/${job.id}`, { signal: ctx.signal }))
   }
   report("done")
-  if (!job.result_url) throw new Error(`${release}: the job finished without a result`)
-  const r = await fetch(job.result_url, { signal: ctx.signal })
-  if (!r.ok) throw new Error(`${release}: the result answered ${r.status}`)
-  return curvesOf(await r.json()).map((c, i) =>
-    window(
-      {
-        name: `${release} ${c.temp_k ?? p.temperatures[i] ?? "?"} K`,
-        x: c.energy_ev ?? [],
-        y: c.xs_barn ?? [],
-        unit_x: "eV",
-        unit_y: "b",
-        meta: { release, temp_k: c.temp_k ?? p.temperatures[i], mat: c.mat, job: job.id },
-      },
-      p.emin,
-      p.emax,
-    ),
+  // The arrays, one temperature at a time, cut to the block's window by the route (GET /jobs/{id}/result?temp_k=).
+  const held = new Set(job.summary?.series?.map((s) => s.temp_k) ?? p.temperatures)
+  const temps = p.temperatures.filter((t) => held.has(t))
+  if (!temps.length) throw new Error(`${release}: the job holds ${[...held].join(", ")} K, not ${p.temperatures.join(", ")} K`)
+  return Promise.all(
+    temps.map(async (t) => {
+      const r = await ctx.api(`/jobs/${job.id}/result?${query({ temp_k: t, emin: p.emin, emax: p.emax })}`)
+      const j = (await r.json().catch(() => ({}))) as Result
+      if (!r.ok) throw new Error(`${release} ${t} K: ${j.error ?? `the result answered ${r.status}`}`)
+      return window(
+        { name: `${release} ${t} K`, x: j.energy_ev ?? [], y: j.xs_barn ?? [], unit_x: "eV", unit_y: "b", meta: { release, temp_k: t, mat: j.mat, n_points: j.n_points, job: job.id } },
+        p.emin,
+        p.emax,
+      )
+    }),
   )
 }
 
