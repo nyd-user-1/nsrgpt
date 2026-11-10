@@ -74,6 +74,34 @@ L2 logistic (the score, the distances from JEFF-3.3 and JENDL-5, the change hist
 `/sweep/retrodiction?method=v3` (and `confound-check.json`); the VIII.2 ranking by the score is frozen, dated, in
 `lake/sweep/2026-11-10/prediction-viii2.json` for the forward test.
 
+**The predictor around it (v3; trained on VII.1 → VIII.0, tested blind on VIII.0 → VIII.1; AUC on the held-out step).**
+
+| Unit | Model or feature | n test (revised) | AUC | Precision at 50 | Note |
+| --- | --- | --- | --- | --- | --- |
+| Section | the disagreement score alone | 1,075 (52) | 0.702 | 0.10 | p 4.3 × 10⁻⁷; on the training step 0.672, p 2.3 × 10⁻⁴ |
+| Section | one L2 logistic, 5 features (score, JEFF and JENDL distances, change history, log datasets) | 1,075 (52) | 0.630 | 0.10 | train AUC 0.68 |
+| Section | gradient boosting, all features | 1,075 (52) | 0.601 | 0.20 | overfits (train 1.00) |
+| Section | logistic, all features | 1,075 (52) | 0.553 | 0.08 | overfits (train 0.91) |
+| Section | single features: JEFF distance / change history / NSR papers / new-data score | 1,075 (52) | 0.62 / 0.58 / 0.56 / 0.54 | | |
+| Material | the largest section score | 329 (39) | 0.695 | 0.24 | p 3.7 × 10⁻⁵; training step 302 (23), 0.671, p 0.003 |
+| Material | one L2 logistic: score, years since evaluation, MF33 held, NSR evaluation papers, mentions in window | 329 (39) | 0.710 | 0.26 | beside the score, not instead |
+| Material | single: NSR evaluation papers / public mentions in window / years since evaluation / MF33 held | 329 (39) | 0.64 / 0.61 / 0.61 / 0.44 | | File 1's "revised" count: 0.55 (0.78 on the training step) |
+| Section within revised materials | the score | 178 (51) | 0.694 | | training step 105 (36): 0.736 |
+
+Public mentions (`nsr.sweep_public_mentions`, 1,189 rows from 373 documents: CIELO 701, INDEN 232, NNDC VIII.1 notes 89,
+GitHub 167; 503 dated by the nearest year in the text) come from the lake's mirror of the IAEA INDEN and CIELO pages; the
+live IAEA and NEA WPEC pages answer HTTP 403 from both boxes (a browser user agent included), CSEWG publishes no minutes at
+nndc.bnl.gov/csewg/ (404) and its GitLab needs a login. The NSR "evaluation paper" feature in the models uses a broad
+pattern (evaluat, R-matrix, resonance analysis, ENDF) that also matches comparisons with evaluated data.
+
+**Orphans** (`/sweep/flags?kind=orphan`, `nsr.sweep_orphans`): 73 sections in the VIII.1 ranking's top 300 with no public
+mention, no NSR paper since 2018 that does an evaluation (R-matrix, resonance analysis, evaluated σ or resonance
+parameters, a new evaluation) and no change at the data in the last two releases, each with its datasets. Among the 300:
+164 have a mention, 127 an evaluation paper, 291 a comparison paper ("compared with", "disagree"), 79 a recent change;
+7 have none of the four. First: Pd-108 (n,α) and Pd-106 (n,α) at 13 to 15 MeV, measured 3.2 and 2.5 times the
+evaluation, unchanged since VII.1. The VIII.2 rankings are frozen in `prediction-viii2.json`: by the score (sections),
+by the material score with the small logistic's probability (materials), and the boosted model (its sha256 and pickle).
+
 API base https://daw1qggkn69lv.cloudfront.net (CloudFront, an hour's cache); origin https://3o2ps7jan4.execute-api.us-east-2.amazonaws.com.
 First call after a cold start 3.5 to 4.5 s (the tables load), then 0.2 to 0.7 s; `/sweep/pair` with points 1.1 to 1.5 s.
 

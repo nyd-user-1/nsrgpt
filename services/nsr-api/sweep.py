@@ -16,6 +16,7 @@
 #            &method=v3: the replicated finding, the disagreement score against the change at the data on both steps
 #            (AUC, Mann-Whitney p, the precision check), the models beside it, the held-out VIII.0 to VIII.1 ranking
 #   GET /sweep/flags?kind=exfor&rule=b { evaluation, exfor }: VIII.1 entries no public list names; mislabelled EXFOR
+#            ?kind=orphan: sections high in the VIII.1 ranking no public mention, evaluation paper or recent change touches
 #   GET /sweep/medical                 the medical-isotope production routes, a yield and a verdict each
 #   GET /sweep/medical/{route}         one route: its points by source, the yield table, the bins, the verdict
 import json
@@ -255,6 +256,11 @@ def flags(q):
             params.append(q["rule"].lower())
         out["exfor"] = rows(f"SELECT * FROM {table('exfor_flags')} WHERE {' AND '.join(where) or 'true'} "
                             "ORDER BY rule, subentry", params)
+    if kind == "orphan":
+        # sections high in the VIII.1 ranking with no public mention, no NSR paper since 2018 that does an evaluation,
+        # and no change at the data in the last two releases (brief 57 follow-up 3)
+        out["orphan"] = rows(f"SELECT * FROM {table('orphans')} ORDER BY rank_in_viii1")
+        out["conditions"] = (s3json("retrodiction/summary.json").get("orphans") or {})
     return 200, out
 
 

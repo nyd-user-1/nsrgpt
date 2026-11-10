@@ -18,7 +18,7 @@ T=$(mktemp -d)
 cat > $T/policy.json <<J
 {"Version":"2012-10-17","Statement":[
  {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["$B/lake/sweep/*","$B/lake/_work/sweep/*","$B/lake/endfb/B-VII.1-point-293.6K/*"]},
- {"Effect":"Allow","Action":"s3:GetObject","Resource":["$B/raw/iaea/2026-11-07/medical/*","$B/raw/github/IAEA-NDS/PREPRO/*"]},
+ {"Effect":"Allow","Action":"s3:GetObject","Resource":["$B/raw/iaea/2026-11-07/medical/*","$B/raw/iaea/2026-11-07/INDEN/*","$B/raw/iaea/2026-11-07/CIELO/*","$B/raw/iaea/2026-11-07/CIELO*","$B/raw/github/IAEA-NDS/PREPRO/*"]},
  {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:AbortMultipartUpload"],"Resource":"$B/work/athena-results/*"},
  {"Effect":"Allow","Action":["athena:StartQueryExecution","athena:GetQueryExecution","athena:GetQueryResults","athena:StopQueryExecution","athena:GetWorkGroup"],"Resource":"arn:aws:athena:us-east-2:613473203863:workgroup/nsrgpt"},
  {"Effect":"Allow","Action":["glue:GetDatabase","glue:GetDatabases","glue:GetTable","glue:GetTables","glue:CreateTable","glue:UpdateTable","glue:DeleteTable","glue:GetPartition","glue:GetPartitions","glue:BatchGetPartition","glue:CreatePartition","glue:BatchCreatePartition"],"Resource":["$G:catalog","$G:database/nsr","$G:table/nsr/sweep_*"]}]}
