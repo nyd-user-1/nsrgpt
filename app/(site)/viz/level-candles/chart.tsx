@@ -1,6 +1,7 @@
 'use client'
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { loadLevelStats, nuclideName } from '@/lib/viz-data'
 
 // One candle per nuclide, ordered by A then Z (chart batch B, 2026-11-04; ECharts' candlestick-large pattern): the
@@ -49,5 +50,5 @@ export function LevelCandlesChart() {
     firstSeriesRow,
     { marks: true },
   )
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
