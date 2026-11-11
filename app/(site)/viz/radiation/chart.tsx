@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
@@ -135,7 +136,7 @@ export function RadiationChart() {
 
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 
       <VizControls>
         <EChartLegend chart={ref} items={TYPES.filter((t) => lines && items(lines).some((x) => x.type === t.id)).map((t) => ({ name: t.label, color: isDark() ? t.dark : t.light }))} />
