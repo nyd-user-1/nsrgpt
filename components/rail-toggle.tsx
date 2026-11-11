@@ -111,11 +111,12 @@ export function useRailsClosedWhileMounted(sides: Side[]) {
   }, [key])
 }
 
-/** Whether a rail is closed, live; the page renders open and the remembered state lands on mount. */
+/** Whether a rail is closed, live. Every page with a rail tab loads with the rail closed (Brendan, 2026-11-11), whatever
+ *  this browser remembers; the tab opens it, and that is remembered for the rest of the visit as before. */
 export function useRailClosed(side: Side) {
-  const closed = React.useSyncExternalStore(subscribe, () => isClosed(side), () => false)
+  const closed = React.useSyncExternalStore(subscribe, () => isClosed(side), () => true)
   React.useEffect(() => {
-    if (remembered(side) === "closed" && !isClosed(side)) setRail(side, true)
+    if (!isClosed(side)) setRail(side, true)
   }, [side])
   return closed
 }

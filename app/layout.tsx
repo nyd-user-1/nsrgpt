@@ -86,6 +86,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${GeistSans.variable} ${GeistMono.variable} ${dmSans.variable} ${fraunces.variable} ${mono.variable} antialiased`}
+      // Every rail with a tab paints closed on load (Brendan, 2026-11-11); the tab opens it (components/rail-toggle.tsx).
+      data-rail-left="closed"
+      data-rail-right="closed"
+      data-rail-right-2="closed"
+      data-rail-right-3="closed"
+      data-rail-right-4="closed"
       suppressHydrationWarning
     >
       {/* No <head> here (2026-11-05): React has to find these two scripts in order when it hydrates, and in
