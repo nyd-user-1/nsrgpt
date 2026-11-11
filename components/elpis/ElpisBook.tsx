@@ -16,8 +16,8 @@
 //   without the section is not drawn and not listed. B-VIII.x come from the POINT files at 0 K, as the API serves them.
 // - The points: /exfor/points, quantity SIG, drawn when in barns (components/elpis/use-book.ts says what is left out
 //   and why; the sheet lists those rows under the drawn ones).
-// - The range is the data's (rangeOf); the Q value is File 3's head (QI, and QM where it differs) from the first
-//   library drawn, with a dashed threshold line when QI < 0.
+// - The range is the data's (rangeOf); the Q value is File 3's head (QI, and QM where it differs) of the release the
+//   Plotter names (the newest drawn by default), with a dashed threshold line when QI < 0.
 // - The follow-up (lead, 2026-11-11 05:20): ENDF/B-VIII.1 and VIII.0 are drawn from their POINT files, 0 K by default,
 //   the Plotter's Temperature picking another (293.6 to 1800 K; the API serves no B-VII.1 POINT). Every other release
 //   whose File 3 is only the background inside the material's resonance range (LRP 1; public/elpis/res-ranges-n.json)
@@ -32,6 +32,8 @@
 //   legend lists only what is drawn and "EXFOR, n sets" (the off releases and what cannot be reconstructed are in the
 //   Series sheet); the sheet has JANIS's P, T and I per row: P draws the series, T opens its values as a table, I its
 //   information (an EXFOR set's entry and reference; JANIS offers I on EXFOR rows only).
+// - The Plotter's Release (Brendan, 2026-11-11 16:00): the releases drawn, the newest first chosen (ENDF/B-VIII.1 where
+//   drawn); the Q value, its source line and the threshold read from the chosen release.
 // - Lines on by default: JANIS's book libraries and the newest of mine (ON_BY_DEFAULT); every other release that answers
 //   is listed in the legend and the sheet, off until switched on.
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -74,6 +76,9 @@ const ON_BY_DEFAULT = new Set(["B-VIII.1", "B-VIII.0", "JEFF-4.0", "JEFF-3.3", "
 /** The POINT files' temperatures (the API's TEMPS); 0 K is its default. */
 const TEMPS = [0, 293.6, 600, 900, 1200, 1500, 1800]
 type Recon = { status: string; line?: BookLine; error?: string }
+/** Newest first, for the Plotter's default release: the ENDF/B, JENDL, JEFF and TENDL lines by their latest version. */
+const NEWEST = ["B-VIII.1", "JENDL-5", "JEFF-4.0", "TENDL-2023", "B-VIII.0", "JEFF-3.3", "CENDL-3.2", "BROND-3.1", "JENDL-4.0u", "IRDFF-II", "B-VII.1"]
+const rankOf = (r: string) => { const i = NEWEST.indexOf(r); return i < 0 ? NEWEST.length : i }
 
 export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p: string; label: string; mt: number; chosen?: boolean; mtChosen?: boolean }) {
   const proj = PROJECTILES.find((x) => x.key === p) ?? PROJECTILES[0]
@@ -107,6 +112,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
     if (redirectTo) router.replace(redirectTo)
   }, [redirectTo, router])
   const [temp, setTemp] = useState(0)
+  const [qPick, setQPick] = useState<string | null>(null)
   const request = idx === undefined || redirectTo ? null : {
     name: apiName(nuc), sub: BOOK_SUB[proj.key], mt, target: exforTarget(nuc), reaction, temp: proj.key === "n" ? temp : 0,
     ...(prod ? { zap: prod.zap, product: productTarget(prod.zap) } : {}),
@@ -129,7 +135,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
   const page = `${proj.key}/${label}/${mt}/${temp}`
   const pageRef = useRef(page)
   pageRef.current = page
-  useEffect(() => setRecon({}), [page])
+  useEffect(() => { setRecon({}); setQPick(null) }, [page])
   const lines = useMemo(() => (data?.lines ?? []).map((l) => recon[l.release]?.line ?? l), [data, recon])
   // Where a line is File 3's background: the release's resonance range, for the MTs its resonances add to.
   const ranges = useResRanges(proj.key === "n")
@@ -159,8 +165,6 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
     const drawn = (data?.lines ?? []).map((l) => l.release)
     return drawn.some((r) => ON_BY_DEFAULT.has(r)) ? drawn.filter((r) => !ON_BY_DEFAULT.has(r)).map(libraryName) : []
   }, [data])
-  const head = (data?.lines ?? []).find((l) => l.qi != null)
-  const threshold = head ? thresholdEv(head.qi, proj.key, nuc.a, nuc.z) : null
 
   // The Plotter and the chart share the range and the scales; the zoom box writes them back.
   const [range, setRange] = useState<Range>(full)
@@ -244,6 +248,11 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
     })
   const elements = useMemo(() => (idx ? railElements(idx) : []), [idx])
 
+  // The Plotter's Release: the File 3 lines drawn (not a reconstruction, which carries no head), the newest first.
+  const drawnQ = (data?.lines ?? []).filter((l) => !hidden.has(libraryName(l.release)))
+  const newestFirst = [...drawnQ].sort((x, y) => rankOf(x.release) - rankOf(y.release))
+  const head = drawnQ.find((l) => l.release === qPick) ?? newestFirst.find((l) => l.qi != null) ?? newestFirst[0]
+  const threshold = head ? thresholdEv(head.qi, proj.key, nuc.a, nuc.z) : null
   const target = shortName(nuc)
   const setIds = sets.map((s) => s.id)
   // The legend: the lines drawn and one row for every EXFOR set; what is off is in the sheet.
@@ -425,9 +434,16 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
             <span>ENDF/B-VIII.1 and VIII.0 from their POINT files; Reconstruct broadens to it.</span>
           </label>
         )}
+        {newestFirst.length > 0 && (
+          <label className="mt-4 flex flex-col gap-1 text-xs text-[var(--paper-muted)]">Release
+            <select value={head?.release ?? ""} onChange={(e) => setQPick(e.target.value)}
+              className="h-9 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]">
+              {newestFirst.map((l) => <option key={l.release} value={l.release}>{libraryName(l.release)}</option>)}
+            </select>
+          </label>
+        )}
 
-        <h3 className="mb-2 mt-6 text-lg tracking-tight text-[var(--paper-text)]" style={SERIF}>Cross section</h3>
-        <dl className="text-sm">
+        <dl className="mt-6 text-sm">
           <dt className="text-xs text-[var(--paper-muted)]">Reaction Q value</dt>
           <dd className="font-mono text-[var(--paper-text)]">{head?.qi != null ? qText(head.qi) : "—"}</dd>
           {head?.qi != null && head.qm != null && head.qm !== head.qi && (
