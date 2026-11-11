@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart, valueRow, type ChartClick } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { loadE2, nuclideName } from '@/lib/viz-data'
 
@@ -93,7 +94,7 @@ export function FirstExcitedChart() {
         ))}
       </div>
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
     </div>
   )
 }
