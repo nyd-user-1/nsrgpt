@@ -6,6 +6,7 @@
 // isn't hotter for it.
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { E_MAX_KEV, I_FLOOR, PUNCH_BIN_KEV, loadCapgam, punchCells } from '@/lib/viz-gamma'
 
 const AXIS = { nameTextStyle: { color: '#64748b' }, axisLine: { lineStyle: { color: '#1e293b' } }, axisTick: { show: false }, splitArea: { show: false } }
@@ -47,5 +48,5 @@ export function GammaPunchcardChart() {
       ],
     }
   }, false, firstSeriesRow, { marks: true })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
