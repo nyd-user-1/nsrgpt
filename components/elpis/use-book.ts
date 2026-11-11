@@ -33,7 +33,7 @@ export type BookOff = { id: string; author?: string; year?: number | string; why
 export type BookData = { lines: BookLine[]; sets: BookSet[]; off: BookOff[]; truncated: boolean; reaction: string | null; errors: string[] }
 
 type XsSeries = { release: string; held: boolean; release_served?: string | null; energy_ev?: number[]; xs_barn?: number[]; note?: string | null; qi?: number | null; qm?: number | null; a?: number }
-type Ds = { dataset_id: string; entry?: string; author?: string; year?: number | string; quantity?: string; units?: string | null; n?: number; excluded?: string | null }
+type Ds = { dataset_id: string; subentry?: string; entry?: string; author?: string; year?: number | string; quantity?: string; units?: string | null; n?: number; excluded?: string | null }
 type Pt = { dataset_id: string; e_ev: number; xs_b: number; dxs_b?: number | null }
 type Points = { datasets: Ds[]; points: Pt[]; truncated?: boolean; error?: string }
 
@@ -89,6 +89,22 @@ async function points(target: string, reaction: string): Promise<{ ds: Map<strin
       ds.set(d.dataset_id, { ...(had ?? d), units: had?.units ?? d.units, n: (had?.n ?? 0) + (d.n ?? 0) })
     }
     for (const pt of p.body.points ?? []) pts.push(pt)
+  }
+  // A window finds a dataset by the search index's energy range, which for 2,730 datasets misses their points (40070.039.1:
+  // indexed 100 eV to 30 keV, points 0.15 to 27.5 eV), so a dataset the windows left empty is asked for by its subentry
+  // with no window, two at a time, forty at most.
+  const got = new Set(pts.map((p) => p.dataset_id))
+  const empty = [...ds.values()].filter((d) => !d.excluded && !got.has(d.dataset_id) && d.subentry).slice(0, 40)
+  for (let i = 0; i < empty.length; i += 2) {
+    const more = await Promise.all(empty.slice(i, i + 2).map((d) => getJson<Points>(`/exfor/points?${q({ ...base, acc: d.subentry })}`).catch(() => null)))
+    more.forEach((m, k) => {
+      const id = empty[i + k].dataset_id
+      const mine = (m?.body.points ?? []).filter((p) => p.dataset_id === id)
+      if (!mine.length) return
+      const d = m?.body.datasets?.find((x) => x.dataset_id === id)
+      ds.set(id, { ...ds.get(id)!, units: d?.units ?? ds.get(id)!.units, n: mine.length })
+      for (const p of mine) pts.push(p)
+    })
   }
   return { ds, pts, truncated }
 }
