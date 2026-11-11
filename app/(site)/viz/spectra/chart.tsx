@@ -10,6 +10,7 @@
 import * as React from 'react'
 import { useSwitchboard } from '@/components/SwitchboardPanel'
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { E_MAX_KEV, I_FLOOR, allLines, loadCapgam, logI, openWindow, setLabel, setName, type Capgam, type GammaLine } from '@/lib/viz-gamma'
 import { useData } from '@/lib/use-data'
@@ -68,7 +69,7 @@ function Strips({ onPick }: { onPick: (set: number) => void }) {
       },
     },
   )
-  return <div ref={ref} className="h-full w-full" />
+  return <ChartBox chart={ref} className="h-full w-full" />
 }
 
 /** One nucleus's spectrum; keyed by the set, so a new pick mounts a new chart. */
@@ -108,7 +109,7 @@ function Spectrum({ index }: { index: number }) {
     undefined,
     { onPick: () => {}, marks: true },
   )
-  return <div ref={ref} className="h-[260px] w-full" />
+  return <ChartBox chart={ref} className="h-[260px] w-full" />
 }
 
 export function SpectraChart() {
