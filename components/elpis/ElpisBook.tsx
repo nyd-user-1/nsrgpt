@@ -39,7 +39,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ChevronDown, ChevronRight, ChevronUp, Move, Undo2 } from "lucide-react"
+import { ChevronDown, ChevronRight, ChevronUp, Move, Undo2, Wand2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CircleButton } from "@/components/ui/circle-button"
 import { SHEET_BAR_HOVER, Sheet, useSheet } from "@/components/lab/OutputPane"
@@ -49,6 +49,7 @@ import { AtomSpinner } from "@/components/AtomSpinner"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
 import { useRailClosed } from "@/components/rail-toggle"
+import { MenuRow } from "@/components/kebab-menu"
 import { PageTitle } from "@/lib/page-title"
 import { BookChart, energyTick, markerOf, MANY_SETS, rangeOf, setLook, slotOf, type Range, type Scales } from "@/components/elpis/BookChart"
 import { useBookData, useBookIndex, useResRanges, type BookLine, type BookSet } from "@/components/elpis/use-book"
@@ -113,6 +114,8 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
     if (redirectTo) router.replace(redirectTo)
   }, [redirectTo, router])
   const [temp, setTemp] = useState(0)
+  // The chart's legend shows from the chart menu (Brendan, 2026-11-11 16:30): hidden on load.
+  const [legendOn, setLegendOn] = useState(false)
   const [qPick, setQPick] = useState<string | null>(null)
   const request = idx === undefined || redirectTo ? null : {
     name: apiName(nuc), sub: BOOK_SUB[proj.key], mt, target: exforTarget(nuc), reaction, temp: proj.key === "n" ? temp : 0,
@@ -321,7 +324,16 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
       <section className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="min-h-[240px] flex-1 px-2 pt-2">
           <div className="relative h-full w-full">
-            <BookChart lines={lines} sets={sets} spans={spans} range={range} full={full} scales={scales} hidden={hidden} threshold={threshold} version={version} onZoom={zoomed} />
+            <BookChart lines={lines} sets={sets} spans={spans} range={range} full={full} scales={scales} hidden={hidden} threshold={threshold} version={version} onZoom={zoomed}
+              kebab={{
+                legend: { on: legendOn, toggle: () => setLegendOn((o) => !o) },
+                scales: { x: scales.x, y: scales.y, set: (axis, t) => { setScales((sc) => ({ ...sc, [axis]: t })); redraw() } },
+                zoom: { reset: () => { setRange(full); setFields(fieldsOf(full)); setUndo([]); redraw() }, undo: back, canUndo: undo.length > 0 },
+                extra: background.some((r) => JOB_RELEASES.has(r)) ? (
+                  <MenuRow icon={<Wand2 />} label="Reconstruct" hint="PREPRO" disabled={Object.values(recon).some((r) => r.status !== "done" && r.status !== "failed")} onClick={runRecon} />
+                ) : null,
+                rows: () => [["series", "energy_ev", "value_b"], ...lines.flatMap((l) => l.x.map((x, i) => [libraryName(l.release), x, l.y[i]])), ...sets.flatMap((st) => st.x.map((x, i) => [st.id, x, st.y[i]]))],
+              }} />
             {(!data || empty || data.errors.length > 0) && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 text-center text-sm text-[var(--paper-muted)]">
                 {!data ? <AtomSpinner size={40} label={`Reading ${label} ${labelOf(mt)}`} />
@@ -331,7 +343,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
             )}
             {/* the undo circle rides inside the plot across from the legend's corner (Brendan, 2026-11-11 02:33) */}
             {legendRows.length > 0 && (
-              <ChartLegend rows={legendRows} hidden={hidden} onToggle={show}
+              <ChartLegend show={legendOn} rows={legendRows} hidden={hidden} onToggle={show}
                 footer={prod ? (
                   <p className={cn("mt-3 max-w-[260px] border-t pt-2 text-[11px] leading-4 text-[var(--paper-muted)]", LINE)}>Production of {productTarget(prod.zap)} from MT 5</p>
                 ) : background.length > 0 || Object.keys(recon).length > 0 ? (
@@ -505,7 +517,7 @@ const INSETS = { left: 84, right: 36, top: 28, bottom: 58 }
  *  bottom right, bottom left, 300 ms ease-out. A row toggles its series (a row for every EXFOR set past twelve toggles
  *  them all). `aside` (the undo circle) sits inside the plot at the same height, across from the legend's corner, and
  *  crosses with it. */
-function ChartLegend({ rows, hidden, onToggle, aside, footer }: { rows: LegendRow[]; hidden: Set<string>; onToggle: (names: string[], on: boolean) => void; aside?: React.ReactNode; footer?: React.ReactNode }) {
+function ChartLegend({ show = true, rows, hidden, onToggle, aside, footer }: { show?: boolean; rows: LegendRow[]; hidden: Set<string>; onToggle: (names: string[], on: boolean) => void; aside?: React.ReactNode; footer?: React.ReactNode }) {
   const [open, setOpen] = useState(true)
   const [corner, setCorner] = useState(0)
   const frame = useRef<HTMLDivElement>(null)
@@ -520,7 +532,7 @@ function ChartLegend({ rows, hidden, onToggle, aside, footer }: { rows: LegendRo
     ro.observe(f)
     ro.observe(b)
     return () => ro.disconnect()
-  }, [])
+  }, [show])
   const where = CORNERS[corner]
   const x = where.endsWith("left") ? INSETS.left : Math.max(INSETS.left, size.W - size.w - INSETS.right)
   const y = where.startsWith("top") ? INSETS.top : Math.max(INSETS.top, size.H - size.h - INSETS.bottom)
@@ -528,7 +540,7 @@ function ChartLegend({ rows, hidden, onToggle, aside, footer }: { rows: LegendRo
   const icon = cn("inline-flex size-6 items-center justify-center rounded-md text-[var(--paper-muted)] transition-colors hover:text-[var(--paper-text)]", HOVER)
   return (
     <div ref={frame} className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div ref={box} style={{ padding: 12, transform: `translate(${x}px, ${y}px)` }}
+      {show && <div ref={box} style={{ padding: 12, transform: `translate(${x}px, ${y}px)` }}
         className={cn("pointer-events-auto absolute left-0 top-0 max-h-[calc(100%-86px)] overflow-y-auto rounded-md border bg-[var(--paper)] shadow-sm transition-transform duration-300 ease-out", LINE)}>
         <div className="flex items-center justify-between gap-8">
           <button type="button" aria-expanded={open} title={open ? "Fold the legend" : "Unfold the legend"} onClick={() => setOpen((o) => !o)}
@@ -556,7 +568,7 @@ function ChartLegend({ rows, hidden, onToggle, aside, footer }: { rows: LegendRo
           </ul>
         )}
         {open && footer}
-      </div>
+      </div>}
       {aside && (
         <div style={{ transform: `translate(${ax}px, ${y + 8}px)` }} className="pointer-events-auto absolute left-0 top-0 transition-transform duration-300 ease-out">
           {aside}

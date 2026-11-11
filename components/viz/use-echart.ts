@@ -8,6 +8,7 @@ import { scopeCursor } from '@/lib/viz-cursor'
 import { useShellPanel } from '@/components/shell'
 import { inspectorOn } from '@/components/dev/inspector-state'
 import { tableOf } from '@/lib/viz-tables'
+import { applyChartView } from '@/components/viz/chart-kebab'
 import { listenCamera, setCamera } from '@/lib/viz-engage'
 import { CAMERA_PAN, CAMERA_ROT, CAMERA_ZOOM } from '@/lib/viz-3d'
 
@@ -865,6 +866,7 @@ export function useEChart<D>(
       const slider = Array.isArray(option.dataZoom) && option.dataZoom.some((d) => d.type === 'slider')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       chart.setOption(themed(option, dark) as any)
+      applyChartView(chart, ref.current) // the chart menu's toggles (components/viz/chart-kebab.tsx)
       // The canvas fades in once it has drawn, rather than popping in after the page's reveal (2026-11-06).
       requestAnimationFrame(() => {
         if (!ref.current) return
@@ -988,12 +990,14 @@ export function useEChart<D>(
         dark = isDark()
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         chart?.setOption(themed(withMarks(withCross(latest.current.build(data, latest.current.view)), latest.current.marks), dark) as any, true)
+        applyChartView(chart, ref.current)
         marked?.refresh()
         glMarked?.refresh()
       })
       redraw.current = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         chart?.setOption(themed(withMarks(withCross(latest.current.build(data, latest.current.view)), latest.current.marks), dark) as any, latest.current.replace)
+        applyChartView(chart, ref.current)
         marked?.refresh()
         glMarked?.refresh()
       }

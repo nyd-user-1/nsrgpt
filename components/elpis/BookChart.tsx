@@ -16,6 +16,7 @@ import { useEffect, useRef } from "react"
 import { useEChart } from "@/components/viz/use-echart"
 import { energyLabel, RELEASE_SLOT, SLOTS } from "@/lib/lab/canvases/plot"
 import { libraryName } from "@/lib/elpis"
+import { ChartBox, type ChartKebabProps } from "@/components/viz/chart-kebab"
 import type { BookLine, BookSet } from "@/components/elpis/use-book"
 
 export type Range = { xmin: number; xmax: number; ymin: number; ymax: number }
@@ -187,7 +188,7 @@ type Chart = any
 const ticked = (min: number, max: number, type: "log" | "value") =>
   type === "log" ? { min, max, axisTick: { customValues: decadesIn(min, max) }, axisLabel: { customValues: decadesIn(min, max) } } : { min, max }
 
-export function BookChart({ lines, sets, spans, range, full, scales, hidden, threshold, version, onZoom }: {
+export function BookChart({ lines, sets, spans, range, full, scales, hidden, threshold, version, onZoom, kebab }: {
   lines: BookLine[]
   sets: BookSet[]
   spans?: Record<string, [number, number]>
@@ -198,6 +199,8 @@ export function BookChart({ lines, sets, spans, range, full, scales, hidden, thr
   threshold: number | null
   version: number
   onZoom: (r: Range) => void
+  /** The chart menu's page handlers (components/viz/chart-kebab.tsx): the book's own legend, scales, zoom and Reconstruct. */
+  kebab?: ChartKebabProps
 }) {
   const state = useRef({ lines, sets, spans, range, full, scales, hidden, threshold })
   state.current = { lines, sets, spans, range, full, scales, hidden, threshold }
@@ -288,5 +291,6 @@ export function BookChart({ lines, sets, spans, range, full, scales, hidden, thr
     }
   }, [ref])
 
-  return <div ref={ref} className="h-full w-full select-none" />
+  // The chart menu sits at the plot's top right corner (the grid's right 28 px, top 18 px).
+  return <ChartBox chart={ref} className="h-full w-full select-none" kebab={kebab} kebabClassName="right-8 top-5" />
 }
