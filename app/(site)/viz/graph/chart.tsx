@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 import { X } from 'lucide-react'
 import { useEChart, type ChartClick } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
@@ -385,7 +386,7 @@ function Graph2D({ pinned, onPin, flow }: { pinned: number[]; onPin: Pin; flow: 
       <VizControls>
         <EChartLegend chart={ref} items={FAMILIES.map((f) => ({ name: FAMILY[f].label, color: familyColor(f) }))} />
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
       <canvas ref={overlay} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" />
     </div>
   )
