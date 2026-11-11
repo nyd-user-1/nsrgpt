@@ -71,8 +71,9 @@ export function rangeOf(lines: BookLine[], sets: BookSet[]): Range | null {
   return { xmin: nice(xmin, -1), xmax: nice(xmax, 1), ymin: down(ymin), ymax: up(ymax) }
 }
 
-export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; range: Range; scales: Scales; hidden: Set<string>; threshold: number | null }) {
+export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; spans?: Record<string, [number, number]>; range: Range; scales: Scales; hidden: Set<string>; threshold: number | null }) {
   const { lines, sets, range, scales, hidden, threshold } = o
+  const spans = o.spans ?? {}
   const dark = isDark()
   const slots = dark ? SLOTS.dark : SLOTS.light
   const ink = dark ? "#f0e9d8" : "#16181d"
@@ -108,12 +109,27 @@ export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; range: Range
       },
     },
     series: [
+      // A line whose File 3 is only the background inside the resonance range: solid outside the span, dashed inside it,
+      // two series under one name so the legend toggles both.
+      ...lines.flatMap((l, k) => {
+        const s = spans[l.release]
+        if (!s) return []
+        const color = slots[slotOf(l.release, k)]
+        const lo = l.x.findIndex((x) => x >= s[0]), hiRaw = l.x.findIndex((x) => x > s[1])
+        const hi = hiRaw < 0 ? l.x.length - 1 : hiRaw
+        const inside = l.x.slice(Math.max(0, lo - 1), hi + 1).map((x, i) => { const y = l.y[Math.max(0, lo - 1) + i]; return [x, logY && !(y > 0) ? null : y] })
+        return [{
+          name: libraryName(l.release), type: "line", symbol: "none", showSymbol: false, smooth: false, clip: true, connectNulls: false,
+          data: inside, lineStyle: { width: 1.5, color, type: [5, 4] }, itemStyle: { color }, z: 3,
+        }]
+      }),
       ...lines.map((l, k) => {
         const color = slots[slotOf(l.release, k)]
+        const s = spans[l.release]
         return {
           name: libraryName(l.release), type: "line", symbol: "none", showSymbol: false, smooth: false, clip: true, connectNulls: false,
           sampling: l.x.length > 4000 ? "lttb" : undefined,
-          data: l.x.map((x, i) => [x, logY && !(l.y[i] > 0) ? null : l.y[i]]),
+          data: l.x.map((x, i) => [x, (logY && !(l.y[i] > 0)) || (s && x > s[0] && x < s[1]) ? null : l.y[i]]),
           lineStyle: { width: 1.75, color }, itemStyle: { color }, z: 3,
           ...(k === 0 && threshold && threshold > range.xmin && threshold < range.xmax ? {
             markLine: {
@@ -141,9 +157,10 @@ export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; range: Range
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Chart = any
 
-export function BookChart({ lines, sets, range, full, scales, hidden, threshold, version, onZoom }: {
+export function BookChart({ lines, sets, spans, range, full, scales, hidden, threshold, version, onZoom }: {
   lines: BookLine[]
   sets: BookSet[]
+  spans?: Record<string, [number, number]>
   range: Range
   full: Range
   scales: Scales
@@ -152,8 +169,8 @@ export function BookChart({ lines, sets, range, full, scales, hidden, threshold,
   version: number
   onZoom: (r: Range) => void
 }) {
-  const state = useRef({ lines, sets, range, full, scales, hidden, threshold })
-  state.current = { lines, sets, range, full, scales, hidden, threshold }
+  const state = useRef({ lines, sets, spans, range, full, scales, hidden, threshold })
+  state.current = { lines, sets, spans, range, full, scales, hidden, threshold }
   const zoom = useRef(onZoom)
   zoom.current = onZoom
   // onPick: a click on this chart opens nothing (Brendan, 2026-11-11 02:38); use-echart's default sends a click to the

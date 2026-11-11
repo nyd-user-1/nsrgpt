@@ -18,6 +18,14 @@
 //   and why; the sheet lists those rows under the drawn ones).
 // - The range is the data's (rangeOf); the Q value is File 3's head (QI, and QM where it differs) from the first
 //   library drawn, with a dashed threshold line when QI < 0.
+// - The follow-up (lead, 2026-11-11 05:20): ENDF/B-VIII.1 and VIII.0 are drawn from their POINT files, 0 K by default,
+//   the Plotter's Temperature picking another (293.6 to 1800 K; the API serves no B-VII.1 POINT). Every other release
+//   whose File 3 is only the background inside the material's resonance range (LRP 1; public/elpis/res-ranges-n.json)
+//   is drawn dashed over that range, for the MTs File 2 adds to (all MTs where the range is R-matrix limited), with the
+//   legend's note and a Reconstruct button: PREPRO through nsr-jobs (components/elpis/reconstruct.ts), each line
+//   swapped in as its job returns.
+// - Lines on by default: JANIS's book libraries and the newest of mine (ON_BY_DEFAULT); every other release that answers
+//   is listed in the legend and the sheet, off until switched on.
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -30,7 +38,8 @@ import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
 import { useRailClosed } from "@/components/rail-toggle"
 import { BookChart, markerOf, rangeOf, slotOf, type Range, type Scales } from "@/components/elpis/BookChart"
-import { useBookData, useBookIndex, type BookLine, type BookSet } from "@/components/elpis/use-book"
+import { useBookData, useBookIndex, useResRanges, type BookLine, type BookSet } from "@/components/elpis/use-book"
+import { JOB_RELEASES, RES_MTS, reconstruct } from "@/components/elpis/reconstruct"
 import { HOVER, LINE, LINK, Mark, TINT } from "@/components/elpis/parts"
 import { PROJECTILES, symbolOfZ } from "@/lib/janis-tree"
 import { apiName, BASE_NAME, BOOK_SUB, exforReaction, exforTarget, libraryName, mtLabel, parseBookNuclide, railElements, railMts, shortName, thresholdEv, type BookIndexNuclide } from "@/lib/elpis"
@@ -52,6 +61,11 @@ const WAITING: Range = { xmin: 1e6, xmax: 1e8, ymin: 1e-4, ymax: 1 }
 /** The legend lists each EXFOR set up to this many; past it one row toggles them all, and the sheet has each. */
 const LEGEND_SETS = 12
 const ALL_SETS = "EXFOR, every set"
+/** The libraries drawn on load: those JANIS's books draw, and the newest of mine. The rest are listed, off. */
+const ON_BY_DEFAULT = new Set(["B-VIII.1", "B-VIII.0", "JEFF-4.0", "JEFF-3.3", "JENDL-5", "JENDL-4.0u", "JENDL-HE-2007", "TENDL-2023", "CENDL-3.2", "BROND-3.1", "EAF-2010", "IRDFF-II"])
+/** The POINT files' temperatures (the API's TEMPS); 0 K is its default. */
+const TEMPS = [0, 293.6, 600, 900, 1200, 1500, 1800]
+type Recon = { status: string; line?: BookLine; error?: string }
 
 export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p: string; label: string; mt: number; chosen?: boolean; mtChosen?: boolean }) {
   const proj = PROJECTILES.find((x) => x.key === p) ?? PROJECTILES[0]
@@ -81,16 +95,51 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
   useEffect(() => {
     if (redirectTo) router.replace(redirectTo)
   }, [redirectTo, router])
+  const [temp, setTemp] = useState(0)
   const request = idx === undefined || redirectTo ? null : {
-    name: apiName(nuc), sub: BOOK_SUB[proj.key], mt, target: exforTarget(nuc), reaction,
+    name: apiName(nuc), sub: BOOK_SUB[proj.key], mt, target: exforTarget(nuc), reaction, temp: proj.key === "n" ? temp : 0,
     // Without an index file, ask every release the lake holds; the API drops the ones without the section.
     releases: idx ? here?.releases ?? [] : ["B-VIII.1", "JEFF-3.3", "JENDL-5", "B-VIII.0", "B-VII.1", "TENDL-2023", "CENDL-3.2", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II"],
   }
   const data = useBookData(request)
-  const lines = useMemo(() => data?.lines ?? [], [data])
   const sets = useMemo(() => data?.sets ?? [], [data])
-  const full = useMemo(() => (data ? rangeOf(lines, sets) ?? WAITING : WAITING), [data, lines, sets])
-  const head = lines.find((l) => l.qi != null)
+  const full = useMemo(() => (data ? rangeOf(data.lines, sets) ?? WAITING : WAITING), [data, sets])
+  // Reconstructions: per release, swapped in for the File 3 line as each job returns; forgotten when the page changes.
+  const [recon, setRecon] = useState<Record<string, Recon>>({})
+  const page = `${proj.key}/${label}/${mt}/${temp}`
+  const pageRef = useRef(page)
+  pageRef.current = page
+  useEffect(() => setRecon({}), [page])
+  const lines = useMemo(() => (data?.lines ?? []).map((l) => recon[l.release]?.line ?? l), [data, recon])
+  // Where a line is File 3's background: the release's resonance range, for the MTs its resonances add to.
+  const ranges = useResRanges(proj.key === "n")
+  const spans = useMemo(() => {
+    const out: Record<string, [number, number]> = {}
+    for (const l of lines) {
+      if (l.served === "PREPRO" || !/only the background/.test(l.note ?? "")) continue
+      const r = ranges?.[label]?.[l.release]
+      if (r && (RES_MTS.has(mt) || r[2] === 7)) out[l.release] = [r[0], r[1]]
+    }
+    return out
+  }, [lines, ranges, label, mt])
+  const background = Object.keys(spans)
+  const runRecon = () => {
+    const at = pageRef.current
+    for (const rel of background) {
+      if (!JOB_RELEASES.has(rel) || recon[rel]?.status && recon[rel].status !== "failed") continue
+      const set = (v: Recon) => { if (pageRef.current === at) setRecon((r) => ({ ...r, [rel]: v })) }
+      set({ status: "queued" })
+      reconstruct({ release: rel, name: apiName(nuc), mt, tempK: temp }, (s) => set({ status: s }))
+        .then((line) => { set({ status: "done", line }); setVersion((v) => v + 1) })
+        .catch((e) => set({ status: "failed", error: e instanceof Error ? e.message : String(e) }))
+    }
+  }
+  // Lines off by default: every release outside ON_BY_DEFAULT, unless none of the drawn ones is in it.
+  const offByDefault = useMemo(() => {
+    const drawn = (data?.lines ?? []).map((l) => l.release)
+    return drawn.some((r) => ON_BY_DEFAULT.has(r)) ? drawn.filter((r) => !ON_BY_DEFAULT.has(r)).map(libraryName) : []
+  }, [data])
+  const head = (data?.lines ?? []).find((l) => l.qi != null)
   const threshold = head ? thresholdEv(head.qi, proj.key, nuc.a, nuc.z) : null
 
   // The Plotter and the chart share the range and the scales; the zoom box writes them back.
@@ -103,14 +152,14 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
   // Each box zoom stacks the range it left; the undo circle pops one step; the double click (BookChart hands back `full`)
   // goes to the whole range and empties the stack.
   const [undo, setUndo] = useState<Range[]>([])
-  // New data: the whole range, nothing hidden, the stack emptied.
+  // New data: the whole range, the default lines on, the stack emptied.
   useEffect(() => {
     setRange(full)
     setFields(fieldsOf(full))
     setUndo([])
-    setHidden(new Set())
+    setHidden(new Set(offByDefault))
     setVersion((v) => v + 1)
-  }, [full])
+  }, [full, offByDefault])
   const zoomed = (r: Range) => {
     setUndo((u) => (r === full ? [] : [...u, range]))
     setRange(r)
@@ -178,7 +227,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
   const target = shortName(nuc)
   const setIds = sets.map((s) => s.id)
   const legendRows: LegendRow[] = [
-    ...lines.map((l, k) => ({ key: libraryName(l.release), names: [libraryName(l.release)], text: libraryName(l.release), mark: <Swatch slot={slotOf(l.release, k)} /> })),
+    ...lines.map((l, k) => ({ key: libraryName(l.release), names: [libraryName(l.release)], text: libraryName(l.release), mark: <Swatch slot={slotOf(l.release, k)} dashed={!!spans[l.release]} /> })),
     ...(sets.length <= LEGEND_SETS
       ? sets.map((s, j) => ({ key: s.id, names: [s.id], text: s.id, mark: <Marker j={j} /> }))
       : [{ key: ALL_SETS, names: setIds, text: `EXFOR, ${sets.length} sets`, mark: <Marker j={0} /> }]),
@@ -241,7 +290,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
       <section className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="min-h-[240px] flex-1 px-2 pt-2">
           <div className="relative h-full w-full">
-            <BookChart lines={lines} sets={sets} range={range} full={full} scales={scales} hidden={hidden} threshold={threshold} version={version} onZoom={zoomed} />
+            <BookChart lines={lines} sets={sets} spans={spans} range={range} full={full} scales={scales} hidden={hidden} threshold={threshold} version={version} onZoom={zoomed} />
             {(!data || empty || data.errors.length > 0) && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 text-center text-sm text-[var(--paper-muted)]">
                 {!data ? `Reading ${label} ${labelOf(mt)}…`
@@ -252,6 +301,9 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
             {/* the undo circle rides inside the plot across from the legend's corner (Brendan, 2026-11-11 02:33) */}
             {legendRows.length > 0 && (
               <ChartLegend rows={legendRows} hidden={hidden} onToggle={show}
+                footer={background.length > 0 || Object.keys(recon).length > 0 ? (
+                  <ReconNote background={background} recon={recon} onRun={runRecon} />
+                ) : null}
                 aside={undo.length > 0 ? (
                   <CircleButton aria-label="Undo the last zoom" title="Undo the last zoom" onClick={back} className="size-8">
                     <Undo2 className="size-4" aria-hidden="true" />
@@ -297,7 +349,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
                 </tr>
               ))}
               {lines.map((l, k) => (
-                <NodeRow key={l.release} indent="pl-6" mark={<Swatch slot={slotOf(l.release, k)} />} n={l.n}
+                <NodeRow key={l.release} indent="pl-6" mark={<Swatch slot={slotOf(l.release, k)} dashed={!!spans[l.release]} />} n={l.n}
                   node={<LineName l={l} text={`${libraryName(l.release)} / Cross sections / ${target} / ${labelOf(mt)}`} />}
                   on={!hidden.has(libraryName(l.release))} onToggle={(v) => show([libraryName(l.release)], v)} />
               ))}
@@ -331,6 +383,15 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
           ))}
         </div>
         <Button onClick={apply} className="mt-3 h-9 w-full rounded-full">Apply</Button>
+        {proj.key === "n" && (
+          <label className="mt-4 flex flex-col gap-1 text-xs text-[var(--paper-muted)]">Temperature
+            <select value={temp} onChange={(e) => setTemp(Number(e.target.value))}
+              className="h-9 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]">
+              {TEMPS.map((t) => <option key={t} value={t}>{t} K</option>)}
+            </select>
+            <span>ENDF/B-VIII.1 and VIII.0 from their POINT files; Reconstruct broadens to it.</span>
+          </label>
+        )}
 
         <h3 className="mb-2 mt-6 text-lg tracking-tight text-[var(--paper-text)]" style={SERIF}>Cross section</h3>
         <dl className="text-sm">
@@ -399,7 +460,7 @@ const INSETS = { left: 84, right: 36, top: 28, bottom: 58 }
  *  bottom right, bottom left, 300 ms ease-out. A row toggles its series (a row for every EXFOR set past twelve toggles
  *  them all). `aside` (the undo circle) sits inside the plot at the same height, across from the legend's corner, and
  *  crosses with it. */
-function ChartLegend({ rows, hidden, onToggle, aside }: { rows: LegendRow[]; hidden: Set<string>; onToggle: (names: string[], on: boolean) => void; aside?: React.ReactNode }) {
+function ChartLegend({ rows, hidden, onToggle, aside, footer }: { rows: LegendRow[]; hidden: Set<string>; onToggle: (names: string[], on: boolean) => void; aside?: React.ReactNode; footer?: React.ReactNode }) {
   const [open, setOpen] = useState(true)
   const [corner, setCorner] = useState(0)
   const frame = useRef<HTMLDivElement>(null)
@@ -449,6 +510,7 @@ function ChartLegend({ rows, hidden, onToggle, aside }: { rows: LegendRow[]; hid
             })}
           </ul>
         )}
+        {open && footer}
       </div>
       {aside && (
         <div style={{ transform: `translate(${ax}px, ${y + 8}px)` }} className="pointer-events-auto absolute left-0 top-0 transition-transform duration-300 ease-out">
@@ -469,11 +531,34 @@ function NodeRow({ indent, mark, node, n, on, onToggle }: { indent: string; mark
   )
 }
 
-function Swatch({ slot }: { slot: number }) {
+function Swatch({ slot, dashed }: { slot: number; dashed?: boolean }) {
   const [dark, setDark] = useState(false)
   useEffect(() => setDark(document.documentElement.classList.contains("dark")), [])
   const c = (dark ? SLOTS.dark : SLOTS.light)[slot % 8]
-  return <span aria-hidden="true" className="inline-block h-0.5 w-4 shrink-0 rounded" style={{ background: c }} />
+  return <span aria-hidden="true" className="inline-block h-0.5 w-4 shrink-0 rounded" style={dashed ? { backgroundImage: `linear-gradient(90deg, ${c} 60%, transparent 60%)`, backgroundSize: "6px 2px" } : { background: c }} />
+}
+
+/** The legend's note under the lines when some are File 3's background (lead, 2026-11-11): the note, the Reconstruct
+ *  button, and each job's state as it runs. */
+function ReconNote({ background, recon, onRun }: { background: string[]; recon: Record<string, Recon>; onRun: () => void }) {
+  const runnable = background.filter((r) => JOB_RELEASES.has(r))
+  const busy = Object.values(recon).some((r) => r.status !== "done" && r.status !== "failed")
+  const states = Object.entries(recon).filter(([, r]) => r.status !== "done" || r.error)
+  const left = runnable.filter((r) => !recon[r] || recon[r].status === "failed")
+  return (
+    <div className={cn("mt-3 max-w-[260px] border-t pt-2 text-[11px] leading-4 text-[var(--paper-muted)]", LINE)}>
+      <p className="flex items-center gap-2"><Swatch slot={7} dashed />File 3 background in the resonance range</p>
+      {left.length > 0 && !busy && (
+        <Button variant="outline" onClick={onRun} className="mt-2 h-7 rounded-full px-3 text-xs">Reconstruct</Button>
+      )}
+      {states.map(([rel, r]) => (
+        <p key={rel} className="mt-1">{libraryName(rel)}: {r.error ?? r.status}</p>
+      ))}
+      {background.filter((r) => !JOB_RELEASES.has(r)).length > 0 && (
+        <p className="mt-1">No reconstruction for {background.filter((r) => !JOB_RELEASES.has(r)).map(libraryName).join(", ")}.</p>
+      )}
+    </div>
+  )
 }
 
 function Marker({ j }: { j: number }) {

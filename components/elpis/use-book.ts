@@ -73,12 +73,12 @@ async function points(target: string, reaction: string): Promise<{ ds: Map<strin
 }
 
 /** Every line and point set for one book page; the same arguments share one fetch for the session. */
-export function loadBook(o: { name: string; sub: string; mt: number; releases: string[]; target: string; reaction: string | null }): Promise<BookData> {
+export function loadBook(o: { name: string; sub: string; mt: number; releases: string[]; target: string; reaction: string | null; /** K; 0 is the POINT files' 0 K, the API's default */ temp?: number }): Promise<BookData> {
   const key = JSON.stringify(o)
   if (!cache.has(key)) cache.set(key, (async () => {
     const errors: string[] = []
     const xsP = o.releases.length
-      ? getJson<{ series?: XsSeries[]; error?: string }>(`/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: o.releases[0], compare: o.releases.slice(1).join(",") })}`)
+      ? getJson<{ series?: XsSeries[]; error?: string }>(`/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: o.releases[0], compare: o.releases.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined })}`)
       : Promise.resolve(null)
     // EXFOR's trouble is reported beside the lines, never in their place.
     const exP = o.reaction ? points(o.target, o.reaction).catch((e) => ({ ds: new Map<string, Ds>(), pts: [] as Pt[], truncated: false, error: `EXFOR: ${e instanceof Error ? e.message : String(e)}` })) : Promise.resolve(null)
@@ -126,4 +126,20 @@ export function useBookData(o: Parameters<typeof loadBook>[0] | null): BookData 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])
   return data
+}
+
+/** Where each release's File 3 is only the background in the neutron book: { label: { release: [el_ev, eh_ev, lrf] } }
+ *  (public/elpis/res-ranges-n.json, scripts/elpis/res-ranges.mjs). */
+export type ResRanges = Record<string, Record<string, [number, number, number]>>
+let rangesLoad: Promise<ResRanges | null> | undefined
+export function useResRanges(on: boolean): ResRanges | null {
+  const [r, setR] = useState<ResRanges | null>(null)
+  useEffect(() => {
+    if (!on) return
+    rangesLoad ??= fetch("/elpis/res-ranges-n.json").then((x) => (x.ok ? x.json() : null)).then((j) => j?.ranges ?? null).catch(() => null)
+    let live = true
+    rangesLoad.then((v) => { if (live) setR(v) })
+    return () => { live = false }
+  }, [on])
+  return r
 }

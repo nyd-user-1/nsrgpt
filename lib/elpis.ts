@@ -69,8 +69,12 @@ export const exforTarget = (n: BookNuclide) => `${symbolOfZ(n.z)}-${n.a === "Nat
 /** JANIS's short name in its node paths: "B11", "C0". */
 export const shortName = (n: BookNuclide) => `${symbolOfZ(n.z)}${n.a === "Nat" ? 0 : n.a}${n.iso}`
 
-/** A release as JANIS names the library: "B-VIII.1" -> "ENDF/B-VIII.1". */
-export const libraryName = (r: string) => (r.startsWith("B-") ? `ENDF/${r}` : r)
+/** A release as JANIS names the library: "B-VIII.1" -> "ENDF/B-VIII.1", "JENDL-4.0-HE" -> "JENDL-4.0/HE",
+ *  "JENDL-HE-2007" -> "JENDL/HE-2007", "IAEA-PD-2019" -> "IAEA/PD-2019", "IRDF-2002-MG" -> "IRDF-2002 MG" (the lake's
+ *  keys drop JANIS's slashes and spaces, elpis-fill's rule). */
+export const libraryName = (r: string) =>
+  r.startsWith("B-") ? `ENDF/${r}`
+    : r.replace(/^(JENDL-\d+\.\d+)-(HE)$/, "$1/$2").replace(/^(JENDL|IAEA)-([A-Z]+)-(\d{4}(?:\.\d)?)$/, "$1/$2-$3").replace(/^(IRDF-2002)-MG$/, "$1 MG")
 
 /** The threshold energy in the laboratory, eV, for a reaction Q value (eV) below zero; null otherwise. */
 export function thresholdEv(qi: number | null | undefined, key: string, a: number | "Nat", z: number): number | null {
