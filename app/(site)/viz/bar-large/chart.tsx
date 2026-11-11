@@ -1,6 +1,7 @@
 'use client'
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { AXIS, familyColor, familyOf, halfLifeRun, halfLifeText, ink, loadDecay, modesText, nucName, sup } from '@/lib/viz-physics'
 
 const YEAR = 365.2422 * 86400
@@ -58,5 +59,5 @@ export function BarLargeChart() {
       ],
     }
   }, false, firstSeriesRow, { marks: true })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
