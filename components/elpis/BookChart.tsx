@@ -31,17 +31,19 @@ const isDark = () => typeof document !== "undefined" && document.documentElement
 
 /** The data's range from the lines drawn (Brendan, 2026-11-11): energy where they are above zero, cross section from their
  *  smallest positive value (not below 1e-5 b) to their largest, each widened to whole decades. A line whose File 3 is only
- *  the background inside the resonance range (the API's note) is drawn but does not set the range; EXFOR's points set it
- *  only when no line is drawn (their 2nd percentile up). */
+ *  the background inside the resonance range (the API's note) sets the energy range but not the cross section's (JENDL/HE-2007
+ *  runs to 3 GeV); EXFOR's points set it only when no line is drawn (their 2nd percentile up). */
 export function rangeOf(lines: BookLine[], sets: BookSet[]): Range | null {
   let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity
-  const full = lines.filter((l) => !/only the background/.test(l.note ?? ""))
-  for (const l of full.length ? full : lines)
+  const full = new Set(lines.filter((l) => !/only the background/.test(l.note ?? "")))
+  const yFrom = (l: BookLine) => !full.size || full.has(l)
+  for (const l of lines)
     for (let i = 0; i < l.x.length; i++) {
       const x = l.x[i], y = l.y[i]
       if (!(x > 0) || !(y > 0)) continue
       if (x < xmin) xmin = x
       if (x > xmax) xmax = x
+      if (!yFrom(l)) continue
       if (y < ymin) ymin = y
       if (y > ymax) ymax = y
     }
@@ -81,8 +83,10 @@ export function barnTick(v: number): string {
   if (v >= 1e-6) return `${f(v * 1e6)} µb`
   return `${f(v * 1e9)} nb`
 }
-/** Every decade a book's axes can reach, 1e-12 to 1e12. */
+/** Every decade a book's axes can reach, 1e-12 to 1e12, and those inside a range (a decade outside it would draw clipped
+ *  at the axis's end). */
 const DECADES = Array.from({ length: 25 }, (_, i) => 10 ** (i - 12))
+const decadesIn = (min: number, max: number) => DECADES.filter((d) => d >= min * (1 - 1e-9) && d <= max * (1 + 1e-9))
 /** Past this many EXFOR sets the points are coloured by set from the palette, as JANIS colours them. */
 export const MANY_SETS = 40
 /** A set's look: past MANY_SETS a palette colour and a dot; else the ink and one of four shapes. */
@@ -109,9 +113,9 @@ export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; spans?: Reco
     type, name, min, max, nameLocation: "middle", nameGap: energy ? 30 : 66, logBase: 10,
     nameTextStyle: { color: muted, fontSize: 12 },
     axisLine: { lineStyle: { color: rule } },
-    axisTick: { lineStyle: { color: rule }, ...(type === "log" ? { customValues: DECADES } : {}) },
+    axisTick: { lineStyle: { color: rule }, ...(type === "log" ? { customValues: decadesIn(min, max) } : {}) },
     splitLine: { show: true, lineStyle: { color: rule, type: "dashed" } },
-    axisLabel: { color: muted, fontSize: 11, hideOverlap: false, ...(type === "log" ? { customValues: DECADES } : {}), formatter: (v: number) => (energy ? energyTick(v) : barnTick(v)) },
+    axisLabel: { color: muted, fontSize: 11, hideOverlap: false, ...(type === "log" ? { customValues: decadesIn(min, max) } : {}), formatter: (v: number) => (energy ? energyTick(v) : barnTick(v)) },
   })
   const setInfo = new Map(sets.map((s) => [s.id, s]))
   return {
@@ -179,6 +183,9 @@ export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; spans?: Reco
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Chart = any
+/** An axis's new range for setOption, with its decade ticks when it is a log axis. */
+const ticked = (min: number, max: number, type: "log" | "value") =>
+  type === "log" ? { min, max, axisTick: { customValues: decadesIn(min, max) }, axisLabel: { customValues: decadesIn(min, max) } } : { min, max }
 
 export function BookChart({ lines, sets, spans, range, full, scales, hidden, threshold, version, onZoom }: {
   lines: BookLine[]
@@ -251,13 +258,13 @@ export function BookChart({ lines, sets, spans, range, full, scales, hidden, thr
         const a = chart.convertFromPixel({ gridIndex: 0 }, [Math.min(x0, x), Math.max(y0, y)]) as [number, number]
         const b = chart.convertFromPixel({ gridIndex: 0 }, [Math.max(x0, x), Math.min(y0, y)]) as [number, number]
         const next = { xmin: a[0], xmax: b[0], ymin: a[1], ymax: b[1] }
-        chart.setOption({ animationDurationUpdate: 450, animationEasingUpdate: "cubicOut", xAxis: { min: next.xmin, max: next.xmax }, yAxis: { min: next.ymin, max: next.ymax } })
+        chart.setOption({ animationDurationUpdate: 450, animationEasingUpdate: "cubicOut", xAxis: ticked(next.xmin, next.xmax, state.current.scales.x), yAxis: ticked(next.ymin, next.ymax, state.current.scales.y) })
         zoom.current(next)
       }
       const dbl = () => {
         clear()
         const f = state.current.full
-        chart.setOption({ animationDurationUpdate: 450, animationEasingUpdate: "cubicOut", xAxis: { min: f.xmin, max: f.xmax }, yAxis: { min: f.ymin, max: f.ymax } })
+        chart.setOption({ animationDurationUpdate: 450, animationEasingUpdate: "cubicOut", xAxis: ticked(f.xmin, f.xmax, state.current.scales.x), yAxis: ticked(f.ymin, f.ymax, state.current.scales.y) })
         zoom.current(f)
       }
       const leave = () => { if (start) clear() }
