@@ -23,6 +23,8 @@ JSON; CloudFront keeps each one for an hour, keyed on the whole query string.
 | `icrp.py` | `/icrp/nuclide/{name}`, `/icrp/radiations/{name}`, `/icrp/chain/{name}`, `/icrp/vs-ensdf` | worker-1 (brief 56) |
 | `counts.py` | `/counts` | worker-1 (brief 56) |
 | `test_layers.py` | runs brief 56's routes on a box before deploying | worker-1 (brief 56) |
+| `cinda.py` | `/cinda`, `/cinda/block/{id}`, `/cinda/pickers/{name}` | new-worker-1 (brief 65) |
+| `test_cinda.py` | runs cinda.py's routes on a box before deploying | new-worker-1 (brief 65) |
 
 A module has `route(path, query)` returning `(status, body)`; `lambda_function.py` imports it on first use, so a cold
 start loads only what its route needs.
@@ -332,6 +334,23 @@ Lambda reads `lake/sweep/*` through the inline policy `nsr-api-sweep` (`sweep-po
 | `GET /sweep/flags` | `{evaluation, exfor}`; `?kind=exfor&rule=b` (rules a: not barns, b: factor 10 or 1000 off, c: energies a decade outside every evaluation) |
 | `GET /sweep/medical` | the medical-isotope production routes, a yield per evaluation and a verdict each |
 | `GET /sweep/medical/{route}` | `/sweep/medical/mo99-u235-nf`: the route, its points by source (EXFOR, each evaluation, IAEA) |
+
+## CINDA (brief 65, cinda.py)
+
+| Route | Example |
+| --- | --- |
+| `GET /cinda` | `/cinda?target=U-235&quantity=CS&emin=1e6&emax=2e7&type=expt`; `&reaction=N,F`, `&lab=ORL`, `&year=1990..2000`, `&author=Smith`, `&origin=cinda;exfor;nsr`, `&nsr=1990SM01`, `&exfor=10001`, `&sort=year`, `&page=2` |
+| `GET /cinda/block/{block_id}` | `/cinda/block/146447` |
+| `GET /cinda/pickers/{name}` | `/cinda/pickers/quantities`, `labs`, `types` |
+
+Reads `lake/cinda/2024-04-26/` (`nsr.cinda_lines` and `nsr.cinda_dict_*`, `scripts/parse/cinda/parse.py`) through inline
+policy `nsr-api-cinda` (`cinda-policy.json`). `lines/` is one file sorted by target_za in row groups of 10,000, so a target
+reads only its row groups. `/cinda` answers `{total, page, page_size, pages, snapshot, rows: [{block_id, line_no, target,
+target_za, reaction, quantity, quantity_word, old_quantity, e_min_ev, e_max_ev, energy_text, lab, lab_name, work_type,
+origin, reference_text, year, author, comment, nsr_key, nsr_resolved, exfor_entry, exfor_subentry, exfor_resolved,
+date_entered}]}`, 100 lines a page. The field syntax is the EXFOR routes'; `target` also takes `235U` and `U235`; `lab`
+matches the code or the name anywhere. U-235 (16,083 lines): 3.4 s on a cold container, then 0.22 s at the origin (36 ms
+in the Lambda for U-235 CS 1 to 20 MeV expt); an author alone scans the whole file, 0.4 s.
 
 ## Packages and build (brief 34)
 
