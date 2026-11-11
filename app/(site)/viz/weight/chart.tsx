@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart, valueRow } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { loadE2, nearMagic, nuclideName } from '@/lib/viz-data'
@@ -59,7 +60,7 @@ export function WeightChart() {
       <VizControls>
         <EChartLegend chart={ref} />
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
     </>
   )
 }
