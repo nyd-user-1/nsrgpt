@@ -1,6 +1,8 @@
 'use client'
 
 import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
+import { ArrowLeft } from 'lucide-react'
+import { CircleButton } from '@/components/ui/circle-button'
 
 /**
  * The contents plate's grid (2026-11-04, Brendan: the plate measures itself, so an open second panel
@@ -12,6 +14,9 @@ import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
  * `minW`/`minH`: the smallest a box may be. `maxCols`: the most columns a page takes, however wide the plate
  * (the index holds 4, so its 32 boxes deal into four even pages of 8; Brendan, 2026-11-07). Before the plate is
  * measured (the server render) it lays out for a desktop plate.
+ *
+ * A page with empty cells draws them, and its last cell holds a circle button, centred, that brings the plate back to
+ * its first page (Brendan, 2026-11-11 03:12): never an empty box.
  *
  * `trailing`: pages after the last one, dealt the same way, the first marked data-plate-trailing so a box can scroll
  * to it (the plate's Hidden section, brief 37); `trailingEmpty` fills one page when there is nothing to deal.
@@ -64,6 +69,7 @@ export function PlateGrid({ children, trailing, trailingEmpty, minW = 220, minH 
   const PAGE = 'grid h-full w-full shrink-0 snap-start snap-always border-t border-l border-[var(--paper-rule)]'
   const page = (boxes: ReactNode[], key: string, mark?: boolean) => {
     const f = pageFit(boxes.length, fit, size.w, size.h, minW / minH)
+    const empties = f.rows * f.cols - boxes.length
     return (
       <div
         key={key}
@@ -72,9 +78,17 @@ export function PlateGrid({ children, trailing, trailingEmpty, minW = 220, minH 
         style={{ gridTemplateColumns: `repeat(${f.cols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${f.rows}, minmax(0, 1fr))` }}
       >
         {boxes}
-        {/* An odd last page keeps its rules: the empty cell is drawn, not left as a hole. */}
-        {Array.from({ length: f.rows * f.cols - boxes.length }, (_, k) => (
-          <div key={`empty-${k}`} aria-hidden className="border-b border-r border-[var(--paper-rule)]" />
+        {/* An odd last page keeps its rules: the empty cells are drawn, and the last one carries the way back to the start. */}
+        {Array.from({ length: empties }, (_, k) => (
+          k < empties - 1 ? (
+            <div key={`empty-${k}`} aria-hidden className="border-b border-r border-[var(--paper-rule)]" />
+          ) : (
+            <div key="back" className="flex items-center justify-center border-b border-r border-[var(--paper-rule)]">
+              <CircleButton aria-label="Back to the first page" title="Back to the first page" onClick={() => ref.current?.scrollTo({ left: 0, behavior: 'smooth' })}>
+                <ArrowLeft className="size-4" aria-hidden="true" />
+              </CircleButton>
+            </div>
+          )
         ))}
       </div>
     )
