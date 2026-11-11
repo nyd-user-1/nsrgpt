@@ -8,7 +8,6 @@ import { Activity } from "@/components/animate-ui/icons/activity"
 import { BookOpen } from "@/components/animate-ui/icons/book-open"
 import { Database } from "@/components/animate-ui/icons/database"
 import { Settings2 } from "@/components/animate-ui/icons/settings-2"
-import { SearchBar } from "@/components/search/SearchBar"
 import { SidebarChats } from "@/components/sidebar/SidebarChats"
 import { PAGE_ICONS } from "@/components/sidebar/page-icons"
 import { SideBarMenuFoot, SideBarMenuGroup, SideBarMenuItem, SideBarMenuPinned } from "@/components/sidebar/SideBarMenuItem"
@@ -68,9 +67,6 @@ export function SideBarMenu() {
   const { pinned, archived, hiddenCount, place } = arrange(ALL, rows, showHidden)
   return (
     <div className="flex h-full flex-col px-3 pt-3">
-      <div className="mb-3">
-        <SearchBar />
-      </div>
       <nav className="-mx-1 flex max-h-[55%] shrink-0 flex-col gap-0.5 overflow-y-auto px-1">
         <SideBarMenuPinned pinned={pinned} isOn={isOn} />
         {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={PAGE_ICONS["/chat"]} on={path === "/chat"} />}

@@ -11,7 +11,7 @@ import { KebabMenu, MenuFlyout, MenuFoot, MenuHeader, MenuRow, MenuSeparator } f
 import { RowTip } from "@/components/sidebar/RowTip"
 import type { ChatMeta } from "@/lib/chats"
 import { cn } from "@/lib/utils"
-import { MARK, ROW_BUTTON, ROW_HOVER, ROW_ON, useRememberedOpen } from "@/components/sidebar/SideBarMenuItem"
+import { MARK, ROW_BUTTON, ROW_HOVER, ROW_ON } from "@/components/sidebar/SideBarMenuItem"
 
 // SidebarChats (2026-11-06): pax-trinity's components/sidebar-chats.tsx, colours moved to the paper tokens.
 // The sidebar's lower half: the reader's saved /chat conversations, newest first. Ported from Code/hq's
@@ -112,7 +112,8 @@ export function SidebarChats() {
   const current = path === "/chat" ? params.get("c") : null
   const [chats, setChats] = React.useState<ChatMeta[]>([])
   const [loaded, setLoaded] = React.useState(false)
-  const [open, setOpen] = useRememberedOpen("pax2:chats-open")
+  // Recents loads folded on every visit (Brendan, 2026-11-11); the header opens it.
+  const [open, setOpen] = React.useState(false)
   const [status, setStatus] = useStoredChoice<Status>("pax2:chats-status", STATUS, "active")
   const [activity, setActivity] = useStoredChoice<Activity>("pax2:chats-activity", ACTIVITY, "all")
   const [groupBy, setGroupBy] = useStoredChoice<GroupBy>(STORAGE_KEY, GROUP_OPTIONS, "date")
