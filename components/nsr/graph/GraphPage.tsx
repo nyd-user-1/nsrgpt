@@ -56,6 +56,7 @@ import { apiJson, apiText, fileBase, levelsOf, nuclideName, recordOfNode, record
 import { FAMILY, isDark, type Family } from "@/lib/viz-physics";
 import { type DragEntity, readDragEntity, setDragEntity } from "@/lib/nsr-drag-entity";
 import { toast } from "sonner";
+import { MenuSelect } from "@/components/viz/MenuSelect";
 import { GRAPH_CENTER, STARTER, keyOf, toGNode, type Catalog } from "./entities";
 
 // Answers render as /chat renders them (brief 50), loaded with the first answer shown, as the dock loads them.
@@ -1927,17 +1928,13 @@ function GraphPageInner() {
         <RightViewHeader onBack={backToMenu}>
           <Badge variant="secondary" className="shrink-0 text-[10px]">run</Badge>
           {runs.length > 1 && (
-            <select
+            <MenuSelect
+              label="Run"
               value={traceOpen ?? ""}
-              onChange={(e) => { setTraceOpen(e.target.value); setTraceStep(null); }}
-              className="h-6 min-w-0 flex-1 rounded border bg-[var(--paper)] px-1 text-[10px] text-[var(--paper-muted)]"
-            >
-              {runs.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {new Date(r.startedAt).toLocaleTimeString()} — {r.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => { setTraceOpen(v); setTraceStep(null); }}
+              options={runs.map((r) => ({ value: r.id, label: `${new Date(r.startedAt).toLocaleTimeString()} — ${r.label}` }))}
+              className="h-6 min-w-0 flex-1 text-[10px]"
+            />
           )}
         </RightViewHeader>
         <InsetBody>
