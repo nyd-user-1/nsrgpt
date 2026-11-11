@@ -1,1 +1,1 @@
-{"unit":"materials","lib":5,"types":{"DADE":4,"SIG":4},"el":{"DADE":{"n":4},"SIG":{"C":1,"Fe":1,"Bi":1,"Pb":1}},"iso":{"DADE":{"n0":39},"SIG":{"C12":478,"Fe56":490,"Bi209":539,"Pb208":539}}}
+{"unit":"materials","lib":5,"types":{"SIG":4,"DADE":4},"el":{"SIG":{"Pb":1,"C":1,"Fe":1,"Bi":1},"DADE":{"n":4}},"iso":{"SIG":{"Pb208":539,"C12":478,"Fe56":490,"Bi209":539},"DADE":{"n0":39}}}

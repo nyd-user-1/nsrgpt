@@ -214,6 +214,8 @@ export type CrawlNode = {
   file?: string | null
   /** A library held as files but not parsed: the files' format (brief 70). */
   format?: string | null
+  /** What a held library lacks, e.g. JENDL-4.0u's partial parse (brief 70). */
+  note?: string | null
 }
 
 const crawlMark = (m?: string): Mark => (m === "missing" ? "missing" : m === "ours" ? "ours" : "same")
@@ -304,7 +306,7 @@ export function browseCrawl(root: CrawlNode, path: string[], lib?: CrawlNode | n
       }
       const own = OUR_PAGES[c.label]
       const open = !!c.children?.length || c.crawled === false || !!c.file
-      return { name: c.label, href: own ?? `${BASE}/${here ? `${here}/` : ""}${encodeURIComponent(crawlSlug(ownSegment(at, c)))}`, held: !!own || open, mark, ...(c.format ? { format: c.format } : {}) }
+      return { name: c.label, href: own ?? `${BASE}/${here ? `${here}/` : ""}${encodeURIComponent(crawlSlug(ownSegment(at, c)))}`, held: !!own || open, mark, ...(c.format || c.note ? { format: [c.format, c.note].filter(Boolean).join("; ") } : {}) }
     }),
   }
 }
