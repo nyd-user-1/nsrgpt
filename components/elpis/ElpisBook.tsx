@@ -28,6 +28,10 @@
 //   MT 5 produces (File 6 yields or File 10; the index's `x`), is drawn as that residual's production from MT 5
 //   (/endf/section/production), labelled as JANIS labels it ("MT11 (p,2n+d) or MT5 (Fe53 production)"), with EXFOR's
 //   production data for that product (reaction "P,X"), and its rail row loses the ❌.
+// - Brendan's side-by-side with JANIS (2026-11-11 15:00): the header names the page ("92-U-235 · MT18 (n,fission)"); the
+//   legend lists only what is drawn and "EXFOR, n sets" (the off releases and what cannot be reconstructed are in the
+//   Series sheet); the sheet has JANIS's P, T and I per row: P draws the series, T opens its values as a table, I its
+//   information (an EXFOR set's entry and reference; JANIS offers I on EXFOR rows only).
 // - Lines on by default: JANIS's book libraries and the newest of mine (ON_BY_DEFAULT); every other release that answers
 //   is listed in the legend and the sheet, off until switched on.
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -42,7 +46,8 @@ import { AtomSpinner } from "@/components/AtomSpinner"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
 import { useRailClosed } from "@/components/rail-toggle"
-import { BookChart, markerOf, rangeOf, slotOf, type Range, type Scales } from "@/components/elpis/BookChart"
+import { PageTitle } from "@/lib/page-title"
+import { BookChart, energyTick, markerOf, MANY_SETS, rangeOf, setLook, slotOf, type Range, type Scales } from "@/components/elpis/BookChart"
 import { useBookData, useBookIndex, useResRanges, type BookLine, type BookSet } from "@/components/elpis/use-book"
 import { JOB_RELEASES, RES_MTS, reconstruct } from "@/components/elpis/reconstruct"
 import { HOVER, LINE, LINK, Mark, TINT } from "@/components/elpis/parts"
@@ -63,11 +68,9 @@ const qText = (v: number) => {
 }
 /** Until the data answers: B-11 (n,α)'s window, so the axes have something to draw. */
 const WAITING: Range = { xmin: 1e6, xmax: 1e8, ymin: 1e-4, ymax: 1 }
-/** The legend lists each EXFOR set up to this many; past it one row toggles them all, and the sheet has each. */
-const LEGEND_SETS = 12
 const ALL_SETS = "EXFOR, every set"
 /** The libraries drawn on load: those JANIS's books draw, and the newest of mine. The rest are listed, off. */
-const ON_BY_DEFAULT = new Set(["B-VIII.1", "B-VIII.0", "JEFF-4.0", "JEFF-3.3", "JENDL-5", "JENDL-4.0u", "JENDL-HE-2007", "TENDL-2023", "CENDL-3.2", "BROND-3.1", "EAF-2010", "IRDFF-II"])
+const ON_BY_DEFAULT = new Set(["B-VIII.1", "B-VIII.0", "JEFF-4.0", "JEFF-3.3", "JENDL-5", "JENDL-4.0u", "JENDL-HE-2007", "TENDL-2023", "CENDL-3.2", "PADF-2007", "BROND-3.1", "EAF-2010", "IRDFF-II"])
 /** The POINT files' temperatures (the API's TEMPS); 0 K is its default. */
 const TEMPS = [0, 293.6, 600, 900, 1200, 1500, 1800]
 type Recon = { status: string; line?: BookLine; error?: string }
@@ -112,7 +115,15 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
   }
   const data = useBookData(request)
   const sets = useMemo(() => data?.sets ?? [], [data])
-  const full = useMemo(() => (data ? rangeOf(data.lines, sets) ?? WAITING : WAITING), [data, sets])
+  // The range from the lines drawn on load (ON_BY_DEFAULT where any is drawn), not the releases listed off.
+  const full = useMemo(() => {
+    if (!data) return WAITING
+    const on = data.lines.filter((l) => ON_BY_DEFAULT.has(l.release))
+    return rangeOf(on.length ? on : data.lines, sets) ?? WAITING
+  }, [data, sets])
+  // The sheet's T (a series' values as a table) and I (an EXFOR set's information), per series name.
+  const [tables, setTables] = useState<Set<string>>(new Set())
+  const [infos, setInfos] = useState<Set<string>>(new Set())
   // Reconstructions: per release, swapped in for the File 3 line as each job returns; forgotten when the page changes.
   const [recon, setRecon] = useState<Record<string, Recon>>({})
   const page = `${proj.key}/${label}/${mt}/${temp}`
@@ -235,17 +246,18 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
 
   const target = shortName(nuc)
   const setIds = sets.map((s) => s.id)
+  // The legend: the lines drawn and one row for every EXFOR set; what is off is in the sheet.
   const legendRows: LegendRow[] = [
-    ...lines.map((l, k) => ({ key: libraryName(l.release), names: [libraryName(l.release)], text: libraryName(l.release), mark: <Swatch slot={slotOf(l.release, k)} dashed={!!spans[l.release]} /> })),
-    ...(sets.length <= LEGEND_SETS
-      ? sets.map((s, j) => ({ key: s.id, names: [s.id], text: s.id, mark: <Marker j={j} /> }))
-      : [{ key: ALL_SETS, names: setIds, text: `EXFOR, ${sets.length} sets`, mark: <Marker j={0} /> }]),
+    ...lines.flatMap((l, k) => (hidden.has(libraryName(l.release)) ? [] : [{ key: libraryName(l.release), names: [libraryName(l.release)], text: libraryName(l.release), mark: <Swatch slot={slotOf(l.release, k)} dashed={!!spans[l.release]} /> }])),
+    ...(sets.length ? [{ key: ALL_SETS, names: setIds, text: `EXFOR, ${sets.length} ${sets.length === 1 ? "set" : "sets"}`, mark: <Marker j={0} n={sets.length} /> }] : []),
   ]
+  const flip2 = (set: React.Dispatch<React.SetStateAction<Set<string>>>, k: string) => set((x) => { const n = new Set(x); if (n.has(k)) n.delete(k); else n.add(k); return n })
   const empty = data && !lines.length && !sets.length
   const why = !reaction ? "EXFOR has no cross section for this MT as one reaction" : prod ? `no EXFOR production of ${productTarget(prod.zap)} in barns` : "no EXFOR cross section in barns"
 
   return (
     <div className="flex h-full min-h-0 flex-1">
+      <PageTitle title={`${label} · ${prod ? `${labelOf(mt)} or ${prodLabel}` : labelOf(mt)}`} />
       {/* left: by nuclide, an inset rail with its tab, closed on load (InsetPanel, as /graph's) */}
       <InsetPanel side="left" storageKey="elpis:book-left-w">
         <div className={cn(INSET.header, LINE)}><h3 className={INSET.title}>By nuclide</h3></div>
@@ -339,7 +351,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
           <table className={cn("w-full border text-sm text-[var(--paper-text)]", LINE)}>
             <thead>
               <tr className={cn("border-b", LINE, TINT)}>
-                {["Node", "Points", "Display"].map((h) => <th key={h} className="px-3 py-2 text-left text-xs font-medium text-[var(--paper-muted)]">{h}</th>)}
+                {["Node", "P", "T", "I"].map((h) => <th key={h} className="px-3 py-2 text-left text-xs font-medium text-[var(--paper-muted)]">{h}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -348,8 +360,13 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
                 <tr className={cn("border-b", LINE)}><td colSpan={3} className="px-3 py-2 pl-6 font-mono text-[13px]">EXFOR / Cross sections / {target} / {reaction}{prod ? ` ${productTarget(prod.zap)}` : ""}</td></tr>
               )}
               {sets.map((s, j) => (
-                <NodeRow key={s.id} indent="pl-10" mark={<Marker j={j} />} n={s.x.length}
-                  node={<SetName s={s} />} on={!hidden.has(s.id)} onToggle={(v) => show([s.id], v)} />
+                <NodeRow key={s.id} indent="pl-10" mark={<Marker j={j} n={sets.length} />} n={s.x.length}
+                  node={<SetName s={s} />} on={!hidden.has(s.id)} onToggle={(v) => show([s.id], v)}
+                  table={tables.has(s.id)} onTable={() => flip2(setTables, s.id)} info={infos.has(s.id)} onInfo={() => flip2(setInfos, s.id)}
+                  detail={<>
+                    {infos.has(s.id) && <SetInfo s={s} />}
+                    {tables.has(s.id) && <ValueTable x={s.x} y={s.y} dy={s.dy} />}
+                  </>} />
               ))}
               {(data?.off ?? []).map((o) => (
                 <tr key={o.id} className={cn("border-b text-[var(--paper-muted)]", LINE)}>
@@ -362,10 +379,15 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
               {lines.map((l, k) => (
                 <NodeRow key={l.release} indent="pl-6" mark={<Swatch slot={slotOf(l.release, k)} dashed={!!spans[l.release]} />} n={l.n}
                   node={<LineName l={l} text={prod ? `${libraryName(l.release)} / Production / ${target} / ${prodLabel}` : `${libraryName(l.release)} / Cross sections / ${target} / ${labelOf(mt)}`} />}
-                  on={!hidden.has(libraryName(l.release))} onToggle={(v) => show([libraryName(l.release)], v)} />
+                  on={!hidden.has(libraryName(l.release))} onToggle={(v) => show([libraryName(l.release)], v)}
+                  table={tables.has(l.release)} onTable={() => flip2(setTables, l.release)}
+                  detail={tables.has(l.release) ? <ValueTable x={l.x} y={l.y} /> : null} />
               ))}
             </tbody>
           </table>
+          {background.some((r) => !JOB_RELEASES.has(r)) && (
+            <p className="mt-2 text-xs text-[var(--paper-muted)]">No reconstruction for {background.filter((r) => !JOB_RELEASES.has(r)).map(libraryName).join(", ")}: nsr-jobs reconstructs {[...JOB_RELEASES].map(libraryName).join(", ")}.</p>
+          )}
           {data?.truncated && <p className="mt-2 text-xs text-[var(--paper-muted)]">Some EXFOR points past the 50,000 a request returns are not drawn.</p>}
         </div>
           )}
@@ -532,13 +554,50 @@ function ChartLegend({ rows, hidden, onToggle, aside, footer }: { rows: LegendRo
   )
 }
 
-function NodeRow({ indent, mark, node, n, on, onToggle }: { indent: string; mark: React.ReactNode; node: React.ReactNode; n: number; on: boolean; onToggle: (v: boolean) => void }) {
+/** A sheet row with JANIS's toggles: P draws the series, T opens its values, I its information (EXFOR rows only). */
+function NodeRow({ indent, mark, node, n, on, onToggle, table, onTable, info, onInfo, detail }: {
+  indent: string; mark: React.ReactNode; node: React.ReactNode; n: number; on: boolean; onToggle: (v: boolean) => void
+  table: boolean; onTable: () => void; info?: boolean; onInfo?: () => void; detail?: React.ReactNode
+}) {
+  const box = "accent-[var(--paper-strong)]"
   return (
-    <tr className={cn("border-b last:border-b-0", LINE, HOVER)}>
-      <td className={cn("px-3 py-1.5", indent)}><span className="inline-flex items-center gap-2">{mark}{node}</span></td>
-      <td className="px-3 py-1.5 font-mono text-xs text-[var(--paper-muted)]">{n.toLocaleString("en-US")}</td>
-      <td className="px-3 py-1.5"><input type="checkbox" checked={on} onChange={(e) => onToggle(e.target.checked)} aria-label="Display" className="accent-[var(--paper-strong)]" /></td>
-    </tr>
+    <>
+      <tr className={cn("border-b last:border-b-0", LINE, HOVER)}>
+        <td className={cn("px-3 py-1.5", indent)}><span className="inline-flex items-center gap-2">{mark}{node}<span className="font-mono text-xs text-[var(--paper-muted)]">{n.toLocaleString("en-US")}</span></span></td>
+        <td className="px-3 py-1.5"><input type="checkbox" checked={on} onChange={(e) => onToggle(e.target.checked)} aria-label="Points: draw it" title="Points" className={box} /></td>
+        <td className="px-3 py-1.5"><input type="checkbox" checked={table} onChange={onTable} aria-label="Table: its values" title="Table" className={box} /></td>
+        <td className="px-3 py-1.5">{onInfo ? <input type="checkbox" checked={!!info} onChange={onInfo} aria-label="Information" title="Information" className={box} /> : null}</td>
+      </tr>
+      {detail ? <tr className={cn("border-b", LINE)}><td colSpan={4} className="px-3 py-2 pl-14">{detail}</td></tr> : null}
+    </>
+  )
+}
+
+/** A series' values, the first 300 rows. */
+function ValueTable({ x, y, dy }: { x: number[]; y: number[]; dy?: (number | null)[] }) {
+  const k = Math.min(300, x.length)
+  return (
+    <div className="max-h-64 overflow-auto">
+      <table className="font-mono text-xs text-[var(--paper-text)]">
+        <thead><tr className="text-[var(--paper-muted)]"><th className="pr-6 text-left font-normal">Incident energy</th><th className="pr-6 text-left font-normal">Cross section (b)</th>{dy && <th className="text-left font-normal">Uncertainty (b)</th>}</tr></thead>
+        <tbody>
+          {Array.from({ length: k }, (_, i) => (
+            <tr key={i}><td className="pr-6">{energyTick(x[i])}</td><td className="pr-6">{y[i]?.toPrecision(5)}</td>{dy && <td>{dy[i] != null ? dy[i]!.toPrecision(3) : ""}</td>}</tr>
+          ))}
+        </tbody>
+      </table>
+      {x.length > k && <p className="mt-1 text-xs text-[var(--paper-muted)]">The first {k} of {x.length.toLocaleString("en-US")}; the subentry&apos;s page has every point.</p>}
+    </div>
+  )
+}
+
+/** An EXFOR set's information: entry, authors and year. */
+function SetInfo({ s }: { s: BookSet }) {
+  return (
+    <p className="mb-2 text-xs text-[var(--paper-muted)]">
+      Subentry <Link href={`/datasets/exfor/${s.id}`} className={LINK}>{s.id}</Link>{s.entry ? <> of entry {s.entry}</> : null}
+      {s.author ? ` · ${s.author}` : ""}{s.year ? `, ${s.year}` : ""} · {s.x.length.toLocaleString("en-US")} points from {energyTick(Math.min(...s.x))} to {energyTick(Math.max(...s.x))}
+    </p>
   )
 }
 
@@ -565,15 +624,17 @@ function ReconNote({ background, recon, onRun }: { background: string[]; recon: 
       {states.map(([rel, r]) => (
         <p key={rel} className="mt-1">{libraryName(rel)}: {r.error ?? r.status}</p>
       ))}
-      {background.filter((r) => !JOB_RELEASES.has(r)).length > 0 && (
-        <p className="mt-1">No reconstruction for {background.filter((r) => !JOB_RELEASES.has(r)).map(libraryName).join(", ")}.</p>
-      )}
     </div>
   )
 }
 
-function Marker({ j }: { j: number }) {
-  const { symbol, filled } = markerOf(j)
+function Marker({ j, n = 0 }: { j: number; n?: number }) {
+  const [dark, setDark] = useState(false)
+  useEffect(() => setDark(document.documentElement.classList.contains("dark")), [])
+  // Past MANY_SETS the points are coloured by set: a filled dot in the set's colour.
+  if (n > MANY_SETS) return <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" className="shrink-0"><circle cx="6" cy="6" r="3" fill={setLook(j, n, dark).color} fillOpacity={0.8} /></svg>
+  const { symbol } = markerOf(j)
+  const filled = true
   const path = symbol === "circle" ? <circle cx="6" cy="6" r="4" /> : symbol === "rect" ? <rect x="2" y="2" width="8" height="8" /> : symbol === "triangle" ? <path d="M6 1.5 10.5 10h-9z" /> : <path d="M6 1 11 6 6 11 1 6z" />
   return <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" className={cn("shrink-0 stroke-[var(--paper-text)]", filled ? "fill-[var(--paper-text)]" : "fill-none")} strokeWidth="1.25">{path}</svg>
 }
