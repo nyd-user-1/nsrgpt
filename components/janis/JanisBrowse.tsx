@@ -1,20 +1,24 @@
 "use client"
 // /janis/browse (brief 67): JANIS Web's "Browse database": the heading, the breadcrumb bar in the quiet tint, then a
 // bordered list of rows about 49 px tall, each a link one level down in the house link colour. A nuclide row has
-// JANIS's "Open" outline button before its name. The rows come from brief 68's crawl (public/janis-tree.json) where it
-// has reached the path, else from the hand list (lib/janis-tree.ts). ❌ after a row: JANIS has it, I do not (not a
+// JANIS's "Open" outline button before its name. The rows come from brief 68's crawl where it has reached the path
+// (the index public/janis-tree.json, and a library's own file public/janis-tree/<file> once the path enters it), else
+// from the hand list (lib/janis-tree.ts). ❌ after a row: JANIS has it, I do not (not a
 // link); ✅: I have it, JANIS does not; no mark: both.
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { HOVER, LINE, LINK, Mark, TINT } from "@/components/janis/parts"
-import { useCrawl } from "@/components/janis/use-crawl"
-import { browse, browseCrawl } from "@/lib/janis-tree"
+import { useCrawl, useCrawlFile } from "@/components/janis/use-crawl"
+import { browse, browseCrawl, crawlFile } from "@/lib/janis-tree"
 import { cn } from "@/lib/utils"
 
 export function JanisBrowse({ path }: { path: string[] }) {
   const crawl = useCrawl()
-  const v = (crawl && browseCrawl(crawl, path)) || browse(path)
+  const lib = useCrawlFile(crawl ? crawlFile(crawl, path) : null)
+  const hand = browse(path)
+  // While the index loads, a path the hand list cannot answer waits instead of saying it is past the tree.
+  const v = (crawl && browseCrawl(crawl, path, lib)) || (crawl === undefined && hand.missing ? { ...hand, missing: false, loading: true } : hand)
   const last = v.trail[v.trail.length - 1]
   return (
     <div className="mx-auto w-full max-w-[1140px] px-4 py-6 sm:px-6">
@@ -30,7 +34,7 @@ export function JanisBrowse({ path }: { path: string[] }) {
         </ol>
       </nav>
       {v.missing && <p className="text-sm text-[var(--paper-muted)]">Nothing here yet: the path goes past the tree. <Link href={last.href} className={LINK}>Back to {last.name}</Link>.</p>}
-      {!v.missing && !v.rows.length && <p className="text-sm text-[var(--paper-muted)]">I hold nothing under {last.name} yet.</p>}
+      {!v.missing && !v.rows.length && <p className="text-sm text-[var(--paper-muted)]">{v.loading ? `Loading ${last.name}…` : v.pending ? `JANIS's rows under ${last.name} are still being read.` : `Nothing listed under ${last.name}.`}</p>}
       {v.rows.length > 0 && (
         <ul className={cn("overflow-hidden rounded-lg border", LINE)}>
           {v.rows.map((r, i) => (

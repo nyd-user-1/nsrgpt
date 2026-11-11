@@ -12,7 +12,7 @@ import { elementName } from "@/lib/diagram/elements"
 export type Mark = "missing" | "same" | "ours"
 export type JanisNode = { name: string; slug: string; held: boolean; ours?: boolean; children?: JanisNode[]; leaf?: "elements"; href?: string }
 export type JanisRow = { name: string; href: string; held: boolean; mark: Mark; open?: boolean }
-export type JanisView = { trail: { name: string; href: string }[]; rows: JanisRow[]; nuclides: boolean; missing: boolean; source: "hand" | "crawl" }
+export type JanisView = { trail: { name: string; href: string }[]; rows: JanisRow[]; nuclides: boolean; missing: boolean; source: "hand" | "crawl"; pending?: boolean; loading?: boolean }
 
 export const markOf = (n: { held: boolean; ours?: boolean }): Mark => (!n.held ? "missing" : n.ours ? "ours" : "same")
 
@@ -200,51 +200,93 @@ export function handCounts(): MarkCounts {
 export const HOME_GAPS = ["Open .jns file", "TRANS Checker"]
 
 // ---------- brief 68's crawl: public/janis-tree.json ----------
-/** One node of new-worker-1's crawl of JANIS Web's tree: { label, path, href, children, leaf?, mark, counts }. */
-export type CrawlNode = { label: string; path?: string; href?: string; children?: CrawlNode[]; leaf?: { renderer_id?: string } | null; mark?: string; rule?: string; counts?: unknown }
+/** One node of new-worker-1's crawl of JANIS Web's tree: { label, path, href, children, leaf?, crawled, mark, rule,
+ *  counts }. `path` is JANIS's path below /janisweb/tree ("/N/'ENDF/B-VII.1'/SIG/Ni"); a name with a slash may be
+ *  quoted or not, so a row's own segment is its path less its parent's. `crawled: false`: its page is not read yet. */
+export type CrawlNode = {
+  label: string; path?: string; href?: string | null; children?: CrawlNode[]; leaf?: { renderer_id?: string } | null
+  crawled?: boolean | null; mark?: string; rule?: string; counts?: { missing?: number; same?: number; ours?: number }
+  /** Index rows of a library: its whole subtree is public/janis-tree/<file> (brief 68 split the tree at 20 MB). */
+  file?: string | null
+}
 
 const crawlMark = (m?: string): Mark => (m === "missing" ? "missing" : m === "ours" ? "ours" : "same")
-const segs = (p?: string) => (p ?? "").replace(/^\/?(janisweb\/)?(tree\/?)?/, "").split("/").filter(Boolean)
+/** Pages of mine for rows the crawl adds from our side. */
+const OUR_PAGES: Record<string, string> = { CINDA: "/cinda" }
+
+/** A row's own segment of its JANIS path, quotes off: "/N/'ENDF/B-VIII.0'" under "/N" -> "ENDF/B-VIII.0". */
+function ownSegment(parent: CrawlNode, child: CrawlNode): string {
+  const pp = (parent.path ?? "").replace(/\/+$/, "")
+  const cp = child.path ?? ""
+  const rest = cp.startsWith(`${pp}/`) ? cp.slice(pp.length + 1) : cp.split("/").pop() || child.label
+  return rest.replace(/^'(.*)'$/, "$1")
+}
+/** The URL slug of a segment, as the hand list writes it: a slash or a space becomes a dash. */
+const crawlSlug = (seg: string) => seg.replace(/\//g, "-").replace(/\s+/g, "-")
 
 /** "Yb171" (a crawl leaf's label) -> "70-Yb-171", the book page's name; null when the label is not a nuclide. */
 function crawlNuclide(label: string): string | null {
-  const m = /^([A-Z][a-z]{0,2})(\d{1,3})/.exec(label.trim())
+  const m = /^([A-Za-z][a-z]{0,2})(\d{1,3})/.exec(label.trim())
   const z = m ? ELEMENTS.indexOf(m[1]) : -1
   return m && z >= 0 ? nuclideLabel(z, parseInt(m[2], 10)) : null
 }
 
-/** What /janis/browse/<path> shows from the crawl, or null when the crawl has not reached that path (the hand list
- *  answers then). A child's link is its own JANIS path under /janis/browse. */
-export function browseCrawl(root: CrawlNode, path: string[]): JanisView | null {
+/** What /janis/browse/<path> shows from the crawl, or null when the path is not in it (the hand list answers then).
+ *  A level whose page is not read yet comes back with no rows and pending set. */
+/** The library file a path needs: the first index row on the path that names one (null when none does). */
+export function crawlFile(root: CrawlNode, path: string[]): string | null {
+  let at = root
+  for (const seg of path) {
+    const parent = at
+    const next = parent.children?.find((c) => crawlSlug(ownSegment(parent, c)) === seg || c.label === seg)
+    if (!next) return null
+    if (next.file) return next.file
+    at = next
+  }
+  return null
+}
+
+const BOOK_OF_BASE: Record<string, string> = { N: "n", G: "g", P: "p", D: "d", T: "t", HE3: "h", A: "a" }
+
+export function browseCrawl(root: CrawlNode, path: string[], lib?: CrawlNode | null): JanisView | null {
   const trail = [{ name: root.label || "Base", href: BASE }]
   let at = root
   for (let i = 0; i < path.length; i++) {
-    const next = at.children?.find((c) => { const p = segs(c.path); return p[p.length - 1] === path[i] || c.label === path[i] })
+    const parent = at
+    let next = parent.children?.find((c) => crawlSlug(ownSegment(parent, c)) === path[i] || c.label === path[i])
     if (!next) return null
-    at = next
     trail.push({ name: next.label, href: `${BASE}/${path.slice(0, i + 1).map(encodeURIComponent).join("/")}` })
+    if (next.file) {
+      if (!lib || lib.path !== next.path) return { trail, rows: [], nuclides: false, missing: false, source: "crawl", loading: true }
+      next = { ...lib, mark: lib.mark ?? next.mark }
+    }
+    at = next
   }
-  if (!at.children?.length) return null
+  const kids = at.children ?? []
   const here = path.map(encodeURIComponent).join("/")
+  if (!kids.length) return { trail, rows: [], nuclides: false, missing: false, source: "crawl", pending: at.crawled === false }
   return {
-    trail, nuclides: at.children.some((c) => c.leaf), missing: false, source: "crawl",
-    rows: at.children.map((c) => {
+    trail, nuclides: kids.some((c) => c.leaf), missing: false, source: "crawl",
+    rows: kids.map((c) => {
       const mark = crawlMark(c.mark)
-      const p = segs(c.path)
-      const slug = p[p.length - 1] ?? encodeURIComponent(c.label)
-      if (c.leaf) {
-        const nuc = crawlNuclide(c.label)
-        return { name: c.label, href: nuc ? `/janis/book/n/${nuc}/1` : "", held: mark !== "missing" && !!nuc, mark, open: true }
+      const nuc = crawlNuclide(c.label)
+      if (c.leaf || (!c.children?.length && c.crawled !== false && nuc && !c.file)) {
+        const book = BOOK_OF_BASE[path[0]] ?? "n"
+        return { name: c.label, href: nuc ? `/janis/book/${book}/${nuc}/1` : "", held: mark !== "missing" && !!nuc, mark, open: true }
       }
-      return { name: c.label, href: `${BASE}/${here ? `${here}/` : ""}${encodeURIComponent(slug)}`, held: mark !== "missing" || !!c.children?.length, mark }
+      const own = OUR_PAGES[c.label]
+      const open = !!c.children?.length || c.crawled === false || !!c.file
+      return { name: c.label, href: own ?? `${BASE}/${here ? `${here}/` : ""}${encodeURIComponent(crawlSlug(ownSegment(at, c)))}`, held: !!own || open, mark }
     }),
   }
 }
 
-/** Every mark the crawl carries, node by node (the root not counted). */
+/** The crawl's marks: the root's own tally where the crawler wrote one, else counted node by node (root not counted). */
 export function crawlCounts(root: CrawlNode): MarkCounts {
+  const c = root.counts
+  if (c && typeof c.missing === "number" && typeof c.same === "number" && typeof c.ours === "number") return { missing: c.missing, same: c.same, ours: c.ours }
   const out: MarkCounts = { missing: 0, same: 0, ours: 0 }
-  const walk = (n: CrawlNode) => n.children?.forEach((c) => { out[crawlMark(c.mark)] += 1; walk(c) })
+  const walk = (n: CrawlNode) => n.children?.forEach((k) => { out[crawlMark(k.mark)] += 1; walk(k) })
   walk(root)
   return out
 }
