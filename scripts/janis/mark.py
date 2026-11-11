@@ -13,7 +13,9 @@ Rules, from the lake:
   JANIS's), EXFOR, and Nubase 2020; every other library missing (BROND, EAF, FENDL, GEFY, IRDF, IRDFF, JEF-2.2, older
   JEFF, JEFF-4.0, older JENDL and the JENDL/* families, RUSFOND, PADF, TENDL before 2023, the TSL libraries, Nubase
   1997 to 2016, the -HE and MG variants).
-- Data type under a held release: same when nsr.endfb_sections has the MF in the category's sublibrary (cross sections
+- Data type under a held release: same when the lake has the MF in the category's sublibrary (nsr.endfb_sections for MF3;
+  endfb_ang, endfb_edist, endfb_eang, endfb_mult, endfb_photon_*, endfb_cov, endfb_res_ranges and endfb_res_cov for the
+  rest; endfb_fy and endfb_decay for MF8) (cross sections
   MF3, angular MF4, energy MF5, energy-angle MF6, fission yields MF8 MT454/459, decay MF8 MT457, resonances MF2, nu
   MF1 MT452/455/456, covariances MF31-35 and 40, photon production MF12-15, multiplicities MF9-10); under EXFOR, same
   (every quantity family is held as points or in the X4Pro tables).
@@ -103,6 +105,19 @@ def held_sets():
       FROM endfb_fy f JOIN endfb_materials m ON m.release = f.release AND m.file_name = f.file_name AND m.mat = f.mat
       WHERE f.release IN ({rel}) GROUP BY 1, 2, 3, 4, 5""")
     rows += [dict(zip(("release", "sublibrary", "kind", "za", "liso"), (r.get("release"), r.get("sublibrary"), r.get("kind"), r.get("za"), r.get("liso")))) for r in extra]
+    # endfb_sections indexes MF3 only; Files 2, 4 to 15, 32 and 33 sit in their own tables (briefs 43, 56, 64)
+    files = [("endfb_ang", "'4'"), ("endfb_edist", "'5'"), ("endfb_eang", "'6'"), ("endfb_mult", "CAST(mf AS varchar)"),
+             ("endfb_photon_xs", "CAST(mf AS varchar)"), ("endfb_photon_ang", "'14'"), ("endfb_photon_edist", "'15'"),
+             ("endfb_cov", "'33'"), ("endfb_res_ranges", "'2'"), ("endfb_res_cov", "'32'")]
+    union = "\n      UNION ALL ".join(f"SELECT DISTINCT release, sublibrary, file_name, mat, {k} AS kind FROM {t} WHERE release IN ({rel})"
+                                     for t, k in files)
+    more, scanned4 = athena_csv(f"""
+      WITH s AS ({union})
+      SELECT s.release, s.sublibrary, s.kind, CAST(m.za AS integer) AS za, coalesce(m.liso, 0) AS liso
+      FROM s JOIN endfb_materials m ON m.release = s.release AND m.file_name = s.file_name AND m.mat = s.mat
+      GROUP BY 1, 2, 3, 4, 5""")
+    rows += more
+    scanned3 += scanned4
     x4, scanned2 = athena_csv("""SELECT DISTINCT upper(projectile) AS projectile, CAST(target_za AS integer) AS za,
                                  coalesce(target_state, '') AS state FROM exfor_serve_search_index""")
     held = {"releases": {}, "exfor": {}, "scanned_bytes": scanned + scanned2 + scanned3}
@@ -208,9 +223,9 @@ def mark_release(lib, held, release, cat):
         for k in kinds:
             nucs |= have.get(k, set())
         if not nucs:
-            under(t, "missing", f"no {'/'.join(kinds) or 'matching'} sections for {release} in nsr.endfb_sections")
+            under(t, "missing", f"no {'/'.join(kinds) or 'matching'} sections for {release} in the lake")
             continue
-        set_mark(t, "same", f"{release} has MF {'/'.join(kinds)} in nsr.endfb_sections")
+        set_mark(t, "same", f"{release} has MF {'/'.join(kinds)} in the lake")
         zs = {int(n.split(':')[0]) // 1000 for n in nucs}
         for el in t.get("children", []):
             z = element_z(el["label"])
