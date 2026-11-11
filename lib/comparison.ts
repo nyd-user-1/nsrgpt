@@ -21,10 +21,10 @@ export const CHECKED = "2026-11-10"
 const CAPTURED = "2026-11-07"
 
 export const SITES: Site[] = [
-  { key: "nsrgpt", name: "NSRgpt", src: "", tinted: true },
-  { key: "nndc", name: "NNDC", src: "" },
-  { key: "iaea", name: "IAEA-NDS", src: "" },
-  { key: "nea", name: "NEA", src: "" },
+  { key: "nsrgpt", name: "NSRgpt", src: "/logos/nsrgpt.svg", tinted: true },
+  { key: "nndc", name: "NNDC", src: "/logos/nndc.jpg" },
+  { key: "iaea", name: "IAEA-NDS", src: "/logos/iaea-nds.png" },
+  { key: "nea", name: "NEA", src: "/logos/nea.png" },
 ]
 
 /* ── the cells ─────────────────────────────────────────────────────────────── */
