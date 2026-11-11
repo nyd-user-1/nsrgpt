@@ -86,7 +86,8 @@ export function ChartKebab({ chart, legend, scales, zoom, extra, rows, className
   const { openPane } = useShellPanel()
   const [, bump] = React.useState(0)
   const [state, setState] = React.useState<{ legend: boolean; xAxis: boolean; yAxis: boolean; grid: boolean; xType?: string; yType?: string; dataZoom: boolean; gl: boolean } | null>(null)
-  const table = tableOf(slugOf(path))
+  // a /viz chart's data table (lib/viz-tables.ts); other pages' charts have none
+  const table = path.startsWith("/viz/") ? tableOf(slugOf(path)) : null
   // Read the chart's own state when the menu opens, so the checks tell the truth.
   const read = async () => {
     const c = await instance(chart.current)
