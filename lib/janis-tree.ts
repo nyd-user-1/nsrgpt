@@ -125,7 +125,11 @@ export const JANIS_TREE: JanisNode = node("Base", true, [
     ...libs(["ENDF/B-VIII.0", "JENDL/AN-2005", ...TENDL_OLD], ["ENDF/B-VIII.1", "JEFF-3.3", "JENDL-5", "TENDL-2023"]),
   ], { slug: "A" }),
   node("Heavy particles data", false, undefined, { slug: "HVY" }),
-  node("Incident electron data", false, undefined, { slug: "E" }),
+  // Held (lead, 2026-11-11): every ENDF/B release from VI.8 carries the electrons sublibrary; JANIS lists only EXFOR here.
+  node("Incident electron data", true, [
+    exfor(["Cross sections", "Angular distributions", "Energy-angle distributions", "Partial differential data with respect to angle"]),
+    ...libs([], ["ENDF/B-VI.8", "ENDF/B-VII.0", "ENDF/B-VII.1", "ENDF/B-VIII.0", "ENDF/B-VIII.1"]),
+  ], { slug: "E" }),
   node("Incident antiprotons", false, undefined, { slug: "AP" }),
   node("Incident kaons,negative", false, undefined, { slug: "KN" }),
   node("Incident kaons,positive", false, undefined, { slug: "KP" }),
