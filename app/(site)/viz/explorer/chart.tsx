@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { MenuSelect, type MenuOption } from '@/components/viz/MenuSelect'
 import { GL_VIEW } from '@/lib/viz-3d'
@@ -185,7 +186,7 @@ export function ExplorerChart() {
 
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 
       <VizControls>
         <div className="flex flex-wrap gap-1">
