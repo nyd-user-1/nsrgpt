@@ -17,11 +17,23 @@ import { isTyping } from '@/lib/viz-engage'
 
 const ON = 'data-nav-on'
 
-// The masthead's cells by position: 0 the big box, 1 ledger row 1 col 1, 2 row 1 col 2, 3 row 2 col 1, 4 row 2 col 2.
-const M_RIGHT = [1, 2, 2, 4, 4]
-const M_LEFT = [0, 0, 1, 0, 3]
-const M_UP = [0, 1, 2, 1, 2]
-const M_DOWN: (number | { plateCol: number })[] = [{ plateCol: 0 }, 3, 4, { plateCol: 1 }, { plateCol: 3 }]
+// The masthead's cells by position: 0 the big box, then the ledger's cells in pages of four (row 1 col 1, row 1 col 2,
+// row 2 col 1, row 2 col 2), the pages side by side and scrolled into view as a cell is reached (2026-11-10). → from a
+// right-hand cell crosses to the next page's left-hand cell on the same row; ← from a left-hand cell goes back a page,
+// or to the big box from the first; ↓ from row 2 drops to the plate's row 1 as before.
+type Move = number | { plateCol: number }
+function mastheadMove(i: number, n: number, key: string): Move {
+  if (i === 0) return key === 'ArrowRight' ? 1 : key === 'ArrowDown' ? { plateCol: 0 } : 0
+  const k = i - 1
+  const page = Math.floor(k / 4)
+  const row = Math.floor((k % 4) / 2)
+  const col = k % 2
+  const at = (p: number, r: number, c: number) => 1 + p * 4 + r * 2 + c
+  if (key === 'ArrowRight') return col === 0 ? i + 1 : at(page + 1, row, 0) < n ? at(page + 1, row, 0) : i
+  if (key === 'ArrowLeft') return col === 1 ? i - 1 : page > 0 ? at(page - 1, row, 1) : 0
+  if (key === 'ArrowUp') return row === 1 ? i - 2 : i
+  return row === 0 ? (i + 2 < n ? i + 2 : i) : { plateCol: col === 0 ? 1 : 3 }
+}
 
 export function PlateKeys() {
   React.useEffect(() => {
@@ -85,7 +97,7 @@ export function PlateKeys() {
           const m = masthead()
           const i = m.indexOf(current)
           if (i < 0) return select(m[0] ?? null)
-          const to = e.key === 'ArrowRight' ? M_RIGHT[i] : e.key === 'ArrowLeft' ? M_LEFT[i] : e.key === 'ArrowUp' ? M_UP[i] : M_DOWN[i]
+          const to = mastheadMove(i, m.length, e.key)
           return typeof to === 'number' ? select(m[to] ?? current) : select(plateRow1(to.plateCol) ?? current)
         }
         // The plate.

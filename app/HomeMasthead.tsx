@@ -32,6 +32,8 @@ const SPELL = (chars: number) =>
   chars <= 9 ? ['@min-[12rem]:hidden', '@min-[12rem]:block'] : chars <= 13 ? ['@min-[20rem]:hidden', '@min-[20rem]:block'] : ['@min-[22rem]:hidden', '@min-[22rem]:block']
 
 export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
+  // Pages of four cells, two by two, side by side (Brendan, 2026-11-10): the first shows, the rest wait off to the right.
+  const pages = Array.from({ length: Math.ceil(ledger.length / 4) }, (_, p) => ledger.slice(p * 4, p * 4 + 4))
   return (
     // A rounded frame matching the app shell (2026-10-08); the grid inside sits
     // 1px outward so its own edge rules fall under the frame and are clipped.
@@ -60,14 +62,17 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
         </span>
       </Link>
 
-      {/* Eight cells in two columns, two rows tall: the rest scroll behind the name box, which stays put, the way the
-          contents plate scrolls (Brendan, 2026-11-10). Bottom-row cells drop border-b so it does not double with the
-          container's own bottom rule. */}
+      {/* The ledger in pages of four cells, two by two, side by side left to right the way the contents plate's pages
+          are: the first page shows, the rest sit off to the right until a horizontal scroll or the arrow keys bring
+          them in, and the name box beside them stays put. Bottom-row cells drop border-b so it does not double with
+          the container's own bottom rule. */}
       <div
         data-inspect="LedgerScroll"
-        className="grid max-h-[15rem] snap-y snap-mandatory grid-cols-2 overflow-y-auto overscroll-contain border-t border-l border-[var(--paper-rule)] [scrollbar-width:thin] @min-[56rem]:border-t-0"
+        className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain border-t border-l border-[var(--paper-rule)] @min-[56rem]:border-t-0"
       >
-        {ledger.map((l, i) => {
+        {pages.map((cells, p) => (
+        <div key={p} className="grid w-full shrink-0 snap-start snap-always grid-cols-2">
+        {cells.map((l, j) => {
           const fig = compact(l.value)
           const [short, full] = SPELL(l.value.toLocaleString('en-US').length)
           return (
@@ -78,7 +83,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
               data-countup-scope
               data-inspect="LedgerCell"
               data-nav="masthead"
-              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${i < ledger.length - 2 ? 'border-b' : ''} snap-start no-underline`}
+              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${j < 2 ? 'border-b' : ''} no-underline`}
               /* The word's kind colour, as the boxes of that kind wear it on hover. */
               style={{ '--kind': l.color, '--kind-tint': `color-mix(in oklab, ${l.color} 5%, var(--paper))` } as React.CSSProperties}
             >
@@ -115,6 +120,8 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
             </Link>
           )
         })}
+        </div>
+        ))}
       </div>
     </div>
     </div>
