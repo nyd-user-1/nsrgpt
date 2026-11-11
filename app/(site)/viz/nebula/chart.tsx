@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { diagonalTip, firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { AXIS, decayIndex, familyColor, familyOf, ink, keyOf, loadMassesAndDecay, nucName } from '@/lib/viz-physics'
 
 // Binding energy per nucleon against mass number, every AME2020 nuclide (chart batch A, 2026-11-04), each dot in
@@ -103,5 +104,5 @@ export function NebulaChart({ fill }: { fill?: boolean }) {
       off()
     }
   }, [ref])
-  return <div ref={ref} className={fill ? 'h-full min-h-0 w-full flex-1' : 'h-[78vh] w-full'} />
+  return <ChartBox chart={ref} className={fill ? 'h-full min-h-0 w-full flex-1' : 'h-[78vh] w-full'} />
 }
