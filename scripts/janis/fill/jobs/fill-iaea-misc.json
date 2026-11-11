@@ -1,0 +1,73 @@
+{
+  "name": "fill-iaea-misc",
+  "prefix": "lake/_raw/iaea",
+  "warm": "https://nds.iaea.org/",
+  "items": [
+    {
+      "url": "https://www-nds.iaea.org/amdc/ame2012/nubtab12.asc",
+      "key": "lake/_raw/Nubase-2012/nubtab12.asc"
+    },
+    {
+      "url": "https://www-nds.iaea.org/amdc/ame2003/nubtab03.asc",
+      "key": "lake/_raw/Nubase-2003/nubtab03.asc"
+    },
+    {
+      "url": "https://www-nds.iaea.org/amdc/nubase/nubtab97.asc",
+      "key": "lake/_raw/Nubase-1997/nubtab97.asc"
+    },
+    {
+      "url": "https://www-nds.iaea.org/amdc/ame1995/nubtab97.asc",
+      "key": "lake/_raw/Nubase-1997/nubtab97.asc"
+    },
+    {
+      "url": "https://www-nds.iaea.org/amdc/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/amdc/ame2012/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/amdc/ame2003/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl3/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl31/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl31b/data/neutron/index.html"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl/fendl31b/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl/archive.html"
+    },
+    {
+      "url": "https://nds.iaea.org/IRDFF/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/IRDFF/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl21/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl2.1/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/fendl/fendl21.html"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/IRDF-2002-G/"
+    }
+  ],
+  "seeds": [],
+  "scope": [],
+  "hosts": [],
+  "lines": [
+    0
+  ],
+  "rate": 1.0,
+  "minutes": 30
+}

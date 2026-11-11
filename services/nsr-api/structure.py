@@ -37,7 +37,9 @@ RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV
             # brief 70 (elpis-fill): the libraries JANIS lists that the lake lacked, every one served INDEXED
             "JEFF-4.0", "JEFF-3.1.1", "JEF-2.2", "B-VI.8-HE", "JENDL-4.0-HE", "JENDL-AD-2017", "JENDL-DEU-2020",
             "JENDL-PD-2016", "IAEA-PD-2019", "PADF-2007", "RUSFOND-2010", "BROND-3.1", "BROND-2.2", "CENDL-2.1", "FENDL-2.1",
-            "IRDFF-II", "IRDFF-1.05", "IRDFF-1.0", "IRDF-2002"]
+            "IRDFF-II", "IRDFF-1.05", "IRDFF-1.0", "IRDF-2002",
+            "JEFF-3.2", "JEFF-3.1.2", "JEFF-3.1", "JEFF-3.0", "JENDL-4.0", "JENDL-4.0u", "JENDL-3.3", "JENDL-HE-2007", "JENDL-AC-2008",
+            "JENDL-PD-2016.1", "JENDL-PD-2004", "JENDL-AN-2005", "CENDL-3.1", "EAF-2010", "IRDF-2002-MG"]
 # Releases with too many MF3 rows to load into memory (brief 43): read like the POINT releases, through xs_index (held in
 # memory) and xs_series/series.bin (one S3 byte-range request a section), built by serve.py point_files.
 INDEXED = ["JEFF-3.3", "JENDL-5", "TENDL-2023"] + RELEASES[RELEASES.index("CENDL-3.2") + 1:]

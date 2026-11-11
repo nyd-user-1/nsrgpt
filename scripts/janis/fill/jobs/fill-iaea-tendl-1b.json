@@ -1,0 +1,41 @@
+{
+  "name": "fill-iaea-tendl-1b",
+  "prefix": "lake/_raw/iaea",
+  "warm": "https://nds.iaea.org/",
+  "items": [
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2014/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2012/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2011/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2010/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/TENDL-2009/n/"
+    }
+  ],
+  "seeds": [],
+  "scope": [
+    "https://www-nds.iaea.org/public/download-endf/TENDL-2014/n/",
+    "https://www-nds.iaea.org/public/download-endf/TENDL-2012/n/",
+    "https://www-nds.iaea.org/public/download-endf/TENDL-2011/n/",
+    "https://www-nds.iaea.org/public/download-endf/TENDL-2010/n/",
+    "https://www-nds.iaea.org/public/download-endf/TENDL-2009/n/"
+  ],
+  "skip": "\\?C=|-index\\.htm",
+  "files": "\\.(zip|lst)$",
+  "hosts": [
+    "www-nds.iaea.org",
+    "nds.iaea.org"
+  ],
+  "lines": [
+    0
+  ],
+  "rate": 2.0,
+  "minutes": 900
+}

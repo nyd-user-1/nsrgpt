@@ -89,8 +89,9 @@ def athena_csv(sql):
 
 
 def lake_name(label):
-    """A JANIS library label as the lake names its release (brief 70): ENDF/B-VII.0 -> B-VII.0, JENDL/AD-2017 -> JENDL-AD-2017."""
-    return label.strip().replace("ENDF/B-", "B-").replace("/", "-")
+    """A JANIS library label as the lake names its release (brief 70): ENDF/B-VII.0 -> B-VII.0, JENDL/AD-2017 -> JENDL-AD-2017,
+    IRDF-2002 MG -> IRDF-2002-MG."""
+    return label.strip().replace("ENDF/B-", "B-").replace("/", "-").replace(" ", "-")
 
 
 # Brief 70: libraries the lake holds as files, not parsed into tables: JANIS label -> (format, where the files are).
@@ -99,7 +100,11 @@ CATALOGUED = {
     "Nubase 2012": ("AMDC NUBASE2012 text table", "lake/_raw/Nubase-2012/nubtab12.asc"),
     "Nubase 2003": ("AMDC NUBASE2003 text table", "lake/_raw/Nubase-2003/nubtab03.asc"),
     "Nubase 1997": ("AMDC NUBASE97 text table", "lake/_raw/Nubase-1997/nubtab97.asc"),
+    "EAF-2007": ("EAF-2007 neutron cross-section tape in EAF's own layout (no MF1 directory)",
+                 "lake/_raw/EAF-2007/eaf_n_xs_20070.zip"),
 }
+# Brief 70: releases parsed only in part; the note rides on the library node.
+PARTIAL = {"JENDL-4.0u": "100 of JENDL-4.0u2's 406 neutron materials (fetched before the night's proxy allowance ran out)"}
 
 
 def lake_has(key):
@@ -265,6 +270,8 @@ def catalogued(lib, name):
 
 def mark_release(lib, held, release, cat):
     set_mark(lib, "same", f"{release} is in nsr.endfb_materials")
+    if release in PARTIAL:
+        lib["note"] = PARTIAL[release]
     subs = sublibs(held, release, cat)
     have = {}
     for s in subs:
@@ -399,7 +406,9 @@ def split(tree):
 
 
 def main():
-    tree = json.loads(s3.get_object(Bucket=BUCKET, Key=f"{OUT}/tree-raw.json")["Body"].read())
+    # brief 70: --raw=<key> marks another copy of the crawl (a kept version, when the crawl is mid-rebuild)
+    raw = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--raw=")), f"{OUT}/tree-raw.json")
+    tree = json.loads(s3.get_object(Bucket=BUCKET, Key=raw)["Body"].read())
     held = held_sets()
     mark_tree(tree, held)
     ours_node(tree, "CINDA", "nsr.cinda_lines (603,010 lines); JANIS searches CINDA but its tree has no CINDA row")

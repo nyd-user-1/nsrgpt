@@ -360,8 +360,13 @@ def stream_files(name, f):
     elif n.endswith((".tgz", ".tar.gz", ".tar")):
         with tarfile.open(fileobj=f, mode="r:gz" if n.endswith("gz") else "r:") as t:  # members read in order, each seekable
             for m in t:
-                if m.isfile() and not m.name.lower().endswith(SKIP_EXT):
-                    yield m.name, m.size, lines_of(t.extractfile(m))
+                if not m.isfile() or m.name.lower().endswith(SKIP_EXT):
+                    continue
+                if m.name.lower().endswith((".zip", ".tgz", ".tar.gz", ".tar", ".gz")):  # JENDL-3.3's per-material .dat.gz
+                    for p, ls in nsr_count.endf_lines(m.name, t.extractfile(m).read()):
+                        yield f"{m.name}/{p}", None, iter(ls)
+                    continue
+                yield m.name, m.size, lines_of(t.extractfile(m))
     else:  # brief 70: a plain tape (BROND-2.2's brond22n.dat), read as one file
         yield name, None, lines_of(f)
 
@@ -392,7 +397,9 @@ def archive_files():
                     continue
                 seen[(base, size)] = path
                 a["files_read"] += 1
-                yield f"{arch}/{path}", word, lines
+                # brief 70: #fy holds both yield kinds in one archive (JENDL/FPY-2011's .jnfy11 and .jsfy11 files)
+                w = ("sfy" if re.search(r"sfy|_s\.", base, re.I) else "nfy") if word == "fy" else word
+                yield f"{arch}/{path}", w, lines
 
 
 def main():
