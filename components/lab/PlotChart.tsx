@@ -5,6 +5,7 @@ import { useMemo, useRef, type CSSProperties } from "react"
 import { toast } from "sonner"
 
 import { useEChart, type ChartClick } from "@/components/viz/use-echart"
+import { ChartBox } from "@/components/viz/chart-kebab"
 import { copyPng } from "@/lib/canvas-png"
 import { downloadSvg, svgFileName } from "@/lib/canvas-svg"
 import type { Dataset, Series } from "@/lib/lab/blocks"
@@ -84,7 +85,7 @@ export function PlotChart({ points, series, ratio, mode, highlight, title, onPoi
   return (
     <div className={className} style={style}>
       <div className="nodrag nowheel relative h-full w-full">
-        <div ref={ref} className="h-full w-full" />
+        <ChartBox chart={ref} className="h-full w-full" />
         <div className="absolute right-1 top-1 flex gap-1">
           <button type="button" title="Export SVG" aria-label="Export the plot as SVG" onClick={exportSvg} className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] text-[var(--paper-muted)] hover:text-[var(--paper-text)]">
             <Download className="h-3.5 w-3.5" />
