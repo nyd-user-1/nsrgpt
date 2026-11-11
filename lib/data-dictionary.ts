@@ -490,6 +490,44 @@ export const DICTIONARY: Field[] = [
     ["held", "boolean", "Whether the lake holds the image (held_key names it)."],
   ]),
 
+  // CINDA (brief 65, new-worker-1): /cinda, /cinda/block/{id}, /cinda/pickers/{name}
+  ...rows("IAEA", "cinda_lines", "/cinda", [
+    ["block_id", "bigint", "The CINDA block the line belongs to: lines with the same target, reaction, quantity, work and reference.", ["/cinda"]],
+    ["target", "string", "The target, symbol form, as U-235 (natural U-0; a material code such as H-WTR for water).", ["/cinda"]],
+    ["target_za", "int", "Z × 1000 + A; Z × 1000 for a natural element or a material.", ["/cinda"]],
+    ["reaction", "string", "Projectile and process as CINDA writes them, as N,G or P,X.", ["/cinda"]],
+    ["quantity", "string", "The CINDA quantity code, as CS, DA or RP; quantity_word names it (EXFOR dictionary 45).", ["/cinda"]],
+    ["old_quantity", "string", "The quantity code of the old CINDA, before 2010, as NG or TOT."],
+    ["e_min_ev", "double", "Lowest incident energy, eV.", ["/cinda"]],
+    ["e_max_ev", "double", "Highest incident energy, eV; empty for a single energy.", ["/cinda"]],
+    ["energy_text", "string", "The energy as a word where CINDA gives one: Maxw, Pile, Fiss, Spon, Cold, NDG (no data given).", ["/cinda"]],
+    ["lab", "string", "The laboratory, EXFOR dictionary 3's code with the area digit first, as 1USAORL; lab_name names it.", ["/cinda"]],
+    ["work_type", "string", "expt, theo, eval, revw or comp; M where CINDA codes M.", ["/cinda"]],
+    ["origin", "string", "Where the line came from: the old CINDA, imported from EXFOR, or imported from NSR."],
+    ["reference_text", "string", "The reference as CINDA writes it: type, code, volume, page, as J,PR/C,85,142.", ["/cinda"]],
+    ["year", "int", "The year published.", ["/cinda"]],
+    ["author", "string", "The first author.", ["/cinda"]],
+    ["comment", "string", "CINDA's comment on the work, as TBL or GRPH."],
+    ["nsr_key", "string", "The NSR key number, where the line names one; nsr_resolved says it is in NSR here.", ["/cinda"]],
+    ["exfor_entry", "string", "The EXFOR entry, where the line names one; exfor_resolved says it is in EXFOR here.", ["/cinda"]],
+    ["date_entered", "string", "The date the line was entered into CINDA."],
+  ]),
+  ...rows("IAEA", "cinda_dict_quantities", "/cinda/pickers/quantities", [
+    ["code", "string", "The CINDA quantity code."],
+    ["word", "string", "Its name, from EXFOR dictionary 45."],
+    ["lines", "bigint", "CINDA lines with the quantity."],
+  ]),
+  ...rows("IAEA", "cinda_dict_labs", "/cinda/pickers/labs", [
+    ["code", "string", "The laboratory code."],
+    ["name", "string", "Its name, from EXFOR dictionary 3; empty for the codes of lines imported from NSR."],
+    ["lines", "bigint", "CINDA lines from the laboratory."],
+  ]),
+  ...rows("IAEA", "cinda_dict_types", "/cinda/pickers/types", [
+    ["code", "string", "The work-type letter as CINDA codes it."],
+    ["word", "string", "expt, theo, eval, revw, comp, or the letter itself."],
+    ["lines", "bigint", "CINDA lines of the type."],
+  ]),
+
   // Every dataset: /search, /suggest
   ...rows("Every dataset", "search_docs", "/search", [
     ["type", "string", "Kind of record: exfor_dataset, exfor_entry, nsr, ensdf_dataset, xundl_dataset and others.", SEARCH],
