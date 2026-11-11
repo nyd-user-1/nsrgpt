@@ -125,7 +125,7 @@ async function endfSections(v: Values, keep: (s: Section) => boolean): Promise<R
     for (const s of secs[i].filter(keep)) {
       const book = s.mf === 3 && BOOK_OF_SUB[m.sublibrary] && t ? `/elpis/book/${BOOK_OF_SUB[m.sublibrary]}/${bookLabelOf(t.name, t.z)}/${s.mt}` : null
       rows.push({
-        key: `${m.release}/${m.sublibrary}/${m.mat}/${s.mf}/${s.mt}`,
+        key: `${m.release}/${m.sublibrary}/${m.mat}/${s.mf}/${s.mt}/${rows.length}`,
         cells: [BASE_OF[m.sublibrary] ?? m.sublibrary, libraryName(m.release), <Link key="m" href={matHref(m, s.mf, s.mt)} className={LINK}>{m.name}</Link>, s.mf,
           book ? <Link key="b" href={book} className={LINK}>{s.mt}</Link> : s.mt],
       })
@@ -139,7 +139,7 @@ function bookLabelOf(name: string, z?: number): string {
   return m && z !== undefined ? `${z}-${m[1]}-${m[2] === "nat" ? "Nat" : m[2]}${m[3] ?? ""}` : name
 }
 const materialRows = (mats: Material[]): Result => ({
-  rows: mats.map((m) => ({ key: `${m.release}/${m.sublibrary}/${m.mat}`, cells: [BASE_OF[m.sublibrary] ?? m.sublibrary, libraryName(m.release), <Link key="m" href={matHref(m)} className={LINK}>{m.name}</Link>, "", ""] })),
+  rows: mats.map((m, i) => ({ key: `${m.release}/${m.sublibrary}/${m.mat}/${i}`, cells: [BASE_OF[m.sublibrary] ?? m.sublibrary, libraryName(m.release), <Link key="m" href={matHref(m)} className={LINK}>{m.name}</Link>, "", ""] })),
   note: "Give a target nuclide (Z and A) to list its sections; without one I list materials.",
 })
 
