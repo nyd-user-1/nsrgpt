@@ -43,6 +43,7 @@ import time
 import boto3
 
 BUCKET, REGION, OUT = "nsr-lake-613473203863", "us-east-2", "lake/janis/2026-11-10"
+CURRENT = "lake/janis/current"  # brief 70: the split files and index the pages read, served through CloudFront
 s3 = boto3.client("s3", region_name=REGION)
 athena = boto3.client("athena", region_name=REGION)
 
@@ -388,8 +389,12 @@ def split(tree):
         idx["children"].append(c)
     files["index.json"] = idx
     for name, body in files.items():
-        s3.put_object(Bucket=BUCKET, Key=f"{OUT}/split/{name}", ContentType="application/json",
-                      Body=json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode())
+        data = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode()
+        s3.put_object(Bucket=BUCKET, Key=f"{OUT}/split/{name}", ContentType="application/json", Body=data)
+        # brief 70: the copy the Elpis pages read, overwritten each run, through nsr-api's CloudFront
+        # (https://daw1qggkn69lv.cloudfront.net/lake/janis/current/<name>, scripts/gnds/cdn.sh), fresh within five minutes
+        s3.put_object(Bucket=BUCKET, Key=f"{CURRENT}/{name}", ContentType="application/json", Body=data,
+                      CacheControl="public, max-age=300")
     return len(files)
 
 
