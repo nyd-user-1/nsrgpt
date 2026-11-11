@@ -39,9 +39,15 @@ type Points = { datasets: Ds[]; points: Pt[]; truncated?: boolean; error?: strin
 
 const cache = new Map<string, Promise<BookData>>()
 
+/** GET a route. Python's json writes a NaN float as a bare NaN, which JSON.parse refuses, and one such value lost a whole
+ *  answer (C5's NaN uncertainties, fixed at the source in scripts/parse/serve/points.py on 2026-11-11): a value that is
+ *  NaN or ±Infinity is read as null. */
 async function getJson<T>(path: string): Promise<{ ok: boolean; status: number; body: T }> {
   const r = await fetch(apiUrl(path))
-  return { ok: r.ok, status: r.status, body: (await r.json().catch(() => ({}))) as T }
+  const text = await r.text().catch(() => "")
+  let body = {} as T
+  try { body = JSON.parse(text.replace(/([:[,]\s*)-?(?:NaN|Infinity)\b/g, "$1null")) as T } catch { /* not JSON: the caller sees no fields */ }
+  return { ok: r.ok, status: r.status, body }
 }
 
 const q = (o: Record<string, string | number | undefined>) =>

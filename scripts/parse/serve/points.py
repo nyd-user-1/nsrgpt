@@ -10,6 +10,9 @@ EN-RSL-HW), the value (DATA, DATA-CM, DATA-APRX) and its error (DATA-ERR, ERR-T,
 each converted with the dictionary's factor for its unit (EXFOR dictionary 25). Rows with no energy are left out, and so
 are datasets whose reaction code combines reactions (it starts with "(": ratios such as (U-235(N,F),SIG)/(LI-6(N,T),SIG),
 sums, products), since their values are not the reaction's quantity in its unit (brief 51 follow-up).
+NaN and infinite values (C5 carries NaN uncertainties: 5,165 dData of 36 datasets in the 2026-10-28 build) are written as
+NULL: JSON has no NaN, and one such point in an /exfor/points answer made the whole answer unreadable to a browser (brief 69,
+elpis-wire, 2026-11-11: U-235 (n,f) between 1.78 and 100 eV).
 Sorted by target_za, reaction, sf6 and energy, in row groups of 10,000, so a search with an energy window reads only the
 row groups for its reactions and energies (DuckDB prunes on the row groups' min and max). Counts go to lake/_work/jobs/points-state.json.
 """
@@ -38,6 +41,7 @@ c.execute("LOAD httpfs")
 c.execute(f"CREATE SECRET lake (TYPE s3, KEY_ID '{cr.access_key}', SECRET '{cr.secret_key}', SESSION_TOKEN '{cr.token}', "
           "REGION 'us-east-2')")
 q = c.execute
+q("CREATE MACRO fin(x) AS CASE WHEN isnan(x) OR isinf(x) THEN NULL ELSE x END")  # NaN and ±inf to NULL (JSON has neither)
 q(f"CREATE TABLE si AS SELECT dataset, entry, subent, pointer, target_za, reaction, sf6, has_c5, code FROM read_parquet('{SI}')")
 q(f"""CREATE TABLE c5 AS SELECT dataset, energy AS e_ev, d_energy AS de_ev, data AS xs, coalesce(d_data, d_tot) AS dxs,
       data_units AS units, coalesce(commented, false) AS commented FROM read_parquet('{C5}')""")
@@ -73,12 +77,15 @@ q(f"""CREATE TABLE j4 AS
       LEFT JOIN u udy ON udy.code = dy.unit
       LEFT JOIN cen ON cen.dataset = y.dataset LEFT JOIN u uc ON uc.code = cen.unit AND uc.fam = 'E'
       WHERE y.role = 'data'""")
-q("""CREATE TABLE allpts AS
+q("""CREATE TABLE allraw AS
      SELECT s.code, s.dataset, s.entry, s.subent, s.target_za, s.reaction, s.sf6, x.source, x.e_ev, x.de_ev, x.xs AS xs_b,
             x.dxs AS dxs_b, x.units
      FROM (SELECT dataset, e_ev, de_ev, xs, dxs, units, 'C5' AS source FROM c5 WHERE NOT commented
            UNION ALL SELECT dataset, e_ev, de_ev, xs, dxs, units, 'J4' FROM j4 WHERE e_ev IS NOT NULL) x
      JOIN si s USING (dataset)""")
+# NaN or infinite uncertainties become NULL; a point whose energy or value is NaN or infinite is left out.
+q("""CREATE TABLE allpts AS SELECT * REPLACE (fin(de_ev) AS de_ev, fin(dxs_b) AS dxs_b) FROM allraw
+     WHERE NOT coalesce(isnan(e_ev) OR isinf(e_ev) OR isnan(xs_b) OR isinf(xs_b), false)""")
 q("CREATE TABLE pts AS SELECT * EXCLUDE (code) FROM allpts WHERE NOT starts_with(coalesce(code, ''), '(')")
 os.makedirs(OUT, exist_ok=True)
 for f in os.listdir(OUT):
@@ -100,6 +107,8 @@ state = {
     "c5_rows_not_in_search_index": one("SELECT count(*) FROM c5 WHERE dataset NOT IN (SELECT dataset FROM si)"),
     "j4_datasets_without_c5": one("SELECT count(*) FROM need"),
     "j4_rows_without_energy_left_out": one("SELECT count(*) FROM j4 WHERE e_ev IS NULL"),
+    "nan_or_inf_uncertainties_set_null": one("SELECT count(*) FROM allraw WHERE isnan(dxs_b) OR isinf(dxs_b) OR isnan(de_ev) OR isinf(de_ev)"),
+    "nan_or_inf_energy_or_value_left_out": one("SELECT count(*) FROM allraw WHERE coalesce(isnan(e_ev) OR isinf(e_ev) OR isnan(xs_b) OR isinf(xs_b), false)"),
     "combined_reaction_datasets_left_out": one("SELECT count(DISTINCT dataset) FROM allpts WHERE starts_with(coalesce(code, ''), '(')"),
     "combined_reaction_rows_left_out": one("SELECT count(*) FROM allpts WHERE starts_with(coalesce(code, ''), '(')"),
     "combined_reaction_reason": "the reaction code combines reactions (ratio, sum, product: it starts with '('), so the values "
