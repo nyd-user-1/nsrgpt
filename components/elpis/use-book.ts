@@ -80,9 +80,15 @@ export function loadBook(o: { name: string; sub: string; mt: number; releases: s
     const errors: string[] = []
     const chunks: string[][] = []
     for (let i = 0; i < o.releases.length; i += 6) chunks.push(o.releases.slice(i, i + 6))
-    const xsP = Promise.all(chunks.map((c) =>
+    type Xs = { ok: boolean; status: number; body: { series?: XsSeries[]; error?: string } }
+    const xsOnce = (c: string[]): Promise<Xs> =>
       getJson<{ series?: XsSeries[]; error?: string }>(`/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: c[0], compare: c.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined })}`)
-        .catch((e) => ({ ok: false, status: 0, body: { error: e instanceof Error ? e.message : String(e) } as { series?: XsSeries[]; error?: string } }))))
+        .catch((e) => ({ ok: false, status: 0, body: { error: e instanceof Error ? e.message : String(e) } }))
+    // A chunk that times out (a cold Lambda loading a release's table) is asked once more; the table is warm by then.
+    const xsP = Promise.all(chunks.map(async (c) => {
+      const first = await xsOnce(c)
+      return first.ok || first.status === 404 || (first.status >= 400 && first.status < 500) ? first : xsOnce(c)
+    }))
     // EXFOR's trouble is reported beside the lines, never in their place.
     const exP = o.reaction ? points(o.target, o.reaction).catch((e) => ({ ds: new Map<string, Ds>(), pts: [] as Pt[], truncated: false, error: `EXFOR: ${e instanceof Error ? e.message : String(e)}` })) : Promise.resolve(null)
     const [xs, ex] = await Promise.all([xsP, exP])
