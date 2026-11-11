@@ -7,7 +7,9 @@
 
 export type SiteKey = "nsrgpt" | "nndc" | "iaea" | "nea"
 
-export type Site = { key: SiteKey; name: string; sub: string; price: string; button: { label: string; href: string }; mine?: boolean }
+/** `src`: the organisation's logo (an image path or URL), drawn 20 px before its name; empty draws a neutral circle until
+ *  Brendan fills it in. `tinted`: the column shaded as the reference's recommended plan is. */
+export type Site = { key: SiteKey; name: string; src: string; tinted?: boolean }
 
 /** true: has it (a check); a string: has it, this much; null: not found on the date checked. The title says where. */
 export type Cell = { v: true | string | null; title: string }
@@ -19,10 +21,10 @@ export const CHECKED = "2026-11-10"
 const CAPTURED = "2026-11-07"
 
 export const SITES: Site[] = [
-  { key: "nsrgpt", name: "NSRgpt", sub: "Find, read, connect and work with nuclear data. In seconds.", price: "Free to read; sign in to run", button: { label: "Open", href: "/" }, mine: true },
-  { key: "nndc", name: "NNDC", sub: "National Nuclear Data Center, Brookhaven", price: "Free", button: { label: "Open", href: "https://www.nndc.bnl.gov" } },
-  { key: "iaea", name: "IAEA-NDS", sub: "Nuclear Data Section, Vienna", price: "Free", button: { label: "Open", href: "https://nds.iaea.org" } },
-  { key: "nea", name: "NEA", sub: "OECD Nuclear Energy Agency Data Bank, Paris", price: "Free, Java desktop and web", button: { label: "Open", href: "https://www.oecd-nea.org/janisweb/" } },
+  { key: "nsrgpt", name: "NSRgpt", src: "", tinted: true },
+  { key: "nndc", name: "NNDC", src: "" },
+  { key: "iaea", name: "IAEA-NDS", src: "" },
+  { key: "nea", name: "NEA", src: "" },
 ]
 
 /* ── the cells ─────────────────────────────────────────────────────────────── */

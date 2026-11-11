@@ -3,10 +3,9 @@
 // its row heights and expand-collapse behaviour, re-dressed in the paper tokens. One tbody per group: the group row is a
 // 44 px ghost button (chevron, name, row count) with each site's "n of m"; a feature row is 40 px (label px-4 py-2.5,
 // cells px-3 md:px-4, a check, a dash or a short value). NSRgpt's column is tinted, as the reference's recommended plan
-// is, with a Mine pill where "Best value" sits. Under md the table shows one site at a time, as the reference does.
-// The matrix and where each cell was checked are lib/comparison.ts.
+// is. Each name has its logo before it (lib/comparison.ts `src`; a neutral circle until set). Under md the table shows
+// one site at a time, as the reference does. The matrix and where each cell was checked are lib/comparison.ts.
 import { Fragment, useState } from "react";
-import Link from "next/link";
 import { Check, ChevronDown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style";
@@ -64,32 +63,19 @@ export function ComparisonTable() {
 }
 
 function Matrix({ sites, open, toggle, className }: { sites: Site[]; open: Record<string, boolean>; toggle: (name: string) => void; className?: string }) {
-  const col = (s: Site, i: number) => cn(i > 0 && "border-s", LINE, s.mine && TINT);
+  const col = (s: Site, i: number) => cn(i > 0 && "border-s", LINE, s.tinted && TINT);
   return (
     <table className={cn("w-full table-fixed caption-bottom text-sm text-[var(--paper-text)] [&_tbody:last-of-type_tr:last-child]:border-b-0", className)}>
       <thead>
         <tr className="border-0">
           <th scope="col" className="w-[38%] md:w-56 lg:w-64"><span className="sr-only">Feature</span></th>
           {sites.map((s, i) => (
-            <th key={s.key} scope="col" className={cn("h-auto whitespace-normal px-3 pt-5 pb-0 text-start align-bottom font-normal md:px-4", col(s, i))}>
-              <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xl leading-tight tracking-tight" style={SERIF}>
+            <th key={s.key} scope="col" className={cn("h-auto whitespace-normal px-3 py-5 text-center align-bottom font-normal md:px-4", col(s, i))}>
+              <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xl leading-tight tracking-tight" style={SERIF}>
+                <Logo src={s.src} />
                 {s.name}
-                {s.mine && <span className="rounded-full border border-[var(--pax2-red)] px-2 py-0.5 font-sans text-[11px] leading-none text-[var(--pax2-red)]" style={{ fontFamily: "var(--font-sans)" }}>Mine</span>}
               </span>
             </th>
-          ))}
-        </tr>
-        <tr className="border-0">
-          <th scope="row"><span className="sr-only">Price</span></th>
-          {sites.map((s, i) => (
-            <td key={s.key} className={cn("whitespace-normal px-3 pt-1 pb-5 align-top md:px-4", col(s, i))}>
-              {/* two lines held for the sub and for the price, so the buttons line up across the columns */}
-              <p className="min-h-8 text-xs text-[var(--paper-muted)]">{s.sub}</p>
-              <p className="mt-2 flex h-10 items-start gap-1"><span className="text-sm font-medium leading-snug">{s.price}</span></p>
-              <Button asChild variant={s.mine ? "default" : "outline"} className="mt-1 h-9 w-full rounded-full">
-                {s.button.href.startsWith("/") ? <Link href={s.button.href}>{s.button.label}</Link> : <a href={s.button.href} target="_blank" rel="noopener noreferrer">{s.button.label}</a>}
-              </Button>
-            </td>
           ))}
         </tr>
       </thead>
@@ -135,6 +121,13 @@ function Matrix({ sites, open, toggle, className }: { sites: Site[]; open: Recor
       })}
     </table>
   );
+}
+
+/** The organisation's logo, 20 px; a neutral circle while `src` is empty. */
+function Logo({ src }: { src: string }) {
+  if (!src) return <span aria-hidden="true" className="inline-block size-5 shrink-0 rounded-full border border-[var(--paper-rule)]/20 bg-[var(--paper-quiet)]" />;
+  // eslint-disable-next-line @next/next/no-img-element -- a 20 px logo from any host, set by hand in lib/comparison.ts
+  return <img src={src} alt="" width={20} height={20} className="size-5 shrink-0 rounded-full object-contain" />;
 }
 
 function Value({ c }: { c: Cell }) {
