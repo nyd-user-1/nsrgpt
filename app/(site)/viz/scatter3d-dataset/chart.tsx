@@ -6,6 +6,7 @@
 // rises in spikes; fast and charged-particle work fills the MeV end.
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { PROJECTILE_GROUPS, fromLog, loadExfor, projectileGroup, targetName } from '@/lib/viz-exfor'
 
@@ -47,5 +48,5 @@ export function Scatter3dDatasetChart() {
       },
     ],
   }), true, firstSeriesRow, { marks: true })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
