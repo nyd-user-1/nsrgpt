@@ -17,7 +17,7 @@ type Job = { id: string; status: "queued" | "running" | "done" | "failed"; start
 
 /** A long curve thinned for charting as the API thins the POINT files: in each of `steps` equal log-energy steps, the
  *  lowest and the highest point, in energy order (a log axis wants detail spread by decade, not by index). */
-export function thinLog(x: number[], y: number[], steps = 4000): { x: number[]; y: number[] } {
+export function thinLog(x: number[], y: number[], steps = 8000): { x: number[]; y: number[] } {
   if (x.length <= steps * 2) return { x, y }
   const lo = Math.log(Math.max(x[0], 1e-12)), span = Math.log(x[x.length - 1]) - lo || 1
   const ox: number[] = [], oy: number[] = []

@@ -1,1 +1,1 @@
-{"unit":"materials","lib":6,"types":{"SIG":5,"DADE":5},"el":{"SIG":{"Li":2,"He":2,"H":1},"DADE":{"n":5}},"iso":{"SIG":{"Li7":714,"He3":156,"He4":201,"Li6":425,"H3":788},"DADE":{"n0":20}}}
+{"unit":"materials","lib":6,"types":{"SIG":5,"DADE":5},"el":{"SIG":{"He":2,"H":1,"Li":2},"DADE":{"n":5}},"iso":{"SIG":{"He3":156,"He4":201,"H3":788,"Li6":425,"Li7":714},"DADE":{"n0":20}}}
