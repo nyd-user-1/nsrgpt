@@ -1,7 +1,8 @@
 "use client"
 // /elpis/book (brief 69): the book page's data, client-side as the Lab fetches (lib/api-url.ts, straight to the API).
 //   useBookIndex(p)  public/elpis/book-<p>.json (scripts/elpis/book-index.mjs), once a session.
-//   useBookData(...) one /endf/xs call with compare= every release the index says holds (material, sublibrary, MT), and
+//   useBookData(...) /endf/xs with compare= every release the index says holds (material, sublibrary, MT), six releases a
+//                    call, the calls at once (46 releases in one call outran the gateway's 30 s on a cold Lambda), and
 //                    /exfor/points for the same target and reaction, quantity SIG. The points route stops at 50,000
 //                    points (sorted by dataset, so the later datasets would go missing): a truncated answer is fetched
 //                    again in eight energy windows, each with its own 50,000.
@@ -77,15 +78,17 @@ export function loadBook(o: { name: string; sub: string; mt: number; releases: s
   const key = JSON.stringify(o)
   if (!cache.has(key)) cache.set(key, (async () => {
     const errors: string[] = []
-    const xsP = o.releases.length
-      ? getJson<{ series?: XsSeries[]; error?: string }>(`/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: o.releases[0], compare: o.releases.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined })}`)
-      : Promise.resolve(null)
+    const chunks: string[][] = []
+    for (let i = 0; i < o.releases.length; i += 6) chunks.push(o.releases.slice(i, i + 6))
+    const xsP = Promise.all(chunks.map((c) =>
+      getJson<{ series?: XsSeries[]; error?: string }>(`/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: c[0], compare: c.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined })}`)
+        .catch((e) => ({ ok: false, status: 0, body: { error: e instanceof Error ? e.message : String(e) } as { series?: XsSeries[]; error?: string } }))))
     // EXFOR's trouble is reported beside the lines, never in their place.
     const exP = o.reaction ? points(o.target, o.reaction).catch((e) => ({ ds: new Map<string, Ds>(), pts: [] as Pt[], truncated: false, error: `EXFOR: ${e instanceof Error ? e.message : String(e)}` })) : Promise.resolve(null)
     const [xs, ex] = await Promise.all([xsP, exP])
     const lines: BookLine[] = []
-    if (xs && !xs.ok && xs.status !== 404) errors.push(xs.body.error ? `ENDF: ${xs.body.error}` : `ENDF answered ${xs.status}`)
-    for (const s of xs?.body.series ?? []) {
+    for (const x of xs) if (!x.ok && x.status !== 404) errors.push(x.body.error ? `ENDF: ${x.body.error}` : `ENDF answered ${x.status}`)
+    for (const s of xs.flatMap((x) => x.body.series ?? [])) {
       if (!s.held || !s.energy_ev?.length || !s.xs_barn?.length) continue
       lines.push({ release: s.release, x: s.energy_ev, y: s.xs_barn, served: s.release_served ?? undefined, note: s.note, n: s.energy_ev.length, qi: s.qi, qm: s.qm, a: s.a })
     }
