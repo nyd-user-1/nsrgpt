@@ -12,7 +12,8 @@
 cd "$(dirname "$0")"
 set -f  # the */*#t words are S3 prefixes, never globs
 I=raw/iaea/2026-11-07/public/download-endf
-J=lake/_raw
+K=lake/_raw/iaea/public/download-endf  # IAEA, fetched 2026-11-11 through browser box nsr-fill-wb
+J=lake/_raw                            # Wayback (JAEA, NEA) and the GEF site, 2026-11-11
 ALL="JEFF-4.0 $I/JEFF-4.0/backup/jeff-4-0_n.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_p.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_tsl.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_decay.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_nfpy.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_sfpy.sublib.zip
 IRDFF-II $I/IRDFF-II/backup/irdff-ii_n.sublib.zip
 B-VI.8-HE $I/ENDF-HE-VI/NEUTRON/endf-he-vi_n.zip#n $I/ENDF-HE-VI/PROTON/endf-he-vi_p.zip#p
@@ -26,7 +27,35 @@ BROND-2.2 $I/BROND-2-2/brond22n.dat#n
 BROND-3.1 $I/BROND-3.1/n/*#n
 FENDL-2.1 $I/FENDL-2.1/n/*#n
 IRDFF-1.0 $I/IRDFF/n/*#n
-IRDFF-1.05 $I/IRDFF-v1.05/n/*#n"
+IRDFF-1.05 $I/IRDFF-v1.05/n/*#n
+EAF-2010 $I/EAF-2010/n/*#n
+IRDF-2002-MG $I/IRDF-2002-G/irdf-2002-g_n.zip#n
+JEFF-3.1.1 $K/JEFF-3.1.1/backup/jeff-3-1_n.sublib.zip $K/JEFF-3.1.1/backup/jeff-3-1_p.sublib.zip $K/JEFF-3.1.1/backup/jeff-3-1_tsl.sublib.zip $K/JEFF-3.1.1/backup/jeff-3-1_decay.sublib.zip $K/JEFF-3.1.1/backup/jeff-3-1_nfpy.sublib.zip $K/JEFF-3.1.1/backup/jeff-3-1_sfpy.sublib.zip
+JEFF-3.1 $K/JEFF-3.1/n/*#n $K/JEFF-3.1/p/*#p $K/JEFF-3.1/tsl/*#tsl $K/JEFF-3.1/nfpy/*#nfpy $K/JEFF-3.1/sfpy/*#sfpy $K/JEFF-3.1.1/backup/jeff-3-1_decay.sublib.zip
+JEFF-3.1.2 $K/JEFF-3.1.2/n/*#n
+JEFF-3.2 $K/JEFF-3.2/n/*#n
+CENDL-3.1 $K/CENDL-3.1/n/*#n
+JENDL-4.0 $K/JENDL-4.0/n/*#n $K/JENDL-4.0/e/*#e $K/JENDL-4.0/nfpy/*#nfpy $K/JENDL-4.0/photo/*#photo $K/JENDL-4.0/sfpy/*#sfpy $K/JENDL-4.0/tsl/*#tsl
+JENDL-4.0u $K/JENDL-4.0u2-20160106/n/*#n
+JENDL-4.0-HE $K/JENDL-4.0-HE/backup/jendl-4-0-he_n.sublib.zip $K/JENDL-4.0-HE/backup/jendl-4-0-he_p.sublib.zip
+JENDL-AD-2017 $K/JENDL-AD-2017/backup/jendl-ad-2017_n.sublib.zip $K/JENDL-AD-2017/backup/jendl-ad-2017_p.sublib.zip
+JENDL-DEU-2020 $K/JENDL-DEU-2020/backup/jendl-deu-2020_d.sublib.zip
+JENDL-PD-2016 $K/JENDL-PD-2016/backup/jendl-pd-2016_g.sublib.zip
+JENDL-PD-2016.1 $K/JENDL-PD-2016.1/backup/jendl-pd-2016-1_g.sublib.zip
+JENDL-3.3 $J/JENDL-3.3/jendl33.tar#n
+JENDL-HE-2007 $J/JENDL-HE-2007/jendl-he2007n.tar.gz#n $J/JENDL-HE-2007/jendl-he2007p.tar.gz#p
+JENDL-AC-2008 $J/JENDL-AC-2008/jendlac2008.tar.gz#n
+JENDL-AN-2005 $J/JENDL-AN-2005/jendlan2005.tar.gz#a
+JENDL-PD-2004 $J/JENDL-PD-2004/jendl-pd2004.tar.gz#g
+JENDL-DDF-2015 $J/JENDL-DDF-2015/jendl-ddf-2015.tar.gz#decay
+JENDL-FPD-2000 $J/JENDL-FPD-2000/jendl-fpd2000.tar.gz#decay
+JENDL-FPD-2011 $J/JENDL-FPD-2011/jendl-fpd2011.tar.gz#decay
+JENDL-FPY-2011 $J/JENDL-FPY-2011/jendl-fpy2011.tar.gz#fy
+JEFF-3.0 $J/JEFF-3.0/JEFF30N.zip#n $J/JEFF-3.0/JEFF30TS.zip#tsl
+GEFY-9.1 $J/GEFY-9.1/GEFY91_n.zip#nfpy $J/GEFY-9.1/GEFY91_mn.zip#nfpy $J/GEFY-9.1/GEFY91_s.zip#sfpy
+GEFY-8.1 $J/GEFY-8.1/GEFY81_n.zip#nfpy $J/GEFY-8.1/GEFY81_mn.zip#nfpy $J/GEFY-8.1/GEFY81_s.zip#sfpy
+GEFY-6.2 $J/GEFY-6.2/GEFY62_n.zip#nfpy $J/GEFY-6.2/GEFY62_mn.zip#nfpy $J/GEFY-6.2/GEFY62_s.zip#sfpy
+GEFY-6.1 $J/GEFY-6.1/GEFY61_n.zip#nfpy $J/GEFY-6.1/GEFY61_mn.zip#nfpy $J/GEFY-6.1/GEFY61_s.zip#sfpy"
 [ -f fill.extra ] && ALL="$ALL
 $(cat fill.extra)"  # releases fetched tonight, one line each, appended on the box as they land
 MF=

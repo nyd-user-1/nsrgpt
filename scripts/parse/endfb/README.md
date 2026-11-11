@@ -58,3 +58,37 @@ Rerun, one line per step, from the Mac (one AWS CLI call each; `R` a release):
 - Part C, register, count and write the manifest: `{"job":"collect","release":"R"}`
 - `/counts`' total_values: `{"job":"values"}` (writes `lake/endfb/_values/latest.json`).
 - Delete the split text after a run (130 GB for all 13; the indexes stay, Part A rebuilds it): `{"job":"clean"}` (or `"release":"R"`); each manifest's `mf4_15.split_text` records it.
+
+## The libraries JANIS lists that the lake lacked (brief 70, elpis-fill, 2026-11-11)
+
+Forty-two more releases in the same tables, each with parts A, B and C, Files 4-15 and a manifest. The release name is
+JANIS's label with "ENDF/" dropped and slashes and spaces turned to hyphens (`JENDL/AD-2017` → `JENDL-AD-2017`,
+`IRDF-2002 MG` → `IRDF-2002-MG`). `fill.sh` lists them the way `releases.sh` lists the thirteen; the releases fetched
+during the night were appended on the boxes in `fill.extra` (one line each, the same form) and are written out here.
+
+| Releases | Archives | Where they came from |
+| --- | --- | --- |
+| JEFF-4.0, JEF-2.2, IRDFF-II, IAEA-PD-2019, IRDF-2002, PADF-2007, RUSFOND-2010 | IAEA backup `*_<token>.sublib.zip` | `raw/iaea/2026-11-07/` (the 11-07 mirror, used in place) |
+| B-VI.8-HE, CENDL-2.1, BROND-2.2, IRDF-2002-MG | one zip or tape each, `#<token>` | the same mirror |
+| BROND-3.1, FENDL-2.1, IRDFF-1.0, IRDFF-1.05, EAF-2010 | IAEA per-material zips, `<prefix>/*#n` | the same mirror |
+| JEFF-3.1.1, JENDL-4.0-HE, JENDL-AD-2017, JENDL-DEU-2020, JENDL-PD-2016, JENDL-PD-2016.1 | IAEA backup sublib zips | `lake/_raw/iaea/`, fetched 11-11 through browser box nsr-fill-wb |
+| JEFF-3.1, JEFF-3.1.2, JEFF-3.2, CENDL-3.1, JENDL-4.0, JENDL-4.0u (100 of 406) | IAEA per-material zips | `lake/_raw/iaea/`, the same; JEFF-3.1's decay, nfy, sfy and tsl come from JEFF-3.1.1's backup archives, which IAEA names jeff-3-1 and whose headers read LREL 0 (JEFF-3.1's own, unchanged in 3.1.1) |
+| JENDL-3.3, JENDL-HE-2007, JENDL-AC-2008, JENDL-AN-2005, JENDL-PD-2004, JENDL-DDF-2015, JENDL-FPD-2000, JENDL-FPD-2011, JENDL-FPY-2011 | JAEA's own tarballs, `#<token>` (`#fy` splits yields into nfy and sfy by file name) | `lake/_raw/<release>/`, from the Wayback Machine (JAEA's host answers an Incapsula challenge) |
+| JEFF-3.0 | NEA's JEFF30N and JEFF30TS tapes | `lake/_raw/JEFF-3.0/`, from the Wayback Machine (NEA's host answers a Cloudflare challenge) |
+| GEFY-6.1, 6.2, 8.1, 9.1 | GEF's `_n`, `_mn` (`#nfpy`) and `_s` (`#sfpy`) zips | `lake/_raw/GEFY-*/`, from the GEF site |
+
+Held as files and not parsed (CATALOGUED in `scripts/janis/mark.py`): Nubase 2016, 2003 and 1997 (`lake/_raw/Nubase-*/`)
+and EAF-2007 (`lake/_raw/EAF-2007/`, EAF's own layout with no MF1 directory). Each release's `lake/_raw/<release>/SOURCE.md`
+names its files, bytes, checksums, route and licence (`scripts/janis/fill/sources.py`).
+
+Rerun, on a parse box (`scripts/parse/box/create.sh`; scripts in `/opt/parse/scripts/`, the fill drivers in `/opt/fill/`):
+
+- Parts A, B, C: `cd /opt/parse/scripts/endfb && ./fill.sh <release>`, `./fill.sh --mf=8,33 <release>`, `./fill.sh --mf=2,32 <release>`;
+  or one line each ("A R", "B R", "C R") in `/opt/fill/queue.txt` for `scripts/janis/fill/worker.sh` (one per vCPU). Part B and
+  C compare with Part A's tables, so queue them after Part A ends.
+- Files 4-15: `/opt/parse/bin/python -I /opt/fill/mf415.py <release>…` (fan-out split, parse, collect through nsr-endf-parse from
+  the box), or `auto415.sh`, which runs it for each release whose Part A ends. Reserve the function's concurrency before
+  and release it after each fan-out (the lines above).
+- Serving: `/opt/fill/serve_fill.sh <release>…` (serve.py endf and point_files, INDEXED), then add the names to
+  `RELEASES` in `services/nsr-api/structure.py` (dataset.py reads the same list) and build and deploy nsr-api once.
+- `PROGRESS`: `/opt/parse/bin/python -I /opt/fill/progress.py --lines` writes `lake/_raw/PROGRESS.json`.

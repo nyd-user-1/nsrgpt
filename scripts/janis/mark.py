@@ -15,7 +15,7 @@ Rules, from the lake:
   1997 to 2016, the -HE and MG variants).
 - Data type under a held release: same when the lake has the MF in the category's sublibrary (nsr.endfb_sections for MF3;
   endfb_ang, endfb_edist, endfb_eang, endfb_mult, endfb_photon_*, endfb_cov, endfb_res_ranges and endfb_res_cov for the
-  rest; endfb_fy and endfb_decay for MF8) (cross sections
+  rest; endfb_fy and endfb_decay for MF8; fission yields by product nuclide, as JANIS lists them, since brief 70) (cross sections
   MF3, angular MF4, energy MF5, energy-angle MF6, fission yields MF8 MT454/459, decay MF8 MT457, resonances MF2, nu
   MF1 MT452/455/456, covariances MF31-35 and 40, photon production MF12-15, multiplicities MF9-10); under EXFOR, same
   (every quantity family is held as points or in the X4Pro tables).
@@ -140,9 +140,10 @@ def held_sets():
       SELECT release, sublibrary, 'DEC' AS kind, CAST(za AS integer) AS za, coalesce(liso, 0) AS liso FROM endfb_decay
       WHERE release IN ({rel}) GROUP BY 1, 2, 3, 4, 5
       UNION ALL
-      SELECT f.release, f.sublibrary, 'FY', CAST(m.za AS integer), coalesce(m.liso, 0)
-      FROM endfb_fy f JOIN endfb_materials m ON m.release = f.release AND m.file_name = f.file_name AND m.mat = f.mat
-      WHERE f.release IN ({rel}) GROUP BY 1, 2, 3, 4, 5""")
+      -- brief 70: JANIS lists fission yields by product (Ar41, Ca47, ...), so the held set is the products (ZAFP, FPS), not
+      -- the fissioning material
+      SELECT f.release, f.sublibrary, 'FY', CAST(f.zafp AS integer), CASE WHEN f.fps > 0 THEN 1 ELSE 0 END
+      FROM endfb_fy f WHERE f.release IN ({rel}) AND f.zafp > 0 GROUP BY 1, 2, 3, 4, 5""")
     rows += [dict(zip(("release", "sublibrary", "kind", "za", "liso"), (r.get("release"), r.get("sublibrary"), r.get("kind"), r.get("za"), r.get("liso")))) for r in extra]
     # endfb_sections indexes MF3 only; Files 2, 4 to 15, 32 and 33 sit in their own tables (briefs 43, 56, 64)
     files = [("endfb_ang", "'4'"), ("endfb_edist", "'5'"), ("endfb_eang", "'6'"), ("endfb_mult", "CAST(mf AS varchar)"),
