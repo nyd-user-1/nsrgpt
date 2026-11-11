@@ -203,7 +203,7 @@ export function handCounts(): MarkCounts {
 /** The home page's cards JANIS has and I do not (brief 69: the TRANS Checker is /elpis/checker now). */
 export const HOME_GAPS = ["Open .jns file"]
 
-// ---------- brief 68's crawl: public/janis-tree.json ----------
+// ---------- brief 68's crawl: lake/janis/current/ on the CDN (components/elpis/use-crawl.ts) ----------
 /** One node of new-worker-1's crawl of JANIS Web's tree: { label, path, href, children, leaf?, crawled, mark, rule,
  *  counts }. `path` is JANIS's path below /janisweb/tree ("/N/'ENDF/B-VII.1'/SIG/Ni"); a name with a slash may be
  *  quoted or not, so a row's own segment is its path less its parent's. `crawled: false`: its page is not read yet. */

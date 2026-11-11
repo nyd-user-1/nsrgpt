@@ -1,6 +1,6 @@
 "use client"
 // /elpis (briefs 67, 69): the home page's figures. The foot counts every mark: from brief 68's crawl once
-// public/janis-tree.json is there (node by node), else the hand list (each name once); the home page's ❌ cards are added
+// the CDN's index is there (node by node), else the hand list (each name once); the home page's ❌ cards are added
 // to the ❌ count. The Browse card's line: the records I hold (/counts) and the rows of JANIS's tree (the crawl's root).
 // The Books card's figures: each book's nuclides from public/elpis/books.json (scripts/elpis/book-index.mjs).
 import { useEffect, useState } from "react"

@@ -2,7 +2,7 @@
 // /elpis/browse (brief 67): JANIS Web's "Browse database": the heading, the breadcrumb bar in the quiet tint, then a
 // bordered list of rows about 49 px tall, each a link one level down in the house link colour. A nuclide row has
 // JANIS's "Open" outline button before its name; a row with nowhere to go is plain text (muted when JANIS has it and I do not). The rows come from brief 68's crawl where it has reached the path
-// (the index public/janis-tree.json, and a library's own file public/janis-tree/<file> once the path enters it), else
+// (the CDN's lake/janis/current/index.json, and a library's own lib-NNN.json once the path enters it), else
 // from the hand list (lib/janis-tree.ts). ❌ after a row: JANIS has it, I do not (not a
 // link); ✅: I have it, JANIS does not; no mark: both.
 import Link from "next/link"

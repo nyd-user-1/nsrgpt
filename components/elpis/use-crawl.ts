@@ -1,8 +1,8 @@
 "use client"
 // /elpis (briefs 67, 69): the marked crawl of JANIS Web's tree, fetched once a session from the CDN, where elpis-fill's
 // mark.py rewrites it on every run (lake/janis/current/: index.json, and lib-NNN.json per library, the index's `file`
-// fields; five minutes' cache). Each falls back to the repo's copy (public/janis-tree.json, public/janis-tree/<file>)
-// while the repo still has one, and when neither loads the pages use the hand list in lib/janis-tree.ts.
+// fields; five minutes' cache; a CloudFront Function sets the CORS header on every response). When the index does not
+// load, the pages use the hand list in lib/janis-tree.ts.
 import { useEffect, useState } from "react"
 import { API_BASE } from "@/lib/api-url"
 import type { CrawlNode } from "@/lib/janis-tree"
@@ -17,7 +17,7 @@ const getTree = (url: string) =>
     .catch(() => null)
 
 function fetchCrawl(): Promise<CrawlNode | null> {
-  load ??= getTree(`${CDN}/index.json`).then((j) => j ?? getTree("/janis-tree.json"))
+  load ??= getTree(`${CDN}/index.json`)
   return load
 }
 
@@ -41,7 +41,7 @@ export function useCrawlFile(file: string | null): CrawlNode | null {
     if (!file) return
     let live = true
     if (!files.has(file)) {
-      files.set(file, getTree(`${CDN}/${encodeURIComponent(file)}`).then((t) => t ?? getTree(`/janis-tree/${encodeURIComponent(file)}`)))
+      files.set(file, getTree(`${CDN}/${encodeURIComponent(file)}`))
     }
     files.get(file)!.then((tree) => { if (live) setGot({ file, tree }) })
     return () => { live = false }
