@@ -66,8 +66,10 @@ export function SideBarMenu() {
   const [showHidden, setShowHidden] = React.useState(false)
   const { pinned, archived, hiddenCount, place } = arrange(ALL, rows, showHidden)
   return (
-    <div className="flex h-full flex-col px-3 pt-3">
-      <nav className="-mx-1 flex max-h-[55%] shrink-0 flex-col gap-0.5 overflow-y-auto px-1">
+    <div className="flex min-h-0 flex-1 flex-col px-3 pt-3">
+      {/* The menu and Recents share the column (Brendan, 2026-11-11 02:23): the menu scrolls once a group opens past the
+          room, keeping at least a few rows; Recents keeps its header while shut and shrinks with the menu while open. */}
+      <nav className="-mx-1 flex min-h-28 flex-col gap-0.5 overflow-y-auto px-1">
         <SideBarMenuPinned pinned={pinned} isOn={isOn} />
         {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={PAGE_ICONS["/chat"]} on={path === "/chat"} />}
         {place("/search") && <SideBarMenuItem href="/search" label="Search" icon={PAGE_ICONS["/search"]} on={path === "/search"} />}
@@ -76,10 +78,9 @@ export function SideBarMenu() {
         <SideBarMenuGroup label="Data" icon={Database} items={TABLES} isOn={isOn} place={place} />
         <SideBarMenuGroup label="References" icon={BookOpen} items={REFERENCES} isOn={sectionOn} place={place} />
         <SideBarMenuGroup label="Tools" icon={Settings2} items={TOOLS} isOn={sectionOn} place={place} />
-        <div aria-hidden className="my-2 border-t border-[var(--paper-rule-soft)]" />
         <SideBarMenuFoot archived={archived} hiddenCount={hiddenCount} showHidden={showHidden} onShowHidden={setShowHidden} isOn={isOn} />
       </nav>
-      <div className="mt-3 flex min-h-0 flex-1 flex-col border-t border-[var(--paper-rule-soft)] pt-3">
+      <div className="mt-3 flex min-h-0 flex-auto flex-col border-t border-[var(--paper-rule-soft)] pt-3 has-[[data-recents=shut]]:shrink-0">
         <React.Suspense>
           <SidebarChats />
         </React.Suspense>

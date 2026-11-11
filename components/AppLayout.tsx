@@ -69,16 +69,16 @@ export function AppLayout({
             {/* The sidebar's header matches the app header: the same height and rule, the toggle where the app header keeps it,
                 the name in the display face (Brendan, 2026-11-09). */}
             <div className={`${HEADER} ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
-              {/* The name first, the close toggle after it (Brendan, 2026-11-11, swapped). The name is the way home: a link
-                  to the root with the chart headers' hover (Brendan, 2026-11-09). */}
+              {/* The name first, the close toggle at the header's right edge (Brendan, 2026-11-11). The name is the way home:
+                  a link to the root with the chart headers' hover (Brendan, 2026-11-09). */}
               <Link href="/" aria-label="NSRgpt home" className={`-ml-2.5 flex items-center rounded-lg px-2.5 py-1.5 outline-none transition-colors ${HOVER}`}>
                 <TitleText text="NSRgpt" className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
               </Link>
-              <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={`${ICON_BUTTON} ml-3 ${HEADER_GAP}`}>
+              <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={`${ICON_BUTTON} -mr-2.5 ml-auto`}>
                 <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
               </button>
             </div>
-            <div className="min-h-0 flex-1">
+            <div className="flex min-h-0 flex-1 flex-col">
               <SideBarMenu />
             </div>
             <UserPanel />

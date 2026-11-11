@@ -231,7 +231,7 @@ export function SidebarChats() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-1">
+    <div className="flex min-h-0 flex-1 flex-col gap-1" data-recents={open ? "open" : "shut"}>
       {/* Recents (Brendan, 2026-11-08, after Claude's chat sidebar): the header folds the whole list, remembered; the
           sliders beside it filter, group and sort it. */}
       <div className="flex items-center gap-1 px-1">

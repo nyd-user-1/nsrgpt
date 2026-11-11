@@ -4,14 +4,12 @@
 // Lab's pane (useSheet: the whole bar toggles, the grip on its top line drags), closed on load; the chart takes the room
 // left, with an undo circle for the zoom box and its own legend (an accordion that moves corner to corner, Brendan
 // 01:12). Left, "By nuclide": elements that open to isotopes that open to MT rows, the page's own highlighted. Centre:
-// one row of the chart pages' circle steppers (Brendan, 2026-11-11 00:55), the nuclide on the left and the reaction on
-// the right, each name between its circles; the chart with its zoom box (BookChart); the Node table (Node, Settings,
-// Display). JANIS Web's nav strip and the tab strip are gone from this page. Right: the Plotter (scales, ranges, Apply),
+// the chart with its zoom box (BookChart) and the Node table (Node, Settings, Display); the stepper row above the chart
+// is gone (Brendan, 2026-11-11 02:24). JANIS Web's nav strip and the tab strip are gone from this page. Right: the Plotter (scales, ranges, Apply),
 // the reaction's Q value and the two links. Placeholder rows and series only.
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Move, Undo2 } from "lucide-react"
-import { HOVER as CIRCLE_HOVER } from "@/components/CopyTitle"
+import { ChevronDown, ChevronRight, ChevronUp, Move, Undo2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CircleButton } from "@/components/ui/circle-button"
 import { SHEET_BAR_HOVER, Sheet, useSheet } from "@/components/lab/OutputPane"
@@ -21,7 +19,7 @@ import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
 import { useRailClosed } from "@/components/rail-toggle"
 import { BookChart, EXFOR_SETS, FULL, LIBRARIES, type Range, type Scales } from "@/components/janis/BookChart"
 import { HOVER, LINE, LINK, TINT } from "@/components/janis/parts"
-import { BOOK_MTS, bookNuclides, mtLabel, neighbours, nuclideLabel, PROJECTILES, symbolOfZ, Z_MAX } from "@/lib/janis-tree"
+import { BOOK_MTS, bookNuclides, mtLabel, nuclideLabel, PROJECTILES, symbolOfZ, Z_MAX } from "@/lib/janis-tree"
 import { RELEASE_SLOT, SLOTS } from "@/lib/lab/canvases/plot"
 import { cn } from "@/lib/utils"
 
@@ -40,20 +38,6 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
   const href = (label: string, m: number) => `/janis/book/${proj.key}/${label}/${m}`
   const label = (m: number) => mtLabel(m, proj.symbol)
 
-  // The title bar: nuclides skip the natural element; reactions run on into the next nuclide's first.
-  const isoNeighbours = useMemo(() => {
-    const masses = (zz: number) => bookNuclides(zz).filter((x) => x.a !== "Nat")
-    const all = [z - 1, z, z + 1].filter((x) => x >= 0 && x <= Z_MAX).flatMap(masses)
-    const i = all.findIndex((x) => x.z === z && x.a === a)
-    return i < 0 ? neighbours(z, a) : { prev: all[i - 1]?.label, next: all[i + 1]?.label }
-  }, [z, a])
-  const mtIndex = BOOK_MTS.findIndex((m) => m.mt === mt)
-  const around = neighbours(z, a)
-  const prevMt = mtIndex > 0 ? { href: href(here, BOOK_MTS[mtIndex - 1].mt), text: label(BOOK_MTS[mtIndex - 1].mt) }
-    : around.prev ? { href: href(around.prev, BOOK_MTS[BOOK_MTS.length - 1].mt), text: `${around.prev} ${label(BOOK_MTS[BOOK_MTS.length - 1].mt)}` } : null
-  const nextMt = mtIndex >= 0 && mtIndex < BOOK_MTS.length - 1 ? { href: href(here, BOOK_MTS[mtIndex + 1].mt), text: label(BOOK_MTS[mtIndex + 1].mt) }
-    : around.next ? { href: href(around.next, BOOK_MTS[0].mt), text: `${around.next} ${label(BOOK_MTS[0].mt)}` } : null
-  const current = mt === 107 && proj.key === "n" && typeof a === "number" && z >= 2 ? `${label(mt)} or MT5 (${short(z - 2, a - 3)} production)` : label(mt)
   const target = typeof a === "number" ? short(z, a) : `${symbolOfZ(z)}0`
 
   // The Plotter and the chart share the range and the scales; the zoom box writes them back.
@@ -177,17 +161,10 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
         </InsetBody>
       </InsetPanel>
 
-      {/* centre: the two steppers, the chart in the room the rails and the sheet leave, the Node sheet. JANIS Web's own
-          nav strip (the layout's) is hidden on this page only; the plot's series list is the sheet. */}
+      {/* centre: the chart in the room the rails and the sheet leave, the Node sheet. JANIS Web's own nav strip (the
+          layout's) is hidden on this page only; the plot's series list is the sheet. */}
       <style>{'nav[aria-label="JANIS"]{display:none}'}</style>
       <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className={cn("flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b px-4 py-3", LINE)}>
-          <Stepper what="nuclide" current={here}
-            prev={isoNeighbours.prev ? { href: href(isoNeighbours.prev, mt), text: isoNeighbours.prev } : null}
-            next={isoNeighbours.next ? { href: href(isoNeighbours.next, mt), text: isoNeighbours.next } : null} />
-          <Stepper what="reaction" current={current} prev={prevMt} next={nextMt} />
-        </div>
-
         <div className="min-h-[240px] flex-1 px-2 pt-2">
           <div className="relative h-full w-full">
             <BookChart range={range} scales={scales} hidden={hidden} version={version} onZoom={zoomed} />
@@ -276,38 +253,14 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
   )
 }
 
-/** The chart pages' back and forward circles (components/AppLayout.tsx ChartNav: 40 px, the paper border, 2 px on hover,
- *  the shadow, the hover tint, the destination as the tooltip), with the current name in the display face between them.
- *  A circle with nowhere to go is drawn faint. */
-type Step = { href: string; text: string } | null
-function Stepper({ what, current, prev, next }: { what: string; current: string; prev: Step; next: Step }) {
-  const circle = cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] shadow-md transition-colors", CIRCLE_HOVER)
-  const go = (s: Step, dir: "Previous" | "Next") => {
-    const Icon = dir === "Previous" ? ChevronLeft : ChevronRight
-    return s ? (
-      <Link href={s.href} aria-label={`${dir} ${what}: ${s.text}`} title={s.text} className={cn(circle, "hover:border-2")}>
-        <Icon className="h-4 w-4 text-[var(--paper-text)]" />
-      </Link>
-    ) : (
-      <span aria-hidden="true" className={cn(circle, "pointer-events-none opacity-40 shadow-none")}><Icon className="h-4 w-4 text-[var(--paper-muted)]" /></span>
-    )
-  }
-  return (
-    <div className="flex min-w-0 items-center gap-3">
-      {go(prev, "Previous")}
-      <strong className="min-w-0 truncate text-xl font-normal tracking-tight text-[var(--paper-text)]" style={SERIF} title={current}>{current}</strong>
-      {go(next, "Next")}
-    </div>
-  )
-}
-
 /** The corners the legend steps through, in order, and its insets inside the plot (BookChart's grid: 72, 24, 18, 48). */
 const CORNERS = ["top left", "top right", "bottom right", "bottom left"] as const
 const INSETS = { left: 84, right: 36, top: 28, bottom: 58 }
 
 /** The chart's legend (Brendan, 2026-11-11 01:12), drawn here instead of by ECharts: 12 px padding, 6 px between rows,
- *  12 px type; an accordion, open on load (the chevron), and a Move button beside the chevron that slides it to the next
- *  corner, top left, top right, bottom right, bottom left, 300 ms ease-out. A row toggles its series, as ECharts' did. */
+ *  12 px type; an accordion, open on load, its title "Legend" in the display face with the chevron beside it as one
+ *  button (Brendan, 02:20), and a Move button at the right that slides it to the next corner, top left, top right,
+ *  bottom right, bottom left, 300 ms ease-out. A row toggles its series, as ECharts' did. */
 function ChartLegend({ hidden, onToggle }: { hidden: Set<string>; onToggle: (name: string, on: boolean) => void }) {
   const [open, setOpen] = useState(true)
   const [corner, setCorner] = useState(0)
@@ -333,9 +286,11 @@ function ChartLegend({ hidden, onToggle }: { hidden: Set<string>; onToggle: (nam
     <div ref={frame} className="pointer-events-none absolute inset-0 overflow-hidden">
       <div ref={box} style={{ padding: 12, transform: `translate(${x}px, ${y}px)` }}
         className={cn("pointer-events-auto absolute left-0 top-0 rounded-md border bg-[var(--paper)] shadow-sm transition-transform duration-300 ease-out", LINE)}>
-        <div className="flex items-center gap-1">
-          <button type="button" aria-expanded={open} aria-label={open ? "Fold the legend" : "Unfold the legend"} title={open ? "Fold the legend" : "Unfold the legend"} onClick={() => setOpen((o) => !o)} className={icon}>
-            <ChevronDown className={cn("size-4 transition-transform", !open && "-rotate-90")} />
+        <div className="flex items-center justify-between gap-8">
+          <button type="button" aria-expanded={open} title={open ? "Fold the legend" : "Unfold the legend"} onClick={() => setOpen((o) => !o)}
+            className="flex items-center gap-1.5 text-[var(--paper-text)]">
+            <span className="text-xl font-normal leading-none tracking-tight" style={SERIF}>Legend</span>
+            <ChevronDown className={cn("size-4 text-[var(--paper-muted)] transition-transform", !open && "-rotate-90")} aria-hidden="true" />
           </button>
           <button type="button" aria-label={`Move the legend to the ${CORNERS[(corner + 1) % 4]}`} title={`Move to the ${CORNERS[(corner + 1) % 4]}`} onClick={() => setCorner((c) => (c + 1) % 4)} className={icon}>
             <Move className="size-3.5" />
