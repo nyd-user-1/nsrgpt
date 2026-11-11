@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { PageMotion } from "@/components/PageMotion";
@@ -40,6 +40,10 @@ export function AppLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const path = usePathname();
+  // A page change shuts the sidebar (Brendan, 2026-11-11): a row in the menu is a destination, not a place to stay.
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [path]);
   // Every page is named here, none draws its own name (brief 38): a page that sets one (a /docs article, lib/page-title.ts),
   // else the path's: a dataset record its own (lib/header-titles.ts), a table page its table's (brief 36)
   const pageTitle = usePageTitle();
@@ -65,13 +69,14 @@ export function AppLayout({
             {/* The sidebar's header matches the app header: the same height and rule, the toggle where the app header keeps it,
                 the name in the display face (Brendan, 2026-11-09). */}
             <div className={`${HEADER} ${paperMode ? "border-[var(--paper-rule)]" : "border-[var(--border)]"}`}>
-              <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={`${ICON_BUTTON} ${HEADER_GAP}`}>
-                <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
-              </button>
-              {/* The name is the way home: a link to the root with the chart headers' hover (Brendan, 2026-11-09). */}
+              {/* The name first, the close toggle after it (Brendan, 2026-11-11, swapped). The name is the way home: a link
+                  to the root with the chart headers' hover (Brendan, 2026-11-09). */}
               <Link href="/" aria-label="NSRgpt home" className={`-ml-2.5 flex items-center rounded-lg px-2.5 py-1.5 outline-none transition-colors ${HOVER}`}>
                 <TitleText text="NSRgpt" className="text-[24px] leading-none text-[var(--paper-text,var(--fg))]" style={{ fontFamily: "var(--font-display), Georgia, serif" }} />
               </Link>
+              <button onClick={() => setSidebarOpen(false)} aria-label="Close the sidebar" className={`${ICON_BUTTON} ${HEADER_GAP}`}>
+                <PanelLeftClose className="h-4 w-4" style={{ color: "#033882", fill: "#dbe7fa" }} />
+              </button>
             </div>
             <div className="min-h-0 flex-1">
               <SideBarMenu />
