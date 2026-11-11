@@ -216,3 +216,33 @@ Types and lint are clean on the box for every commit.
 - **Stale marks.** The crawl still marks EAF-2010 and CENDL-3.1 ❌ although the lake holds them; elpis-fill's next mark run.
 
 **Box minutes:** about 55: twelve type and lint runs, and the QA drives.
+
+### Follow-up: the resonance range and the new libraries (elpis-wire, 2026-11-11 06:00 ET)
+
+**Commits.**
+- `e213fca` the crawl from the CDN alone; elpis-fill removed `public/janis-tree*` in `5156f01`.
+- `23c87bf` POINT temperatures, dashed background and Reconstruct.
+- `fbf9a4f` and `f3f3306` thinning, poll retries and the rebuilt index files.
+- `83c18ba`, `5c46f52` and `8185124` `/endf/xs` asked six releases a call; a failing call is asked again one release at a time.
+
+**What changed.**
+- **POINT lines.** ENDF/B-VIII.1 and VIII.0 come from their POINT files, 0 K by default. The Plotter's Temperature picks 293.6, 600, 900, 1200, 1500 or 1800 K. No B-VII.1 POINT is served: `lake/serve/endf/` and the API's `POINT_RELEASES` have none, so B-VII.1 is treated like the other releases.
+- **Dashed background.** Every other release whose File 3 is only the background inside the resonance range is drawn dashed over that range. This applies where the material's LRP is 1, for MTs 1, 2, 3, 18, 19, 27, 101 and 102, and for all MTs where the range is R-matrix limited. The spans come from `endfb_res_ranges`: `public/elpis/res-ranges-n.json`, built by `scripts/elpis/res-ranges.mjs` (2,868 nuclides, 10,325 release spans). The legend notes "File 3 background in the resonance range".
+- **Reconstruct button.** It posts the Lab's broaden job through `/api/jobs` for each such release nsr-jobs takes: B-VIII.1, VIII.0, VII.1, VII.0, VI.8, JEFF-3.3, JENDL-5, TENDL-2023 and CENDL-3.2. It needs a signed-in reader, because a job can start the job box.
+  - It runs at the Plotter's temperature; PREPRO needs a temperature above 0 K, so 0 K asks for 1 K.
+  - Each line is swapped in as its job returns, thinned over 8,000 log-energy steps as the API thins POINT data. The sheet notes "reconstructed with PREPRO at 1 K (job …)".
+  - Releases outside the job list stay dashed, and the legend says so.
+- **Default lines.** On by default: JANIS's book libraries and my newest (ENDF/B-VIII.1, VIII.0, JEFF-4.0, JEFF-3.3, JENDL-5, JENDL-4.0u, JENDL/HE-2007, TENDL-2023, CENDL-3.2, BROND-3.1, EAF-2010, IRDFF-II). Every other release that answers is listed in the legend and the sheet, off. Names follow JANIS's spelling: JENDL-4.0/HE, JENDL/AD-2017, IRDF-2002 MG.
+- **New libraries.** The index now lists 46 releases (`book-index.mjs` rerun). The neutron book's ❌ MTs fell from 143 to 49; 1,839 across the seven books.
+  - BROND-3.1, IRDFF-II and JENDL-4.0/HE already draw: U-235 (n,f) shows 26 libraries, B-11 (n,α) 18.
+  - EAF-2010, JENDL-4.0u and JENDL/HE-2007 are in the index and draw once elpis-fill's next `/endf/xs` deploy serves them.
+  - TENDL-2019 was not fetched: elpis-fill's IAEA route ran out of proxy bandwidth, and Brendan decides on a top-up.
+
+**Checked on the box.**
+- **Fe-56 (n,γ).**
+  - Before: seven dashed lines.
+  - Reconstruct: six jobs done in about 110 s; repeats answer at once (the runner reuses jobs).
+  - ENDF/B-VI.8's job failed on the box with "no MF3 MT 102 for MAT 2631 in SIGMA1.OUT", a job-runner case; its line stays dashed and the button offers a retry.
+- **U-235 (n,f):** 26 libraries and 254 EXFOR sets, no errors. One call with 46 releases had passed the gateway's 30 s, and four dosimetry curves in one answer had passed Lambda's 6 MB.
+- **Console errors.** The only ones on these pages are 500s from `/api/housekeeping`, which is not Elpis's.
+- **Types and lint** are clean for every commit.
