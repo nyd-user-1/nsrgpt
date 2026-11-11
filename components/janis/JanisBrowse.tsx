@@ -1,7 +1,7 @@
 "use client"
 // /janis/browse (brief 67): JANIS Web's "Browse database": the heading, the breadcrumb bar in the quiet tint, then a
 // bordered list of rows about 49 px tall, each a link one level down in the house link colour. A nuclide row has
-// JANIS's "Open" outline button before its name. The rows come from brief 68's crawl where it has reached the path
+// JANIS's "Open" outline button before its name; a row with nowhere to go is plain text (muted when JANIS has it and I do not). The rows come from brief 68's crawl where it has reached the path
 // (the index public/janis-tree.json, and a library's own file public/janis-tree/<file> once the path enters it), else
 // from the hand list (lib/janis-tree.ts). ❌ after a row: JANIS has it, I do not (not a
 // link); ✅: I have it, JANIS does not; no mark: both.
@@ -47,7 +47,7 @@ export function JanisBrowse({ path }: { path: string[] }) {
               ) : r.held ? (
                 <Link href={r.href} className={cn(LINK, "flex min-h-[49px] flex-1 items-center")}>{r.name}<Mark kind={r.mark} /></Link>
               ) : (
-                <span className="text-[var(--paper-muted)]">{r.name}<Mark kind={r.mark} /></span>
+                <span className={r.mark === "missing" ? "text-[var(--paper-muted)]" : "text-[var(--paper-text)]"}>{r.name}<Mark kind={r.mark} /></span>
               )}
             </li>
           ))}
