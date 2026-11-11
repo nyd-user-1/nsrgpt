@@ -1,6 +1,7 @@
 'use client'
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { loadField } from '@/lib/viz-data'
 
 const full = new Intl.NumberFormat('en')
@@ -25,5 +26,5 @@ export function LiteratureChart({ fill }: { fill?: boolean }) {
       series: [{ type: 'scatter', data, blendMode: 'lighter', itemStyle: { opacity: 0.85 } }],
     }
   }, false, firstSeriesRow, { marks: true })
-  return <div ref={ref} className={fill ? 'h-full min-h-0 w-full flex-1' : 'h-[78vh] w-full'} />
+  return <ChartBox chart={ref} className={fill ? 'h-full min-h-0 w-full flex-1' : 'h-[78vh] w-full'} />
 }
