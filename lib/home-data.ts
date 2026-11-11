@@ -965,6 +965,12 @@ export const LEDGER: { word: string; value: number; unit: string; exact?: boolea
   { word: "EXFOR", value: 4_344_595, unit: "Cross sections", exact: true, color: KINDS.Tool, href: "/datasets/exfor" },
   // XUNDL in records (Brendan, 2026-11-06): sum(num_cards) FROM xundl_archive_datasets (12,072 datasets).
   { word: "XUNDL", value: 931_258, unit: "Records", exact: true, color: KINDS.Data, href: "/datasets/xundl" },
+  // The four other evaluated libraries (Brendan, 2026-11-10): cross-section points per release from endfb_xs_points
+  // (SELECT release, count(*) GROUP BY release, 2026-11-10), in the rows that scroll behind the name box.
+  { word: "CENDL-3.2", value: 1_058_756, unit: "Cross-section points", exact: true, color: KINDS.Model, href: "/datasets/endf?release=CENDL-3.2" },
+  { word: "JEFF-3.3", value: 9_910_255, unit: "Cross-section points", exact: true, color: KINDS.Model, href: "/datasets/endf?release=JEFF-3.3" },
+  { word: "JENDL-5", value: 7_106_377, unit: "Cross-section points", exact: true, color: KINDS.Model, href: "/datasets/endf?release=JENDL-5" },
+  { word: "TENDL-2023", value: 21_299_077, unit: "Cross-section points", exact: true, color: KINDS.Model, href: "/datasets/endf?release=TENDL-2023" },
 ];
 
 /**

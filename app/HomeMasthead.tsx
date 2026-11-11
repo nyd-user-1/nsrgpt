@@ -60,9 +60,13 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
         </span>
       </Link>
 
-      {/* Bottom-row cells drop border-b so it does not double with the
+      {/* Eight cells in two columns, two rows tall: the rest scroll behind the name box, which stays put, the way the
+          contents plate scrolls (Brendan, 2026-11-10). Bottom-row cells drop border-b so it does not double with the
           container's own bottom rule. */}
-      <div className="grid grid-cols-2 border-t border-l border-[var(--paper-rule)] @min-[56rem]:border-t-0">
+      <div
+        data-inspect="LedgerScroll"
+        className="grid max-h-[15rem] snap-y snap-mandatory grid-cols-2 overflow-y-auto overscroll-contain border-t border-l border-[var(--paper-rule)] [scrollbar-width:thin] @min-[56rem]:border-t-0"
+      >
         {ledger.map((l, i) => {
           const fig = compact(l.value)
           const [short, full] = SPELL(l.value.toLocaleString('en-US').length)
@@ -74,7 +78,7 @@ export function HomeMasthead({ ledger }: { ledger: LedgerEntry[] }) {
               data-countup-scope
               data-inspect="LedgerCell"
               data-nav="masthead"
-              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${i < 2 ? 'border-b' : ''} no-underline`}
+              className={`@container group/fig relative grid min-h-[7.5rem] items-center border-r border-[var(--paper-rule)] px-5 py-6 @min-[16rem]:px-7 transition-colors hover:bg-[var(--kind-tint)] ${i < ledger.length - 2 ? 'border-b' : ''} snap-start no-underline`}
               /* The word's kind colour, as the boxes of that kind wear it on hover. */
               style={{ '--kind': l.color, '--kind-tint': `color-mix(in oklab, ${l.color} 5%, var(--paper))` } as React.CSSProperties}
             >
