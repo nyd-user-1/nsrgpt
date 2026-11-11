@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { fetchData, useData } from '@/lib/use-data'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, formatSeconds, ink, isDark, loadDecay, type Decay } from '@/lib/viz-physics'
 
@@ -125,7 +126,7 @@ export function GammaSpectrum({ switcher }: { switcher: React.ReactNode }) {
       <p className="px-4 pt-3 text-[12px] text-[var(--paper-muted)]">
         These are the γ lines the decay emits, at their energies and intensities, not a detector&rsquo;s spectrum: a detector adds peak widths and a Compton continuum.
       </p>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 
       <VizControls>
         {switcher}
