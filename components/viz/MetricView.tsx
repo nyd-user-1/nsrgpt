@@ -1,6 +1,7 @@
 'use client'
 
 import { diagonalTip, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { loadGround } from '@/app/(site)/viz/explorer/data'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { formatSeconds, sup } from '@/lib/nuclide'
@@ -154,12 +155,12 @@ function option(points: Point[], value: MetricValue, view: View) {
 
 function Flat({ value, view }: { value: MetricValue; view: View }) {
   const ref = useEChart(() => loadPoints(value), (points) => option(points, value, view), false, undefined, { onPick: () => {} })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
 
 function Deep({ value }: { value: MetricValue }) {
   const ref = useEChart(() => loadPoints(value), (points) => option(points, value, 'scatter3d'), true, undefined, { onPick: () => {} })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
 
 export function MetricView({ value, view }: { value: MetricValue; view: View }) {
