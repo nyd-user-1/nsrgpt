@@ -74,7 +74,9 @@ export function bookOption(range: Range, scales: Scales, hidden: Set<string>) {
     grid: { left: 72, right: 24, top: 18, bottom: 48 },
     xAxis: axis(scales.x, "Incident energy", range.xmin, range.xmax, true),
     yAxis: axis(scales.y, "Cross section (b)", range.ymin, range.ymax, false),
+    // hidden: the page draws the legend (JanisBook.tsx ChartLegend, 2026-11-11); `selected` still hides the series
     legend: {
+      show: false,
       data: names.map((n) => (LIBRARIES.includes(n) ? { name: n, icon: "path://M0,3 L18,3 L18,5 L0,5 Z" } : { name: n })), selected: Object.fromEntries(names.map((n) => [n, !hidden.has(n)])),
       orient: "vertical", left: 84, top: 28, padding: [8, 10], itemGap: 4, itemWidth: 18, itemHeight: 8,
       backgroundColor: paper, borderColor: rule, borderWidth: 1, borderRadius: 6,

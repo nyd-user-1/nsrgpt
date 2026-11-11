@@ -1,7 +1,8 @@
 "use client"
 // /janis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's book page. The two side columns are inset rails with
-// their tabs, as /graph's panels (InsetPanel, Brendan 2026-11-11), closed on load; the Node table is a bottom sheet in the
-// Lab's OutputPane shape, closed on load; the chart takes the room left. Left, "By nuclide":
+// their tabs, as /graph's panels (InsetPanel, Brendan 2026-11-11), closed on load; the Node table is the Series sheet, the
+// Lab's pane (useSheet: the whole bar toggles, the grip drags), closed on load; the chart takes the room left, with an
+// undo circle for the zoom box and its own legend (an accordion that moves corner to corner, Brendan 01:12). Left, "By nuclide":
 // elements that open to isotopes that open to MT rows, the page's own highlighted. Centre: one row of the chart pages'
 // circle steppers (Brendan, 2026-11-11 00:55), the nuclide on the left and the reaction on the right, each name between
 // its circles; the chart with its zoom box (BookChart); the Node table (Node, Settings, Display). JANIS Web's nav strip
@@ -9,9 +10,11 @@
 // reaction's Q value and the two links. Placeholder rows and series only.
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Move, Undo2 } from "lucide-react"
 import { HOVER as CIRCLE_HOVER } from "@/components/CopyTitle"
 import { Button } from "@/components/ui/button"
+import { CircleButton } from "@/components/ui/circle-button"
+import { SHEET_BAR_HOVER, SheetGrip, useSheet } from "@/components/lab/OutputPane"
 import { Input } from "@/components/ui/input"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
@@ -60,9 +63,21 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
   const [hidden, setHidden] = useState<Set<string>>(new Set())
   const [version, setVersion] = useState(0)
   const redraw = () => setVersion((v) => v + 1)
+  // Each box zoom stacks the range it left; the undo circle pops one step; the double click (BookChart hands back FULL)
+  // goes to the whole range and empties the stack.
+  const [undo, setUndo] = useState<Range[]>([])
   const zoomed = (r: Range) => {
+    setUndo((u) => (r === FULL ? [] : [...u, range]))
     setRange(r)
     setFields({ xmin: exp(r.xmin), xmax: exp(r.xmax), ymin: exp(r.ymin), ymax: exp(r.ymax) })
+  }
+  const back = () => {
+    const prev = undo[undo.length - 1]
+    if (!prev) return
+    setUndo((u) => u.slice(0, -1))
+    setRange(prev)
+    setFields({ xmin: exp(prev.xmin), xmax: exp(prev.xmax), ymin: exp(prev.ymin), ymax: exp(prev.ymax) })
+    redraw()
   }
   const apply = () => {
     const n = { xmin: Number(fields.xmin), xmax: Number(fields.xmax), ymin: Number(fields.ymin), ymax: Number(fields.ymax) }
@@ -80,8 +95,8 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
     redraw()
   }
 
-  // The Node sheet, shut on load as the Lab's pane is; its tab opens it.
-  const [sheet, setSheet] = useState(false)
+  // The Series sheet: the Lab's pane (useSheet), shut on load, the bar toggling it, the grip dragging it.
+  const sheet = useSheet()
 
   // The rail: the page's element and isotope open, its MT row scrolled into view once the rail is open.
   const leftClosed = useRailClosed("left")
@@ -161,20 +176,29 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
         </div>
 
         <div className="min-h-[240px] flex-1 px-2 pt-2">
-          <BookChart range={range} scales={scales} hidden={hidden} version={version} onZoom={zoomed} />
+          <div className="relative h-full w-full">
+            <BookChart range={range} scales={scales} hidden={hidden} version={version} onZoom={zoomed} />
+            {undo.length > 0 && (
+              <CircleButton aria-label="Undo the last zoom" title="Undo the last zoom" onClick={back} className="absolute left-2 top-1 z-10 size-8">
+                <Undo2 className="size-4" aria-hidden="true" />
+              </CircleButton>
+            )}
+            <ChartLegend hidden={hidden} onToggle={(name, on) => show(name, on)} />
+          </div>
         </div>
 
-        {/* the Node sheet: the Lab's OutputPane shape, a 36 px bar at rest, 260 px open, closed on load */}
-        <div className={cn("flex shrink-0 flex-col overflow-hidden border-t border-[var(--paper-rule)] bg-[var(--paper)] transition-[height] duration-[500ms] ease-in-out", sheet ? "h-[260px]" : "h-9")}>
-          <div className="flex h-9 shrink-0 items-center gap-1 px-2">
-            <button type="button" className={SHEET_TAB(sheet)} aria-expanded={sheet} onClick={() => setSheet(true)}>Node</button>
+        {/* the Series sheet: the Lab's OutputPane (useSheet), a 36 px bar at rest, 260 px open or dragged, closed on load */}
+        <div data-sheet style={sheet.style} className={cn("flex shrink-0 flex-col overflow-hidden border-t border-[var(--paper-rule)] bg-[var(--paper)]", sheet.motion)}>
+          <div {...sheet.bar} className={cn("relative flex h-9 shrink-0 cursor-pointer items-center gap-1 px-2 transition-colors", SHEET_BAR_HOVER)}>
+            <SheetGrip grip={sheet.grip} />
+            <button type="button" className={SHEET_TAB(sheet.open)} aria-expanded={sheet.open} onClick={(e) => { e.stopPropagation(); sheet.setOpen(true) }}>Series</button>
             <div className="ml-auto flex items-center gap-1">
-              <button type="button" aria-label={sheet ? "Close the pane" : "Open the pane"} className={SHEET_TAB(false)} onClick={() => setSheet((o) => !o)}>
-                {sheet ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+              <button type="button" aria-label={sheet.open ? "Close the pane" : "Open the pane"} aria-expanded={sheet.open} className={SHEET_TAB(false)} onClick={(e) => { e.stopPropagation(); sheet.setOpen((o) => !o) }}>
+                {sheet.open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>
-          {sheet && (
+          {sheet.open && (
         <div className="min-h-0 flex-1 overflow-auto px-2 pb-2">
           <table className={cn("w-full border text-sm text-[var(--paper-text)]", LINE)}>
             <thead>
@@ -261,6 +285,66 @@ function Stepper({ what, current, prev, next }: { what: string; current: string;
       {go(prev, "Previous")}
       <strong className="min-w-0 truncate text-xl font-normal tracking-tight text-[var(--paper-text)]" style={SERIF} title={current}>{current}</strong>
       {go(next, "Next")}
+    </div>
+  )
+}
+
+/** The corners the legend steps through, in order, and its insets inside the plot (BookChart's grid: 72, 24, 18, 48). */
+const CORNERS = ["top left", "top right", "bottom right", "bottom left"] as const
+const INSETS = { left: 84, right: 36, top: 28, bottom: 58 }
+
+/** The chart's legend (Brendan, 2026-11-11 01:12), drawn here instead of by ECharts: 12 px padding, 6 px between rows,
+ *  12 px type; an accordion, open on load (the chevron), and a Move button beside the chevron that slides it to the next
+ *  corner, top left, top right, bottom right, bottom left, 300 ms ease-out. A row toggles its series, as ECharts' did. */
+function ChartLegend({ hidden, onToggle }: { hidden: Set<string>; onToggle: (name: string, on: boolean) => void }) {
+  const [open, setOpen] = useState(true)
+  const [corner, setCorner] = useState(0)
+  const frame = useRef<HTMLDivElement>(null)
+  const box = useRef<HTMLDivElement>(null)
+  const [size, setSize] = useState({ W: 0, H: 0, w: 0, h: 0 })
+  useEffect(() => {
+    const f = frame.current, b = box.current
+    if (!f || !b) return
+    const read = () => setSize({ W: f.clientWidth, H: f.clientHeight, w: b.offsetWidth, h: b.offsetHeight })
+    read()
+    const ro = new ResizeObserver(read)
+    ro.observe(f)
+    ro.observe(b)
+    return () => ro.disconnect()
+  }, [])
+  const where = CORNERS[corner]
+  const x = where.endsWith("left") ? INSETS.left : Math.max(INSETS.left, size.W - size.w - INSETS.right)
+  const y = where.startsWith("top") ? INSETS.top : Math.max(INSETS.top, size.H - size.h - INSETS.bottom)
+  const rows = [...LIBRARIES.map((n) => ({ name: n, mark: <Swatch name={n} /> })), ...EXFOR_SETS.map((s) => ({ name: `EXFOR ${s.id}`, mark: <Marker symbol={s.symbol} /> }))]
+  const icon = cn("inline-flex size-6 items-center justify-center rounded-md text-[var(--paper-muted)] transition-colors hover:text-[var(--paper-text)]", HOVER)
+  return (
+    <div ref={frame} className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div ref={box} style={{ padding: 12, transform: `translate(${x}px, ${y}px)` }}
+        className={cn("pointer-events-auto absolute left-0 top-0 rounded-md border bg-[var(--paper)] shadow-sm transition-transform duration-300 ease-out", LINE)}>
+        <div className="flex items-center gap-1">
+          <button type="button" aria-expanded={open} aria-label={open ? "Fold the legend" : "Unfold the legend"} title={open ? "Fold the legend" : "Unfold the legend"} onClick={() => setOpen((o) => !o)} className={icon}>
+            <ChevronDown className={cn("size-4 transition-transform", !open && "-rotate-90")} />
+          </button>
+          <button type="button" aria-label={`Move the legend to the ${CORNERS[(corner + 1) % 4]}`} title={`Move to the ${CORNERS[(corner + 1) % 4]}`} onClick={() => setCorner((c) => (c + 1) % 4)} className={icon}>
+            <Move className="size-3.5" />
+          </button>
+        </div>
+        {open && (
+          <ul className="mt-2 flex flex-col" style={{ rowGap: 6 }}>
+            {rows.map((r) => {
+              const on = !hidden.has(r.name)
+              return (
+                <li key={r.name}>
+                  <button type="button" aria-pressed={on} onClick={() => onToggle(r.name, !on)}
+                    className={cn("flex items-center gap-2 whitespace-nowrap text-[12px] leading-4", on ? "text-[var(--paper-text)]" : "text-[var(--paper-muted)] opacity-60")}>
+                    <span className="inline-flex w-[18px] justify-center">{r.mark}</span>{r.name}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

@@ -87,20 +87,24 @@ export function InsetTip({ name, side, children }: { name: string; side: InsetSi
  *  the inner edge under the rail tab. */
 export function InsetPanel({ side, storageKey, tabs, children }: { side: InsetSide; storageKey: string; tabs?: ReactNode; children: ReactNode }) {
   const closed = useRailClosed(side);
-  const [w, setW] = useState(() => {
+  // The server and the first client render both draw the 284 px start; the width this browser remembers is read after
+  // mount (2026-11-11: reading localStorage in the initial state made /janis/book's rail 280 on the client and 284 on the
+  // server, a hydration mismatch). The panel loads closed, so the change is never seen.
+  const [w, setW] = useState(W.start);
+  const [read, setRead] = useState(false);
+  useEffect(() => {
     try {
       const v = Number(localStorage.getItem(storageKey));
-      return v >= W.min && v <= W.max ? v : W.start;
-    } catch {
-      return W.start;
-    }
-  });
+      if (v >= W.min && v <= W.max) setW(v);
+    } catch {}
+    setRead(true);
+  }, [storageKey]);
   const [dragging, setDragging] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (dragging) return;
+    if (dragging || !read) return;
     try { localStorage.setItem(storageKey, String(w)); } catch {}
-  }, [w, dragging, storageKey]);
+  }, [w, dragging, read, storageKey]);
   useEffect(() => {
     if (!dragging) return;
     const s = document.body.style;
