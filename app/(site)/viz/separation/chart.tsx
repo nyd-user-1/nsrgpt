@@ -1,6 +1,7 @@
 'use client'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, isDark, loadMasses, nucName, separationCandles } from '@/lib/viz-physics'
@@ -103,7 +104,7 @@ export function SeparationChart() {
       <VizControls>
         <EChartLegend chart={ref} />
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
     </>
   )
 }
