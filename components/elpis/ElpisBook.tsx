@@ -44,6 +44,7 @@ import { Button } from "@/components/ui/button"
 import { CircleButton } from "@/components/ui/circle-button"
 import { SHEET_BAR_HOVER, Sheet, useSheet } from "@/components/lab/OutputPane"
 import { Input } from "@/components/ui/input"
+import { MenuSelect } from "@/components/viz/MenuSelect"
 import { AtomSpinner } from "@/components/AtomSpinner"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
@@ -410,12 +411,11 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
         <section aria-label="Plotter">
         <div className="grid grid-cols-2 gap-2 text-xs text-[var(--paper-muted)]">
           {(["x", "y"] as const).map((k) => (
-            <label key={k} className="flex flex-col gap-1">{k.toUpperCase()} scale
-              <select value={scales[k] === "log" ? "Log" : "Lin"} onChange={(e) => { setScales((s) => ({ ...s, [k]: e.target.value === "Log" ? "log" : "value" })); redraw() }}
-                className="h-9 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]">
-                <option>Log</option><option>Lin</option>
-              </select>
-            </label>
+            <div key={k} className="flex flex-col gap-1">{k.toUpperCase()} scale
+              <MenuSelect label={`${k.toUpperCase()} scale`} value={scales[k] === "log" ? "Log" : "Lin"} className="h-9 text-sm"
+                options={[{ value: "Log", label: "Log" }, { value: "Lin", label: "Lin" }]}
+                onChange={(v) => { setScales((s) => ({ ...s, [k]: v === "Log" ? "log" : "value" })); redraw() }} />
+            </div>
           ))}
           {(["xmin", "xmax", "ymin", "ymax"] as const).map((k) => (
             <label key={k} className="flex flex-col gap-1">{`${k[0].toUpperCase()} ${k.slice(1)}`}
@@ -426,21 +426,17 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
         </div>
         <Button onClick={apply} className="mt-3 h-9 w-full rounded-full">Apply</Button>
         {proj.key === "n" && (
-          <label className="mt-4 flex flex-col gap-1 text-xs text-[var(--paper-muted)]">Temperature
-            <select value={temp} onChange={(e) => setTemp(Number(e.target.value))}
-              className="h-9 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]">
-              {TEMPS.map((t) => <option key={t} value={t}>{t} K</option>)}
-            </select>
+          <div className="mt-4 flex flex-col gap-1 text-xs text-[var(--paper-muted)]">Temperature
+            <MenuSelect label="Temperature" value={temp} className="h-9 text-sm" onChange={setTemp}
+              options={TEMPS.map((t) => ({ value: t, label: `${t} K` }))} />
             <span>ENDF/B-VIII.1 and VIII.0 from their POINT files; Reconstruct broadens to it.</span>
-          </label>
+          </div>
         )}
         {newestFirst.length > 0 && (
-          <label className="mt-4 flex flex-col gap-1 text-xs text-[var(--paper-muted)]">Release
-            <select value={head?.release ?? ""} onChange={(e) => setQPick(e.target.value)}
-              className="h-9 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]">
-              {newestFirst.map((l) => <option key={l.release} value={l.release}>{libraryName(l.release)}</option>)}
-            </select>
-          </label>
+          <div className="mt-4 flex flex-col gap-1 text-xs text-[var(--paper-muted)]">Release
+            <MenuSelect label="Release" value={head?.release ?? ""} className="h-9 text-sm" onChange={setQPick}
+              options={newestFirst.map((l) => ({ value: l.release, label: libraryName(l.release) }))} />
+          </div>
         )}
 
         <dl className="mt-6 text-sm">
