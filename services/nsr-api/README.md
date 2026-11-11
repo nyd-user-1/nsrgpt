@@ -22,6 +22,7 @@ JSON; CloudFront keeps each one for an hour, keyed on the whole query string.
 | `library.py` | `/endf/fy`, `/endf/decay`, `/endf/decay-vs-ensdf` | worker-1 (brief 56) |
 | `icrp.py` | `/icrp/nuclide/{name}`, `/icrp/radiations/{name}`, `/icrp/chain/{name}`, `/icrp/vs-ensdf` | worker-1 (brief 56) |
 | `counts.py` | `/counts` | worker-1 (brief 56) |
+| `endf_sections.py` | `/endf/section`, `/endf/section/laws` (Files 4-15 as numbers) | new-worker-2 (brief 64) |
 | `test_layers.py` | runs brief 56's routes on a box before deploying | worker-1 (brief 56) |
 | `cinda.py` | `/cinda`, `/cinda/block/{id}`, `/cinda/pickers/{name}` | new-worker-1 (brief 65) |
 | `test_cinda.py` | runs cinda.py's routes on a box before deploying | new-worker-1 (brief 65) |
@@ -370,3 +371,24 @@ aws s3 cp services/nsr-api/ s3://nsr-lake-613473203863/lake/_work/parse/exfor/ns
 
 Spend: DynamoDB on demand at $1.25 a million writes and $0.25 a million reads, storage inside the free 25 GB; the S3 PUTs and
 the Lambda time are inside the free tiers. At this use, under a cent a day.
+
+## ENDF Files 4 to 15 (brief 64, endf_sections.py)
+
+Read from the seven tables `services/nsr-endf-parse` writes (`nsr.endfb_ang`, `endfb_edist`, `endfb_eang`, `endfb_mult`,
+`endfb_photon_xs`, `endfb_photon_ang`, `endfb_photon_edist`; `scripts/parse/endfb/README.md`): one Parquet file per
+material per table, so a request reads one file. The material comes from the serving materials index (name, release,
+`sub`, default neutrons) and its key from `lake/endfb/<release>/mf4_15/materials.json`.
+
+| Route | Example |
+| --- | --- |
+| `GET /endf/section` | `/endf/section?name=U-235&release=B-VIII.1&mf=4&mt=2&emin=1e5&emax=2e7` |
+| `GET /endf/section/laws` | `/endf/section/laws?name=U-235&release=B-VIII.1` (every MF 4-15 section); `&mf=6&mt=5` adds the incident energies, per product for File 6 |
+
+`/endf/section` returns `{release, name, sublibrary, mat, mf, mt, table, n_rows, truncated, limit, window, constant,
+columns, read_ms}`: the section's rows in long form (one value a row, the table's columns), cut to incident energies in
+[emin, emax] eV (rows without one, such as an isotropic flag or law 5's g(x), are kept); `constant` holds the columns
+with one value in every row, `columns` the rest as arrays. At most 50,000 rows (`truncated`), fewer when the answer
+would pass 5.5 MB. `/endf/section/laws` returns the section summaries (rows, values, incident energies held, energy
+range, laws, products, LTT/LCT/LI/LO). Measured on 2026-11-11 against the API origin: U-235 MF4 MT2 (4,348 rows) 0.32 s
+warm, 4.0 s on a container's first request (it loads the materials index); Fe-56 MF6 MT5 (truncated at 50,000 rows,
+2.7 MB) 2.2 s; the laws of U-235 MF6 MT5 0.5 s.
