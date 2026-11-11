@@ -55,6 +55,8 @@ export const HEADER_TITLES: Record<string, string> = {
   "/cinda": "CINDA",
   // Brief 66: NSRgpt beside the nuclear data centers.
   "/comparison": "Comparison",
+  // Brief 67: JANIS Web's pages in NSRgpt's style (every /janis/* page sets the same through lib/page-title.ts).
+  "/janis": "JANIS",
   // pax2's production map, ported as NSRgpt's sources, lake and roadmap (2026-11-07).
   "/pipeline": "Pipeline",
   // Brief 32 (2026-11-08): pax's factory and schema canvases, pax2's glossary, and our own data dictionary. Working routes;

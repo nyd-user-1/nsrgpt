@@ -34,6 +34,7 @@ const ALL: NavEntry[] = [
   { href: "/factory", label: "Factory", group: "Main" },
   { href: "/glossary", label: "Glossary", group: "Main" },
   { href: "/graph", label: "Graph", group: "Main" },
+  { href: "/janis", label: "JANIS", group: "Main" },
   { href: "/lab", label: "Lab", group: "Main" },
   { href: "/nsrcpt", label: "NSR-CPT", group: "Main" },
   { href: "/pipeline", label: "Pipeline", group: "Main" },
@@ -67,6 +68,7 @@ export function SideBarMenu() {
         {place("/factory") && <SideBarMenuItem href="/factory" label="Factory" icon={PAGE_ICONS["/factory"]} on={path === "/factory"} />}
         {place("/glossary") && <SideBarMenuItem href="/glossary" label="Glossary" icon={PAGE_ICONS["/glossary"]} on={path === "/glossary"} />}
         {place("/graph") && <SideBarMenuItem href="/graph" label="Graph" icon={PAGE_ICONS["/graph"]} on={path === "/graph"} />}
+        {place("/janis") && <SideBarMenuItem href="/janis" label="JANIS" icon={PAGE_ICONS["/janis"]} on={path === "/janis" || path.startsWith("/janis/")} />}
         {place("/lab") && <SideBarMenuItem href="/lab" label="Lab" icon={FlaskConical} on={path === "/lab"} />}
         {place("/nsrcpt") && <SideBarMenuItem href="/nsrcpt" label="NSR-CPT" icon={PAGE_ICONS["/nsrcpt"]} on={path === "/nsrcpt"} />}
         {place("/pipeline") && <SideBarMenuItem href="/pipeline" label="Pipeline" icon={PAGE_ICONS["/pipeline"]} on={path === "/pipeline"} />}

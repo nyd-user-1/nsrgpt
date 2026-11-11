@@ -67,6 +67,7 @@ export const PLATE_PAGES: PlatePage[] = [
   { href: "/glossary", name: "Glossary", body: "Every nuclear data term the app uses, defined." },
   { href: "/gnds", name: "GNDS 2.0 compiler", body: "ENDF-6 in, GNDS 2.0 out: every release the lake holds, or your own file." },
   { href: "/graph", name: "Graph", body: "Diagrams of the decay series, process chains and production routes, each one editable." },
+  { href: "/janis", name: "JANIS", body: "JANIS Web's pages, ours." },
   { href: "/nsrcpt", name: "NSR-CPT", body: "The retrieval model trained on 277,068 nuclear-physics references, with its benchmark." },
   { href: "/pipeline", name: "Pipeline", body: "Where the data comes from, where it is kept, and what reads it." },
   { href: "/schema", name: "Schema", body: "The tables the API reads, the tables they are built from, and the keys between them." },
