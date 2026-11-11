@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { EChartLegend } from '@/components/viz/EChartLegend'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
@@ -293,7 +294,7 @@ export function DecayChainChart() {
           )
         })}
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
       <VizControls>
         {preset ? (
           <p className="m-0 text-[var(--paper-text)]">{preset.note}</p>
