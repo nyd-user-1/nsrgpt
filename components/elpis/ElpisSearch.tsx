@@ -23,6 +23,8 @@ import { RotateCcw, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { AtomSpinner } from "@/components/AtomSpinner"
+import { MenuSelect } from "@/components/viz/MenuSelect"
+import { MenuMultiSelect } from "@/components/viz/MenuMultiSelect"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { LINE, LINK, Mark, SEARCHES, TINT } from "@/components/elpis/parts"
 import { cn } from "@/lib/utils"
@@ -32,7 +34,6 @@ import { symbolOfZ } from "@/lib/janis-tree"
 import { libraryName } from "@/lib/elpis"
 import { FORMS, type Group } from "@/components/elpis/search-forms"
 
-const SELECT = "h-10 w-full rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]"
 const SMALL = "text-xs text-[var(--paper-muted)]"
 const HALF_MIN = ["0 milliseconds", "1 minute", "1 hour", "1 day", "10 days", "100 days", "10 years", "1e4 years"]
 const HALF_MAX = ["1 minute", "1 hour", "1 day", "10 days", "100 days", "10 years", "1e4 years", "infinity"]
@@ -301,15 +302,35 @@ function RangeField({ name, unit }: { name: string; unit: string }) {
   )
 }
 
+/** One choice, the house MenuSelect (no browser dropdowns, Brendan's rule), its value in a hidden input for the form. */
+function OneOf({ name, label, options, initial }: { name: string; label: string; options: { value: string; label: string }[]; initial: string }) {
+  const [v, setV] = useState(initial)
+  return (
+    <>
+      <input type="hidden" name={name} value={v} />
+      <MenuSelect label={label} value={v} onChange={setV} options={options} className="h-10 w-full text-sm" />
+    </>
+  )
+}
+/** Several choices, MenuMultiSelect, each in a hidden input of the field's name. */
+function SomeOf({ name, label, options, initial }: { name: string; label: string; options: { value: string; label: string }[]; initial: string[] }) {
+  const [v, setV] = useState<string[]>(initial)
+  return <MenuMultiSelect name={name} label={label} value={v} onChange={setV} options={options} placeholder="Any" className="h-10 w-full text-sm" />
+}
+const markText = (o: { label: string; mark: string }) => `${o.label}${o.mark === "missing" ? "  ❌" : o.mark === "ours" ? "  ✅" : ""}`
+
 function Field({ g, id, init }: { g: Group; id: string; init: Values }) {
   const k = g.key
   switch (g.kind) {
     case "select": {
       const chosen = list(init, k)
+      const opts = g.options.map((o) => ({ value: o.label, label: markText(o) }))
       return (
-        <select name={k} multiple={g.multiple} defaultValue={g.multiple ? chosen : chosen[0]} size={g.multiple ? Math.min(6, g.options.length) : undefined} aria-label={g.label} className={cn(SELECT, g.multiple && "h-auto py-1")}>
-          {g.options.map((o) => <option key={o.label} value={o.label}>{o.label}{o.mark === "missing" ? "  ❌" : o.mark === "ours" ? "  ✅" : ""}</option>)}
-        </select>
+        <div className="sm:max-w-md">
+          {g.multiple
+            ? <SomeOf name={k} label={g.label} options={opts} initial={chosen} />
+            : <OneOf name={k} label={g.label} options={opts} initial={chosen[0] ?? g.options[0]?.label ?? ""} />}
+        </div>
       )
     }
     case "radio":
@@ -355,9 +376,9 @@ function Field({ g, id, init }: { g: Group; id: string; init: Values }) {
     case "halflife":
       return (
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <select name={`${k}.from`} aria-label="Half-life from" className={cn(SELECT, "w-40")}>{HALF_MIN.map((h) => <option key={h}>{h}</option>)}</select>
+          <div className="w-40"><OneOf name={`${k}.from`} label="Half-life from" options={HALF_MIN.map((h) => ({ value: h, label: h }))} initial={HALF_MIN[0]} /></div>
           <span className={SMALL}>to</span>
-          <select name={`${k}.to`} aria-label="Half-life to" defaultValue="infinity" className={cn(SELECT, "w-40")}>{HALF_MAX.map((h) => <option key={h}>{h}</option>)}</select>
+          <div className="w-40"><OneOf name={`${k}.to`} label="Half-life to" options={HALF_MAX.map((h) => ({ value: h, label: h }))} initial="infinity" /></div>
         </div>
       )
     case "subentry":
@@ -377,7 +398,7 @@ function Field({ g, id, init }: { g: Group; id: string; init: Values }) {
     case "reference":
       return (
         <div className="grid gap-3 sm:grid-cols-[repeat(5,minmax(0,1fr))]">
-          <Labeled label="Type" off={offOf(g, "Type")}><select aria-label="Reference type" disabled className={SELECT}>{["Any", "Journal", "Report", "Conference", "Thesis", "Book", "Private communication"].map((t) => <option key={t}>{t}</option>)}</select></Labeled>
+          <Labeled label="Type" off={offOf(g, "Type")}><span aria-label="Reference type" aria-disabled="true" className="flex h-10 items-center rounded-md border border-[var(--paper-rule)]/30 bg-[var(--paper)] px-2 text-sm text-[var(--paper-muted)] opacity-60">Any</span></Labeled>
           <label className="inline-flex items-end gap-2 pb-2 text-sm text-[var(--paper-text)]"><input type="checkbox" disabled className="accent-[var(--paper-strong)]" />Main ref.{offOf(g, "Main ref.") && <Mark kind="missing" />}</label>
           <Labeled label="Code" off={offOf(g, "Code")}><Box aria-label="Reference code" disabled className="font-mono" /></Labeled>
           <Labeled label="From year"><Box name={`${k}.from`} aria-label="From year" inputMode="numeric" /></Labeled>
