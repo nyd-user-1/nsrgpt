@@ -2,7 +2,7 @@
 // The atom that stands in for "loading" (Brendan, 2026-11-11 14:15): lucide's atom icon, animated. Three electron dots
 // ride the two orbit paths (SVG animateMotion along the icon's own path data, two on one orbit half a turn apart, one on
 // the other) while the pair of orbits turns slowly (app/globals.css .atom-spin-orbits). The nucleus stays still. Inherits
-// the text colour; `size` in px. Use it in place of a "Reading…" line wherever a page waits on the lake.
+// the header icons' two blues (components/AppLayout.tsx): orbits #dbe7fa, electrons and nucleus #033882; `size` in px. Use it in place of a "Reading…" line wherever a page waits on the lake.
 import { useId } from "react"
 import { cn } from "@/lib/utils"
 
@@ -13,16 +13,16 @@ export function AtomSpinner({ size = 32, className, label = "Loading" }: { size?
   const id = useId()
   const a = `${id}-a`, b = `${id}-b`
   const electron = (path: string, dur: string, begin: string) => (
-    <circle r="1.3" fill="currentColor" stroke="none">
+    <circle r="1.3" fill="#033882" stroke="none">
       <animateMotion dur={dur} begin={begin} repeatCount="indefinite" rotate="auto">
         <mpath href={`#${path}`} />
       </animateMotion>
     </circle>
   )
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="#dbe7fa" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
       role="img" aria-label={label} className={cn("shrink-0", className)}>
-      <circle cx="12" cy="12" r="1" />
+      <circle cx="12" cy="12" r="1.4" fill="#033882" stroke="#033882" />
       <g className="atom-spin-orbits">
         <path id={a} d={ORBIT_A} />
         <path id={b} d={ORBIT_B} />
