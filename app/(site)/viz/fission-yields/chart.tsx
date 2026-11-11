@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { AXIS, isDark, sup } from '@/lib/viz-physics'
@@ -150,7 +151,7 @@ function MassCurve({ view, code }: { view: React.RefObject<View>; code: number }
     undefined,
     { view: code, replace: true, onPick: () => {} },
   )
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
 
 function Yields3D({ view, code }: { view: React.RefObject<View>; code: number }) {
@@ -190,7 +191,7 @@ function Yields3D({ view, code }: { view: React.RefObject<View>; code: number })
     undefined,
     { view: code, replace: true, onPick: () => {} },
   )
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
 
 /** Element symbols by Z, as far as fission products and parents reach. */
