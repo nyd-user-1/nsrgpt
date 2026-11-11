@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { keyOf, loadMasses, nucName } from '@/lib/viz-physics'
 
@@ -51,5 +52,5 @@ export function SurfaceChart() {
       series: [{ type: 'surface', data, shading: 'lambert', wireframe: { show: false } }],
     }
   }, true, (p) => (p.seriesIndex === 0 && typeof p.dataIndex === 'number' ? cellRow.current[p.dataIndex] ?? null : null))
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
