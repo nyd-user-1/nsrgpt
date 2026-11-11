@@ -5,6 +5,7 @@
 // (log γ per 100 captures). The capture state's binding energy shows as the top edge the primaries climb to.
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { E_MAX_KEV, I_FLOOR, allLines, loadCapgam, logI, openWindow, setName } from '@/lib/viz-gamma'
 
 const AXIS = { nameTextStyle: { color: '#64748b' }, axisLabel: { color: '#475569', fontSize: 10 }, axisLine: { lineStyle: { color: '#1e293b' } } }
@@ -44,5 +45,5 @@ export function SimplexChart() {
       ],
     }
   }, false, firstSeriesRow, { marks: true })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
