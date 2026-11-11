@@ -1,66 +1,65 @@
 "use client"
-// /elpis/book (brief 67): the book page's chart, through components/viz/use-echart.ts. Log-log, cross section against
-// incident energy, placeholder series shaped like B-11 (n,α): seven library lines in the dataviz palette (colour by
-// library, lib/lab/canvases/plot.ts's slots) and four EXFOR point sets with distinct markers in the paper's ink, the
-// legend boxed top left as JANIS draws it. No data is read.
+// /elpis/book (briefs 67, 69): the book page's chart, through components/viz/use-echart.ts. Cross section against
+// incident energy from the lake: one line per library release that holds the section (/endf/xs; colour by release,
+// lib/lab/canvases/plot.ts's slots) and one marker set per EXFOR subentry (/exfor/points; eight markers, four shapes
+// outlined then filled, in the paper's ink). The page draws the legend (ElpisBook.tsx ChartLegend); `hidden` hides series
+// by name. A dashed line marks the threshold when the reaction's Q value is below zero.
 //
 // The zoom box: mouse down inside the plot and drag draws a dashed rectangle (the pointer stays the house crosshair
 // use-echart sets); on mouse up both axes zoom to the rectangle, animated, and the Plotter's fields follow (onZoom).
-// A double click goes back to the whole range. The Plotter's Apply and scale selects come in through `view`.
+// A double click goes back to the data's whole range (`full`). The Plotter's Apply and scale selects come in through
+// `view` and redraw without animation (brief 69: no animation on rail or Plotter clicks).
 import { useEffect, useRef } from "react"
 import { useEChart } from "@/components/viz/use-echart"
 import { energyLabel, RELEASE_SLOT, SLOTS } from "@/lib/lab/canvases/plot"
+import { libraryName } from "@/lib/elpis"
+import type { BookLine, BookSet } from "@/components/elpis/use-book"
 
 export type Range = { xmin: number; xmax: number; ymin: number; ymax: number }
 export type Scales = { x: "log" | "value"; y: "log" | "value" }
-export const LIBRARIES = ["ENDF/B-VIII.1", "JEFF-3.3", "JENDL-5", "ENDF/B-VIII.0", "ENDF/B-VII.1", "TENDL-2023", "CENDL-3.2"]
-export const EXFOR_SETS = [
-  { id: "X0001.002", symbol: "circle", lo: 13.4e6, hi: 14.9e6, n: 6 },
-  { id: "X0002.003", symbol: "rect", lo: 8.2e6, hi: 12.5e6, n: 9 },
-  { id: "X0003.002", symbol: "triangle", lo: 14.0e6, hi: 14.3e6, n: 3 },
-  { id: "X0004.004", symbol: "diamond", lo: 10.5e6, hi: 19.5e6, n: 11 },
-] as const
-const THRESHOLD = 7.23e6
-export const FULL: Range = { xmin: 6e6, xmax: 3e7, ymin: 1e-4, ymax: 0.1 }
+
+/** A set's marker: four shapes, outlined for the first four sets, filled for the next four, then round again. */
+export const SHAPES = ["circle", "rect", "triangle", "diamond"] as const
+export const markerOf = (j: number) => ({ symbol: SHAPES[j % 4], filled: Math.floor(j / 4) % 2 === 1 })
+/** A release's colour slot. */
+export const slotOf = (release: string, k: number) => RELEASE_SLOT[release] ?? k % 8
 
 const isDark = () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
 
-/** A threshold rise then a slow fall, in barns: B-11 (n,α)'s shape, not its values. */
-function shape(e: number, k: number): number {
-  const x = (e - THRESHOLD) / 1e6
-  if (x <= 0) return 0
-  const wobble = 1 + [0, 0.07, -0.09, 0.05, 0.11, -0.13, 0.15][k] * Math.sin(1.3 * k + 4 * Math.log10(e / 1e6))
-  return 0.05 * (1 - Math.exp(-x / 1.3)) * Math.exp(-x / 10) * wobble
-}
-/** The same few numbers on every draw, so the points do not jump. */
-const jitter = (i: number, j: number) => Math.sin(i * 12.9898 + j * 78.233) * 0.5
-
-function lineOf(k: number): [number, number][] {
-  const out: [number, number][] = []
-  const top = k === 6 ? 2e7 : 3e7
-  for (let i = 0; i <= 160; i++) {
-    const e = THRESHOLD * Math.pow(top / THRESHOLD, i / 160) * (i === 0 ? 1.0004 : 1)
-    out.push([e, Math.max(shape(e, k), 1e-6)])
+/** The whole range of the data: energy over the lines (the points when there are none), cross section over positive
+ *  values; on a log axis widened to whole decades. */
+export function rangeOf(lines: BookLine[], sets: BookSet[]): Range | null {
+  let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity
+  const take = (xs: number[], ys: number[]) => {
+    for (let i = 0; i < xs.length; i++) {
+      const x = xs[i], y = ys[i]
+      if (!(x > 0)) continue
+      if (x < xmin) xmin = x
+      if (x > xmax) xmax = x
+      if (y > 0 && y < ymin) ymin = y
+      if (y > ymax) ymax = y
+    }
   }
-  return out
+  for (const l of lines) take(l.x, l.y)
+  if (!lines.length) for (const s of sets) take(s.x, s.y)
+  if (!Number.isFinite(xmin) || !Number.isFinite(ymax) || xmax <= xmin) return null
+  ymin = Math.max(ymin, ymax * 1e-9)
+  const down = (v: number) => 10 ** Math.floor(Math.log10(v) + 1e-9)
+  const up = (v: number) => 10 ** Math.ceil(Math.log10(v) - 1e-9)
+  return { xmin: down(xmin), xmax: up(xmax), ymin: down(ymin), ymax: up(ymax) }
 }
 
-function pointsOf(j: number): [number, number][] {
-  const s = EXFOR_SETS[j]
-  return Array.from({ length: s.n }, (_, i) => {
-    const e = s.lo + ((s.hi - s.lo) * (i + 0.5)) / s.n
-    return [e, shape(e, 0) * (1 + 0.25 * jitter(i, j))]
-  })
-}
-
-export function bookOption(range: Range, scales: Scales, hidden: Set<string>) {
+export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; range: Range; scales: Scales; hidden: Set<string>; threshold: number | null }) {
+  const { lines, sets, range, scales, hidden, threshold } = o
   const dark = isDark()
   const slots = dark ? SLOTS.dark : SLOTS.light
   const ink = dark ? "#f0e9d8" : "#16181d"
   const muted = dark ? "rgba(240,233,216,0.62)" : "#64748b"
   const rule = dark ? "rgba(240,233,216,0.18)" : "rgba(22,24,29,0.14)"
   const paper = dark ? "#15120d" : "#ffffff"
-  const names = [...LIBRARIES, ...EXFOR_SETS.map((s) => `EXFOR ${s.id}`)]
+  const names = [...lines.map((l) => libraryName(l.release)), ...sets.map((s) => s.id)]
+  const logY = scales.y === "log"
+  const many = sets.reduce((n, s) => n + s.x.length, 0) > 20000
   const axis = (type: "log" | "value", name: string, min: number, max: number, energy: boolean) => ({
     type, name, min, max, nameLocation: "middle", nameGap: energy ? 30 : 52, logBase: 10,
     nameTextStyle: { color: muted, fontSize: 12 },
@@ -68,57 +67,76 @@ export function bookOption(range: Range, scales: Scales, hidden: Set<string>) {
     splitLine: { show: true, lineStyle: { color: rule, type: "dashed" } },
     axisLabel: { color: muted, fontSize: 11, hideOverlap: true, formatter: (v: number) => (energy ? energyLabel(v) : Number(v.toPrecision(2)).toExponential(0)) },
   })
+  const setInfo = new Map(sets.map((s) => [s.id, s]))
   return {
-    // No draw-in on load or on a stepper click (Brendan, 2026-11-11); the zoom box keeps its 450 ms update.
+    // No draw-in on load, on a rail click or on the Plotter (Brendan, 2026-11-11; brief 69); the zoom box asks for its
+    // own 450 ms when it sets the axes.
     animationDuration: 0,
-    animationDurationUpdate: 450,
-    animationEasingUpdate: "cubicOut",
+    animationDurationUpdate: 0,
     grid: { left: 72, right: 24, top: 18, bottom: 48 },
     xAxis: axis(scales.x, "Incident energy", range.xmin, range.xmax, true),
     yAxis: axis(scales.y, "Cross section (b)", range.ymin, range.ymax, false),
-    // hidden: the page draws the legend (ElpisBook.tsx ChartLegend, 2026-11-11); `selected` still hides the series
-    legend: {
-      show: false,
-      data: names.map((n) => (LIBRARIES.includes(n) ? { name: n, icon: "path://M0,3 L18,3 L18,5 L0,5 Z" } : { name: n })), selected: Object.fromEntries(names.map((n) => [n, !hidden.has(n)])),
-      orient: "vertical", left: 84, top: 28, padding: [8, 10], itemGap: 4, itemWidth: 18, itemHeight: 8,
-      backgroundColor: paper, borderColor: rule, borderWidth: 1, borderRadius: 6,
-      textStyle: { color: ink, fontSize: 11 }, inactiveColor: muted,
-    },
+    legend: { show: false, data: names, selected: Object.fromEntries(names.map((n) => [n, !hidden.has(n)])) },
     tooltip: {
       trigger: "item", backgroundColor: paper, borderColor: rule, textStyle: { color: ink, fontSize: 12 },
-      formatter: (p: { seriesName: string; value: [number, number] }) => `${p.seriesName}<br/>${energyLabel(p.value[0])} · ${p.value[1].toPrecision(3)} b`,
+      formatter: (p: { seriesName: string; value: [number, number] }) => {
+        const s = setInfo.get(p.seriesName)
+        const who = s ? ` · ${[s.author, s.year].filter(Boolean).join(", ")}` : ""
+        return `${p.seriesName}${who}<br/>${energyLabel(p.value[0])} · ${p.value[1].toPrecision(4)} b`
+      },
     },
     series: [
-      ...LIBRARIES.map((name, k) => ({
-        name, type: "line", data: lineOf(k), symbol: "none", showSymbol: false, smooth: false, clip: true,
-        lineStyle: { width: 2, color: slots[RELEASE_SLOT[name] ?? k] }, itemStyle: { color: slots[RELEASE_SLOT[name] ?? k] },
-      })),
-      ...EXFOR_SETS.map((s, j) => ({
-        name: `EXFOR ${s.id}`, type: "scatter", data: pointsOf(j), symbol: s.symbol, symbolSize: 7, clip: true,
-        itemStyle: { color: "transparent", borderColor: ink, borderWidth: 1.25 },
-      })),
+      ...lines.map((l, k) => {
+        const color = slots[slotOf(l.release, k)]
+        return {
+          name: libraryName(l.release), type: "line", symbol: "none", showSymbol: false, smooth: false, clip: true, connectNulls: false,
+          sampling: l.x.length > 4000 ? "lttb" : undefined,
+          data: l.x.map((x, i) => [x, logY && !(l.y[i] > 0) ? null : l.y[i]]),
+          lineStyle: { width: 1.75, color }, itemStyle: { color }, z: 3,
+          ...(k === 0 && threshold && threshold > range.xmin && threshold < range.xmax ? {
+            markLine: {
+              silent: true, symbol: "none", animation: false,
+              lineStyle: { color: muted, type: "dashed", width: 1 },
+              label: { color: muted, fontSize: 11, formatter: `Threshold ${energyLabel(threshold)}`, position: "insideEndTop" },
+              data: [{ xAxis: threshold }],
+            },
+          } : {}),
+        }
+      }),
+      ...sets.map((s, j) => {
+        const m = markerOf(j)
+        return {
+          name: s.id, type: "scatter", symbol: m.symbol, symbolSize: 6, clip: true, z: 4,
+          data: s.x.map((x, i) => [x, s.y[i]]).filter((d) => !logY || d[1] > 0),
+          itemStyle: { color: m.filled ? ink : "transparent", borderColor: ink, borderWidth: 1.1 },
+          ...(many ? { large: true, largeThreshold: 2000 } : {}),
+        }
+      }),
     ],
   }
 }
 
-const fmt = (r: Range): Range => r
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Chart = any
 
-export function BookChart({ range, scales, hidden, version, onZoom }: {
+export function BookChart({ lines, sets, range, full, scales, hidden, threshold, version, onZoom }: {
+  lines: BookLine[]
+  sets: BookSet[]
   range: Range
+  full: Range
   scales: Scales
   hidden: Set<string>
+  threshold: number | null
   version: number
   onZoom: (r: Range) => void
 }) {
-  const state = useRef({ range, scales, hidden })
-  state.current = { range, scales, hidden }
+  const state = useRef({ lines, sets, range, full, scales, hidden, threshold })
+  state.current = { lines, sets, range, full, scales, hidden, threshold }
   const zoom = useRef(onZoom)
   zoom.current = onZoom
   // onPick: a click on this chart opens nothing (Brendan, 2026-11-11 02:38); use-echart's default sends a click to the
   // page's data table in the second panel, and the book has none.
-  const ref = useEChart(async () => null, () => bookOption(state.current.range, state.current.scales, state.current.hidden), false, undefined, { view: version, replace: true, still: true, onPick: () => {} })
+  const ref = useEChart(async () => null, () => bookOption(state.current), false, undefined, { view: version, replace: true, still: true, onPick: () => {} })
 
   // The zoom box, on the chart's own zrender events, once use-echart has made the chart.
   useEffect(() => {
@@ -170,14 +188,15 @@ export function BookChart({ range, scales, hidden, version, onZoom }: {
         if (Math.abs(x - x0) < 6 || Math.abs(y - y0) < 6) return
         const a = chart.convertFromPixel({ gridIndex: 0 }, [Math.min(x0, x), Math.max(y0, y)]) as [number, number]
         const b = chart.convertFromPixel({ gridIndex: 0 }, [Math.max(x0, x), Math.min(y0, y)]) as [number, number]
-        const next = fmt({ xmin: a[0], xmax: b[0], ymin: a[1], ymax: b[1] })
-        chart.setOption({ xAxis: { min: next.xmin, max: next.xmax }, yAxis: { min: next.ymin, max: next.ymax } })
+        const next = { xmin: a[0], xmax: b[0], ymin: a[1], ymax: b[1] }
+        chart.setOption({ animationDurationUpdate: 450, animationEasingUpdate: "cubicOut", xAxis: { min: next.xmin, max: next.xmax }, yAxis: { min: next.ymin, max: next.ymax } })
         zoom.current(next)
       }
       const dbl = () => {
         clear()
-        chart.setOption({ xAxis: { min: FULL.xmin, max: FULL.xmax }, yAxis: { min: FULL.ymin, max: FULL.ymax } })
-        zoom.current(FULL)
+        const f = state.current.full
+        chart.setOption({ animationDurationUpdate: 450, animationEasingUpdate: "cubicOut", xAxis: { min: f.xmin, max: f.xmax }, yAxis: { min: f.ymin, max: f.ymax } })
+        zoom.current(f)
       }
       const leave = () => { if (start) clear() }
       zr.on("mousedown", down)

@@ -1,8 +1,10 @@
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import { ElpisSearch } from "@/components/elpis/ElpisSearch"
 import { FORMS } from "@/components/elpis/search-forms"
 
-// /elpis/search/{endf|exfor|cinda|resonances|decay|covariances} (brief 67): JANIS Web's search forms, UI only.
+// /elpis/search/{endf|exfor|cinda|resonances|decay|covariances} (briefs 67, 69): JANIS Web's search forms, searching the
+// lake. The form reads the URL's query (a prefilled search), so it renders under Suspense.
 type Props = { params: Promise<{ form: string }> }
 
 export function generateStaticParams() {
@@ -17,5 +19,9 @@ export async function generateMetadata({ params }: Props) {
 export default async function Page({ params }: Props) {
   const { form } = await params
   if (!FORMS[form]) notFound()
-  return <ElpisSearch form={form} />
+  return (
+    <Suspense>
+      <ElpisSearch form={form} />
+    </Suspense>
+  )
 }

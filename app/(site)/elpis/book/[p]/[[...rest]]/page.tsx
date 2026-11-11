@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation"
 import { ElpisBook } from "@/components/elpis/ElpisBook"
-import { parseNuclide, PROJECTILES } from "@/lib/janis-tree"
+import { PROJECTILES } from "@/lib/janis-tree"
+import { bookLabel, parseBookNuclide } from "@/lib/elpis"
 
-// /elpis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's books, the comparison of experimental and evaluated
-// cross sections, UI only. Without a nuclide it opens on 5-B-11 MT107, the reference page.
+// /elpis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (briefs 67, 69): JANIS Web's books, the comparison of experimental and
+// evaluated cross sections, reading the lake. Without a nuclide it opens on 5-B-11 MT107, the reference page.
 type Props = { params: Promise<{ p: string; rest?: string[] }> }
 
 export function generateStaticParams() {
@@ -19,8 +20,8 @@ export async function generateMetadata({ params }: Props) {
 export default async function Page({ params }: Props) {
   const { p, rest = [] } = await params
   if (!PROJECTILES.some((x) => x.key === p)) notFound()
-  const nuc = parseNuclide(decodeURIComponent(rest[0] ?? "5-B-11"))
+  const nuc = parseBookNuclide(decodeURIComponent(rest[0] ?? "5-B-11"))
   const mt = parseInt(rest[1] ?? "107", 10)
   if (!nuc || !Number.isFinite(mt) || rest.length > 2) notFound()
-  return <ElpisBook p={p} z={nuc.z} a={nuc.a} mt={mt} />
+  return <ElpisBook p={p} label={bookLabel(nuc)} mt={mt} chosen={!!rest[0]} mtChosen={!!rest[1]} />
 }

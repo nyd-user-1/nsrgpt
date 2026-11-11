@@ -196,8 +196,8 @@ export function handCounts(): MarkCounts {
   return out
 }
 
-/** The home page's cards I don't have, marked ❌ there and counted with the tree. */
-export const HOME_GAPS = ["Open .jns file", "TRANS Checker"]
+/** The home page's cards JANIS has and I do not (brief 69: the TRANS Checker is /elpis/checker now). */
+export const HOME_GAPS = ["Open .jns file"]
 
 // ---------- brief 68's crawl: public/janis-tree.json ----------
 /** One node of new-worker-1's crawl of JANIS Web's tree: { label, path, href, children, leaf?, crawled, mark, rule,
@@ -211,6 +211,7 @@ export type CrawlNode = {
 }
 
 const crawlMark = (m?: string): Mark => (m === "missing" ? "missing" : m === "ours" ? "ours" : "same")
+const BOOK_OF_BASE: Record<string, string> = { N: "n", G: "g", P: "p", D: "d", T: "t", HE3: "h", A: "a" }
 /** Pages of mine for rows the crawl adds from our side. */
 const OUR_PAGES: Record<string, string> = { CINDA: "/cinda" }
 
@@ -224,11 +225,35 @@ function ownSegment(parent: CrawlNode, child: CrawlNode): string {
 /** The URL slug of a segment, as the hand list writes it: a slash or a space becomes a dash. */
 const crawlSlug = (seg: string) => seg.replace(/\//g, "-").replace(/\s+/g, "-")
 
-/** "Yb171" (a crawl leaf's label) -> "70-Yb-171", the book page's name; null when the label is not a nuclide. */
+/** "Yb171" (a crawl leaf's label) -> "70-Yb-171", the book page's name; "C0" -> "6-C-Nat"; "Am242m" -> "95-Am-242m",
+ *  "Ta180n" -> "73-Ta-180m2"; null when the label is not a nuclide. */
 function crawlNuclide(label: string): string | null {
-  const m = /^([A-Za-z][a-z]{0,2})(\d{1,3})/.exec(label.trim())
+  const m = /^([A-Za-z][a-z]{0,2})(\d{1,3})([mn](?![a-z]))?/.exec(label.trim())
   const z = m ? ELEMENTS.indexOf(m[1]) : -1
-  return m && z >= 0 ? nuclideLabel(z, parseInt(m[2], 10)) : null
+  if (!m || z < 0) return null
+  const a = parseInt(m[2], 10)
+  return `${nuclideLabel(z, a === 0 ? "Nat" : a)}${m[3] === "m" ? "m" : m[3] === "n" ? "m2" : ""}`
+}
+
+/** Brief 69: where a held isotope row of the crawl opens, by its base, library and data type (`path` is the element's
+ *  page: base / library / type / element). Cross sections of a book's base open the book on that nuclide (the page picks
+ *  its first MT); the other data types of an evaluated library open the ENDF dataset index on the material and release;
+ *  EXFOR rows open Elpis's EXFOR search on the target, projectile and quantity; anything else searches the lake. */
+function leafHref(path: string[], library: string, nuc: string): string {
+  const p = /^(\d+)-([A-Za-z]+)-(\d+|Nat)(m\d?)?$/.exec(nuc)
+  if (!p) return ""
+  const sym = p[2], a = p[3], iso = p[4] ?? ""
+  const name = `${sym}-${a === "Nat" ? "nat" : a}${iso}`
+  const book = BOOK_OF_BASE[path[0]]
+  const type = (path[2] ?? "").replace(/-/g, "/")
+  if (library === "EXFOR") {
+    const q = new URLSearchParams({ target: `${sym}-${a === "Nat" ? 0 : a}${iso ? "-M" : ""}`, quantity: type })
+    if (book) q.set("projectile", path[0])
+    return `/elpis/search/exfor?${q}`
+  }
+  if (book && type === "SIG") return `/elpis/book/${book}/${nuc}`
+  if (/^(ENDF\/B|JEFF|JENDL|CENDL|TENDL)/.test(library)) return `/datasets/endf?${new URLSearchParams({ name, release: library.replace(/^ENDF\//, "").replace(/\s.*$/, "") })}`
+  return `/search?${new URLSearchParams({ q: name })}`
 }
 
 /** What /elpis/browse/<path> shows from the crawl, or null when the path is not in it (the hand list answers then).
@@ -245,8 +270,6 @@ export function crawlFile(root: CrawlNode, path: string[]): string | null {
   }
   return null
 }
-
-const BOOK_OF_BASE: Record<string, string> = { N: "n", G: "g", P: "p", D: "d", T: "t", HE3: "h", A: "a" }
 
 export function browseCrawl(root: CrawlNode, path: string[], lib?: CrawlNode | null): JanisView | null {
   const trail = [{ name: root.label || "Base", href: BASE }]
@@ -271,8 +294,7 @@ export function browseCrawl(root: CrawlNode, path: string[], lib?: CrawlNode | n
       const mark = crawlMark(c.mark)
       const nuc = crawlNuclide(c.label)
       if (c.leaf || (!c.children?.length && c.crawled !== false && nuc && !c.file)) {
-        const book = BOOK_OF_BASE[path[0]] ?? "n"
-        return { name: c.label, href: nuc ? `/elpis/book/${book}/${nuc}/1` : "", held: mark !== "missing" && !!nuc, mark, open: true }
+        return { name: c.label, href: nuc ? leafHref(path, trail[2]?.name ?? "", nuc) : "", held: mark !== "missing" && !!nuc, mark, open: true }
       }
       const own = OUR_PAGES[c.label]
       const open = !!c.children?.length || c.crawled === false || !!c.file
