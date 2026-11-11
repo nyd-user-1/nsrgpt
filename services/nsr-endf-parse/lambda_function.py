@@ -1051,8 +1051,19 @@ def values(ev):
                     "data, resonance and covariance parameters, and Files 4-15 (brief 64); energies, indices and JSON "
                     "columns are not counted. endfb_xs_points includes the POINT releases.",
             "athena_bytes_scanned": scanned, "seconds": round(time.time() - t0, 1)}
+
+    def size(prefix):
+        ks = list_keys(prefix)
+        return len(ks), sum(s for _, s in ks)
+    jobs = {(r, t): f"lake/endfb/{r}/{t}/" for r in RELEASES for t in list(SCHEMAS) + ["mf4_15"]}
+    with cf.ThreadPoolExecutor(32) as pool:
+        got = dict(zip(jobs, pool.map(size, jobs.values())))
+        split_files, split_bytes = pool.submit(size, "lake/_work/endf-split/").result()
+    body["storage"] = {t: {"files": sum(got[(r, t)][0] for r in RELEASES), "bytes": sum(got[(r, t)][1] for r in RELEASES)}
+                       for t in list(SCHEMAS) + ["mf4_15"]}
+    body["storage"]["_work/endf-split"] = {"files": split_files, "bytes": split_bytes}
     put_json("lake/endfb/_values/latest.json", body)
-    return {k: body[k] for k in ("total_values", "by_release", "seconds")} | {"tables": {x["table"]: x["values"] for x in out}}
+    return {k: body[k] for k in ("total_values", "by_release", "seconds", "storage")} | {"tables": {x["table"]: x["values"] for x in out}}
 
 
 def lambda_handler(event, context=None):
