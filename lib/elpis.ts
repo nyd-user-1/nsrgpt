@@ -84,7 +84,7 @@ export function thresholdEv(qi: number | null | undefined, key: string, a: numbe
 }
 
 // ---------- the book index: public/elpis/book-<p>.json ----------
-export type BookIndexNuclide = { l: string; n: string; m?: string; j?: string }
+export type BookIndexNuclide = { l: string; n: string; m?: string; j?: string; /** MT 5's residuals: "ZA:mask …" */ x?: string }
 export type BookIndex = {
   projectile: string
   sub: string
@@ -94,16 +94,48 @@ export type BookIndex = {
   counts: { nuclides: number; held_nuclides: number; janis_nuclides: number; missing_nuclides: number; ours_nuclides: number; mts_both: number; mts_missing: number; mts_ours: number }
   nuclides: BookIndexNuclide[]
 }
-export type RailMt = { mt: number; mine: boolean; janis: boolean; releases: string[] }
+/** `prod`: an MT I hold no section for, served as its residual's production from MT 5 by the releases listed. */
+export type RailMt = { mt: number; mine: boolean; janis: boolean; releases: string[]; prod?: { zap: number; releases: string[] } }
+
+const ZA_OF: Record<string, [number, number]> = { N: [0, 1], P: [1, 1], D: [1, 2], T: [1, 3], HE3: [2, 3], A: [2, 4], G: [0, 0] }
+const PROJ_ZA: Record<string, [number, number]> = { n: [0, 1], g: [0, 0], p: [1, 1], d: [1, 2], t: [1, 3], h: [2, 3], a: [2, 4] }
+/** ZA of the residual MT leaves on a target (z, a) hit by the book's projectile; null for elastic, a neutron's n', fission,
+ *  sums and natural targets. scripts/elpis/book-index.mjs counts with the same rule. */
+export function residualZa(key: string, z: number, a: number | "Nat", mt: number): number | null {
+  if (a === "Nat" || (mt === 4 && key === "n")) return null
+  const out = mt === 4 ? "N" : MT_PARTICLES[mt]
+  if (!out || !PROJ_ZA[key]) return null
+  let rz = z + PROJ_ZA[key][0], ra = a + PROJ_ZA[key][1]
+  for (const t of out.split("+")) {
+    const m = /^(\d*)(HE3|[A-Z])$/.exec(t)
+    if (!m) return null
+    const k = m[1] ? Number(m[1]) : 1
+    rz -= k * ZA_OF[m[2]][0]
+    ra -= k * ZA_OF[m[2]][1]
+  }
+  return rz >= 0 && ra > 0 && ra >= rz ? rz * 1000 + ra : null
+}
+/** "Fe53", JANIS's name for a product in its MT 5 labels. */
+export const productName = (za: number) => `${symbolOfZ(Math.floor(za / 1000))}${za % 1000}`
+/** EXFOR's name for a product: "Fe-53". */
+export const productTarget = (za: number) => `${symbolOfZ(Math.floor(za / 1000))}-${za % 1000}`
 
 /** One nuclide's MT rows: every MT I hold a File 3 section for and every MT JANIS's book lists, in MT order. */
 export function railMts(idx: BookIndex, n: BookIndexNuclide): RailMt[] {
   const mine = new Map((n.m ? n.m.split(" ") : []).map((x) => { const [mt, mask] = x.split(":").map(Number); return [mt, mask] as const }))
   const janis = new Set(n.j ? n.j.split(" ").map(Number) : [])
-  return [...new Set([...mine.keys(), ...janis])].sort((x, y) => x - y).map((mt) => ({
-    mt, mine: mine.has(mt), janis: janis.has(mt),
-    releases: idx.releases.filter((_, i) => ((mine.get(mt) ?? 0) / 2 ** i) % 2 >= 1),
-  }))
+  const made = new Map((n.x ? n.x.split(" ") : []).map((x) => { const [za, mask] = x.split(":").map(Number); return [za, mask] as const }))
+  const bits = (mask: number) => idx.releases.filter((_, i) => (mask / 2 ** i) % 2 >= 1)
+  const nuc = parseBookNuclide(n.l)
+  return [...new Set([...mine.keys(), ...janis])].sort((x, y) => x - y).map((mt) => {
+    const row: RailMt = { mt, mine: mine.has(mt), janis: janis.has(mt), releases: bits(mine.get(mt) ?? 0) }
+    if (!row.mine && nuc) {
+      const za = residualZa(idx.projectile, nuc.z, nuc.a, mt)
+      const mask = za !== null ? made.get(za) : undefined
+      if (za !== null && mask) row.prod = { zap: za, releases: bits(mask) }
+    }
+    return row
+  })
 }
 
 /** The index's elements in order, each with its nuclides. */

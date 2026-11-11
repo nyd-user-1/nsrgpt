@@ -24,6 +24,10 @@
 //   is drawn dashed over that range, for the MTs File 2 adds to (all MTs where the range is R-matrix limited), with the
 //   legend's note and a Reconstruct button: PREPRO through nsr-jobs (components/elpis/reconstruct.ts), each line
 //   swapped in as its job returns.
+// - Production (lead, 2026-11-11 14:30): an MT JANIS's book lists and I hold no section for, whose residual a release's
+//   MT 5 produces (File 6 yields or File 10; the index's `x`), is drawn as that residual's production from MT 5
+//   (/endf/section/production), labelled as JANIS labels it ("MT11 (p,2n+d) or MT5 (Fe53 production)"), with EXFOR's
+//   production data for that product (reaction "P,X"), and its rail row loses the ❌.
 // - Lines on by default: JANIS's book libraries and the newest of mine (ON_BY_DEFAULT); every other release that answers
 //   is listed in the legend and the sheet, off until switched on.
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -42,7 +46,7 @@ import { useBookData, useBookIndex, useResRanges, type BookLine, type BookSet } 
 import { JOB_RELEASES, RES_MTS, reconstruct } from "@/components/elpis/reconstruct"
 import { HOVER, LINE, LINK, Mark, TINT } from "@/components/elpis/parts"
 import { PROJECTILES, symbolOfZ } from "@/lib/janis-tree"
-import { apiName, BASE_NAME, BOOK_SUB, exforReaction, exforTarget, libraryName, mtLabel, parseBookNuclide, railElements, railMts, shortName, thresholdEv, type BookIndexNuclide } from "@/lib/elpis"
+import { apiName, BASE_NAME, BOOK_SUB, EXFOR_PROJ, exforReaction, productName, productTarget, exforTarget, libraryName, mtLabel, parseBookNuclide, railElements, railMts, shortName, thresholdEv, type BookIndexNuclide } from "@/lib/elpis"
 import { SLOTS } from "@/lib/lab/canvases/plot"
 import { cn } from "@/lib/utils"
 
@@ -77,14 +81,17 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
   const entry = idx?.nuclides.find((n) => n.l === label)
   const mts = idx && entry ? railMts(idx, entry) : []
   const here = mts.find((r) => r.mt === mt)
-  const reaction = exforReaction(proj.key, mt)
+  // An MT I hold no section for whose residual MT 5 produces: the page draws that production.
+  const prod = here && !here.mine ? here.prod : undefined
+  const reaction = prod ? `${EXFOR_PROJ[proj.key]},X` : exforReaction(proj.key, mt)
+  const prodLabel = prod ? `MT5 (${productName(prod.zap)} production)` : ""
   // A book opened without a nuclide (/elpis/book/t) lands on B-11 MT107; where this book has no such page, its first held
   // nuclide and MT instead. A nuclide without an MT (/elpis/book/n/26-Fe-56, browse's rows) opens on its first MT I hold.
   const router = useRouter()
   const redirectTo = (() => {
     if (!idx) return null
     if (!chosen) {
-      if (here?.mine) return null
+      if (here?.mine || here?.prod) return null
       const first = idx.nuclides.find((n) => n.m)
       return first ? href(first.l, railMts(idx, first).find((r) => r.mine)?.mt ?? 1) : null
     }
@@ -98,8 +105,9 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
   const [temp, setTemp] = useState(0)
   const request = idx === undefined || redirectTo ? null : {
     name: apiName(nuc), sub: BOOK_SUB[proj.key], mt, target: exforTarget(nuc), reaction, temp: proj.key === "n" ? temp : 0,
+    ...(prod ? { zap: prod.zap, product: productTarget(prod.zap) } : {}),
     // Without an index file, ask every release the lake holds; the API drops the ones without the section.
-    releases: idx ? here?.releases ?? [] : ["B-VIII.1", "JEFF-3.3", "JENDL-5", "B-VIII.0", "B-VII.1", "TENDL-2023", "CENDL-3.2", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II"],
+    releases: idx ? (prod ? prod.releases : here?.releases ?? []) : ["B-VIII.1", "JEFF-3.3", "JENDL-5", "B-VIII.0", "B-VII.1", "TENDL-2023", "CENDL-3.2", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II"],
   }
   const data = useBookData(request)
   const sets = useMemo(() => data?.sets ?? [], [data])
@@ -233,7 +241,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
       : [{ key: ALL_SETS, names: setIds, text: `EXFOR, ${sets.length} sets`, mark: <Marker j={0} /> }]),
   ]
   const empty = data && !lines.length && !sets.length
-  const why = !reaction ? "EXFOR has no cross section for this MT as one reaction" : "no EXFOR cross section in barns"
+  const why = !reaction ? "EXFOR has no cross section for this MT as one reaction" : prod ? `no EXFOR production of ${productTarget(prod.zap)} in barns` : "no EXFOR cross section in barns"
 
   return (
     <div className="flex h-full min-h-0 flex-1">
@@ -267,8 +275,8 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
                               <li key={m.mt}>
                                 <Link ref={on ? picked : undefined} href={href(iso.l, m.mt)} aria-current={on ? "page" : undefined}
                                   className={cn("flex items-center py-1 pl-14 pr-3 text-[13px]", on ? cn(TINT, "border-l-2 border-[var(--paper-strong)] pl-[54px] font-medium text-[var(--paper-text)]") : cn(m.mine ? "text-[var(--paper-strong)]" : "text-[var(--paper-muted)]", HOVER))}>
-                                  {labelOf(m.mt)}
-                                  {!m.mine && <Mark kind="missing" />}
+                                  {m.prod ? `${labelOf(m.mt)} or MT5 (${productName(m.prod.zap)} production)` : labelOf(m.mt)}
+                                  {!m.mine && !m.prod && <Mark kind="missing" />}
                                   {m.mine && !m.janis && <Mark kind="ours" />}
                                 </Link>
                               </li>
@@ -295,13 +303,15 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 text-center text-sm text-[var(--paper-muted)]">
                 {!data ? `Reading ${label} ${labelOf(mt)}…`
                   : data.errors.length ? data.errors.join(" · ")
-                  : `No File 3 section for ${labelOf(mt)} of ${label} in any release I hold, and ${why}.`}
+                  : prod ? `No release draws the production of ${productTarget(prod.zap)} from MT 5 here, and ${why}.` : `No File 3 section for ${labelOf(mt)} of ${label} in any release I hold, and ${why}.`}
               </div>
             )}
             {/* the undo circle rides inside the plot across from the legend's corner (Brendan, 2026-11-11 02:33) */}
             {legendRows.length > 0 && (
               <ChartLegend rows={legendRows} hidden={hidden} onToggle={show}
-                footer={background.length > 0 || Object.keys(recon).length > 0 ? (
+                footer={prod ? (
+                  <p className={cn("mt-3 max-w-[260px] border-t pt-2 text-[11px] leading-4 text-[var(--paper-muted)]", LINE)}>Production of {productTarget(prod.zap)} from MT 5</p>
+                ) : background.length > 0 || Object.keys(recon).length > 0 ? (
                   <ReconNote background={background} recon={recon} onRun={runRecon} />
                 ) : null}
                 aside={undo.length > 0 ? (
@@ -334,7 +344,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
             <tbody>
               <tr className={cn("border-b", LINE)}><td colSpan={3} className="px-3 py-2 font-medium">{BASE_NAME[proj.key]}</td></tr>
               {reaction && (
-                <tr className={cn("border-b", LINE)}><td colSpan={3} className="px-3 py-2 pl-6 font-mono text-[13px]">EXFOR / Cross sections / {target} / {reaction}</td></tr>
+                <tr className={cn("border-b", LINE)}><td colSpan={3} className="px-3 py-2 pl-6 font-mono text-[13px]">EXFOR / Cross sections / {target} / {reaction}{prod ? ` ${productTarget(prod.zap)}` : ""}</td></tr>
               )}
               {sets.map((s, j) => (
                 <NodeRow key={s.id} indent="pl-10" mark={<Marker j={j} />} n={s.x.length}
@@ -350,7 +360,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
               ))}
               {lines.map((l, k) => (
                 <NodeRow key={l.release} indent="pl-6" mark={<Swatch slot={slotOf(l.release, k)} dashed={!!spans[l.release]} />} n={l.n}
-                  node={<LineName l={l} text={`${libraryName(l.release)} / Cross sections / ${target} / ${labelOf(mt)}`} />}
+                  node={<LineName l={l} text={prod ? `${libraryName(l.release)} / Production / ${target} / ${prodLabel}` : `${libraryName(l.release)} / Cross sections / ${target} / ${labelOf(mt)}`} />}
                   on={!hidden.has(libraryName(l.release))} onToggle={(v) => show([libraryName(l.release)], v)} />
               ))}
             </tbody>
@@ -404,7 +414,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
             </>
           )}
           <dd className="mt-1 text-xs text-[var(--paper-muted)]">
-            {head ? `File 3 of ${libraryName(head.release)}` : data ? "No File 3 section in any release I hold" : "Reading File 3…"}
+            {prod ? `Production from MT 5 has no Q value of its own (${labelOf(mt)} is not a section I hold)` : head ? `File 3 of ${libraryName(head.release)}` : data ? "No File 3 section in any release I hold" : "Reading File 3…"}
           </dd>
           {threshold && (
             <>

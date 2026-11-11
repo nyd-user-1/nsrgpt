@@ -19,7 +19,10 @@
 // Out: public/elpis/book-<p>.json and lake/elpis/<date>/book-<p>.json:
 //   { projectile, sub, built, releases: [names, bit i = releases[i]], janis_book, counts, nuclides: [
 //     { l: "5-B-11", n: "B-11", m: "1:255 2:255 …" (MT:release mask; absent when I hold no material),
-//       j: "1 2 16 …" (JANIS's MTs; absent when JANIS's book lists none) } ] }
+//       j: "1 2 16 …" (JANIS's MTs; absent when JANIS's book lists none),
+//       x: "26053:4096 …" (residuals MT 5 produces, File 6 yields or File 10 sections: ZA and release mask; brief 69
+//          follow-up: a JANIS MT I hold no section for is served as that residual's production from MT 5, as JANIS labels it
+//          "MT11 (p,2n+d) or MT5 (Fe53 production)") } ] }
 //   and public/elpis/books.json (and the lake copy): { built, releases, books: { <p>: counts } }, the home page's figures.
 import { execFileSync } from "node:child_process"
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs"
@@ -115,11 +118,58 @@ const order = (l) => {
 }
 
 const summary = {}
+// The residuals MT 5 produces, per material and release: File 6 MT 5's product yields (endfb_eang, quantity yield) and File
+// 10 MT 5's production sections (endfb_mult), heavier than an alpha.
+const prods = athena(`WITH p AS (
+  SELECT s.release, s.sublibrary, s.mat, s.file_name, CAST(round(s.zap) AS integer) AS zap FROM endfb_eang s
+  WHERE s.mt = 5 AND s.quantity = 'yield' AND s.zap > 2004.5
+  UNION SELECT s.release, s.sublibrary, s.mat, s.file_name, CAST(round(s.izap) AS integer) FROM endfb_mult s
+  WHERE s.mf = 10 AND s.mt = 5 AND s.izap > 2004.5)
+SELECT sub, za, liso, array_join(array_agg(CAST(zap AS varchar) || ':' || CAST(mask AS varchar) ORDER BY zap), ' ') AS x FROM (
+  SELECT ${SUB} AS sub, CAST(m.za AS integer) AS za, COALESCE(m.liso, 0) AS liso, s.zap, sum(DISTINCT ${bit}) AS mask
+  FROM p s JOIN endfb_materials m ON m.release = s.release AND m.sublibrary = s.sublibrary AND m.mat = s.mat AND m.file_name = s.file_name
+  GROUP BY 1, 2, 3, 4)
+WHERE sub IN (${BOOKS.map((b) => `'${b.sub}'`).join(", ")}) GROUP BY 1, 2, 3`, "products")
+
+// The residual of a reaction: projectile and outgoing particles' (Z, A) taken from the compound nucleus.
+const ZA_OF = { N: [0, 1], P: [1, 1], D: [1, 2], T: [1, 3], HE3: [2, 3], A: [2, 4], G: [0, 0] }
+const PROJ_ZA = { n: [0, 1], g: [0, 0], p: [1, 1], d: [1, 2], t: [1, 3], h: [2, 3], a: [2, 4] }
+const OUT = {
+  4: "N", 11: "2N+D", 16: "2N", 17: "3N", 22: "N+A", 23: "N+3A", 24: "2N+A", 25: "3N+A", 28: "N+P", 29: "N+2A", 30: "2N+2A",
+  32: "N+D", 33: "N+T", 34: "N+HE3", 35: "N+D+2A", 36: "N+T+2A", 37: "4N", 41: "2N+P", 42: "3N+P", 44: "N+2P", 45: "N+P+A",
+  102: "G", 103: "P", 104: "D", 105: "T", 106: "HE3", 107: "A", 108: "2A", 109: "3A", 111: "2P", 112: "P+A", 113: "T+2A",
+  114: "D+2A", 115: "P+D", 116: "P+T", 117: "D+A", 152: "5N", 153: "6N", 154: "2N+T", 155: "T+A", 156: "4N+P", 157: "3N+D",
+  158: "N+D+A", 159: "2N+P+A", 160: "7N", 161: "8N", 162: "5N+P", 163: "6N+P", 164: "7N+P", 165: "4N+A", 166: "5N+A",
+  167: "6N+A", 168: "7N+A", 169: "4N+D", 170: "5N+D", 171: "6N+D", 172: "3N+T", 173: "4N+T", 174: "5N+T", 175: "6N+T",
+  176: "2N+HE3", 177: "3N+HE3", 178: "4N+HE3", 179: "3N+2P", 180: "3N+2A", 181: "3N+P+A", 182: "D+T", 183: "N+P+D",
+  184: "N+P+T", 185: "N+D+T", 186: "N+P+HE3", 187: "N+D+HE3", 188: "N+T+HE3", 189: "N+T+A", 190: "2N+2P", 191: "P+HE3",
+  192: "D+HE3", 193: "HE3+A", 194: "4N+2P", 195: "4N+2A", 196: "4N+P+A", 197: "3P", 198: "N+3P", 199: "3N+2P+A", 200: "5N+2P",
+}
+/** ZA of the residual of MT on a target (z, a) by projectile p; null for elastic, n' of neutrons, fission and sums. */
+function residual(p, z, a, mt) {
+  if (!a || (mt === 4 && p === "n")) return null
+  const out = OUT[mt]
+  if (!out) return null
+  let rz = z + PROJ_ZA[p][0], ra = a + PROJ_ZA[p][1]
+  for (const t of out.split("+")) {
+    const m = /^(\d*)(HE3|[A-Z])$/.exec(t)
+    const k = m[1] ? Number(m[1]) : 1
+    rz -= k * ZA_OF[m[2]][0]
+    ra -= k * ZA_OF[m[2]][1]
+  }
+  return rz >= 0 && ra > 0 && ra >= rz ? rz * 1000 + ra : null
+}
+
 for (const b of BOOKS) {
   const mine = new Map()
   for (const r of rows.filter((x) => x.sub === b.sub)) {
     const za = Number(r.za), liso = Number(r.liso), z = Math.floor(za / 1000), a = za % 1000
     mine.set(labelOf(z, a, liso), { l: labelOf(z, a, liso), n: nameOf(z, a, liso), m: r.mts })
+  }
+  const made = new Map()
+  for (const r of prods.filter((x) => x.sub === b.sub)) {
+    const za = Number(r.za), liso = Number(r.liso)
+    made.set(labelOf(Math.floor(za / 1000), za % 1000, liso), r.x)
   }
   // JANIS's rail for the book, from the lake copy (or the local one janis-book-rails.sh left).
   const local = join(WORK, `janis-rail-${b.book}.jsonl`)
@@ -139,19 +189,26 @@ for (const b of BOOKS) {
     const m = mine.get(l), j = janis.get(l)
     const p = /^(\d+)-[A-Za-z]+-(\d+|Nat)(m\d?)?$/.exec(l)
     const n = m?.n ?? (p ? `${SYM[Number(p[1])]}-${p[2] === "Nat" ? "nat" : p[2]}${p[3] ?? ""}` : l)
-    return { l, n, ...(m ? { m: m.m } : {}), ...(j?.length ? { j: j.join(" ") } : {}) }
+    const x = made.get(l)
+    return { l, n, ...(m ? { m: m.m } : {}), ...(j?.length ? { j: j.join(" ") } : {}), ...(x ? { x } : {}) }
   })
   const mts = (s) => (s ? s.split(" ").map((x) => Number(x.split(":")[0])) : [])
-  let both = 0, missing = 0, ours = 0
+  let both = 0, missing = 0, ours = 0, produced = 0
   for (const x of nuclides) {
     const my = new Set(mts(x.m)), jm = new Set(x.j ? x.j.split(" ").map(Number) : [])
-    for (const t of jm) (my.has(t) ? both++ : missing++)
+    const zx = new Set(x.x ? x.x.split(" ").map((v) => Number(v.split(":")[0])) : [])
+    const pz = /^(\d+)-[A-Za-z]+-(\d+)/.exec(x.l)
+    for (const t of jm) {
+      if (my.has(t)) both++
+      else if (pz && zx.has(residual(b.p, Number(pz[1]), Number(pz[2]), t))) produced++
+      else missing++
+    }
     for (const t of my) if (!jm.has(t)) ours++
   }
   const counts = {
     nuclides: nuclides.length, held_nuclides: mine.size, janis_nuclides: janis.size,
     missing_nuclides: nuclides.filter((x) => !x.m).length, ours_nuclides: nuclides.filter((x) => !x.j && x.m).length,
-    mts_both: both, mts_missing: missing, mts_ours: ours,
+    mts_both: both, mts_missing: missing, mts_ours: ours, mts_produced: produced,
   }
   const out = { projectile: b.p, sub: b.sub, built: new Date().toISOString(), releases, janis_book: `https://www.oecd-nea.org/janisweb/book/${b.book}`, counts, nuclides }
   const file = join(ROOT, "public", "elpis", `book-${b.p}.json`)

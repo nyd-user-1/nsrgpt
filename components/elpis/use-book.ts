@@ -53,8 +53,8 @@ async function getJson<T>(path: string): Promise<{ ok: boolean; status: number; 
 const q = (o: Record<string, string | number | undefined>) =>
   new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])).toString()
 
-async function points(target: string, reaction: string): Promise<{ ds: Map<string, Ds>; pts: Pt[]; truncated: boolean; error?: string }> {
-  const base = { target, reaction, quantity: "SIG", limit: 50000 }
+async function points(target: string, reaction: string, product?: string): Promise<{ ds: Map<string, Ds>; pts: Pt[]; truncated: boolean; error?: string }> {
+  const base = { target, reaction, product, quantity: "SIG", limit: 50000 }
   const first = await getJson<Points>(`/exfor/points?${q(base)}`)
   if (!first.ok || !Array.isArray(first.body.datasets)) return { ds: new Map(), pts: [], truncated: false, error: first.body.error ? `EXFOR: ${first.body.error}` : `EXFOR answered ${first.status}` }
   if (!first.body.truncated) return { ds: new Map(first.body.datasets.map((d) => [d.dataset_id, d])), pts: first.body.points ?? [], truncated: false }
@@ -110,7 +110,12 @@ async function points(target: string, reaction: string): Promise<{ ds: Map<strin
 }
 
 /** Every line and point set for one book page; the same arguments share one fetch for the session. */
-export function loadBook(o: { name: string; sub: string; mt: number; releases: string[]; target: string; reaction: string | null; /** K; 0 is the POINT files' 0 K, the API's default */ temp?: number }): Promise<BookData> {
+export function loadBook(o: {
+  name: string; sub: string; mt: number; releases: string[]; target: string; reaction: string | null
+  /** K; 0 is the POINT files' 0 K, the API's default */ temp?: number
+  /** A residual's ZA: the lines are its production from MT 5 (/endf/section/production), not MF3 MT `mt` */ zap?: number
+  /** EXFOR's product for a production page ("Fe-53"), with reaction "P,X" */ product?: string
+}): Promise<BookData> {
   const key = JSON.stringify(o)
   if (!cache.has(key)) cache.set(key, (async () => {
     const errors: string[] = []
@@ -118,7 +123,7 @@ export function loadBook(o: { name: string; sub: string; mt: number; releases: s
     for (let i = 0; i < o.releases.length; i += 6) chunks.push(o.releases.slice(i, i + 6))
     type Xs = { ok: boolean; status: number; body: { series?: XsSeries[]; error?: string } }
     const xsOnce = (c: string[]): Promise<Xs> =>
-      getJson<{ series?: XsSeries[]; error?: string }>(`/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: c[0], compare: c.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined })}`)
+      getJson<{ series?: XsSeries[]; error?: string }>(o.zap ? `/endf/section/production?${q({ name: o.name, sub: o.sub, zap: o.zap, release: c[0], compare: c.slice(1).join(",") })}` : `/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: c[0], compare: c.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined })}`)
         .catch((e) => ({ ok: false, status: 0, body: { error: e instanceof Error ? e.message : String(e) } }))
     // A chunk that fails (a cold Lambda loading a release's table, or an answer past Lambda's 6 MB: four dosimetry
     // libraries of 46,000 points each) is asked again one release a call.
@@ -127,7 +132,7 @@ export function loadBook(o: { name: string; sub: string; mt: number; releases: s
       return first.ok || first.status === 404 || (first.status >= 400 && first.status < 500) ? [first] : Promise.all(c.map((r) => xsOnce([r])))
     })).then((x) => x.flat())
     // EXFOR's trouble is reported beside the lines, never in their place.
-    const exP = o.reaction ? points(o.target, o.reaction).catch((e) => ({ ds: new Map<string, Ds>(), pts: [] as Pt[], truncated: false, error: `EXFOR: ${e instanceof Error ? e.message : String(e)}` })) : Promise.resolve(null)
+    const exP = o.reaction ? points(o.target, o.reaction, o.product).catch((e) => ({ ds: new Map<string, Ds>(), pts: [] as Pt[], truncated: false, error: `EXFOR: ${e instanceof Error ? e.message : String(e)}` })) : Promise.resolve(null)
     const [xs, ex] = await Promise.all([xsP, exP])
     const lines: BookLine[] = []
     for (const x of xs) if (!x.ok && x.status !== 404) errors.push(x.body.error ? `ENDF: ${x.body.error}` : `ENDF answered ${x.status}`)
