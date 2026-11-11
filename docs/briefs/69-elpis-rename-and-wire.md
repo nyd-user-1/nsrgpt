@@ -321,3 +321,40 @@ Types and lint are clean on the box for every commit.
    - T opens its values as a table.
    - I shows an EXFOR set's information. JANIS's I is Information, offered on EXFOR rows only, not an integral.
 - **Loading:** AtomSpinner replaces every loading line (`63957e5`).
+
+### Follow-up 4: the Plotter's Release, no browser dropdowns, the chart menu (elpis-wire, 2026-11-11 17:00 ET)
+
+**Release.** Under Temperature, the Plotter has a Release list of the releases drawn, newest first, defaulting to ENDF/B-VIII.1 where drawn (`eb58cbd`).
+- The Q value, its "File 3 of …" line and the threshold read from the chosen release. U-235 (n,f): ENDF/B-VIII.1 194.077 MeV, ENDF/B-VIII.0 193.405 MeV.
+- The Cross section heading is gone, and the panel names no JANIS.
+
+**No browser dropdowns** (Brendan's rule). 22 `<select>` elements replaced by the house MenuSelect, and none is left in app/ or components/:
+
+| Page | Selects | Commit |
+| --- | --- | --- |
+| Elpis Plotter (X scale, Y scale, Temperature, Release) | 4 | `c466077` |
+| Elpis search | 4 in source, 12 on screen across the six forms | `7c8ba78` |
+| Datasets index | 1 | `9bcee3d` |
+| Lab block parameters | 3 | `fd7fbfd` |
+| Graph settings | 6 | `0e2b911` |
+| Graph trace run | 1 | `cc99a02` |
+| CINDA | 3 | `02ecee4` |
+
+- Multi-choice fields (Incident particle, Library) use a new `components/viz/MenuMultiSelect.tsx`: the same menu, with a check per choice, read by the forms through hidden inputs.
+
+**The chart menu.** `components/viz/chart-kebab.tsx` puts a horizontal kebab in a chart's top right corner. It opens the house dropdown with:
+- Show legend, Show X axis, Show Y axis, Show grid lines;
+- Log or Linear X and Y;
+- Reset zoom, Undo zoom, and the page's own rows (the book's Reconstruct);
+- Fullscreen, Download PNG, Download SVG (off for 3D charts), Download data (CSV), Copy data;
+- Open data table (on /viz charts, which have one), Copy link.
+
+How it is built:
+- **One shared control:** each chart renders `ChartBox` where it rendered its div.
+- **Toggles persist:** use-echart re-applies the menu's toggles after each redraw, so a toggle outlives theme and view changes.
+- **On the book** (`4d2cf87`):
+  - The legend is hidden on load and opens from the menu.
+  - The menu's scales, zoom, Reconstruct and data act on the book's own state.
+  - Move and fold stay on the legend.
+- **Every other useEChart chart** has it: 38 charts in 34 files, one commit each. That's 30 /viz pages, MetricView, the Lab plot and the two sweep charts.
+- **Checked** in both themes on the book and /viz/weight, heatmap, scatter3d and fission-yields, with no errors.
