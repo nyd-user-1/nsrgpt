@@ -116,7 +116,9 @@ export function BookChart({ range, scales, hidden, version, onZoom }: {
   state.current = { range, scales, hidden }
   const zoom = useRef(onZoom)
   zoom.current = onZoom
-  const ref = useEChart(async () => null, () => bookOption(state.current.range, state.current.scales, state.current.hidden), false, undefined, { view: version, replace: true, still: true })
+  // onPick: a click on this chart opens nothing (Brendan, 2026-11-11 02:38); use-echart's default sends a click to the
+  // page's data table in the second panel, and the book has none.
+  const ref = useEChart(async () => null, () => bookOption(state.current.range, state.current.scales, state.current.hidden), false, undefined, { view: version, replace: true, still: true, onPick: () => {} })
 
   // The zoom box, on the chart's own zrender events, once use-echart has made the chart.
   useEffect(() => {

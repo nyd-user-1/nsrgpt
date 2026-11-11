@@ -168,12 +168,13 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
         <div className="min-h-[240px] flex-1 px-2 pt-2">
           <div className="relative h-full w-full">
             <BookChart range={range} scales={scales} hidden={hidden} version={version} onZoom={zoomed} />
-            {undo.length > 0 && (
-              <CircleButton aria-label="Undo the last zoom" title="Undo the last zoom" onClick={back} className="absolute left-2 top-1 z-10 size-8">
-                <Undo2 className="size-4" aria-hidden="true" />
-              </CircleButton>
-            )}
-            <ChartLegend hidden={hidden} onToggle={(name, on) => show(name, on)} />
+            {/* the undo circle rides inside the plot across from the legend's corner (Brendan, 2026-11-11 02:33) */}
+            <ChartLegend hidden={hidden} onToggle={(name, on) => show(name, on)}
+              aside={undo.length > 0 ? (
+                <CircleButton aria-label="Undo the last zoom" title="Undo the last zoom" onClick={back} className="size-8">
+                  <Undo2 className="size-4" aria-hidden="true" />
+                </CircleButton>
+              ) : null} />
           </div>
         </div>
 
@@ -260,8 +261,9 @@ const INSETS = { left: 84, right: 36, top: 28, bottom: 58 }
 /** The chart's legend (Brendan, 2026-11-11 01:12), drawn here instead of by ECharts: 12 px padding, 6 px between rows,
  *  12 px type; an accordion, open on load, its title "Legend" in the display face with the chevron beside it as one
  *  button (Brendan, 02:20), and a Move button at the right that slides it to the next corner, top left, top right,
- *  bottom right, bottom left, 300 ms ease-out. A row toggles its series, as ECharts' did. */
-function ChartLegend({ hidden, onToggle }: { hidden: Set<string>; onToggle: (name: string, on: boolean) => void }) {
+ *  bottom right, bottom left, 300 ms ease-out. A row toggles its series, as ECharts' did. `aside` (the undo circle) sits
+ *  inside the plot at the same height, across from the legend's corner, and crosses with it. */
+function ChartLegend({ hidden, onToggle, aside }: { hidden: Set<string>; onToggle: (name: string, on: boolean) => void; aside?: React.ReactNode }) {
   const [open, setOpen] = useState(true)
   const [corner, setCorner] = useState(0)
   const frame = useRef<HTMLDivElement>(null)
@@ -280,6 +282,7 @@ function ChartLegend({ hidden, onToggle }: { hidden: Set<string>; onToggle: (nam
   const where = CORNERS[corner]
   const x = where.endsWith("left") ? INSETS.left : Math.max(INSETS.left, size.W - size.w - INSETS.right)
   const y = where.startsWith("top") ? INSETS.top : Math.max(INSETS.top, size.H - size.h - INSETS.bottom)
+  const ax = where.endsWith("left") ? Math.max(INSETS.left, size.W - 32 - INSETS.right) : INSETS.left
   const rows = [...LIBRARIES.map((n) => ({ name: n, mark: <Swatch name={n} /> })), ...EXFOR_SETS.map((s) => ({ name: `EXFOR ${s.id}`, mark: <Marker symbol={s.symbol} /> }))]
   const icon = cn("inline-flex size-6 items-center justify-center rounded-md text-[var(--paper-muted)] transition-colors hover:text-[var(--paper-text)]", HOVER)
   return (
@@ -312,6 +315,11 @@ function ChartLegend({ hidden, onToggle }: { hidden: Set<string>; onToggle: (nam
           </ul>
         )}
       </div>
+      {aside && (
+        <div style={{ transform: `translate(${ax}px, ${y + 8}px)` }} className="pointer-events-auto absolute left-0 top-0 transition-transform duration-300 ease-out">
+          {aside}
+        </div>
+      )}
     </div>
   )
 }

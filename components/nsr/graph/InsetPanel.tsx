@@ -156,7 +156,7 @@ export function InsetPanel({ side, storageKey, tabs, children }: { side: InsetSi
             side === "left" ? "right-0 translate-x-1/2" : "left-0 -translate-x-1/2",
           )}
         >
-          <span className={`h-8 w-1 rounded-full transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] ${dragging ? "bg-[#033882]" : "bg-[rgba(22,24,29,0.18)] dark:bg-[rgba(240,233,216,0.2)]"}`} />
+          <span className={`h-8 w-1 rounded-full transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] ${dragging ? "bg-[#033882]" : "bg-[rgba(22,24,29,0.5)] dark:bg-[rgba(240,233,216,0.55)]"}`} />
         </div>
       )}
       <div className={cn("flex h-full w-full overflow-hidden", side === "right" && "justify-end")}>
