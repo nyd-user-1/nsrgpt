@@ -11,6 +11,7 @@
 import * as React from 'react'
 import { Pause, Play, RotateCcw } from 'lucide-react'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { GL_VIEW } from '@/lib/viz-3d'
 import { formatSeconds, keyOf, loadDecay, type DecayData } from '@/lib/viz-decay'
@@ -249,7 +250,7 @@ export function Decay2Chart() {
     'flex h-9 w-9 items-center justify-center rounded-full border border-[var(--paper-rule)]/25 bg-[var(--paper)] transition-colors hover:bg-[var(--paper-quiet)]'
   return (
     <div className="relative min-h-0 w-full flex-1">
-      <div ref={ref} className="absolute inset-0" />
+      <ChartBox chart={ref} className="absolute inset-0" />
       <VizControls>
         <div className="flex items-center gap-2">
           <button type="button" onClick={toggle} aria-label={isPlaying ? 'Pause' : 'Play'} className={button}>
