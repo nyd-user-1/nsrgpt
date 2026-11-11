@@ -1,15 +1,19 @@
 "use client"
-// /janis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's book page in three columns. Left, "By nuclide":
+// /janis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's book page. The two side columns are inset rails with
+// their tabs, as /graph's panels (InsetPanel, Brendan 2026-11-11), closed on load; the Node table is a bottom sheet in the
+// Lab's OutputPane shape, closed on load; the chart takes the room left. Left, "By nuclide":
 // elements that open to isotopes that open to MT rows, the page's own highlighted. Centre: the title bar (the nuclide
 // before and after, the reaction before and after), a tab strip ("Home" and the datasets' tab), the chart with its zoom
 // box (BookChart), and the Node table (Node, Settings, Display). Right: the Plotter (scales, ranges, Apply), the
 // reaction's Q value and the two links. Placeholder rows and series only.
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { ChevronRight, House } from "lucide-react"
+import { ChevronDown, ChevronRight, ChevronUp, House } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
+import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
+import { useRailClosed } from "@/components/rail-toggle"
 import { BookChart, EXFOR_SETS, FULL, LIBRARIES, type Range, type Scales } from "@/components/janis/BookChart"
 import { HOVER, LINE, LINK, TINT } from "@/components/janis/parts"
 import { BOOK_MTS, bookNuclides, mtLabel, neighbours, nuclideLabel, PROJECTILES, symbolOfZ, Z_MAX } from "@/lib/janis-tree"
@@ -17,7 +21,9 @@ import { RELEASE_SLOT, SLOTS } from "@/lib/lab/canvases/plot"
 import { cn } from "@/lib/utils"
 
 const BASE_NAME: Record<string, string> = { n: "Incident neutron data", g: "Incident gamma data", p: "Incident proton data", d: "Incident deuteron data", t: "Incident triton data", h: "Incident He3 data", a: "Incident alpha data" }
-const RAIL = "min-h-0 overflow-y-auto"
+/** The sheet's tab, the Lab's OutputPane TAB. */
+const SHEET_TAB = (on: boolean) =>
+  cn("rounded-md px-2 py-1 text-xs transition-colors", on ? "bg-[var(--paper-quiet)] text-[var(--paper-text)]" : "text-[var(--paper-muted)] hover:text-[var(--paper-text)]")
 const exp = (v: number) => (Number.isFinite(v) ? v.toExponential(3) : "")
 
 /** JANIS's naming of a product: "Li8" for Z 3, A 8. */
@@ -72,15 +78,19 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
     redraw()
   }
 
-  // The rail: the page's element and isotope open, its MT row scrolled into view.
+  // The Node sheet, shut on load as the Lab's pane is; its tab opens it.
+  const [sheet, setSheet] = useState(false)
+
+  // The rail: the page's element and isotope open, its MT row scrolled into view once the rail is open.
+  const leftClosed = useRailClosed("left")
   const [openZ, setOpenZ] = useState<Set<number>>(() => new Set([z]))
   const [openIso, setOpenIso] = useState<Set<string>>(() => new Set([here]))
   const picked = useRef<HTMLAnchorElement>(null)
   useEffect(() => {
     setOpenZ((s) => new Set(s).add(z))
     setOpenIso((s) => new Set(s).add(here))
-    picked.current?.scrollIntoView({ block: "center" })
-  }, [z, here])
+    if (!leftClosed) picked.current?.scrollIntoView({ block: "center", inline: "nearest" })
+  }, [z, here, leftClosed])
   const flip = <T,>(set: React.Dispatch<React.SetStateAction<Set<T>>>, v: T) =>
     set((s) => {
       const next = new Set(s)
@@ -93,11 +103,12 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
   const tab = `${target} ${label(mt)}: ${[...LIBRARIES, ...EXFOR_SETS.map((s) => s.id)].join(", ")}`
 
   return (
-    <div className="flex min-h-[760px] flex-1 flex-col lg:min-h-0 lg:flex-row">
-      {/* left: by nuclide */}
-      <aside className={cn("shrink-0 border-b lg:w-[230px] lg:border-b-0 lg:border-r", LINE, RAIL, "max-lg:max-h-72")} aria-label="By nuclide">
-        <h3 className="sticky top-0 z-[1] bg-[var(--paper)] px-4 py-3 text-lg tracking-tight text-[var(--paper-text)]" style={SERIF}>By nuclide</h3>
-        <ul className="pb-4 text-sm">
+    <div className="flex h-full min-h-0 flex-1">
+      {/* left: by nuclide, an inset rail with its tab, closed on load (InsetPanel, as /graph's) */}
+      <InsetPanel side="left" storageKey="janis:book-left-w">
+        <div className={cn(INSET.header, LINE)}><h3 className={INSET.title}>By nuclide</h3></div>
+        <InsetBody>
+        <ul className="text-sm" aria-label="By nuclide">
           {Array.from({ length: Z_MAX + 1 }, (_, zz) => (
             <li key={zz}>
               <button type="button" aria-expanded={openZ.has(zz)} onClick={() => flip(setOpenZ, zz)} className={cn("flex w-full items-center gap-1.5 px-3 py-1 text-left text-[var(--paper-text)]", HOVER)}>
@@ -134,10 +145,11 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
             </li>
           ))}
         </ul>
-      </aside>
+        </InsetBody>
+      </InsetPanel>
 
-      {/* centre: title bar, tabs, chart, node table */}
-      <section className={cn("flex min-w-0 flex-1 flex-col", RAIL)}>
+      {/* centre: title bar, tabs, the chart in the room the rails and the sheet leave, the Node sheet */}
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className={cn("flex flex-col gap-1 border-b px-4 py-3 text-sm", LINE)}>
           <p className="flex flex-wrap items-baseline justify-center gap-x-2 text-center">
             {isoNeighbours.prev ? <Link href={href(isoNeighbours.prev, mt)} className={LINK}>&lt;&lt; {isoNeighbours.prev}</Link> : <span className="text-[var(--paper-faint)]">&lt;&lt;</span>}
@@ -164,11 +176,22 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
           </span>
         </div>
 
-        <div className="h-[440px] shrink-0 px-2 pt-2">
+        <div className="min-h-[240px] flex-1 px-2 pt-2">
           <BookChart range={range} scales={scales} hidden={hidden} version={version} onZoom={zoomed} />
         </div>
 
-        <div className="px-4 pb-6 pt-2">
+        {/* the Node sheet: the Lab's OutputPane shape, a 36 px bar at rest, 260 px open, closed on load */}
+        <div className={cn("flex shrink-0 flex-col overflow-hidden border-t border-[var(--paper-rule)] bg-[var(--paper)] transition-[height] duration-[500ms] ease-in-out", sheet ? "h-[260px]" : "h-9")}>
+          <div className="flex h-9 shrink-0 items-center gap-1 px-2">
+            <button type="button" className={SHEET_TAB(sheet)} aria-expanded={sheet} onClick={() => setSheet(true)}>Node</button>
+            <div className="ml-auto flex items-center gap-1">
+              <button type="button" aria-label={sheet ? "Close the pane" : "Open the pane"} className={SHEET_TAB(false)} onClick={() => setSheet((o) => !o)}>
+                {sheet ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          </div>
+          {sheet && (
+        <div className="min-h-0 flex-1 overflow-auto px-2 pb-2">
           <table className={cn("w-full border text-sm text-[var(--paper-text)]", LINE)}>
             <thead>
               <tr className={cn("border-b", LINE, TINT)}>
@@ -190,11 +213,15 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
             </tbody>
           </table>
         </div>
+          )}
+        </div>
       </section>
 
-      {/* right: plotter */}
-      <aside className={cn("shrink-0 border-t px-4 py-4 lg:w-[230px] lg:border-l lg:border-t-0", LINE, RAIL)} aria-label="Plotter">
-        <h3 className="mb-3 text-lg tracking-tight text-[var(--paper-text)]" style={SERIF}>Plotter</h3>
+      {/* right: the plotter, an inset rail with its tab, closed on load */}
+      <InsetPanel side="right" storageKey="janis:book-right-w">
+        <div className={cn(INSET.header, LINE)}><h3 className={INSET.title}>Plotter</h3></div>
+        <InsetBody className="px-4 pt-4" >
+        <section aria-label="Plotter">
         <div className="grid grid-cols-2 gap-2 text-xs text-[var(--paper-muted)]">
           {(["x", "y"] as const).map((k) => (
             <label key={k} className="flex flex-col gap-1">{k.toUpperCase()} scale
@@ -222,7 +249,9 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
           <Link href="/janis/search/exfor" className={LINK}>Additional EXFOR</Link>
           <Link href="/janis/search/endf" className={LINK}>Additional ENDF</Link>
         </div>
-      </aside>
+        </section>
+        </InsetBody>
+      </InsetPanel>
     </div>
   )
 }
