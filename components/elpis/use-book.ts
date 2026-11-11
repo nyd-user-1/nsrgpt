@@ -52,12 +52,26 @@ async function points(target: string, reaction: string): Promise<{ ds: Map<strin
   const first = await getJson<Points>(`/exfor/points?${q(base)}`)
   if (!first.ok || !Array.isArray(first.body.datasets)) return { ds: new Map(), pts: [], truncated: false, error: first.body.error ? `EXFOR: ${first.body.error}` : `EXFOR answered ${first.status}` }
   if (!first.body.truncated) return { ds: new Map(first.body.datasets.map((d) => [d.dataset_id, d])), pts: first.body.points ?? [], truncated: false }
-  // Eight windows, 10 µeV to 1 GeV in equal log steps; each window's lower edge is open so no point comes twice.
-  const edges = Array.from({ length: 9 }, (_, i) => 10 ** (-5 + (14 * i) / 8))
-  // Two at a time: eight at once can meet the API's throttle.
+  // Eight windows, 10 µeV to 1 GeV in equal log steps, each window's lower edge open so no point comes twice. The route
+  // returns points in dataset order and stops at 50,000, so a window it stops in drops the later datasets whole (U-235
+  // (n,f) lost 23453.016, 40070.039.1, 40156.004, 40218.002 and 40588.003 that way): such a window is asked again as
+  // four, down three levels. Two requests at a time: more can meet the API's throttle.
+  const span = (lo: number, hi: number, first: boolean, depth: number) => ({ lo, hi, first, depth })
+  const queue = Array.from({ length: 8 }, (_, i) => span(10 ** (-5 + (14 * i) / 8), 10 ** (-5 + (14 * (i + 1)) / 8), i === 0, 0))
   const parts: { ok: boolean; status: number; body: Points }[] = []
-  for (let i = 0; i < 8; i += 2)
-    parts.push(...(await Promise.all([i, i + 1].map((k) => getJson<Points>(`/exfor/points?${q({ ...base, emin: k ? edges[k] * (1 + 1e-12) : 0, emax: edges[k + 1] })}`).catch(() => ({ ok: false, status: 0, body: {} as Points }))))))
+  while (queue.length) {
+    const batch = queue.splice(0, 2)
+    const got = await Promise.all(batch.map((w) => getJson<Points>(`/exfor/points?${q({ ...base, emin: w.first ? 0 : w.lo * (1 + 1e-12), emax: w.hi })}`).catch(() => ({ ok: false, status: 0, body: {} as Points }))))
+    got.forEach((g, i) => {
+      const w = batch[i]
+      if (g.ok && g.body.truncated && w.depth < 3) {
+        const step = Math.log(w.hi / w.lo) / 4
+        for (let k = 0; k < 4; k++) queue.push(span(w.lo * Math.exp(step * k), w.lo * Math.exp(step * (k + 1)), w.first && k === 0, w.depth + 1))
+        return
+      }
+      parts.push(g)
+    })
+  }
   const ds = new Map<string, Ds>(first.body.datasets.map((d) => [d.dataset_id, { ...d, n: 0 }]))
   const pts: Pt[] = []
   let truncated = false
