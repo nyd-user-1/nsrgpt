@@ -102,9 +102,11 @@ export function useSheet(storageKey: string) {
  *  top line, 64 by 18, row-resize; the inner box draws the line and clips the bar and body. */
 export function Sheet({ sheet, children }: { sheet: ReturnType<typeof useSheet>; children: ReactNode }) {
   return (
-    <div ref={sheet.box} style={sheet.style} className={cn("relative shrink-0", sheet.motion)}>
+    <div ref={sheet.box} style={sheet.style} className={cn("relative z-40 shrink-0", sheet.motion)}>
+      {/* The grip straddles the top line, the rails' gripper turned on its side (Brendan, 2026-11-11): centred across,
+          half above and half below the line; the sheet stacks above the chart so the upper half shows. */}
       {sheet.gripShown && (
-        <div {...sheet.grip} className="group absolute left-1/2 top-0 z-40 flex h-[14px] w-16 -translate-x-1/2 cursor-row-resize touch-none items-center justify-center outline-none">
+        <div {...sheet.grip} className="group absolute left-1/2 top-0 z-40 flex h-[18px] w-16 -translate-x-1/2 -translate-y-1/2 cursor-row-resize touch-none items-center justify-center outline-none">
           <span className={`h-1 w-8 rounded-full transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] ${sheet.dragging ? "bg-[#033882]" : "bg-[rgba(22,24,29,0.18)] dark:bg-[rgba(240,233,216,0.2)]"}`} />
         </div>
       )}
