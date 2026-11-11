@@ -54,7 +54,13 @@ const subscribe = (l: () => void) => {
 }
 const isClosed = (side: Side) => (typeof document === "undefined" ? false : document.documentElement.getAttribute(attr(side)) === "closed")
 
+// The rails a reader opened this visit (Brendan, 2026-11-11): a page that mounts again on a route change (the JANIS book's
+// steppers and rail rows change the route on every click) leaves an opened rail open; a fresh load still starts closed.
+const openedThisVisit = new Set<Side>()
+
 export function setRail(side: Side, closed: boolean) {
+  if (closed) openedThisVisit.delete(side)
+  else openedThisVisit.add(side)
   apply(side, closed)
   listeners.forEach((l) => l())
 }
@@ -116,7 +122,7 @@ export function useRailsClosedWhileMounted(sides: Side[]) {
 export function useRailClosed(side: Side) {
   const closed = React.useSyncExternalStore(subscribe, () => isClosed(side), () => true)
   React.useEffect(() => {
-    if (!isClosed(side)) setRail(side, true)
+    if (!isClosed(side) && !openedThisVisit.has(side)) setRail(side, true)
   }, [side])
   return closed
 }

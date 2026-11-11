@@ -106,8 +106,21 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
   useEffect(() => {
     setOpenZ((s) => new Set(s).add(z))
     setOpenIso((s) => new Set(s).add(here))
-    if (!leftClosed) picked.current?.scrollIntoView({ block: "center", inline: "nearest" })
+    if (!leftClosed) {
+      picked.current?.scrollIntoView({ block: "center", inline: "nearest" })
+      picked.current?.focus({ preventScroll: true })
+    }
   }, [z, here, leftClosed])
+  // Arrow keys walk the rail (Brendan, 2026-11-11): ↓ and ↑ move the focus through every row, element, isotope and MT.
+  const railKeys = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return
+    const rows = Array.from(e.currentTarget.querySelectorAll<HTMLElement>("button, a[href]"))
+    const next = rows[rows.indexOf(document.activeElement as HTMLElement) + (e.key === "ArrowDown" ? 1 : -1)]
+    if (!next) return
+    e.preventDefault()
+    next.focus()
+    next.scrollIntoView({ block: "nearest" })
+  }
   const flip = <T,>(set: React.Dispatch<React.SetStateAction<Set<T>>>, v: T) =>
     set((s) => {
       const next = new Set(s)
@@ -124,7 +137,7 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
       <InsetPanel side="left" storageKey="janis:book-left-w">
         <div className={cn(INSET.header, LINE)}><h3 className={INSET.title}>By nuclide</h3></div>
         <InsetBody>
-        <ul className="text-sm" aria-label="By nuclide">
+        <ul className="text-sm" aria-label="By nuclide" onKeyDown={railKeys}>
           {Array.from({ length: Z_MAX + 1 }, (_, zz) => (
             <li key={zz}>
               <button type="button" aria-expanded={openZ.has(zz)} onClick={() => flip(setOpenZ, zz)} className={cn("flex w-full items-center gap-1.5 px-3 py-1 text-left text-[var(--paper-text)]", HOVER)}>

@@ -69,6 +69,8 @@ export function bookOption(range: Range, scales: Scales, hidden: Set<string>) {
     axisLabel: { color: muted, fontSize: 11, hideOverlap: true, formatter: (v: number) => (energy ? energyLabel(v) : Number(v.toPrecision(2)).toExponential(0)) },
   })
   return {
+    // No draw-in on load or on a stepper click (Brendan, 2026-11-11); the zoom box keeps its 450 ms update.
+    animationDuration: 0,
     animationDurationUpdate: 450,
     animationEasingUpdate: "cubicOut",
     grid: { left: 72, right: 24, top: 18, bottom: 48 },
