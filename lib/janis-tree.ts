@@ -11,7 +11,7 @@ import { elementName } from "@/lib/diagram/elements"
  *  nothing (both hold it), "ours" shows ✅ (I hold it, JANIS does not). Brief 68's crawl writes the same three. */
 export type Mark = "missing" | "same" | "ours"
 export type JanisNode = { name: string; slug: string; held: boolean; ours?: boolean; children?: JanisNode[]; leaf?: "elements"; href?: string }
-export type JanisRow = { name: string; href: string; held: boolean; mark: Mark; open?: boolean }
+export type JanisRow = { name: string; href: string; held: boolean; mark: Mark; open?: boolean; /** a held file's format, where it is held but not parsed */ format?: string }
 export type JanisView = { trail: { name: string; href: string }[]; rows: JanisRow[]; nuclides: boolean; missing: boolean; source: "hand" | "crawl"; pending?: boolean; loading?: boolean }
 
 export const markOf = (n: { held: boolean; ours?: boolean }): Mark => (!n.held ? "missing" : n.ours ? "ours" : "same")
@@ -210,8 +210,10 @@ export const HOME_GAPS = ["Open .jns file"]
 export type CrawlNode = {
   label: string; path?: string; href?: string | null; children?: CrawlNode[]; leaf?: { renderer_id?: string } | null
   crawled?: boolean | null; mark?: string; rule?: string; counts?: { missing?: number; same?: number; ours?: number }
-  /** Index rows of a library: its whole subtree is public/janis-tree/<file> (brief 68 split the tree at 20 MB). */
+  /** Index rows of a library: its whole subtree is the CDN's lake/janis/current/<file> (brief 68 split the tree at 20 MB). */
   file?: string | null
+  /** A library held as files but not parsed: the files' format (brief 70). */
+  format?: string | null
 }
 
 const crawlMark = (m?: string): Mark => (m === "missing" ? "missing" : m === "ours" ? "ours" : "same")
@@ -302,7 +304,7 @@ export function browseCrawl(root: CrawlNode, path: string[], lib?: CrawlNode | n
       }
       const own = OUR_PAGES[c.label]
       const open = !!c.children?.length || c.crawled === false || !!c.file
-      return { name: c.label, href: own ?? `${BASE}/${here ? `${here}/` : ""}${encodeURIComponent(crawlSlug(ownSegment(at, c)))}`, held: !!own || open, mark }
+      return { name: c.label, href: own ?? `${BASE}/${here ? `${here}/` : ""}${encodeURIComponent(crawlSlug(ownSegment(at, c)))}`, held: !!own || open, mark, ...(c.format ? { format: c.format } : {}) }
     }),
   }
 }

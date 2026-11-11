@@ -1,16 +1,23 @@
 "use client"
-// /elpis (brief 67): brief 68's crawl of JANIS Web's tree, public/janis-tree.json, fetched once a session. Until the
-// file is there (or when it fails to load) the pages use the hand list in lib/janis-tree.ts.
+// /elpis (briefs 67, 69): the marked crawl of JANIS Web's tree, fetched once a session from the CDN, where elpis-fill's
+// mark.py rewrites it on every run (lake/janis/current/: index.json, and lib-NNN.json per library, the index's `file`
+// fields; five minutes' cache). The index falls back to the repo's public/janis-tree.json, and when neither loads the
+// pages use the hand list in lib/janis-tree.ts.
 import { useEffect, useState } from "react"
+import { API_BASE } from "@/lib/api-url"
 import type { CrawlNode } from "@/lib/janis-tree"
 
+const CDN = `${API_BASE}/lake/janis/current`
 let load: Promise<CrawlNode | null> | null = null
 
-function fetchCrawl(): Promise<CrawlNode | null> {
-  load ??= fetch("/janis-tree.json", { cache: "no-store" })
+const tree = (url: string) =>
+  fetch(url)
     .then((r) => (r.ok ? r.json() : null))
     .then((j: CrawlNode | null) => (j && Array.isArray(j.children) && j.children.length ? j : null))
     .catch(() => null)
+
+function fetchCrawl(): Promise<CrawlNode | null> {
+  load ??= tree(`${CDN}/index.json`).then((j) => j ?? tree("/janis-tree.json"))
   return load
 }
 
@@ -27,14 +34,14 @@ export function useCrawl(): CrawlNode | null | undefined {
 
 const files = new Map<string, Promise<CrawlNode | null>>()
 
-/** One library's whole subtree, public/janis-tree/<file>, fetched when a page needs it and kept for the session. */
+/** One library's whole subtree (the CDN's lib-NNN.json), fetched when a page needs it and kept for the session. */
 export function useCrawlFile(file: string | null): CrawlNode | null {
   const [got, setGot] = useState<{ file: string; tree: CrawlNode | null } | null>(null)
   useEffect(() => {
     if (!file) return
     let live = true
     if (!files.has(file)) {
-      files.set(file, fetch(`/janis-tree/${encodeURIComponent(file)}`, { cache: "no-store" })
+      files.set(file, fetch(`${CDN}/${encodeURIComponent(file)}`)
         .then((r) => (r.ok ? (r.json() as Promise<CrawlNode>) : null))
         .catch(() => null))
     }

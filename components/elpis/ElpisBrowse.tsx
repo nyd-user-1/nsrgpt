@@ -45,9 +45,9 @@ export function ElpisBrowse({ path }: { path: string[] }) {
               {r.open ? (
                 <span className="font-mono text-sm text-[var(--paper-text)]">{r.name}<Mark kind={r.mark} /></span>
               ) : r.held ? (
-                <Link href={r.href} className={cn(LINK, "flex min-h-[49px] flex-1 items-center")}>{r.name}<Mark kind={r.mark} /></Link>
+                <Link href={r.href} className={cn(LINK, "flex min-h-[49px] flex-1 items-center")}>{r.name}<Mark kind={r.mark} />{r.format && <span className="ml-3 text-xs text-[var(--paper-muted)]">{r.format}</span>}</Link>
               ) : (
-                <span className={r.mark === "missing" ? "text-[var(--paper-muted)]" : "text-[var(--paper-text)]"}>{r.name}<Mark kind={r.mark} /></span>
+                <span className={r.mark === "missing" ? "text-[var(--paper-muted)]" : "text-[var(--paper-text)]"}>{r.name}<Mark kind={r.mark} />{r.format && <span className="ml-3 text-xs text-[var(--paper-muted)]">{r.format}</span>}</span>
               )}
             </li>
           ))}
