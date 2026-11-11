@@ -42,8 +42,11 @@ const SHEET_TAB = (on: boolean) =>
   cn("rounded-md px-2 py-1 text-xs transition-colors", on ? "bg-[var(--paper-quiet)] text-[var(--paper-text)]" : "text-[var(--paper-muted)] hover:text-[var(--paper-text)]")
 const exp = (v: number) => (Number.isFinite(v) ? v.toExponential(3) : "")
 const fieldsOf = (r: Range) => ({ xmin: exp(r.xmin), xmax: exp(r.xmax), ymin: exp(r.ymin), ymax: exp(r.ymax) })
-/** A Q value in eV as JANIS writes it: "-6.6316E+06 eV". */
-const qText = (v: number) => `${v.toExponential(4).replace("e", "E").replace(/E([+-])(\d)$/, "E$10$2")} eV`
+/** An energy as JANIS's data card writes a Q value: six significant figures in MeV, keV or eV ("-6.63095 MeV", "0 eV"). */
+const qText = (v: number) => {
+  const [d, u] = Math.abs(v) >= 1e6 ? [1e6, "MeV"] : Math.abs(v) >= 1e3 ? [1e3, "keV"] : [1, "eV"]
+  return `${Number((v / d).toPrecision(6))} ${u}`
+}
 /** Until the data answers: B-11 (n,α)'s window, so the axes have something to draw. */
 const WAITING: Range = { xmin: 1e6, xmax: 1e8, ymin: 1e-4, ymax: 1 }
 /** The legend lists each EXFOR set up to this many; past it one row toggles them all, and the sheet has each. */
