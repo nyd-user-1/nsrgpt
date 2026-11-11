@@ -2,6 +2,7 @@
 
 import { EChartLegend } from '@/components/viz/EChartLegend'
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { halfLifeText, ink, isDark, loadDecay, modesText, nucName } from '@/lib/viz-physics'
 
@@ -81,7 +82,7 @@ export function HeatmapChart() {
       <VizControls>
         <EChartLegend chart={ref} items={pieces(isDark())} visualMap={0} />
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
     </>
   )
 }
