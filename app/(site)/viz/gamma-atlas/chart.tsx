@@ -5,6 +5,7 @@
 // (log γ per 100 captures).
 
 import { firstSeriesRow, useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { ATLAS_BIN_KEV, E_MAX_KEV, I_FLOOR, binned, loadCapgam, setName } from '@/lib/viz-gamma'
 
 const AXIS = { nameTextStyle: { color: '#64748b' }, axisLine: { lineStyle: { color: '#1e293b' } }, axisTick: { show: false }, splitArea: { show: false } }
@@ -46,5 +47,5 @@ export function GammaAtlasChart() {
       ],
     }
   }, false, firstSeriesRow, { marks: true })
-  return <div ref={ref} className="min-h-0 w-full flex-1" />
+  return <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 }
