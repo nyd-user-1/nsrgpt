@@ -34,7 +34,6 @@ type Series = "v2" | "v1" | "base";
 
 const SERIES: { key: Series; label: string; fill: string }[] = [
   { key: "v2", label: "NSRcpt v2", fill: "var(--chart-v2)" },
-  { key: "v1", label: "NSRcpt v1", fill: "var(--chart-v1)" },
   { key: "base", label: "Stock bge-m3", fill: "var(--chart-base)" },
 ];
 
@@ -173,9 +172,6 @@ function GroupedChart({ data, label }: { data: Group[]; label: string }) {
                   {stacked ? (
                     <text x={0} y={top + 14} className="fill-[var(--paper-text)]" style={{ fontSize: 12, fontWeight: 600 }}>
                       {g.label}
-                      <tspan dx={8} className="fill-[var(--paper-muted)]" style={{ fontWeight: 400, fontSize: 10 }}>
-                        {`${g.n.toLocaleString("en-US")} queries`}
-                      </tspan>
                     </text>
                   ) : (
                     <>
@@ -187,9 +183,6 @@ function GroupedChart({ data, label }: { data: Group[]; label: string }) {
                         style={{ fontSize: 12.5, fontWeight: 600 }}
                       >
                         {g.label}
-                      </text>
-                      <text x={labelW - 14} y={top + rowH / 2 + 12} textAnchor="end" className="fill-[var(--paper-muted)]" style={{ fontSize: 10 }}>
-                        {`${g.n.toLocaleString("en-US")} queries`}
                       </text>
                     </>
                   )}
@@ -329,7 +322,6 @@ function LiftChart({ data, label }: { data: Lift[]; label: string }) {
                   />
                   <text x={x(lift) + 8} y={y + barH - 3} className="fill-[var(--paper-text)]" style={{ fontVariantNumeric: "tabular-nums" }}>
                     <tspan style={{ fontSize: 12, fontWeight: 600 }}>{`+${Math.round(lift * 100)}%`}</tspan>
-                    <tspan dx={6} className="fill-[var(--paper-muted)]" style={{ fontSize: 10.5 }}>{pair}</tspan>
                   </text>
                 </g>
               );
@@ -459,8 +451,15 @@ export function Announcing() {
           <div className="mt-5">
             <GroupedChart
               data={CROSS}
-              label="Recall@10 on the cross-source benchmark, 10,000 queries, by record type: NSRcpt v2, NSRcpt v1 and stock bge-m3."
+              label="Recall@10 on the cross-source benchmark, 10,000 queries, by record type: NSRcpt v2 and stock bge-m3."
             />
+          </div>
+          <div className="mt-10">
+            <h3 className="text-2xl font-bold tracking-tight md:text-3xl">A fast reader</h3>
+            <p className="mt-2 max-w-[620px] text-sm leading-relaxed text-[var(--paper-muted)]">Reads results against the top fifty and reorders them</p>
+            <div className="mt-5">
+              <LiftChart data={RERANK} label="The reranker's relative lift over stock bge-m3's order of its top fifty." />
+            </div>
           </div>
         </section>
 
@@ -528,15 +527,6 @@ export function Announcing() {
                     abstract, where the model has a title and nothing else, went up 262%. Papers from before 1970 went up 307%.
                   </p>
                 </Panel>
-                <div className={`mt-10 border-t ${RULE} pt-10`}>
-                  <h3 className="text-2xl font-bold tracking-tight md:text-3xl">A fast reader</h3>
-                  <p className="mt-2 max-w-[620px] text-sm leading-relaxed text-[var(--paper-muted)]">
-                    Reads results against the top fifty and reorders them
-                  </p>
-                  <div className="mt-5">
-                    <LiftChart data={RERANK} label="The reranker's relative lift over stock bge-m3's order of its top fifty." />
-                  </div>
-                </div>
               </>
             )}
 
