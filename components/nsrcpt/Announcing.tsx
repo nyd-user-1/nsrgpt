@@ -11,8 +11,7 @@ import { ArrowRight } from "lucide-react";
  *  in place of the v1 arms chart and the reranker as a lift chart in the
  *  Search tab; a Model, Search, Benchmarks rail over his three sections;
  *  NSRcpt naming and the V2 eyebrow date. Fixed in his copy: three typos
- *  and "our" for "my". He removed the model cards, the fine print and the
- *  Ask NSRgpt button.
+ *  and "our" for "my". He removed the model cards and the fine print.
  *
  *  Every v1 number is the NSR-CPT report's (docs/NSR-CPT-REPORT.md and
  *  the lane logs it cites). Every v2 number is brief 61's Result
@@ -578,6 +577,12 @@ export function Announcing() {
             >
               Search NSR
               <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/chat"
+              className={`inline-flex items-center gap-2 rounded-lg border ${RULE} px-5 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--paper-quiet)]`}
+            >
+              Ask NSRgpt
             </Link>
           </div>
         </section>
