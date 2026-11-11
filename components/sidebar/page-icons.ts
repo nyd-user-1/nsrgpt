@@ -20,6 +20,7 @@ import type { SideBarIcon } from "@/components/sidebar/SideBarMenuItem"
 export const PAGE_ICONS: Record<string, SideBarIcon> = {
   "/about": FileText,
   "/chat": MessagesSquare,
+  "/comparison": LayoutDashboard,
   "/data-dictionary": ScrollText,
   "/docs": BookOpen,
   "/factory": Boxes,

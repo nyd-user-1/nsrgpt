@@ -26,6 +26,7 @@ const TABLES = [...Object.keys(VIZ_TABLES).map((slug) => ({ href: `/viz/data/${s
 const ALL: NavEntry[] = [
   { href: "/chat", label: "Chat", group: "Main" },
   { href: "/about", label: "About", group: "Main" },
+  { href: "/comparison", label: "Comparison", group: "Main" },
   ...CHARTS.map((c) => ({ ...c, group: "Charts" })),
   ...TABLES.map((c) => ({ ...c, group: "Data" })),
   { href: "/data-dictionary", label: "Data dictionary", group: "Main" },
@@ -59,6 +60,7 @@ export function SideBarMenu() {
         {place("/chat") && <SideBarMenuItem href="/chat" label="Chat" icon={PAGE_ICONS["/chat"]} on={path === "/chat"} />}
         {place("/about") && <SideBarMenuItem href="/about" label="About" icon={PAGE_ICONS["/about"]} on={path === "/about"} />}
         <SideBarMenuGroup label="Charts" icon={Activity} items={CHARTS} isOn={isOn} place={place} />
+        {place("/comparison") && <SideBarMenuItem href="/comparison" label="Comparison" icon={PAGE_ICONS["/comparison"]} on={path === "/comparison"} />}
         <SideBarMenuGroup label="Data" icon={Database} items={TABLES} isOn={isOn} place={place} />
         {place("/data-dictionary") && <SideBarMenuItem href="/data-dictionary" label="Data dictionary" icon={PAGE_ICONS["/data-dictionary"]} on={path === "/data-dictionary"} />}
         {place("/docs") && <SideBarMenuItem href="/docs" label="Docs" icon={PAGE_ICONS["/docs"]} on={path === "/docs" || path.startsWith("/docs/")} />}

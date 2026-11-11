@@ -53,6 +53,8 @@ export const HEADER_TITLES: Record<string, string> = {
   "/gnds": "GNDS 2.0 compiler",
   // Brief 65: CINDA, the index of nuclear reaction data.
   "/cinda": "CINDA",
+  // Brief 66: NSRgpt beside the nuclear data centers.
+  "/comparison": "Comparison",
   // pax2's production map, ported as NSRgpt's sources, lake and roadmap (2026-11-07).
   "/pipeline": "Pipeline",
   // Brief 32 (2026-11-08): pax's factory and schema canvases, pax2's glossary, and our own data dictionary. Working routes;

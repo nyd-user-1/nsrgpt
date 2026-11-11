@@ -60,6 +60,7 @@ export const PLATE_PAGES: PlatePage[] = [
   { href: "/about", name: "About", body: "Who I am for, what I hold, what I do, and how I am built." },
   { href: "/chat", name: "Chat", body: "Ask about nuclear data and the papers behind it." },
   { href: "/cinda", name: "CINDA", body: "The index of nuclear reaction data since 1964: every measurement, evaluation and review, by target, quantity, energy and laboratory." },
+  { href: "/comparison", name: "Comparison", body: "NSRgpt beside NNDC, IAEA-NDS and NEA, feature by feature." },
   { href: "/data-dictionary", name: "Data dictionary", body: "Every field the API returns or a page shows, by dataset." },
   { href: "/docs", name: "Docs", body: "How to use NSRgpt: where to start, the topics and the video guides." },
   { href: "/factory", name: "Factory", body: "How the data moves from its sources through the lake to the pages." },
