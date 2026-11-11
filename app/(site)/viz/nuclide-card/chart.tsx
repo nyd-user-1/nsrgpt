@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { isEngaged } from '@/lib/viz-engage'
@@ -218,7 +219,7 @@ export function NuclideCardChart() {
           />
         ))}
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
       <VizControls>
         <p className="m-0">
           Each spoke is one measured quantity on its own scale: a point at the rim is at or past the end of the scale, a point at
