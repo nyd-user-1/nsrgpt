@@ -1,0 +1,56 @@
+TRANS             9001   20261111                                 20000  0    0 
+ENTRY            20097     830901                                 20097  0    1 
+SUBENT        20097001     830901              20050926       000020097  1    1 
+BIB                 15         31                                 20097  1    2 
+INSTITUTE  (2SF HLT)                                              20097  1    3 
+           (2ZZZISP)                                              20097  1    4 
+REFERENCE  (J,PL/B,27,554,6809)                                   20097  1    5 
+AUTHOR     (A.PALMGREN, K.KREBS, E.TUNKELO)                       20097  1    6 
+TITLE      -TOTAL NEUTRON CROSS-SECTION MEASUREMENTS IN THE       20097  1    7 
+            10 MICRO-EV RANGE-                                    20097  1    8 
+FACILITY              DOPPLER CHOPPER FACILITY AT THE             20097  1    9 
+            EURATOM RESEARCH CENTRE, ISPRA, WITH SPECIAL ROTOR.   20097  1   10 
+INC-SOURCE (REAC )    ISPRA RESEARCH REACTOR.                     20097  1   11 
+INC-SPECT  .BI-FILTERED THERMAL BEAM FROM RADIAL BEAM TUBE.       20097  1   12 
+SAMPLE                METALLIC PLATES 44*20*1 MM**3               20097  1   13 
+                      ALLOY ZW3 PLUS 1 PER-CENT 48-CD, I.E.       20097  1   14 
+            95.5 PER-CENT 12-MG, 3 PER-CENT 30-ZN,                20097  1   15 
+            0.5 PER-CENT 40-ZR AND 1.18 PER-CENT 48-CD.           20097  1   16 
+METHOD                TRANSMISSION                                20097  1   17 
+           .STRAIGHT BEAM THROUGH DOPPLER CHOPPER.                20097  1   18 
+DETECTOR   (BF3  )    SMALL BF3-COUNTER.                          20097  1   19 
+COMMENT    .THE CROSS SECTIONS OBTAINED SEEM NOT TO BE IN         20097  1   20 
+            CONTRADICTION WITH THE VALUES OBTAINED FROM THE       20097  1   21 
+            BREITT-WIGNER FORMULA USING THE RESONANCE PARAMETERS  20097  1   22 
+            GIVEN BY MEADOWS NUCL.SCI. AND ENG. 31(1968)152.      20097  1   23 
+           .COPIES OF THESIS AVAILABLE FROM AUTHOR AT REACTOR     20097  1   24 
+            LABORATORY, OTANIEMI, FINLAND.                        20097  1   25 
+STATUS                DATA FROM PUBLICATION.                      20097  1   26 
+           (APRVD)    APPROVED.                                   20097  1   27 
+HISTORY    (701022C)                                              20097  1   28 
+           (710908E)                                              20097  1   29 
+CORRECTION .MATRIX EFFECT OF ALLOY COMPONENTS COMPENSATED.        20097  1   30 
+           .NONPERPENDICULAR TRANSMISSION OF NEUTRONS THROUGH     20097  1   31 
+            SAMPLE.                                               20097  1   32 
+ERR-ANALYS .STATISTICAL ERROR AND ESTIMATE OF SYSTEMATIC ERRORS.  20097  1   33 
+ENDBIB              31                                            20097  1   34 
+NOCOMMON             0          0                                 20097  1   35 
+ENDSUBENT           34                                            20097  199999 
+SUBENT        20097002     830901              20050926       000020097  2    1 
+BIB                  3          4                                 20097  2    2 
+REACTION   (48-CD-0(N,TOT),,SIG)                                  20097  2    3 
+PART-DET   (N    )    NEUTRONS                                    20097  2    4 
+HISTORY    (701022C)                                              20097  2    5 
+           (710908E)                                              20097  2    6 
+ENDBIB               4                                            20097  2    7 
+NOCOMMON             0          0                                 20097  2    8 
+DATA                 4          3                                 20097  2    9 
+EN         EN-RSL     DATA       DATA-ERR                         20097  2   10 
+MEV        PER-CENT   B          B                                20097  2   11 
+ 7.6000E-12 1.8000E+01 1.0400E+05 5.0000E+03                      20097  2   12 
+ 9.2000E-12 1.8000E+01 1.0100E+05 7.0000E+03                      20097  2   13 
+ 1.0800E-11 1.8000E+01 8.7000E+04 5.0000E+03                      20097  2   14 
+ENDDATA              5                                            20097  2   15 
+ENDSUBENT           14                                            20097  299999 
+ENDENTRY             2          0                                 2009799999999 
+ENDTRANS             1          0                                 Z999999999999 

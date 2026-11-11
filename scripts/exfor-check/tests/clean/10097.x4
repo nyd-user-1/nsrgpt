@@ -1,0 +1,191 @@
+TRANS             9001   20261111                                 10000  0    0 
+ENTRY            10097     811216                                 10097  0    1 
+SUBENT        10097001   19991013   20000119   20050926       000010097  1    1 
+BIB                 14         42                                 10097  1    2 
+INSTITUTE  (1USAGA )                                              10097  1    3 
+REFERENCE  (J,NSE,42,352,197012)                                  10097  1    4 
+AUTHOR     (V.J.ORPHAN,C.G.HOOT,J.JOHN)                           10097  1    5 
+TITLE      Gamma-ray production cross sections for the            10097  1    6 
+            O16 (n,x gamma) reaction from 6.35- to 16.52-mev      10097  1    7 
+            neutron energy                                        10097  1    8 
+FACILITY   (LINAC) Pulsed 55 MeV electron linear accelerator.     10097  1    9 
+            Pulse width 50 nsec, repitition rate 520 pps.         10097  1   10 
+INC-SOURCE (EVAP) Evaporation spectrum from Ta-Be target.         10097  1   11 
+SAMPLE     Ring-shaped scattering sample of D2O (25.4 cm i.d.,    10097  1   12 
+            50.8 cm o.d., and 5.7 cm thick) enclosed in plexiglas 10097  1   13 
+            Container, 0.32 cm thick.                             10097  1   14 
+METHOD     (TOF) Time-of-flight                                   10097  1   15 
+DETECTOR   (GELI) 30 cc Ge(Li) gamma detector                     10097  1   16 
+           (SCIN) Flux monitored by calibrated proton-recoil      10097  1   17 
+            scintillator (NE-211), 2 in diameter by 2 in long.    10097  1   18 
+           50-m evaluated flight path.  Ring scatterer centered on10097  1   19 
+            flight path axis.  Ge(Li) detector positioned at an   10097  1   20 
+            angle of approximately 125 deg, but sample dimensions 10097  1   21 
+            resulted in subtended angle range from 112 to 142 deg.10097  1   22 
+MONITOR    Absolute Ge(Li) efficiency determined with             10097  1   23 
+            calibrated (+-3%) radioactive sources.  Relative      10097  1   24 
+            efficiency curve shape obtained from known relative   10097  1   25 
+            intensities of gammas from thermal capture in Fe and  10097  1   26 
+            Cl.                                                   10097  1   27 
+CORRECTION Corrected for multiple scattering flux attenuation     10097  1   28 
+            and for gamma attenuation in the sample.              10097  1   29 
+ERR-ANALYS Following errors estimated:                            10097  1   30 
+             Absolute neutron flux               about 10%        10097  1   31 
+             Ge(Li) efficiency - below 2.7 MeV   about 5%         10097  1   32 
+                               - above 2.7 MeV   about 10%        10097  1   33 
+             Flux attenuation and multiple                        10097  1   34 
+               Scattering                        <5%              10097  1   35 
+             Gamma attenuation in sample         <2%              10097  1   36 
+           Overall uncertainty, apart from counting statistics,  110097  1   37 
+             about 15%.                                           10097  1   38 
+STATUS     (APRVD) Approved by author                             10097  1   39 
+HISTORY    (19710811C)                                            10097  1   40 
+           (19811216A) Converted to reaction formalism            10097  1   41 
+           (19840419A) Bib corrections.                           10097  1   42 
+           (19940215A) Converted to lower case                    10097  1   43 
+           (19991013A) Converted to new date formalism.           10097  1   44 
+ENDBIB              42                                            10097  1   45 
+NOCOMMON             0          0                                 10097  1   46 
+ENDSUBENT           45                                            10097  199999 
+SUBENT        10097002   19991013   20000119   20050926       000010097  2    1 
+BIB                  2          2                                 10097  2    2 
+REACTION   (8-O-16(N,INL)8-O-16,PAR,DA,G)                         10097  2    3 
+HISTORY    (19811216A) SUBENTRIES 2,3,8-10 COMBINED               10097  2    4 
+ENDBIB               2                                            10097  2    5 
+COMMON               1          3                                 10097  2    6 
+ANG                                                               10097  2    7 
+ADEG                                                              10097  2    8 
+ 125.                                                             10097  2    9 
+ENDCOMMON            3                                            10097  2   10 
+DATA                 6         35                                 10097  2   11 
+E          EN-MIN     EN-MAX     DATA       DATA-ERR   DATA-MAX   10097  2   12 
+MEV        MEV        MEV        MB/SR      PER-CENT   MB/SR      10097  2   13 
+ 1.76        9.68      11.12      0.2        100.                 10097  2   14 
+ 1.76       11.12      12.91      0.4         75.                 10097  2   15 
+ 1.76       12.91      13.97      0.4         75.                 10097  2   16 
+ 1.76       13.97      16.52      0.5         75.                 10097  2   17 
+ 2.743       9.68      11.12      1.4        40.                  10097  2   18 
+ 2.743      11.12      12.91      2.4        30.                  10097  2   19 
+ 2.743      12.91      13.97      2.5        40.                  10097  2   20 
+ 2.743      13.97      16.52      2.8        30.                  10097  2   21 
+ 6.129       6.35       7.10       2.6       20.                  10097  2   22 
+ 6.129       7.10       7.53       6.2       20.                  10097  2   23 
+ 6.129       7.53       7.99       8.7       20.                  10097  2   24 
+ 6.129       7.99       8.50       9.5       20.                  10097  2   25 
+ 6.129       8.50       9.06      10.5       20.                  10097  2   26 
+ 6.129       9.06       9.68       8.1       20.                  10097  2   27 
+ 6.129       9.68      11.12       8.1       20.                  10097  2   28 
+ 6.129      11.12      12.91       7.6       20.                  10097  2   29 
+ 6.129      12.91      13.97       7.5       20.                  10097  2   30 
+ 6.129      13.97      16.52       5.9       20.                  10097  2   31 
+ 6.92        7.10       7.53                            0.6       10097  2   32 
+ 6.92        7.53       7.99      1.6        30.                  10097  2   33 
+ 6.92        7.99       8.50      1.7        30.                  10097  2   34 
+ 6.92        8.50       9.06      2.3        20.                  10097  2   35 
+ 6.92        9.06       9.68      1.9        30.                  10097  2   36 
+ 6.92        9.68      11.12      2.3        20.                  10097  2   37 
+ 6.92       11.12      12.91      2.2        20.                  10097  2   38 
+ 6.92       12.91      13.97      2.8        30.                  10097  2   39 
+ 6.92       13.97      16.52      2.4        30.                  10097  2   40 
+ 7.117       7.53       7.99                            0.6       10097  2   41 
+ 7.117       7.99       8.50      1.9        30.                  10097  2   42 
+ 7.117       8.50       9.06      2.0        20.                  10097  2   43 
+ 7.117       9.06       9.68      3.0        20.                  10097  2   44 
+ 7.117       9.68      11.12      2.9        20.                  10097  2   45 
+ 7.117      11.12      12.91      2.8        20.                  10097  2   46 
+ 7.117      12.91      13.97      2.9        30.                  10097  2   47 
+ 7.117      13.97      16.52      2.6        30.                  10097  2   48 
+ENDDATA             37                                            10097  2   49 
+ENDSUBENT           48                                            10097  299999 
+NOSUBENT      10097003     811216              20050926       000010097  3    1 
+SUBENT        10097004   19991013   20000119   20050926       000010097  4    1 
+BIB                  2          3                                 10097  4    2 
+REACTION   (8-O-16(N,X)6-C-13,PAR,DA,G)                           10097  4    3 
+HISTORY    (19811216A) SUBENTRIES 4 - 6  COMBINED                 10097  4    4 
+           (19840809A) REACTION CORRECTED.                        10097  4    5 
+ENDBIB               3                                            10097  4    6 
+COMMON               1          3                                 10097  4    7 
+ANG                                                               10097  4    8 
+ADEG                                                              10097  4    9 
+ 125.                                                             10097  4   10 
+ENDCOMMON            3                                            10097  4   11 
+DATA                 6         30                                 10097  4   12 
+E          EN-MIN     EN-MAX     DATA       DATA-ERR   DATA-MAX   10097  4   13 
+MEV        MEV        MEV        MB/SR      PER-CENT   MB/SR      10097  4   14 
+ 3.085       6.35       7.10                            0.2       10097  4   15 
+ 3.085       7.10       7.53                            0.5       10097  4   16 
+ 3.085       7.53       7.99                            0.7       10097  4   17 
+ 3.085       7.99       8.50      1.5        40.                  10097  4   18 
+ 3.085       8.50       9.06      3.4        40.                  10097  4   19 
+ 3.085       9.06       9.68      3.0        40.                  10097  4   20 
+ 3.085       9.68      11.12      2.7        40.                  10097  4   21 
+ 3.085      11.12      12.91      1.0        75.                  10097  4   22 
+ 3.085      12.91      13.97      1.7        75.                  10097  4   23 
+ 3.085      13.97      16.52      0.7        75.                  10097  4   24 
+ 3.68        6.35       7.10                            0.4       10097  4   25 
+ 3.68        7.10       7.53                            0.9       10097  4   26 
+ 3.68        7.53       7.99                            0.8       10097  4   27 
+ 3.68        7.99       8.50      3.1        30.                  10097  4   28 
+ 3.68        8.50       9.06      3.0        30.                  10097  4   29 
+ 3.68        9.06       9.68      5.0        30.                  10097  4   30 
+ 3.68        9.68      11.12      5.3        20.                  10097  4   31 
+ 3.68       11.12      12.91      5.4        30.                  10097  4   32 
+ 3.68       12.91      13.97      3.6        40.                  10097  4   33 
+ 3.68       13.97      16.52      2.9        40.                  10097  4   34 
+ 3.85        6.35      7.10                             0.1       10097  4   35 
+ 3.85        7.10      7.53                             0.2       10097  4   36 
+ 3.85        7.53      7.99                             0.2       10097  4   37 
+ 3.85        7.99      8.50       1.1        50.                  10097  4   38 
+ 3.85        8.50      9.06       2.3        30.                  10097  4   39 
+ 3.85        9.06      9.68       1.1        40.                  10097  4   40 
+ 3.85        9.68      11.12      2.3        30.                  10097  4   41 
+ 3.85       11.12      12.91      2.2        30.                  10097  4   42 
+ 3.85       12.91      13.97      1.5        50.                  10097  4   43 
+ 3.85       13.97      16.52      1.4        50.                  10097  4   44 
+ENDDATA             32                                            10097  4   45 
+ENDSUBENT           44                                            10097  499999 
+NOSUBENT      10097005     811216              20050926       000010097  5    1 
+NOSUBENT      10097006     811216              20050926       000010097  6    1 
+SUBENT        10097007   19991013   20000119   20050926       000010097  7    1 
+BIB                  2          2                                 10097  7    2 
+REACTION   (8-O-16(N,X)6-C-12,PAR,DA,G)                           10097  7    3 
+HISTORY    (19840809A) REACTION CORRECTED.                        10097  7    4 
+ENDBIB               2                                            10097  7    5 
+COMMON               2          3                                 10097  7    6 
+ANG        E                                                      10097  7    7 
+ADEG       MEV                                                    10097  7    8 
+ 125.       4.44                                                  10097  7    9 
+ENDCOMMON            3                                            10097  7   10 
+DATA                 4          2                                 10097  7   11 
+EN-MIN     EN-MAX     DATA       DATA-ERR                         10097  7   12 
+MEV        MEV        MB/SR      PER-CENT                         10097  7   13 
+ 12.91      13.97      1.5        100.                            10097  7   14 
+ 13.97      16.52      2.2         75.                            10097  7   15 
+ENDDATA              4                                            10097  7   16 
+ENDSUBENT           15                                            10097  799999 
+NOSUBENT      10097008     811216              20050926       000010097  8    1 
+NOSUBENT      10097009     811216              20050926       000010097  9    1 
+NOSUBENT      10097010     811216              20050926       000010097 10    1 
+SUBENT        10097011   19991013   20000119   20050926       000010097 11    1 
+BIB                  5          9                                 10097 11    2 
+REACTION   (8-O-16(N,INL)8-O-16,,SIG)                             10097 11    3 
+ANALYSIS   From sum of inelastic gamma values times 4 pi at 125   10097 11    4 
+            degrees, P2 legendre polynomial = 0.                  10097 11    5 
+CORRECTION Does not include correction for levels which decay by  10097 11    6 
+            modes other than gamma rays.                          10097 11    7 
+STATUS     (DEP,10097002)                                         10097 11    8 
+HISTORY    (19861023A) Reaction corrected.                        10097 11    9 
+           (19870605A) Reaction, bib corrected.                   10097 11   10 
+           (19940215A) Added subentry cross reference to status   10097 11   11 
+ENDBIB               9                                            10097 11   12 
+NOCOMMON             0          0                                 10097 11   13 
+DATA                 4          3                                 10097 11   14 
+EN-MIN     EN-MAX     DATA       DATA-ERR                         10097 11   15 
+MEV        MEV        MB         MB                               10097 11   16 
+ 11.12      12.91      161.       21.                             10097 11   17 
+ 12.91      13.97      168.       24.                             10097 11   18 
+ 13.97      16.52      141.       20.                             10097 11   19 
+ENDDATA              5                                            10097 11   20 
+ENDSUBENT           19                                            10097 1199999 
+ENDENTRY            11          0                                 1009799999999 
+ENDTRANS             1          0                                 Z999999999999 

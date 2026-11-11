@@ -1,0 +1,106 @@
+TRANS             9001   20261111                                 F0000  0    0 
+ENTRY            F0031   20080227                                 F0031  0    1 
+SUBENT        F0031001   20080227   20080430   20080414       F030F0031  1    1 
+BIB                  9         19                                 F0031  1    2 
+TITLE      Cross sections for Li-6(Li-6,He-5)Be-7,Li-6(d,n)Be-7   F0031  1    3 
+           and F-19(Li-6,p)Na-24.                                 F0031  1    4 
+AUTHOR     (L.Ruby,R.V.Pyle,Wong Yue-Chau)                        F0031  1    5 
+INSTITUTE  (1USABRK)                                              F0031  1    6 
+REFERENCE  (J,NSE,71,280,197909)                                  F0031  1    7 
+SAMPLE     Targets were prepared by evaporating 6LiF (99.32% 6Li) F0031  1    8 
+           onto 2.5-cm-diam aluminum disks.                       F0031  1    9 
+METHOD     (ACTIV)                                                F0031  1   10 
+ERR-ANALYS (DATA-ERR) Error in cross section definition           F0031  1   11 
+DETECTOR   (NAICR)                                                F0031  1   12 
+HISTORY    (19800820C)                                            F0031  1   13 
+           (20080227A) Energy values in all subents were changed  F0031  1   14 
+            (incident energy values were replaced by mean energy  F0031  1   15 
+           values in target). In table 1 cross section values     F0031  1   16 
+           were changed. Facility code was changed. Partial       F0031  1   17 
+           systematic errors were added to sub2. ERR-ANALYS code  F0031  1   18 
+           was added to sub3. DECAY-DATA codes were added to all  F0031  1   19 
+           subenntries. METHOD code was added to sub4. DesignationF0031  1   20 
+            "EXP" was removed from the reaction codes.            F0031  1   21 
+ENDBIB              19                                            F0031  1   22 
+NOCOMMON             0          0                                 F0031  1   23 
+ENDSUBENT           22                                            F0031  199999 
+SUBENT        F0031002   20080227   20080430   20080414       F030F0031  2    1 
+BIB                  6          9                                 F0031  2    2 
+REACTION   (3-LI-6(3-LI-6,X)4-BE-7,,SIG)                          F0031  2    3 
+DECAY-DATA (4-BE-7,53.3D,DG,478.,0.103)                           F0031  2    4 
+FACILITY   (CYCLO)                                                F0031  2    5 
+SAMPLE     Film thickness was ranging from 400 to 650 mu-g/cm**2. F0031  2    6 
+ERR-ANALYS (ERR-1)    Errors in reference standard                F0031  2    7 
+           (ERR-2)    Errors in the collected beam charge         F0031  2    8 
+           (ERR-3)    Errors in the target thickness              F0031  2    9 
+           Errors in the target activity  was 1%                  F0031  2   10 
+STATUS     (TABLE) Table 1                                        F0031  2   11 
+ENDBIB               9                                            F0031  2   12 
+COMMON               3          3                                 F0031  2   13 
+ERR-1      ERR-2      ERR-3                                       F0031  2   14 
+PER-CENT   PER-CENT   PER-CENT                                    F0031  2   15 
+  3.        1.         3.5                                        F0031  2   16 
+ENDCOMMON            3                                            F0031  2   17 
+DATA                 4          6                                 F0031  2   18 
+EN         DATA       DATA-ERR   THICKNESS                        F0031  2   19 
+MEV        MB         MB         G/CM-SQ                          F0031  2   20 
+        2.3       34.2        1.4 5.4200E-04                      F0031  2   21 
+        3.6      114.7        4.6 5.9800E-04                      F0031  2   22 
+        5.5      190.5        7.8 6.1100E-04                      F0031  2   23 
+        8.7      188.9        7.7 4.7400E-04                      F0031  2   24 
+       11.7      174.4       10.5 5.3200E-04                      F0031  2   25 
+       14.8      173.3        9.6 5.4900E-04                      F0031  2   26 
+ENDDATA              8                                            F0031  2   27 
+ENDSUBENT           26                                            F0031  299999 
+SUBENT        F0031003   20080227   20080430   20080414       F030F0031  3    1 
+BIB                  5          5                                 F0031  3    2 
+REACTION   (9-F-19(3-LI-6,P)11-NA-24,,SIG)                        F0031  3    3 
+DECAY-DATA (11-NA-24,14.96HR,DG,2750.,0.99)                       F0031  3    4 
+FACILITY   (CYCLO)                                                F0031  3    5 
+ERR-ANALYS Statistical uncertainties varied from 2 to 5%.         F0031  3    6 
+STATUS     (TABLE) Table 2                                        F0031  3    7 
+ENDBIB               5                                            F0031  3    8 
+NOCOMMON             0          0                                 F0031  3    9 
+DATA                 4          6                                 F0031  3   10 
+EN         DATA       DATA-ERR   THICKNESS                        F0031  3   11 
+MEV        MB         MB         G/CM-SQ                          F0031  3   12 
+        2.3         0. 4.0000E-03 5.4200E-04                      F0031  3   13 
+        3.6 6.0000E-02 5.0000E-03 5.9800E-04                      F0031  3   14 
+        5.5       1.42 5.0000E-02 6.1100E-04                      F0031  3   15 
+        8.7       1.55 6.0000E-02 4.7400E-04                      F0031  3   16 
+       11.7       1.38 6.0000E-02 5.3200E-04                      F0031  3   17 
+       14.8        1.4       0.27 5.7200E-04                      F0031  3   18 
+ENDDATA              8                                            F0031  3   19 
+ENDSUBENT           18                                            F0031  399999 
+SUBENT        F0031004   20080227   20080430   20080414       F030F0031  4    1 
+BIB                  7         10                                 F0031  4    2 
+REACTION   (3-LI-6(D,N)4-BE-7,,SIG)                               F0031  4    3 
+DECAY-DATA (4-BE-7,53.3D,DG,478.,0.103)                           F0031  4    4 
+FACILITY   (VDG)                                                  F0031  4    5 
+METHOD     (BCINT)                                                F0031  4    6 
+SAMPLE     Film thickness was ranging from 350 to 400 mu-g/cm**2. F0031  4    7 
+ERR-ANALYS (ERR-1)    Errors in reference standard                F0031  4    8 
+           (ERR-2)    Errors in the collected beam charge         F0031  4    9 
+           (ERR-3)    Errors in the target thickness              F0031  4   10 
+           Errors in the target activity  was 1%                  F0031  4   11 
+STATUS     (TABLE) Table 3                                        F0031  4   12 
+ENDBIB              10                                            F0031  4   13 
+COMMON               3          3                                 F0031  4   14 
+ERR-1      ERR-2      ERR-3                                       F0031  4   15 
+PER-CENT   PER-CENT   PER-CENT                                    F0031  4   16 
+  3.        1.         3.5                                        F0031  4   17 
+ENDCOMMON            3                                            F0031  4   18 
+DATA                 4          7                                 F0031  4   19 
+EN         DATA       DATA-ERR   THICKNESS                        F0031  4   20 
+MEV        MB         MB         G/CM-SQ                          F0031  4   21 
+        0.3       28.6        1.1 3.9300E-04                      F0031  4   22 
+       0.42       55.3        2.2 3.4500E-04                      F0031  4   23 
+       0.52       80.8        3.2 3.5700E-04                      F0031  4   24 
+       0.62      100.3         4. 3.9000E-04                      F0031  4   25 
+       0.73       99.9        4.1 3.9500E-04                      F0031  4   26 
+       0.83      100.7        3.8 4.0400E-04                      F0031  4   27 
+       0.93      100.4        3.8 4.1700E-04                      F0031  4   28 
+ENDDATA              9                                            F0031  4   29 
+ENDSUBENT           28                                            F0031  499999 
+ENDENTRY             4          0                                 F003199999999 
+ENDTRANS             1          0                                 Z999999999999 

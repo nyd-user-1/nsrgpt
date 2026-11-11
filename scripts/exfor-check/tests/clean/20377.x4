@@ -1,0 +1,192 @@
+TRANS             9001   20261111                                 20000  0    0 
+ENTRY            20377   20060807                                 20377  0    1 
+SUBENT        20377001   20060807   20061116   20061102       217820377  1    1 
+BIB                 13         44                                 20377  1    2 
+INSTITUTE  (2ZZZGEL)                                              20377  1    3 
+REFERENCE  (J,JNE/AB,19,73,196502)                                20377  1    4 
+AUTHOR     (H.Liskien,A.Paulsen)                                  20377  1    5 
+TITLE      -Cross-section measurement for the threshold reactions 20377  1    6 
+           Fe56(N,P)Mn56,Co59(N,a)Mn56 and Cu63(N,2N)Cu62 between 20377  1    7 
+           12.6 and 19.6 MeV neutron energy -.                    20377  1    8 
+FACILITY   (VDG)      3MeV van de graaff                          20377  1    9 
+INC-SOURCE (D-T)   T(d,N)He4-reaction at 1 and 3 MeV deuteron     20377  1   10 
+            energy using various emission angles                  20377  1   11 
+SAMPLE     .Metallic                                              20377  1   12 
+           .Discs 20 mm diameter, 5 mm thickness                  20377  1   13 
+METHOD     (ACTIV)    Activation                                  20377  1   14 
+DETECTOR   (NAICR)    Sodium-iodide crystal                       20377  1   15 
+           for activity comparison with standard sources          20377  1   16 
+           (TELES)    Recoil telescope                            20377  1   17 
+           for neutron flux determination                         20377  1   18 
+MONITOR    (1-H-1(N,EL)1-H-1,,SIG) Absolute measurement of the    20377  1   19 
+            neutron flux was preformed with a proton recoil       20377  1   20 
+            telescope of the Los Alamos type. The semi-empirical  20377  1   21 
+            formula of gammel in fast neutron physics was used    20377  1   22 
+            for the total N-P scattering cross section.           20377  1   23 
+           .The relative excitation functions were normalised     20377  1   24 
+            at 14.05 MeV for Co-59 and Cu-63, and at 14.80 MeV    20377  1   25 
+            for Fe-56. The reproducibility of the absoute         20377  1   26 
+            measurements was better than 0.7 percent.             20377  1   27 
+STATUS     .Table 1, JNE/AB,19,73.                                20377  1   28 
+ERR-ANALYS (ERR-1) Absolute neutron flux uncertainty, 4.0pc.      20377  1   29 
+           (ERR-2) D-t neutron angular distribution uncertainty,  20377  1   30 
+            value 2.5 percent.                                    20377  1   31 
+           (ERR-3) Uncertainty from irradiation geometry, and     20377  1   32 
+            absolute efficiency of the activity counters including20377  1   33 
+            gamma ray absorption varies from 2.1 to 4.2 percent,  20377  1   34 
+            a mean value of 3.0 percent is taken.                 20377  1   35 
+           (ERR-4) Uncertainties from neutron absorption and      20377  1   36 
+            scattering in the sample, chemical purity, and sample 20377  1   37 
+            weight add quadratically to 0.6 percent.              20377  1   38 
+           (ERR-T) Total uncertainty, quadratic addition of all   20377  1   39 
+            contributions including statistical counting errors.  20377  1   40 
+HISTORY    (19710514T) From neudada file                          20377  1   41 
+           (19741011E)                                            20377  1   42 
+           (19810302A) Monitor and error analysis revised.        20377  1   43 
+           (19810310E)                                            20377  1   44 
+           (20060807A) Date and reference are corrected.          20377  1   45 
+           (20060807U) Last checking has been done.               20377  1   46 
+ENDBIB              44                                            20377  1   47 
+COMMON               4          3                                 20377  1   48 
+ERR-1      ERR-2      ERR-3      ERR-4                            20377  1   49 
+PER-CENT   PER-CENT   PER-CENT   PER-CENT                         20377  1   50 
+         4.        2.5         3.     6.E-01                      20377  1   51 
+ENDCOMMON            3                                            20377  1   52 
+ENDSUBENT           51                                            20377  199999 
+SUBENT        20377002   20060807   20061116   20061102       217820377  2    1 
+BIB                  4          8                                 20377  2    2 
+REACTION   (26-FE-56(N,P)25-MN-56,,SIG) CROSS SECTION.            20377  2    3 
+DECAY-DATA (25-MN-56,2.579HR,DG) HL      E USED DIFFERS SLIGHTLY  20377  2    4 
+            FROM THE MEASURED VALUE OF 2.591+-0.008 HOURS.        20377  2    5 
+STATUS     .TABLE 1, COLUMN 2.                                    20377  2    6 
+HISTORY    (19710514T) FROM NEUDADA FILE                          20377  2    7 
+           (19741011E)                                            20377  2    8 
+           (19810302A) CODING REVISED.                            20377  2    9 
+           (19810310E)                                            20377  2   10 
+ENDBIB               8                                            20377  2   11 
+NOCOMMON             0          0                                 20377  2   12 
+DATA                 4         28                                 20377  2   13 
+EN         EN-RSL     DATA       ERR-T                            20377  2   14 
+MEV        MEV        B          B                                20377  2   15 
+ 1.2600E+01 1.1000E-01 1.1000E-01 6.0000E-03                      20377  2   16 
+ 1.2760E+01 1.4000E-01 1.0900E-01 6.0000E-03                      20377  2   17 
+ 1.2980E+01 1.7000E-01 1.1300E-01 7.0000E-03                      20377  2   18 
+ 1.3100E+01 1.8000E-01 1.1200E-01 7.0000E-03                      20377  2   19 
+ 1.3540E+01 2.2000E-01 1.1400E-01 7.0000E-03                      20377  2   20 
+ 1.3700E+01 2.3000E-01 1.0800E-01 7.0000E-03                      20377  2   21 
+ 1.4050E+01 2.5000E-01 1.0600E-01 7.0000E-03                      20377  2   22 
+ 1.4240E+01 2.6000E-01 1.0300E-01 7.0000E-03                      20377  2   23 
+ 1.4420E+01 2.6000E-01 1.0000E-01 6.0000E-03                      20377  2   24 
+ 1.4800E+01 2.7000E-01 9.5700E-02 6.1000E-03                      20377  2   25 
+ 1.4990E+01 2.7000E-01 9.4200E-02 5.9000E-03                      20377  2   26 
+ 1.5180E+01 2.6000E-01 8.7400E-02 5.5000E-03                      20377  2   27 
+ 1.5550E+01 2.4000E-01 8.7700E-02 5.4000E-03                      20377  2   28 
+ 1.5710E+01 2.3000E-01 8.6300E-02 5.3000E-03                      20377  2   29 
+ 1.6030E+01 2.1000E-01 7.8000E-02 4.7000E-03                      20377  2   30 
+ 1.6310E+01 1.9000E-01 7.6200E-02 4.5000E-03                      20377  2   31 
+ 1.6520E+01 1.9000E-01 7.3300E-02 4.2000E-03                      20377  2   32 
+ 1.6750E+01 2.0000E-01 7.0500E-02 3.8000E-03                      20377  2   33 
+ 1.6930E+01 4.7000E-01 6.9500E-02 4.4000E-03                      20377  2   34 
+ 1.7270E+01 4.6000E-01 6.5100E-02 4.1000E-03                      20377  2   35 
+ 1.7590E+01 4.4000E-01 6.1000E-02 3.8000E-03                      20377  2   36 
+ 1.7900E+01 4.2000E-01 5.8400E-02 3.5000E-03                      20377  2   37 
+ 1.8190E+01 3.9000E-01 5.6600E-02 3.4000E-03                      20377  2   38 
+ 1.8470E+01 3.6000E-01 5.4700E-02 3.3000E-03                      20377  2   39 
+ 1.8710E+01 3.3000E-01 5.2000E-02 3.2000E-03                      20377  2   40 
+ 1.8940E+01 2.9000E-01 5.1000E-02 3.0000E-03                      20377  2   41 
+ 1.9290E+01 2.0000E-01 4.9200E-02 2.8000E-03                      20377  2   42 
+ 1.9580E+01 1.9000E-01 4.6700E-02 2.6000E-03                      20377  2   43 
+ENDDATA             30                                            20377  2   44 
+ENDSUBENT           43                                            20377  299999 
+SUBENT        20377003   20060807   20061116   20061102       217820377  3    1 
+BIB                  4          8                                 20377  3    2 
+REACTION   (27-CO-59(N,A)25-MN-56,,SIG) CROSS SECTION.            20377  3    3 
+DECAY-DATA (25-MN-56,2.579HR,DG) DECAY GAMMAS, HALF-LIFE USED     20377  3    4 
+            DIFFERS SLIGHTLY FROM THE MEASURED VALUE OF 2.591HR.  20377  3    5 
+STATUS     .TABLE 1, COLUMN 3.                                    20377  3    6 
+HISTORY    (19710514T) FROM NEUDADA FILE                          20377  3    7 
+           (19741011E)                                            20377  3    8 
+           (19810302A) CODING REVISED.                            20377  3    9 
+           (19810310E)                                            20377  3   10 
+ENDBIB               8                                            20377  3   11 
+NOCOMMON             0          0                                 20377  3   12 
+DATA                 4         28                                 20377  3   13 
+EN         EN-RSL     DATA       ERR-T                            20377  3   14 
+MEV        MEV        B          B                                20377  3   15 
+ 1.2600E+01 1.1000E-01 2.6700E-02 1.7000E-03                      20377  3   16 
+ 1.2760E+01 1.4000E-01 2.7800E-02 1.8000E-03                      20377  3   17 
+ 1.2980E+01 1.7000E-01 2.6700E-02 1.8000E-03                      20377  3   18 
+ 1.3100E+01 1.8000E-01 2.6800E-02 1.8000E-03                      20377  3   19 
+ 1.3540E+01 2.2000E-01 2.7500E-02 1.9000E-03                      20377  3   20 
+ 1.3700E+01 2.3000E-01 2.7900E-02 1.9000E-03                      20377  3   21 
+ 1.4050E+01 2.5000E-01 2.8600E-02 2.0000E-03                      20377  3   22 
+ 1.4240E+01 2.6000E-01 2.7400E-02 1.9000E-03                      20377  3   23 
+ 1.4420E+01 2.6000E-01 2.8400E-02 2.0000E-03                      20377  3   24 
+ 1.4800E+01 2.7000E-01 2.6900E-02 1.9000E-03                      20377  3   25 
+ 1.4990E+01 2.7000E-01 2.7800E-02 1.9000E-03                      20377  3   26 
+ 1.5180E+01 2.6000E-01 2.6000E-02 1.8000E-03                      20377  3   27 
+ 1.5550E+01 2.4000E-01 2.5900E-02 1.7000E-03                      20377  3   28 
+ 1.5710E+01 2.3000E-01 2.6100E-02 1.7000E-03                      20377  3   29 
+ 1.6030E+01 2.1000E-01 2.3900E-02 1.6000E-03                      20377  3   30 
+ 1.6310E+01 1.9000E-01 2.3400E-02 1.5000E-03                      20377  3   31 
+ 1.6520E+01 1.9000E-01 2.2300E-02 1.4000E-03                      20377  3   32 
+ 1.6750E+01 2.0000E-01 2.1100E-02 1.3000E-03                      20377  3   33 
+ 1.6930E+01 4.7000E-01 2.1600E-02 1.5000E-03                      20377  3   34 
+ 1.7270E+01 4.6000E-01 1.9400E-02 1.3000E-03                      20377  3   35 
+ 1.7590E+01 4.4000E-01 1.7000E-02 1.1000E-03                      20377  3   36 
+ 1.7900E+01 4.2000E-01 1.6700E-02 1.1000E-03                      20377  3   37 
+ 1.8190E+01 3.9000E-01 1.6100E-02 1.1000E-03                      20377  3   38 
+ 1.8470E+01 3.6000E-01 1.5000E-02 1.0000E-03                      20377  3   39 
+ 1.8710E+01 3.3000E-01 1.2900E-02 8.0000E-04                      20377  3   40 
+ 1.8940E+01 2.9000E-01 1.2600E-02 8.0000E-04                      20377  3   41 
+ 1.9290E+01 2.0000E-01 1.2100E-02 8.0000E-04                      20377  3   42 
+ 1.9580E+01 1.9000E-01 1.1800E-02 7.0000E-04                      20377  3   43 
+ENDDATA             30                                            20377  3   44 
+ENDSUBENT           43                                            20377  399999 
+SUBENT        20377004   20060807   20061116   20061102       217820377  4    1 
+BIB                  4          8                                 20377  4    2 
+REACTION   (29-CU-63(N,2N)29-CU-62,,SIG) CROSS SECTION.           20377  4    3 
+DECAY-DATA (29-CU-62,9.96MIN,AR,511.,0.987)  HALF-LIFE USED       20377  4    4 
+            DIFFERS SLIGHTLY FROM THE MEASURED VALUE OF 9.79MIN.  20377  4    5 
+STATUS     .TABLE 1, COLUMN 4.                                    20377  4    6 
+HISTORY    (19710514T) FROM NEUDADA FILE                          20377  4    7 
+           (19741011E)                                            20377  4    8 
+           (19810302A) CODING REVISED.                            20377  4    9 
+           (19810310E)                                            20377  4   10 
+ENDBIB               8                                            20377  4   11 
+NOCOMMON             0          0                                 20377  4   12 
+DATA                 4         28                                 20377  4   13 
+EN         EN-RSL     DATA       ERR-T                            20377  4   14 
+MEV        MEV        B          B                                20377  4   15 
+ 1.2600E+01 1.1000E-01 2.2700E-01 1.4000E-02                      20377  4   16 
+ 1.2760E+01 1.4000E-01 2.6400E-01 1.7000E-02                      20377  4   17 
+ 1.2980E+01 1.7000E-01 3.1500E-01 2.1000E-02                      20377  4   18 
+ 1.3100E+01 1.8000E-01 3.4000E-01 2.2000E-02                      20377  4   19 
+ 1.3540E+01 2.2000E-01 4.5000E-01 3.0000E-02                      20377  4   20 
+ 1.3700E+01 2.3000E-01 4.7900E-01 3.2000E-02                      20377  4   21 
+ 1.4050E+01 2.5000E-01 5.5400E-01 3.8000E-02                      20377  4   22 
+ 1.4240E+01 2.6000E-01 5.7500E-01 3.9000E-02                      20377  4   23 
+ 1.4420E+01 2.6000E-01 5.9800E-01 4.1000E-02                      20377  4   24 
+ 1.4800E+01 2.7000E-01 6.1900E-01 4.2000E-02                      20377  4   25 
+ 1.4990E+01 2.7000E-01 6.6000E-01 4.4000E-02                      20377  4   26 
+ 1.5180E+01 2.6000E-01 7.1500E-01 4.8000E-02                      20377  4   27 
+ 1.5550E+01 2.4000E-01 7.3800E-01 4.9000E-02                      20377  4   28 
+ 1.5710E+01 2.3000E-01 7.6200E-01 5.0000E-02                      20377  4   29 
+ 1.6030E+01 2.1000E-01 8.0800E-01 5.3000E-02                      20377  4   30 
+ 1.6310E+01 1.9000E-01 8.1100E-01 5.1000E-02                      20377  4   31 
+ 1.6520E+01 1.9000E-01 8.1900E-01 5.1000E-02                      20377  4   32 
+ 1.6750E+01 2.0000E-01 8.3400E-01 4.9000E-02                      20377  4   33 
+ 1.6930E+01 4.7000E-01 8.5000E-01 5.7000E-02                      20377  4   34 
+ 1.7270E+01 4.6000E-01 8.4900E-01 5.6000E-02                      20377  4   35 
+ 1.7590E+01 4.4000E-01 8.5300E-01 5.6000E-02                      20377  4   36 
+ 1.7900E+01 4.2000E-01 8.6800E-01 5.6000E-02                      20377  4   37 
+ 1.8190E+01 3.9000E-01 8.8100E-01 5.7000E-02                      20377  4   38 
+ 1.8470E+01 3.6000E-01 9.1600E-01 5.9000E-02                      20377  4   39 
+ 1.8710E+01 3.3000E-01 9.3100E-01 5.9000E-02                      20377  4   40 
+ 1.8940E+01 2.9000E-01 9.3900E-01 5.9000E-02                      20377  4   41 
+ 1.9290E+01 2.0000E-01 9.4100E-01 5.8000E-02                      20377  4   42 
+ 1.9580E+01 1.9000E-01 9.6600E-01 5.7000E-02                      20377  4   43 
+ENDDATA             30                                            20377  4   44 
+ENDSUBENT           43                                            20377  499999 
+ENDENTRY             4          0                                 2037799999999 
+ENDTRANS             1          0                                 Z999999999999 

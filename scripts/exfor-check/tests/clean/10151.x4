@@ -1,0 +1,63 @@
+TRANS             9001   20261111                                 10000  0    0 
+ENTRY            10151   20001211                                 10151  0    1 
+SUBENT        10151001   20001211   20010328   20050926       000010151  1    1 
+BIB                 11         21                                 10151  1    2 
+INSTITUTE  (1CANCRC)                                              10151  1    3 
+REFERENCE  (J,CJP,49,108,197101)                                  10151  1    4 
+AUTHOR     (R.S.MOWATT,W.H.WALKER)                                10151  1    5 
+TITLE      Decay Schemes for the Isomers of 148Pm and the Cross   10151  1    6 
+            Sections for Their Production by Neutron Capture in   10151  1    7 
+            147Pm                                                 10151  1    8 
+SAMPLE     3.2x10**14 atoms of Pm147.                             10151  1    9 
+METHOD     (ACTIV) Cross sections were measured by absolute gamma 10151  1   10 
+            counting of irradiated 147Pm. A 1% Co in Al alloy     10151  1   11 
+            wire was used as flux monitor.                        10151  1   12 
+DETECTOR   (GELI) GeLi planar diode with 2 mm depletion depth.    10151  1   13 
+           147Pm source was placed 2 cm directly above diode.     10151  1   14 
+MONITOR    (27-CO-59(N,G)27-CO-60,,SIG)                           10151  1   15 
+CORRECTION Correction was made for epithermal capture.            10151  1   16 
+STATUS     (APRVD) Approved by author.                            10151  1   17 
+           Data taken from reference.                             10151  1   18 
+HISTORY    (19720518)                                             10151  1   19 
+           (19740103A) BIB changes. Half-life added to data       10151  1   20 
+                       section.                                   10151  1   21 
+           (19820527A) Converted to REACTION formalism            10151  1   22 
+           (20001211A) Converted to new date formats, lower case. 10151  1   23 
+ENDBIB              21                                            10151  1   24 
+COMMON               1          3                                 10151  1   25 
+MONIT                                                             10151  1   26 
+B                                                                 10151  1   27 
+ 37.2                                                             10151  1   28 
+ENDCOMMON            3                                            10151  1   29 
+ENDSUBENT           28                                            10151  199999 
+SUBENT        10151002   20001211   20010328   20050926       000010151  2    1 
+BIB                  3          4                                 10151  2    2 
+REACTION   (61-PM-147(N,G)61-PM-148-G,,SIG,,MXW)                  10151  2    3 
+DECAY-DATA (61-PM-148-G,5.4D,DG)                                  10151  2    4 
+ERR-ANALYS (DATA-ERR) Main source of uncertainty (10%) is decay   10151  2    5 
+            probability of selected gamma ray.                    10151  2    6 
+ENDBIB               4                                            10151  2    7 
+NOCOMMON             0          0                                 10151  2    8 
+DATA                 3          1                                 10151  2    9 
+EN-DUMMY   DATA       DATA-ERR                                    10151  2   10 
+EV         B          B                                           10151  2   11 
+0.0253     94.        10.                                         10151  2   12 
+ENDDATA              3                                            10151  2   13 
+ENDSUBENT           12                                            10151  299999 
+SUBENT        10151003   20001211   20010328   20050926       000010151  3    1 
+BIB                  3          5                                 10151  3    2 
+REACTION   (61-PM-147(N,G)61-PM-148-M,,SIG,,MXW)                  10151  3    3 
+DECAY-DATA (61-PM-148-M,41.D,DG)                                  10151  3    4 
+ERR-ANALYS (DATA-ERR) Main contributions to error are counting    10151  3    5 
+            rate (1.5%), absolute efficiency (1%) and counting    10151  3    6 
+            rate of normalizing gamma ray (1.3%).                 10151  3    7 
+ENDBIB               5                                            10151  3    8 
+NOCOMMON             0          0                                 10151  3    9 
+DATA                 3          1                                 10151  3   10 
+EN-DUMMY   DATA       DATA-ERR                                    10151  3   11 
+EV         B          B                                           10151  3   12 
+0.0253     72.4       3.0                                         10151  3   13 
+ENDDATA              3                                            10151  3   14 
+ENDSUBENT           13                                            10151  399999 
+ENDENTRY             3          0                                 1015199999999 
+ENDTRANS             1          0                                 Z999999999999 

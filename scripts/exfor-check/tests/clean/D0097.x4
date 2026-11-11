@@ -1,0 +1,104 @@
+TRANS             9001   20261111                                 D0000  0    0 
+ENTRY            D0097   20040126                                 D0097  0    1 
+SUBENT        D0097001   20040126   20040429   20050926       0000D0097  1    1 
+BIB                 11         22                                 D0097  1    2 
+TITLE      Aplha backscattering used in stoichiometry             D0097  1    3 
+           determination of thin SiC coatings on Si(100) wafers   D0097  1    4 
+AUTHOR     (R.Somatri,J.F.Chailan,A.Chevarier,N.Chevarier,G.Ferro,D0097  1    5 
+           Y.Monteil,H.Vincent,J.Bouix)                           D0097  1    6 
+INSTITUTE  (2FR LYO)                                              D0097  1    7 
+REFERENCE  (J,NIM/B,113,284,1996)                                 D0097  1    8 
+FACILITY   (VDG)                                                  D0097  1    9 
+SAMPLE     SiC layer. Three samples with thicknesses: 53, 7 and   D0097  1   10 
+           2.3 mu-g/cm2 with dilution ratio (H2/C3H8): 2000,      D0097  1   11 
+           200 and 500, respectively.                             D0097  1   12 
+           The wafers were p-type Si(100) sigle crystals of       D0097  1   13 
+           600-mu-m thickness. The sample preparation included    D0097  1   14 
+           methanol/ultrasonic cleaning and deoxydation in        D0097  1   15 
+           HF (5%) for 30 sec. without any subsequent contact     D0097  1   16 
+           with water.                                            D0097  1   17 
+DETECTOR   The detector was set at 172 degr. with respect to      D0097  1   18 
+           beam direction                                         D0097  1   19 
+MONITOR    Beam energy calibrated using resonance at 3.034 MeV    D0097  1   20 
+           in 16O(alpha,alpha) reaction                           D0097  1   21 
+STATUS     (TABLE) Tables from the article                        D0097  1   22 
+ERR-ANALYS (ERR-T) Total error                                    D0097  1   23 
+HISTORY    (20040126C) SD                                         D0097  1   24 
+ENDBIB              22                                            D0097  1   25 
+COMMON               2          3                                 D0097  1   26 
+ANG        ERR-T                                                  D0097  1   27 
+ADEG       PER-CENT                                               D0097  1   28 
+ 172.        5.                                                   D0097  1   29 
+ENDCOMMON            3                                            D0097  1   30 
+ENDSUBENT           29                                            D0097  199999 
+SUBENT        D0097002   20040126   20040429   20050926       0000D0097  2    1 
+BIB                  1          1                                 D0097  2    2 
+REACTION   (6-C-12(A,EL)6-C-12,,DA)                               D0097  2    3 
+ENDBIB               1                                            D0097  2    4 
+NOCOMMON             0          0                                 D0097  2    5 
+DATA                 2         19                                 D0097  2    6 
+EN         DATA                                                   D0097  2    7 
+MEV        MB/SR                                                  D0097  2    8 
+   4.035       60.                                                D0097  2    9 
+   4.135       48.                                                D0097  2   10 
+   4.195       54.                                                D0097  2   11 
+   4.205       58.                                                D0097  2   12 
+   4.215       182.                                               D0097  2   13 
+   4.225       186.                                               D0097  2   14 
+   4.235       349.                                               D0097  2   15 
+   4.245       650.                                               D0097  2   16 
+   4.255       1200.                                              D0097  2   17 
+   4.265       1130.                                              D0097  2   18 
+   4.275       1020.                                              D0097  2   19 
+   4.285       500.                                               D0097  2   20 
+   4.295       440.                                               D0097  2   21 
+   4.305       420.                                               D0097  2   22 
+   4.315       410.                                               D0097  2   23 
+   4.335       400.                                               D0097  2   24 
+   4.440       300.                                               D0097  2   25 
+   4.535       136.                                               D0097  2   26 
+   4.635       139.                                               D0097  2   27 
+ENDDATA             21                                            D0097  2   28 
+ENDSUBENT           27                                            D0097  299999 
+SUBENT        D0097003   20040126   20040429   20050926       0000D0097  3    1 
+BIB                  1          1                                 D0097  3    2 
+REACTION   (14-SI-0(A,EL)14-SI-0,,DA)                             D0097  3    3 
+ENDBIB               1                                            D0097  3    4 
+NOCOMMON             0          0                                 D0097  3    5 
+DATA                 2         30                                 D0097  3    6 
+EN         DATA                                                   D0097  3    7 
+MEV        MB/SR                                                  D0097  3    8 
+   3.835       60.                                                D0097  3    9 
+   3.845       70.                                                D0097  3   10 
+   3.860       40.                                                D0097  3   11 
+   3.865       71.                                                D0097  3   12 
+   3.885       71.                                                D0097  3   13 
+   3.935       67.                                                D0097  3   14 
+   3.985       68.                                                D0097  3   15 
+   4.035       58.                                                D0097  3   16 
+   4.085       56.                                                D0097  3   17 
+   4.135       54.                                                D0097  3   18 
+   4.165       50.                                                D0097  3   19 
+   4.185       55.                                                D0097  3   20 
+   4.200       76.                                                D0097  3   21 
+   4.205       56.                                                D0097  3   22 
+   4.235       37.                                                D0097  3   23 
+   4.285       36.                                                D0097  3   24 
+   4.335       59.                                                D0097  3   25 
+   4.355       62.                                                D0097  3   26 
+   4.365       81.                                                D0097  3   27 
+   4.375       120.                                               D0097  3   28 
+   4.385       22.                                                D0097  3   29 
+   4.395       20.                                                D0097  3   30 
+   4.405       23.                                                D0097  3   31 
+   4.425       30.                                                D0097  3   32 
+   4.445       35.                                                D0097  3   33 
+   4.465       40.                                                D0097  3   34 
+   4.485       44.                                                D0097  3   35 
+   4.535       53.                                                D0097  3   36 
+   4.585       43.                                                D0097  3   37 
+   4.635       35.                                                D0097  3   38 
+ENDDATA             32                                            D0097  3   39 
+ENDSUBENT           38                                            D0097  399999 
+ENDENTRY             3          0                                 D009799999999 
+ENDTRANS             1          0                                 Z999999999999 

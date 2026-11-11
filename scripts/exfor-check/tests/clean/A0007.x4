@@ -1,0 +1,230 @@
+TRANS             9001   20261111                                 A0000  0    0 
+ENTRY            A0007   20140310                                 A0007  0    1 
+SUBENT        A0007001   20140310   20141203   20141201       A082A0007  1    1 
+BIB                 10         28                                 A0007  1    2 
+TITLE      Total cross-section measurement for T(t,2n)He-4        A0007  1    3 
+           reaction at low energies                               A0007  1    4 
+AUTHOR     (V.I.Serov,S.N.Abramovich,L.A.Morkin)                  A0007  1    5 
+INSTITUTE  (4RUSKUR)                                              A0007  1    6 
+REFERENCE  (J,AE,42,59,197701) Main reference.                    A0007  1    7 
+           (J,SJA,42,66,1977) English translation                 A0007  1    8 
+           (J,IZV,35,165,1971) The first stage of measurement,    A0007  1    9 
+                           prelim.results                         A0007  1   10 
+           (J,BAS,35,149,1972) English transl. of IZV,35,165      A0007  1   11 
+FACILITY   (VDG,4RUSNIR)                                          A0007  1   12 
+METHOD     (SITA,EXTB,BCINT)                                      A0007  1   13 
+DETECTOR   (LONGC).Detectors were calibrated by standard          A0007  1   14 
+           Ra-alpha-Be source.                                    A0007  1   15 
+STATUS     (APRVD).By V.I.Serov.                                  A0007  1   16 
+           (TABLE) The data in form of the tables were received   A0007  1   17 
+           from the authors.                                      A0007  1   18 
+REL-REF    (A,A1103002,A.M.Govorov+,R,JINR-P-764,1961)            A0007  1   19 
+            See explanation below                                 A0007  1   20 
+           (A,A1089002,H.Agnew+,J,PR,84,862,1951)                 A0007  1   21 
+            experimental results of the present paper are         A0007  1   22 
+           compared with experimental results of these papers.    A0007  1   23 
+HISTORY    (19770825C)                                            A0007  1   24 
+           (19790621R)                                            A0007  1   25 
+           (19800716A)                                            A0007  1   26 
+           (20080608A) BIB section updated                        A0007  1   27 
+           (20140310A) SD: Updated to new date formats,lower case.A0007  1   28 
+            Corrections according last EXFOR rules and Dict.      A0007  1   29 
+            Ref. BAS,35,149 was added. Subent 2 splitted.         A0007  1   30 
+ENDBIB              28                                            A0007  1   31 
+NOCOMMON             0          0                                 A0007  1   32 
+ENDSUBENT           31                                            A0007  199999 
+SUBENT        A0007002   20140310   20141203   20141201       A082A0007  2    1 
+BIB                  8         35                                 A0007  2    2 
+REACTION   (1-H-3(T,2N)2-HE-4,,SIG)                               A0007  2    3 
+PART-DET   (N)                                                    A0007  2    4 
+ADD-RES    (COMP,THEO).The determination of astrophysical         A0007  2    5 
+           factor was made. The correlation of total              A0007  2    6 
+           cross sections of the T(t,2n)He-4 and He-3(He3,2p)He-4 A0007  2    7 
+           reactions is discussed.                                A0007  2    8 
+ERR-ANALYS (ERR-T).Accidental error of total cross-section        A0007  2    9 
+            includes ERR-S and ERR-SYS.                           A0007  2   10 
+           (ERR-S,1.,5.) It is conditioned by statistical errors  A0007  2   11 
+            of measurement (1-5%),                                A0007  2   12 
+           (ERR-SYS) In the values of total cross-sections        A0007  2   13 
+           systematic error +-7% is possible. This error          A0007  2   14 
+           is connected with accuracy of determining the          A0007  2   15 
+           coefficient of anisotropy includes:                    A0007  2   16 
+           (ERR-1) errors in determination gas pressure (+-3%) andA0007  2   17 
+           (ERR-2) concentration of tritium  (+-5%).              A0007  2   18 
+           (EN-ERR).Essential error of measurement-error of       A0007  2   19 
+           determination the energy of tritons in exit of gas     A0007  2   20 
+           target window.                                         A0007  2   21 
+SAMPLE     Gas target 1-H-3 with thin entrance window of          A0007  2   22 
+           aluminum  oxide, thickness 50 microgram/cm**2.         A0007  2   23 
+           inside of target and in front of it Li-F-targets       A0007  2   24 
+           for determination of energy loss of accelerated        A0007  2   25 
+           particles in entrance window of gas target were        A0007  2   26 
+           placed.                                                A0007  2   27 
+ANALYSIS   (INTAD).Angular distributions of neutron yields were   A0007  2   28 
+           measured for triton energies of 52 and 76 keV in the   A0007  2   29 
+           angular interval from 0 degree to 150 degree. Later on A0007  2   30 
+           interpolation for energy and repeated counting         A0007  2   31 
+           from 0 degree to 180 degree were made.                 A0007  2   32 
+COMMENT     (By compiler). authors assumed that                   A0007  2   33 
+           1.angular distributions may be described by            A0007  2   34 
+           formula W(theta)=A+B*cos(theta)                        A0007  2   35 
+           2.value (A+B)/A is linear function of energy.          A0007  2   36 
+HISTORY    (20140310A) SD: Differential data moved to Subent 5.   A0007  2   37 
+ENDBIB              35                                            A0007  2   38 
+COMMON               3          3                                 A0007  2   39 
+ERR-1      ERR-2      ERR-SYS                                     A0007  2   40 
+PER-CENT   PER-CENT   PER-CENT                                    A0007  2   41 
+  3.          5.         7.                                       A0007  2   42 
+ENDCOMMON            3                                            A0007  2   43 
+DATA                 4          9                                 A0007  2   44 
+EN         EN-ERR     DATA       ERR-T                            A0007  2   45 
+KEV        KEV        MB         PER-CENT                         A0007  2   46 
+      31.25        2.3       0.71       13.9                      A0007  2   47 
+      37.00        2.1       1.43       11.0                      A0007  2   48 
+      42.80        2.5       2.28        9.9                      A0007  2   49 
+      46.80        2.0       3.00        6.7                      A0007  2   50 
+      50.30        2.4       3.52        8.2                      A0007  2   51 
+      58.40        2.5       4.49        7.6                      A0007  2   52 
+      82.60        2.6       9.68        6.4                      A0007  2   53 
+     109.70        2.6      14.20        6.2                      A0007  2   54 
+     155.40        2.2      23.00        6.0                      A0007  2   55 
+ENDDATA             11                                            A0007  2   56 
+ENDSUBENT           55                                            A0007  299999 
+SUBENT        A0007003   20140310   20141203   20141201       A082A0007  3    1 
+BIB                  4         21                                 A0007  3    2 
+REACTION   (1-H-3(T,2N)2-HE-4,,DA,,REL)                           A0007  3    3 
+PART-DET   (N)                                                    A0007  3    4 
+SAMPLE     Gas target 1-H-3 with thin entrance window of          A0007  3    5 
+           aluminum  oxide, thickness 50 microgram/cm**2.         A0007  3    6 
+           inside of target and in front of it Li-F-targets       A0007  3    7 
+           for determination of energy loss of accelerated        A0007  3    8 
+           particles in entrance window of gas target were        A0007  3    9 
+           placed.                                                A0007  3   10 
+ERR-ANALYS (ERR-T).Accidental error of total cross-section        A0007  3   11 
+            includes:                                             A0007  3   12 
+           (ERR-S,1.,10.) It is conditioned by statistical errors A0007  3   13 
+            of measurement (1-10%),                               A0007  3   14 
+           (ERR-1) errors in determination gas pressure (+-3%) andA0007  3   15 
+           (ERR-2) concentration of tritium  (+-5%).              A0007  3   16 
+           (ERR-3) In the values of total cross-sections          A0007  3   17 
+           systematic error +-7% is possible. This error          A0007  3   18 
+           is connected with accuracy of determining the          A0007  3   19 
+           coefficient of anisotropy.                             A0007  3   20 
+           (EN-ERR).Essential error of measurement-error of       A0007  3   21 
+           determination the energy of tritons in exit of gas     A0007  3   22 
+           target window.                                         A0007  3   23 
+ENDBIB              21                                            A0007  3   24 
+COMMON               3          3                                 A0007  3   25 
+ERR-1      ERR-2      ERR-3                                       A0007  3   26 
+PER-CENT   PER-CENT   PER-CENT                                    A0007  3   27 
+  3.          5.         7.                                       A0007  3   28 
+ENDCOMMON            3                                            A0007  3   29 
+DATA                 4         12                                 A0007  3   30 
+EN         ANG        DATA       DATA-ERR                         A0007  3   31 
+KEV        ADEG       ARB-UNITS  ARB-UNITS                        A0007  3   32 
+   52.         0.        15.79       0.45                         A0007  3   33 
+   52.        30.        15.45       0.46                         A0007  3   34 
+   52.        60.        15.33       0.41                         A0007  3   35 
+   52.        90.        14.66       0.48                         A0007  3   36 
+   52.       120.        15.09       0.43                         A0007  3   37 
+   52.       150.        15.50       0.40                         A0007  3   38 
+   76.1        0.        17.3        0.42                         A0007  3   39 
+   76.1       30.        16.6        0.43                         A0007  3   40 
+   76.1       60.        15.79       0.43                         A0007  3   41 
+   76.1       90.        15.91       0.41                         A0007  3   42 
+   76.1      120.        15.57       0.41                         A0007  3   43 
+   76.1      150.        14.88       0.40                         A0007  3   44 
+ENDDATA             14                                            A0007  3   45 
+ENDSUBENT           44                                            A0007  399999 
+SUBENT        A0007004   20140310   20141203   20141201       A082A0007  4    1 
+BIB                  7         14                                 A0007  4    2 
+REACTION   (1-H-3(T,2N)2-HE-4,,DA,,COS/REL,DERIV)                 A0007  4    3 
+PART-DET   (N)                                                    A0007  4    4 
+STATUS     (DEP,A0007003)                                         A0007  4    5 
+COMMENT     (By compiler). authors assumed that                   A0007  4    6 
+           1.angular distributions may be described by            A0007  4    7 
+           formula W(theta)=A(0)+A(1)*cos(theta)                  A0007  4    8 
+           2.value (A(0)+A(1))/A(0) is linear function of energy. A0007  4    9 
+ERR-ANALYS (DATA-ERR). Standard deviation.                        A0007  4   10 
+           (MISC-ERR).standard deviation of value (A(0)+A(1))/A(0)A0007  4   11 
+MISC-COL   (MISC1).Coefficient of correlation between A(0) and    A0007  4   12 
+           A(1).                                                  A0007  4   13 
+           (MISC).value (A(0)+A(1))/A(0)                          A0007  4   14 
+HISTORY    (20140310A) SD: Vector COMMON was converted to normal  A0007  4   15 
+           presentation.                                          A0007  4   16 
+ENDBIB              14                                            A0007  4   17 
+NOCOMMON             0          0                                 A0007  4   18 
+DATA                 7          4                                 A0007  4   19 
+EN         NUMBER     DATA       DATA-ERR   MISC1      MISC       A0007  4   20 
+MISC-ERR                                                          A0007  4   21 
+KEV        NO-DIM     ARB-UNITS  ARB-UNITS  ARB-UNITS  ARB-UNITS  A0007  4   22 
+ARB-UNITS                                                         A0007  4   23 
+        52.         0.      15.27        0.6       0.39       1.02A0007  4   24 
+      0.019                                                       A0007  4   25 
+        52.         1.      0.303        0.3       0.39       1.02A0007  4   26 
+      0.019                                                       A0007  4   27 
+       76.1         0.       15.7        0.6       0.91       1.07A0007  4   28 
+       0.03                                                       A0007  4   29 
+       76.1         1.        1.1        0.5       0.91       1.07A0007  4   30 
+       0.03                                                       A0007  4   31 
+ENDDATA             12                                            A0007  4   32 
+ENDSUBENT           31                                            A0007  499999 
+SUBENT        A0007005   20140310   20141203   20141201       A082A0007  5    1 
+BIB                  8         35                                 A0007  5    2 
+REACTION   (1-H-3(T,2N)2-HE-4,,DA)                                A0007  5    3 
+PART-DET   (N)                                                    A0007  5    4 
+ADD-RES    (COMP,THEO).The determination of astrophysical         A0007  5    5 
+           factor was made. The correlation of total              A0007  5    6 
+           cross sections of the T(t,2n)He-4 and He-3(He3,2p)He-4 A0007  5    7 
+           reactions is discussed.                                A0007  5    8 
+ERR-ANALYS (ERR-T).Accidental error of total cross-section        A0007  5    9 
+            includes ERR-S and ERR-SYS.                           A0007  5   10 
+           (ERR-S,1.,5.) It is conditioned by statistical errors  A0007  5   11 
+            of measurement (1-5%),                                A0007  5   12 
+           (ERR-SYS) In the values of total cross-sections        A0007  5   13 
+           systematic error +-7% is possible. This error          A0007  5   14 
+           is connected with accuracy of determining the          A0007  5   15 
+           coefficient of anisotropy includes:                    A0007  5   16 
+           (ERR-1) errors in determination gas pressure (+-3%) andA0007  5   17 
+           (ERR-2) concentration of tritium  (+-5%).              A0007  5   18 
+           (EN-ERR).Essential error of measurement-error of       A0007  5   19 
+           determination the energy of tritons in exit of gas     A0007  5   20 
+           target window.                                         A0007  5   21 
+SAMPLE     Gas target 1-H-3 with thin entrance window of          A0007  5   22 
+           aluminum  oxide, thickness 50 microgram/cm**2.         A0007  5   23 
+           inside of target and in front of it Li-F-targets       A0007  5   24 
+           for determination of energy loss of accelerated        A0007  5   25 
+           particles in entrance window of gas target were        A0007  5   26 
+           placed.                                                A0007  5   27 
+ANALYSIS   (INTAD).Angular distributions of neutron yields were   A0007  5   28 
+           measured for triton energies of 52 and 76 keV in the   A0007  5   29 
+           angular interval from 0 degree to 150 degree. Later on A0007  5   30 
+           interpolation for energy and repeated counting         A0007  5   31 
+           from 0 degree to 180 degree were made.                 A0007  5   32 
+COMMENT     (By compiler). authors assumed that                   A0007  5   33 
+           1.angular distributions may be described by            A0007  5   34 
+           formula W(theta)=A+B*cos(theta)                        A0007  5   35 
+           2.value (A+B)/A is linear function of energy.          A0007  5   36 
+HISTORY    (20140310T) SD: Part of Subent 2.                      A0007  5   37 
+ENDBIB              35                                            A0007  5   38 
+COMMON               4          3                                 A0007  5   39 
+ANG        ERR-1      ERR-2      ERR-SYS                          A0007  5   40 
+ADEG       PER-CENT   PER-CENT   PER-CENT                         A0007  5   41 
+  0.            3.          5.         7.                         A0007  5   42 
+ENDCOMMON            3                                            A0007  5   43 
+DATA                 4          9                                 A0007  5   44 
+EN         EN-ERR     DATA       ERR-T                            A0007  5   45 
+KEV        KEV        MB/SR      PER-CENT                         A0007  5   46 
+      31.25        2.3      0.058       13.9                      A0007  5   47 
+      37.00        2.1      0.117       11.0                      A0007  5   48 
+      42.80        2.5      0.187        9.9                      A0007  5   49 
+      46.80        2.0      0.247        6.7                      A0007  5   50 
+      50.30        2.4      0.290        8.2                      A0007  5   51 
+      58.40        2.5      0.373        7.6                      A0007  5   52 
+      82.60        2.6      0.819        6.4                      A0007  5   53 
+     109.70        2.6       1.23        6.2                      A0007  5   54 
+     155.40        2.2       2.06        6.0                      A0007  5   55 
+ENDDATA             11                                            A0007  5   56 
+ENDSUBENT           55                                            A0007  599999 
+ENDENTRY             5          0                                 A000799999999 
+ENDTRANS             1          0                                 Z999999999999 

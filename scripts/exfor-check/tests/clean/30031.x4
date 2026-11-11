@@ -1,0 +1,391 @@
+TRANS             9001   20261111                                 30000  0    0 
+ENTRY            30031     900212                                 30031  0    1 
+SUBENT        30031001   20070806   20070924   20070920       312330031  1    1 
+BIB                 15         30                                 30031  1    2 
+TITLE      Radiative capture cross-sections for 3 MeV neutrons    30031  1    3 
+AUTHOR     (G.Peto,Z.Milligy,I.Hunyadi)                           30031  1    4 
+INSTITUTE  (3HUNDEB)                                              30031  1    5 
+REFERENCE  (J,JNE,21,797,1967) Description expt, graphs,data table30031  1    6 
+FACILITY   (CCW) 300keV locally built cascade accelerator         30031  1    7 
+INC-SOURCE (D-D) Brass self-target, water cooled,direct deut-beam 30031  1    8 
+           beam spot was 5 mm                                     30031  1    9 
+SAMPLE     Solid samples were covered by thin polyethylene foils  30031  1   10 
+           and were 18mm diameter                                 30031  1   11 
+           target-sample distance 10-15 mm,                       30031  1   12 
+           samples were placed at 0 deg.                          30031  1   13 
+METHOD     (ACTIV) Activation                                     30031  1   14 
+PART-DET   (B-,DG) Beta and gamma counting                        30031  1   15 
+DETECTOR   (GEMUC) Mica end-window geiger muller counter          30031  1   16 
+           neutron flux monitored with anthracene scintillator as 30031  1   17 
+           well as bf3 long counter                               30031  1   18 
+CORRECTION Intensities of thermal and epithermal neutrons were    30031  1   19 
+           determined and also flux due to deuterons missing the  30031  1   20 
+           target, deviations were statistical in origin          30031  1   21 
+ERR-ANALYS (DATA-ERR) errors given include those due to standards 30031  1   22 
+           react. uncertainty, beta counting error and statistics 30031  1   23 
+ANALYSIS   for the decay schemes the data were taken from         30031  1   24 
+           Nuclear Data Sheets(1961), the standards cross-sections30031  1   25 
+           used are a best fit to measured and literature values  30031  1   26 
+STATUS     (TABLE) Data taken from J.Nucl.Energy 21, 797, table 1 30031  1   27 
+           (APRVD) Approved by Peto,letter (5/9/72)               30031  1   28 
+HISTORY    (19700813C) Previously DASTAR-p0003                    30031  1   29 
+           (19720919A) CA. Status approved added                  30031  1   30 
+           (19900114A) VOF.-Complete update.-                     30031  1   31 
+           (20070731A) BIB sect.updated+Dates convert.+lower case 30031  1   32 
+ENDBIB              30                                            30031  1   33 
+COMMON               2          3                                 30031  1   34 
+EN         EN-RSL                                                 30031  1   35 
+MEV        MEV                                                    30031  1   36 
+3.0        0.2                                                    30031  1   37 
+ENDCOMMON            3                                            30031  1   38 
+ENDSUBENT           37                                            30031  199999 
+SUBENT        30031002   20070806   20070924   20070920       312330031  2    1 
+BIB                  3          6                                 30031  2    2 
+REACTION   (13-AL-27(N,G)13-AL-28,,SIG)                           30031  2    3 
+MONITOR    (13-AL-27(N,P)12-MG-27,,SIG) Same sample used,         30031  2    4 
+           gammas from Mg-27 were detected                        30031  2    5 
+DETECTOR   (NAICR) NaI(Tl) Scintillator coupled to 100 channel    30031  2    6 
+           analyser detected gammas from Al-28 of reaction        30031  2    7 
+           measured and gammas from Mg-27 as monitor reaction     30031  2    8 
+ENDBIB               6                                            30031  2    9 
+NOCOMMON             0          0                                 30031  2   10 
+DATA                 3          1                                 30031  2   11 
+DATA       DATA-ERR   MONIT                                       30031  2   12 
+MB         MB         MB                                          30031  2   13 
+0.6        0.1        2.5                                         30031  2   14 
+ENDDATA              3                                            30031  2   15 
+ENDSUBENT           14                                            30031  299999 
+SUBENT        30031003     900212              20050926       000030031  3    1 
+BIB                  2          2                                 30031  3    2 
+REACTION   (25-MN-55(N,G)25-MN-56,,SIG)                           30031  3    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031  3    4 
+ENDBIB               2                                            30031  3    5 
+NOCOMMON             0          0                                 30031  3    6 
+DATA                 3          1                                 30031  3    7 
+DATA       DATA-ERR   MONIT                                       30031  3    8 
+MB         MB         MB                                          30031  3    9 
+2.0        0.4        74.0                                        30031  3   10 
+ENDDATA              3                                            30031  3   11 
+ENDSUBENT           10                                            30031  399999 
+SUBENT        30031004     900212              20050926       000030031  4    1 
+BIB                  2          2                                 30031  4    2 
+REACTION   (29-CU-65(N,G)29-CU-66,,SIG)                           30031  4    3 
+MONITOR    (13-AL-27(N,P)12-MG-27,,SIG)                           30031  4    4 
+ENDBIB               2                                            30031  4    5 
+NOCOMMON             0          0                                 30031  4    6 
+DATA                 3          1                                 30031  4    7 
+DATA       DATA-ERR   MONIT                                       30031  4    8 
+MB         MB         MB                                          30031  4    9 
+7.4        2.0        2.5                                         30031  4   10 
+ENDDATA              3                                            30031  4   11 
+ENDSUBENT           10                                            30031  499999 
+SUBENT        30031005     900212              20050926       000030031  5    1 
+BIB                  2          2                                 30031  5    2 
+REACTION   (31-GA-69(N,G)31-GA-70,,SIG)                           30031  5    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031  5    4 
+ENDBIB               2                                            30031  5    5 
+NOCOMMON             0          0                                 30031  5    6 
+DATA                 3          1                                 30031  5    7 
+DATA       DATA-ERR   MONIT                                       30031  5    8 
+MB         MB         MB                                          30031  5    9 
+16.9       3.0        74.0                                        30031  5   10 
+ENDDATA              3                                            30031  5   11 
+ENDSUBENT           10                                            30031  599999 
+SUBENT        30031006     900212              20050926       000030031  6    1 
+BIB                  2          2                                 30031  6    2 
+REACTION   (31-GA-71(N,G)31-GA-72,,SIG)                           30031  6    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031  6    4 
+ENDBIB               2                                            30031  6    5 
+NOCOMMON             0          0                                 30031  6    6 
+DATA                 3          1                                 30031  6    7 
+DATA       DATA-ERR   MONIT                                       30031  6    8 
+MB         MB         MB                                          30031  6    9 
+4.3        1.0        74.0                                        30031  6   10 
+ENDDATA              3                                            30031  6   11 
+ENDSUBENT           10                                            30031  699999 
+SUBENT        30031007   20070806   20070924   20070920       312330031  7    1 
+BIB                  3          3                                 30031  7    2 
+REACTION   (32-GE-74(N,G)32-GE-75-G,(M),SIG)                      30031  7    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031  7    4 
+HISTORY    (19900116A) VOF .-Reaction code corrected.-            30031  7    5 
+ENDBIB               3                                            30031  7    6 
+NOCOMMON             0          0                                 30031  7    7 
+DATA                 3          1                                 30031  7    8 
+DATA       DATA-ERR   MONIT                                       30031  7    9 
+MB         MB         MB                                          30031  7   10 
+6.6        1.3        74.0                                        30031  7   11 
+ENDDATA              3                                            30031  7   12 
+ENDSUBENT           11                                            30031  799999 
+SUBENT        30031008     900212              20050926       000030031  8    1 
+BIB                  2          2                                 30031  8    2 
+REACTION   (33-AS-75(N,G)33-AS-76,,SIG)                           30031  8    3 
+MONITOR    (79-AU-197(N,G)79-AU-198,,SIG)                         30031  8    4 
+ENDBIB               2                                            30031  8    5 
+NOCOMMON             0          0                                 30031  8    6 
+DATA                 3          1                                 30031  8    7 
+DATA       DATA-ERR   MONIT                                       30031  8    8 
+MB         MB         MB                                          30031  8    9 
+11.5       1.0        35.2                                        30031  8   10 
+ENDDATA              3                                            30031  8   11 
+ENDSUBENT           10                                            30031  899999 
+SUBENT        30031009     900212              20050926       000030031  9    1 
+BIB                  2          2                                 30031  9    2 
+REACTION   (39-Y-89(N,G)39-Y-90-G,(M),SIG)                        30031  9    3 
+MONITOR    (79-AU-197(N,G)79-AU-198,,SIG)                         30031  9    4 
+ENDBIB               2                                            30031  9    5 
+NOCOMMON             0          0                                 30031  9    6 
+DATA                 3          1                                 30031  9    7 
+DATA       DATA-ERR   MONIT                                       30031  9    8 
+MB         MB         MB                                          30031  9    9 
+3.6        0.4        35.2                                        30031  9   10 
+ENDDATA              3                                            30031  9   11 
+ENDSUBENT           10                                            30031  999999 
+SUBENT        30031010     900212              20050926       000030031 10    1 
+BIB                  2          2                                 30031 10    2 
+REACTION   (42-MO-98(N,G)42-MO-99,,SIG)                           30031 10    3 
+MONITOR    (79-AU-197(N,G)79-AU-198,,SIG)                         30031 10    4 
+ENDBIB               2                                            30031 10    5 
+NOCOMMON             0          0                                 30031 10    6 
+DATA                 3          1                                 30031 10    7 
+DATA       DATA-ERR   MONIT                                       30031 10    8 
+MB         MB         MB                                          30031 10    9 
+10.6       2.0        35.2                                        30031 10   10 
+ENDDATA              3                                            30031 10   11 
+ENDSUBENT           10                                            30031 1099999 
+SUBENT        30031011     900212              20050926       000030031 11    1 
+BIB                  2          2                                 30031 11    2 
+REACTION   (45-RH-103(N,G)45-RH-104-M,,SIG)                       30031 11    3 
+MONITOR    (13-AL-27(N,P)12-MG-27,,SIG)                           30031 11    4 
+ENDBIB               2                                            30031 11    5 
+NOCOMMON             0          0                                 30031 11    6 
+DATA                 3          1                                 30031 11    7 
+DATA       DATA-ERR   MONIT                                       30031 11    8 
+MB         MB         MB                                          30031 11    9 
+20.8       4.0        2.5                                         30031 11   10 
+ENDDATA              3                                            30031 11   11 
+ENDSUBENT           10                                            30031 1199999 
+SUBENT        30031012     900212              20050926       000030031 12    1 
+BIB                  2          2                                 30031 12    2 
+REACTION   (44-RU-104(N,G)44-RU-105,,SIG)                         30031 12    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 12    4 
+ENDBIB               2                                            30031 12    5 
+NOCOMMON             0          0                                 30031 12    6 
+DATA                 3          1                                 30031 12    7 
+DATA       DATA-ERR   MONIT                                       30031 12    8 
+MB         MB         MB                                          30031 12    9 
+19.8       4.0        74.0                                        30031 12   10 
+ENDDATA              3                                            30031 12   11 
+ENDSUBENT           10                                            30031 1299999 
+SUBENT        30031013     900212              20050926       000030031 13    1 
+BIB                  2          2                                 30031 13    2 
+REACTION   (47-AG-107(N,G)47-AG-108,,SIG)                         30031 13    3 
+MONITOR    (13-AL-27(N,P)12-MG-27,,SIG)                           30031 13    4 
+ENDBIB               2                                            30031 13    5 
+NOCOMMON             0          0                                 30031 13    6 
+DATA                 3          1                                 30031 13    7 
+DATA       DATA-ERR   MONIT                                       30031 13    8 
+MB         MB         MB                                          30031 13    9 
+51.0       8.0        2.5                                         30031 13   10 
+ENDDATA              3                                            30031 13   11 
+ENDSUBENT           10                                            30031 1399999 
+SUBENT        30031014   20070806   20070924   20070920       312330031 14    1 
+BIB                  3          4                                 30031 14    2 
+REACTION   (49-IN-115(N,G)49-IN-116-M1,M+,SIG)                    30031 14    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)  = Monit1                  30031 14    4 
+           (13-AL-27(N,P)12-MG-27,,SIG) = Monit2                  30031 14    5 
+HISTORY    (19900116A) VOF .-Reaction code corrected .-           30031 14    6 
+ENDBIB               4                                            30031 14    7 
+NOCOMMON             0          0                                 30031 14    8 
+DATA                 4          1                                 30031 14    9 
+DATA       DATA-ERR   MONIT1     MONIT2                           30031 14   10 
+MB         MB         MB         MB                               30031 14   11 
+68.0       10.0       74.0       2.5                              30031 14   12 
+ENDDATA              3                                            30031 14   13 
+ENDSUBENT           12                                            30031 1499999 
+SUBENT        30031015   20070806   20070924   20070920       312330031 15    1 
+BIB                  3          3                                 30031 15    2 
+REACTION   (51-SB-121(N,G)51-SB-122-G,(M),SIG)                    30031 15    3 
+MONITOR    (79-AU-197(N,G)79-AU-198,,SIG)                         30031 15    4 
+HISTORY    (19900117A) VOF.-Reaction code corrected.-             30031 15    5 
+ENDBIB               3                                            30031 15    6 
+NOCOMMON             0          0                                 30031 15    7 
+DATA                 3          1                                 30031 15    8 
+DATA       DATA-ERR   MONIT                                       30031 15    9 
+MB         MB         MB                                          30031 15   10 
+33.0       7.0        35.2                                        30031 15   11 
+ENDDATA              3                                            30031 15   12 
+ENDSUBENT           11                                            30031 1599999 
+SUBENT        30031016     900212              20050926       000030031 16    1 
+BIB                  2          2                                 30031 16    2 
+REACTION   (53-I-127(N,G)53-I-128,,SIG)                           30031 16    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 16    4 
+ENDBIB               2                                            30031 16    5 
+NOCOMMON             0          0                                 30031 16    6 
+DATA                 3          1                                 30031 16    7 
+DATA       DATA-ERR   MONIT                                       30031 16    8 
+MB         MB         MB                                          30031 16    9 
+31.8       6.0        74.0                                        30031 16   10 
+ENDDATA              3                                            30031 16   11 
+ENDSUBENT           10                                            30031 1699999 
+SUBENT        30031017     900212              20050926       000030031 17    1 
+BIB                  2          2                                 30031 17    2 
+REACTION   (56-BA-138(N,G)56-BA-139,,SIG)                         30031 17    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 17    4 
+ENDBIB               2                                            30031 17    5 
+NOCOMMON             0          0                                 30031 17    6 
+DATA                 3          1                                 30031 17    7 
+DATA       DATA-ERR   MONIT                                       30031 17    8 
+MB         MB         MB                                          30031 17    9 
+1.2        0.2        74.0                                        30031 17   10 
+ENDDATA              3                                            30031 17   11 
+ENDSUBENT           10                                            30031 1799999 
+SUBENT        30031018     900212              20050926       000030031 18    1 
+BIB                  2          2                                 30031 18    2 
+REACTION   (57-LA-139(N,G)57-LA-140,,SIG)                         30031 18    3 
+MONITOR    (79-AU-197(N,G)79-AU-198,,SIG)                         30031 18    4 
+ENDBIB               2                                            30031 18    5 
+NOCOMMON             0          0                                 30031 18    6 
+DATA                 3          1                                 30031 18    7 
+DATA       DATA-ERR   MONIT                                       30031 18    8 
+MB         MB         MB                                          30031 18    9 
+4.6        0.7        35.2                                        30031 18   10 
+ENDDATA              3                                            30031 18   11 
+ENDSUBENT           10                                            30031 1899999 
+SUBENT        30031019   20070806   20070924   20070920       312330031 19    1 
+BIB                  3          3                                 30031 19    2 
+REACTION   (59-PR-141(N,G)59-PR-142-G,(M),SIG)                    30031 19    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 19    4 
+HISTORY    (19900117A) VOF.-Reaction code corrected.-             30031 19    5 
+ENDBIB               3                                            30031 19    6 
+NOCOMMON             0          0                                 30031 19    7 
+DATA                 3          1                                 30031 19    8 
+DATA       DATA-ERR   MONIT                                       30031 19    9 
+MB         MB         MB                                          30031 19   10 
+12.2       2.4        74.0                                        30031 19   11 
+ENDDATA              3                                            30031 19   12 
+ENDSUBENT           11                                            30031 1999999 
+SUBENT        30031020     900212              20050926       000030031 20    1 
+BIB                  2          2                                 30031 20    2 
+REACTION   (58-CE-142(N,G)58-CE-143,,SIG)                         30031 20    3 
+MONITOR    (16-S-32(N,P)15-P-32,,SIG)                             30031 20    4 
+ENDBIB               2                                            30031 20    5 
+NOCOMMON             0          0                                 30031 20    6 
+DATA                 3          1                                 30031 20    7 
+DATA       DATA-ERR   MONIT                                       30031 20    8 
+MB         MB         MB                                          30031 20    9 
+33.4       6.0        111.0                                       30031 20   10 
+ENDDATA              3                                            30031 20   11 
+ENDSUBENT           10                                            30031 2099999 
+SUBENT        30031021     900212              20050926       000030031 21    1 
+BIB                  2          2                                 30031 21    2 
+REACTION   (62-SM-152(N,G)62-SM-153,,SIG)                         30031 21    3 
+MONITOR    (79-AU-197(N,G)79-AU-198,,SIG)                         30031 21    4 
+ENDBIB               2                                            30031 21    5 
+NOCOMMON             0          0                                 30031 21    6 
+DATA                 3          1                                 30031 21    7 
+DATA       DATA-ERR   MONIT                                       30031 21    8 
+MB         MB         MB                                          30031 21    9 
+44.2       6.6        35.2                                        30031 21   10 
+ENDDATA              3                                            30031 21   11 
+ENDSUBENT           10                                            30031 2199999 
+SUBENT        30031022     900212              20050926       000030031 22    1 
+BIB                  2          2                                 30031 22    2 
+REACTION   (62-SM-154(N,G)62-SM-155,,SIG)                         30031 22    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 22    4 
+ENDBIB               2                                            30031 22    5 
+NOCOMMON             0          0                                 30031 22    6 
+DATA                 3          1                                 30031 22    7 
+DATA       DATA-ERR   MONIT                                       30031 22    8 
+MB         MB         MB                                          30031 22    9 
+19.0       5.0        74.0                                        30031 22   10 
+ENDDATA              3                                            30031 22   11 
+ENDSUBENT           10                                            30031 2299999 
+SUBENT        30031023     900212              20050926       000030031 23    1 
+BIB                  2          2                                 30031 23    2 
+REACTION   (64-GD-158(N,G)64-GD-159,,SIG)                         30031 23    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 23    4 
+ENDBIB               2                                            30031 23    5 
+NOCOMMON             0          0                                 30031 23    6 
+DATA                 3          1                                 30031 23    7 
+DATA       DATA-ERR   MONIT                                       30031 23    8 
+MB         MB         MB                                          30031 23    9 
+10.4       2.0        74.0                                        30031 23   10 
+ENDDATA              3                                            30031 23   11 
+ENDSUBENT           10                                            30031 2399999 
+SUBENT        30031024     900212              20050926       000030031 24    1 
+BIB                  2          2                                 30031 24    2 
+REACTION   (65-TB-159(N,G)65-TB-160,,SIG)                         30031 24    3 
+MONITOR    (16-S-32(N,P)15-P-32,,SIG)                             30031 24    4 
+ENDBIB               2                                            30031 24    5 
+NOCOMMON             0          0                                 30031 24    6 
+DATA                 3          1                                 30031 24    7 
+DATA       DATA-ERR   MONIT                                       30031 24    8 
+MB         MB         MB                                          30031 24    9 
+49.2       7.0        111.0                                       30031 24   10 
+ENDDATA              3                                            30031 24   11 
+ENDSUBENT           10                                            30031 2499999 
+SUBENT        30031025     900212              20050926       000030031 25    1 
+BIB                  2          2                                 30031 25    2 
+REACTION   (67-HO-165(N,G)67-HO-166-G,,SIG)                       30031 25    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 25    4 
+ENDBIB               2                                            30031 25    5 
+NOCOMMON             0          0                                 30031 25    6 
+DATA                 3          1                                 30031 25    7 
+DATA       DATA-ERR   MONIT                                       30031 25    8 
+MB         MB         MB                                          30031 25    9 
+50.0       11.0       74.0                                        30031 25   10 
+ENDDATA              3                                            30031 25   11 
+ENDSUBENT           10                                            30031 2599999 
+SUBENT        30031026     900212              20050926       000030031 26    1 
+BIB                  2          2                                 30031 26    2 
+REACTION   (68-ER-170(N,G)68-ER-171,,SIG)                         30031 26    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 26    4 
+ENDBIB               2                                            30031 26    5 
+NOCOMMON             0          0                                 30031 26    6 
+DATA                 3          1                                 30031 26    7 
+DATA       DATA-ERR   MONIT                                       30031 26    8 
+MB         MB         MB                                          30031 26    9 
+15.8       3.0        74.0                                        30031 26   10 
+ENDDATA              3                                            30031 26   11 
+ENDSUBENT           10                                            30031 2699999 
+SUBENT        30031027     900212              20050926       000030031 27    1 
+BIB                  2          2                                 30031 27    2 
+REACTION   (76-OS-192(N,G)76-OS-193,,SIG)                         30031 27    3 
+MONITOR    (79-AU-197(N,G)79-AU-198,,SIG)                         30031 27    4 
+ENDBIB               2                                            30031 27    5 
+NOCOMMON             0          0                                 30031 27    6 
+DATA                 3          1                                 30031 27    7 
+DATA       DATA-ERR   MONIT                                       30031 27    8 
+MB         MB         MB                                          30031 27    9 
+30.0       10.0       35.2                                        30031 27   10 
+ENDDATA              3                                            30031 27   11 
+ENDSUBENT           10                                            30031 2799999 
+SUBENT        30031028   20070806   20070924   20070920       312330031 28    1 
+BIB                  3          3                                 30031 28    2 
+REACTION   (77-IR-193(N,G)77-IR-194-G,,SIG)                       30031 28    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG)                            30031 28    4 
+HISTORY    (19900117A) VOF.-Reaction code corrected.-             30031 28    5 
+ENDBIB               3                                            30031 28    6 
+NOCOMMON             0          0                                 30031 28    7 
+DATA                 3          1                                 30031 28    8 
+DATA       DATA-ERR   MONIT                                       30031 28    9 
+MB         MB         MB                                          30031 28   10 
+43.5       8.0        74.0                                        30031 28   11 
+ENDDATA              3                                            30031 28   12 
+ENDSUBENT           11                                            30031 2899999 
+SUBENT        30031029   20070806   20070924   20070920       312330031 29    1 
+BIB                  3          4                                 30031 29    2 
+REACTION   (79-AU-197(N,G)79-AU-198-G,(M),SIG)                    30031 29    3 
+MONITOR    (15-P-31(N,P)14-SI-31,,SIG) = Monit1                   30031 29    4 
+           (16-S-32(N,P)15-P-32,,SIG)  = Monit2                   30031 29    5 
+HISTORY    (19900117A) VOF.-Reaction code corrected.-             30031 29    6 
+ENDBIB               4                                            30031 29    7 
+NOCOMMON             0          0                                 30031 29    8 
+DATA                 4          1                                 30031 29    9 
+DATA       DATA-ERR   MONIT1     MONIT2                           30031 29   10 
+MB         MB         MB         MB                               30031 29   11 
+35.2       3.0        74.0       111.0                            30031 29   12 
+ENDDATA              3                                            30031 29   13 
+ENDSUBENT           12                                            30031 2999999 
+ENDENTRY            29          0                                 3003199999999 
+ENDTRANS             1          0                                 Z999999999999 

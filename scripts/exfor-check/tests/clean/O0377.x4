@@ -1,0 +1,270 @@
+TRANS             9001   20261111                                 O0000  0    0 
+ENTRY            O0377   20220107                                 O0377  0    1 
+SUBENT        O0377001   20220107   20220607   20220505       O086O0377  1    1 
+BIB                 13         38                                 O0377  1    2 
+TITLE      Production cross section of some short-lived           O0377  1    3 
+           radionuclides in thin lead target irradiated by 660.   O0377  1    4 
+           MeV protons                                            O0377  1    5 
+AUTHOR     (Yu.V.Aleksandrov,S.K.Vasil'ev, R.B.Ivanov,            O0377  1    6 
+           M.A.Mikhaylova,V.P.Prikhodtseva, A.V.Saul'skij,        O0377  1    7 
+           V.G.Eismont)                                           O0377  1    8 
+INSTITUTE  (4RUSRI)                                               O0377  1    9 
+REFERENCE  (C,97OBNIN,,153,1997) in Russian                       O0377  1   10 
+FACILITY   (SYNCY,4ZZZDUB)                                        O0377  1   11 
+REL-REF    (O,O0347001,Yu.V.Aleksandrov+,C,96MOSCOW,,221,1996)    O0377  1   12 
+            Long-Lived Nuclides.                                  O0377  1   13 
+           (R,,U.Reus+,J,AND,29,1,1983) Decay-Data.               O0377  1   14 
+           (O,A0580001,Yu.V.Aleksandrov+,C,96KALMAR,2,576,1996)   O0377  1   15 
+            - similar exp., additional info (see ERR-ANALYS).     O0377  1   16 
+DETECTOR   (GELI)                                                 O0377  1   17 
+MONITOR    ((MONIT1)13-AL-27(P,X)11-NA-24,CUM,SIG)                O0377  1   18 
+           ((MONIT2)13-AL-27(P,X)11-NA-22,CUM,SIG)                O0377  1   19 
+ERR-ANALYS (ERR-1,5.,7.) Uncertainty of absolute                  O0377  1   20 
+           calibration of used spectrometer.                      O0377  1   21 
+METHOD     (ACTIV)  Irradiation time was 11 minutes.              O0377  1   22 
+           (GSPEC)  The measurements were began after 15 minutes  O0377  1   23 
+           of end of irradiation, approximately. 34 measurements  O0377  1   24 
+           have been executed during to 18 hours. Each measurementO0377  1   25 
+           was from 10 to 60 minutes. Additional measurement has  O0377  1   26 
+           been executed after 1 day, 25 days and half year.      O0377  1   27 
+           (STTA) The stack has contained aluminum and lead       O0377  1   28 
+           foils. All foils have diameter 30 mm. Thickness was    O0377  1   29 
+           0.1 mm of lead. All targets in this stack were         O0377  1   30 
+           surrounded by additional identical foils to exclude    O0377  1   31 
+           activity loss.                                         O0377  1   32 
+COMMENT    -By Compiler- Any information about energy             O0377  1   33 
+           degradation in used stack is absent.                   O0377  1   34 
+STATUS     (TABLE) Table on p.153 from 97OBNIN,153,1997.          O0377  1   35 
+HISTORY    (19970617C)                                            O0377  1   36 
+           (19970624U) Last checking has been done.               O0377  1   37 
+           (20220107A) SD: Corrections in all Subents. ASSUMED    O0377  1   38 
+           deleted (info given in MONITOR reaction). ERR-ANALYS   O0377  1   39 
+           updated. ASSUM1/2 -> MONIT1/2.                         O0377  1   40 
+ENDBIB              38                                            O0377  1   41 
+COMMON               3          3                                 O0377  1   42 
+EN         MONIT1     MONIT2                                      O0377  1   43 
+MEV        MB         MB                                          O0377  1   44 
+       660.       10.8        16.                                 O0377  1   45 
+ENDCOMMON            3                                            O0377  1   46 
+ENDSUBENT           45                                            O0377  199999 
+SUBENT        O0377002   20220107   20220607   20220505       O086O0377  2    1 
+BIB                  4          9                                 O0377  2    2 
+REACTION   (82-PB-0(P,X)83-BI-202,,SIG)                           O0377  2    3 
+DECAY-DATA (83-BI-202,1.72HR)                                     O0377  2    4 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  2    5 
+           uncertainty of absolute calibration of gamma           O0377  2    6 
+           spectrometer.                                          O0377  2    7 
+            Decay data and monitor cross section uncertainties    O0377  2    8 
+           were not be included in this error.                    O0377  2    9 
+HISTORY    (20220107A) SD: SF5=IND and SF9=EXP deleted from       O0377  2   10 
+           REACTION code. ERR-T -> ERR-1.                         O0377  2   11 
+ENDBIB               9                                            O0377  2   12 
+NOCOMMON             0          0                                 O0377  2   13 
+DATA                 2          1                                 O0377  2   14 
+DATA       ERR-2                                                  O0377  2   15 
+MB         MB                                                     O0377  2   16 
+        4.6        0.9                                            O0377  2   17 
+ENDDATA              3                                            O0377  2   18 
+ENDSUBENT           17                                            O0377  299999 
+SUBENT        O0377003   20220107   20220607   20220505       O086O0377  3    1 
+BIB                  4          9                                 O0377  3    2 
+REACTION   (82-PB-0(P,X)83-BI-200-M1,,SIG)                        O0377  3    3 
+DECAY-DATA (83-BI-200-M1,31.MIN)                                  O0377  3    4 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  3    5 
+           uncertainty of absolute calibration of gamma           O0377  3    6 
+           spectrometer.                                          O0377  3    7 
+            Decay data and monitor cross section uncertainties    O0377  3    8 
+           were not be included in this error.                    O0377  3    9 
+HISTORY    (20220107A) SD: SF4=Bi-200m -> Bi-200m1; SF5=IND and   O0377  3   10 
+           SF9=EXP deleted from REACTION code. ERR-T -> ERR-1.    O0377  3   11 
+ENDBIB               9                                            O0377  3   12 
+NOCOMMON             0          0                                 O0377  3   13 
+DATA                 2          1                                 O0377  3   14 
+DATA       ERR-2                                                  O0377  3   15 
+MB         MB                                                     O0377  3   16 
+        0.5        0.2                                            O0377  3   17 
+ENDDATA              3                                            O0377  3   18 
+ENDSUBENT           17                                            O0377  399999 
+SUBENT        O0377004   20220107   20220607   20220505       O086O0377  4    1 
+BIB                  4          9                                 O0377  4    2 
+REACTION   (82-PB-0(P,X)83-BI-200-G,,SIG)                         O0377  4    3 
+DECAY-DATA (83-BI-200-G,36.4MIN)                                  O0377  4    4 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  4    5 
+           uncertainty of absolute calibration of gamma           O0377  4    6 
+           spectrometer.                                          O0377  4    7 
+            Decay data and monitor cross section uncertainties    O0377  4    8 
+           were not be included in this error.                    O0377  4    9 
+HISTORY    (20220107A) SD: SF5=IND and SF9=EXP deleted from       O0377  4   10 
+           REACTION code. ERR-T -> ERR-1.                         O0377  4   11 
+ENDBIB               9                                            O0377  4   12 
+NOCOMMON             0          0                                 O0377  4   13 
+DATA                 2          1                                 O0377  4   14 
+DATA       ERR-2                                                  O0377  4   15 
+MB         MB                                                     O0377  4   16 
+        3.2        0.6                                            O0377  4   17 
+ENDDATA              3                                            O0377  4   18 
+ENDSUBENT           17                                            O0377  499999 
+SUBENT        O0377005   20220107   20220607   20220505       O086O0377  5    1 
+BIB                  5         11                                 O0377  5    2 
+REACTION   (82-PB-0(P,X)82-PB-202-M,,SIG)                         O0377  5    3 
+DECAY-DATA (82-PB-202-M,3.53HR)                                   O0377  5    4 
+COMMENT    * by Compiler * the production of Pb-202-M due to      O0377  5    5 
+           radioactive decay of Bi-202 is impossible.             O0377  5    6 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  5    7 
+           uncertainty of absolute calibration of gamma           O0377  5    8 
+           spectrometer.                                          O0377  5    9 
+            Decay data and monitor cross section uncertainties    O0377  5   10 
+           were not be included in this error.                    O0377  5   11 
+HISTORY    (20220107A) SD: SF5=IND and SF9=EXP deleted from       O0377  5   12 
+           REACTION code. ERR-T -> ERR-1.                         O0377  5   13 
+ENDBIB              11                                            O0377  5   14 
+NOCOMMON             0          0                                 O0377  5   15 
+DATA                 2          1                                 O0377  5   16 
+DATA       ERR-2                                                  O0377  5   17 
+MB         MB                                                     O0377  5   18 
+       11.4         1.                                            O0377  5   19 
+ENDDATA              3                                            O0377  5   20 
+ENDSUBENT           19                                            O0377  599999 
+SUBENT        O0377006   20220107   20220607   20220505       O086O0377  6    1 
+BIB                  5         16                                 O0377  6    2 
+REACTION   (82-PB-0(P,X)83-BI-198-G,M+,SIG)                       O0377  6    3 
+DECAY-DATA (83-BI-198-G,11.8MIN)                                  O0377  6    4 
+COMMENT    * by Compiler * According to ENSDF ground state of     O0377  6    5 
+           198-Bi has half-life 10.3 minutes. 198-Bi has two      O0377  6    6 
+           isomers. First one has half-life 11.6 minutes, second  O0377  6    7 
+           one has half-life 7.7 seconds. Second isomer state     O0377  6    8 
+           decays to first isomer. First isomer does not decay to O0377  6    9 
+           ground state of 198-Bi. Therfore authors'              O0377  6   10 
+           interpretation maybe doubtful.                         O0377  6   11 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  6   12 
+           uncertainty of absolute calibration of gamma           O0377  6   13 
+           spectrometer.                                          O0377  6   14 
+            Decay data and monitor cross section uncertainties    O0377  6   15 
+           were not be included in this error.                    O0377  6   16 
+HISTORY    (20220107A) SD: SF5=IND/M+ -> M+; SF9=EXP deleted from O0377  6   17 
+           REACTION code. ERR-T -> ERR-1.                         O0377  6   18 
+ENDBIB              16                                            O0377  6   19 
+NOCOMMON             0          0                                 O0377  6   20 
+DATA                 2          1                                 O0377  6   21 
+DATA       ERR-2                                                  O0377  6   22 
+MB         MB                                                     O0377  6   23 
+        2.9        0.7                                            O0377  6   24 
+ENDDATA              3                                            O0377  6   25 
+ENDSUBENT           24                                            O0377  699999 
+SUBENT        O0377007   20220107   20220607   20220505       O086O0377  7    1 
+BIB                  4          9                                 O0377  7    2 
+REACTION   (82-PB-0(P,X)82-PB-199-G,CUM,SIG)                      O0377  7    3 
+DECAY-DATA (82-PB-199-G,1.5HR)                                    O0377  7    4 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  7    5 
+           uncertainty of absolute calibration of gamma           O0377  7    6 
+           spectrometer.                                          O0377  7    7 
+            Decay data and monitor cross section uncertainties    O0377  7    8 
+           were not be included in this error.                    O0377  7    9 
+HISTORY    (20220107A) SD: SF9=EXP deleted from REACTION code.    O0377  7   10 
+           ERR-T -> ERR-1.                                        O0377  7   11 
+ENDBIB               9                                            O0377  7   12 
+NOCOMMON             0          0                                 O0377  7   13 
+DATA                 2          1                                 O0377  7   14 
+DATA       ERR-2                                                  O0377  7   15 
+MB         MB                                                     O0377  7   16 
+        21.         2.                                            O0377  7   17 
+ENDDATA              3                                            O0377  7   18 
+ENDSUBENT           17                                            O0377  799999 
+SUBENT        O0377008   20220107   20220607   20220505       O086O0377  8    1 
+BIB                  5         12                                 O0377  8    2 
+REACTION   (82-PB-0(P,X)82-PB-198,,SIG)                           O0377  8    3 
+DECAY-DATA (82-PB-198,2.40HR)                                     O0377  8    4 
+COMMENT    * by Compiler * this cross section is assumed as       O0377  8    5 
+           independent, because its uncertainty is larger than    O0377  8    6 
+           cross section possible pregnitor 198-Bi.               O0377  8    7 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  8    8 
+           uncertainty of absolute calibration of gamma           O0377  8    9 
+           spectrometer.                                          O0377  8   10 
+            Decay data and monitor cross section uncertainties    O0377  8   11 
+           were not be included in this error.                    O0377  8   12 
+HISTORY    (20220107A) SD: SF5=IND and SF9=EXP deleted from       O0377  8   13 
+           REACTION code. ERR-T -> ERR-1.                         O0377  8   14 
+ENDBIB              12                                            O0377  8   15 
+NOCOMMON             0          0                                 O0377  8   16 
+DATA                 2          1                                 O0377  8   17 
+DATA       ERR-2                                                  O0377  8   18 
+MB         MB                                                     O0377  8   19 
+        22.         4.                                            O0377  8   20 
+ENDDATA              3                                            O0377  8   21 
+ENDSUBENT           20                                            O0377  899999 
+SUBENT        O0377009   20220107   20220607   20220505       O086O0377  9    1 
+BIB                  4          9                                 O0377  9    2 
+REACTION   (82-PB-0(P,X)82-PB-197-M,CUM,SIG)                      O0377  9    3 
+DECAY-DATA (82-PB-197-M,44.6MIN)                                  O0377  9    4 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377  9    5 
+           uncertainty of absolute calibration of gamma           O0377  9    6 
+           spectrometer.                                          O0377  9    7 
+            Decay data and monitor cross section uncertainties    O0377  9    8 
+           were not be included in this error.                    O0377  9    9 
+HISTORY    (20220107A) SD: SF9=EXP deleted from REACTION code.    O0377  9   10 
+           ERR-T -> ERR-1.                                        O0377  9   11 
+ENDBIB               9                                            O0377  9   12 
+NOCOMMON             0          0                                 O0377  9   13 
+DATA                 2          1                                 O0377  9   14 
+DATA       ERR-2                                                  O0377  9   15 
+MB         MB                                                     O0377  9   16 
+        16.         4.                                            O0377  9   17 
+ENDDATA              3                                            O0377  9   18 
+ENDSUBENT           17                                            O0377  999999 
+SUBENT        O0377010   20220107   20220607   20220505       O086O0377 10    1 
+BIB                  4          9                                 O0377 10    2 
+REACTION   (82-PB-0(P,X)82-PB-196,CUM,SIG)                        O0377 10    3 
+DECAY-DATA (82-PB-196,36.4MIN)                                    O0377 10    4 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377 10    5 
+           uncertainty of absolute calibration of gamma           O0377 10    6 
+           spectrometer.                                          O0377 10    7 
+            Decay data and monitor cross section uncertainties    O0377 10    8 
+           were not be included in this error.                    O0377 10    9 
+HISTORY    (20220107A) SD: SF5=IND and SF9=EXP deleted from       O0377 10   10 
+           REACTION code. ERR-T -> ERR-1.                         O0377 10   11 
+ENDBIB               9                                            O0377 10   12 
+NOCOMMON             0          0                                 O0377 10   13 
+DATA                 2          1                                 O0377 10   14 
+DATA       ERR-2                                                  O0377 10   15 
+MB         MB                                                     O0377 10   16 
+        17.         6.                                            O0377 10   17 
+ENDDATA              3                                            O0377 10   18 
+ENDSUBENT           17                                            O0377 1099999 
+SUBENT        O0377011   20220107   20220607   20220505       O086O0377 11    1 
+BIB                  4          7                                 O0377 11    2 
+REACTION   (82-PB-0(P,X)82-PB-195-M,CUM,SIG)                      O0377 11    3 
+DECAY-DATA (82-PB-195-M,15.8MIN)                                  O0377 11    4 
+COMMENT    * by Compiler * According to ENSDF, ground and isomer  O0377 11    5 
+           states of 195-Pb have similar half-lives. Therefore    O0377 11    6 
+           authors' interpretation maybe doubtful.                O0377 11    7 
+HISTORY    (20220107A) SD: SF9=EXP deleted from REACTION code.    O0377 11    8 
+           ERR-T -> ERR-1.                                        O0377 11    9 
+ENDBIB               7                                            O0377 11   10 
+NOCOMMON             0          0                                 O0377 11   11 
+DATA                 1          1                                 O0377 11   12 
+DATA-MAX                                                          O0377 11   13 
+MB                                                                O0377 11   14 
+        11.                                                       O0377 11   15 
+ENDDATA              3                                            O0377 11   16 
+ENDSUBENT           15                                            O0377 1199999 
+SUBENT        O0377012   20220107   20220607   20220505       O086O0377 12    1 
+BIB                  4          9                                 O0377 12    2 
+REACTION   (82-PB-0(P,X)82-PB-194,CUM,SIG)                        O0377 12    3 
+DECAY-DATA (82-PB-194,9.2MIN)                                     O0377 12    4 
+ERR-ANALYS (ERR-2) Uncertainty includes statistical error and     O0377 12    5 
+           uncertainty of absolute calibration of gamma           O0377 12    6 
+           spectrometer.                                          O0377 12    7 
+            Decay data and monitor cross section uncertainties    O0377 12    8 
+           were not be included in this error.                    O0377 12    9 
+HISTORY    (20220107A) SD: SF9=EXP deleted from REACTION code.    O0377 12   10 
+           ERR-T -> ERR-1.                                        O0377 12   11 
+ENDBIB               9                                            O0377 12   12 
+NOCOMMON             0          0                                 O0377 12   13 
+DATA                 2          1                                 O0377 12   14 
+DATA       ERR-2                                                  O0377 12   15 
+MB         MB                                                     O0377 12   16 
+        2.4        0.7                                            O0377 12   17 
+ENDDATA              3                                            O0377 12   18 
+ENDSUBENT           17                                            O0377 1299999 
+ENDENTRY            12          0                                 O037799999999 
+ENDTRANS             1          0                                 Z999999999999 

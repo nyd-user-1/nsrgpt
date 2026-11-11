@@ -1,0 +1,392 @@
+TRANS             9001   20261111                                 40000  0    0 
+ENTRY            40097   20210727                                 40097  0    1 
+SUBENT        40097001   20210727   20211112   20211112       420040097  1    1 
+BIB                 14         42                                 40097  1    2 
+TITLE      Neutron resonances of rare isotopes of dysprosium      40097  1    3 
+AUTHOR     (V.P.Vertebny, A.I.Kalchenko, M.V.Pasechnik,           40097  1    4 
+           Zh.I.Pisanko, G.S.Padun, V.K.Rudyshin)                 40097  1    5 
+REFERENCE  (J,UFZ,14,1810,1969)  Issue 11.                        40097  1    6 
+           (R,YFI-5,44,1967) Data Tables.                         40097  1    7 
+           (R,INDC(CCP)-1,47,1967)                                40097  1    8 
+            Engl.translation of YFI-5,44,1967                     40097  1    9 
+           (R,YFI-4,42,1967) Dy-156 prelim.res.energies           40097  1   10 
+           (R,INDC(CCP)-017,54,1967) INDC(CCP)*017.               40097  1   11 
+            Engl.translation of YFI-4,42,1967                     40097  1   12 
+           ((R,ICD-4,7,1967)=                                     40097  1   13 
+           (R,INDC(CCP)-4,7,1967)) Data Tables.                   40097  1   14 
+INSTITUTE  (4UKRIFU)                                              40097  1   15 
+FACILITY   (REAC,4UKRIFU) Thermal reactor WWR-M                   40097  1   16 
+INC-SOURCE  Neutron chopper of 300 mm diameter, with 0.5 mm slits,40097  1   17 
+           in- and out- collimators.                              40097  1   18 
+SAMPLE      Enriched (in quartz container) and natural (in Al     40097  1   19 
+           container) samples as dysprosium oxide .               40097  1   20 
+           Natural sample isotopic content:                       40097  1   21 
+           Isotope  156.   158.   160.   161.  162.  163.   164.  40097  1   22 
+           Share,%  0.052  0.09   2.298  18.88 25.53 24.97  28.18 40097  1   23 
+METHOD     (TOF) Time-of-flight method with resolution            40097  1   24 
+           0.05 mcsec/m in region from 3 until 1000 eV and        40097  1   25 
+           0.2 mcsec/m in region from 0.1 until 3 eV, flight      40097  1   26 
+           distance 70 m                                          40097  1   27 
+DETECTOR   (BF3) Boron counter ( 200 mm thick, 400 mm high,       40097  1   28 
+           200 mm wide, B(10)F(3) pressure 500 mm Hg) battery     40097  1   29 
+PART-DET   (N)                                                    40097  1   30 
+ANALYSIS   (SLA) Single level analysis,                           40097  1   31 
+                 histogram method at definition neutron widths.   40097  1   32 
+COMMENT    For resonances with energy more or equal 36 eV         40097  1   33 
+           identification extraordinary difficult owing to        40097  1   34 
+           level density of isotopes Dy-161 and Dy-163 very       40097  1   35 
+           large. Omitted levels number evaluated                 40097  1   36 
+           with help of Porter-Thomas and Wigner distributions.   40097  1   37 
+CORRECTION  Background was measured.                              40097  1   38 
+HISTORY    (19720516C)                                            40097  1   39 
+           (20210727A) Update for current rules and dictionaries. 40097  1   40 
+           Data were re-stored in several Subents.                40097  1   41 
+           Refs.YFI-5,YFI-4, ICD-4 and it's Engl.translations were40097  1   42 
+           added.                                                 40097  1   43 
+           Subents 013-014 were added.                            40097  1   44 
+ENDBIB              42                                            40097  1   45 
+NOCOMMON             0          0                                 40097  1   46 
+ENDSUBENT           45                                            40097  199999 
+SUBENT        40097002   20210727   20211112   20211112       420040097  2    1 
+BIB                  5         12                                 40097  2    2 
+REACTION   (66-DY-156(N,EL),,WID)                                 40097  2    3 
+SAMPLE     Isotope composition in quartz container -              40097  2    4 
+           Isotope  156.   158.   160.   161.  162.  163.   164.  40097  2    5 
+           Share,%  17.5    1.5    4.7   20.5  20.7  18.1   17.0  40097  2    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097  2    7 
+           article.                                               40097  2    8 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  2    9 
+            Table 1 of YFI-5,44,1967                              40097  2   10 
+            Table 1 of ICD-4,7,1967                               40097  2   11 
+HISTORY    (20210727S)                                            40097  2   12 
+           (20210728A) MEV -> MILLI-EV, part of data were moved in40097  2   13 
+           DATA-APRX.                                             40097  2   14 
+ENDBIB              12                                            40097  2   15 
+NOCOMMON             0          0                                 40097  2   16 
+DATA                 5         17                                 40097  2   17 
+EN-RES     EN-RES-ERR DATA       DATA-ERR   DATA-APRX             40097  2   18 
+EV         EV         MILLI-EV   MILLI-EV   MILLI-EV              40097  2   19 
+  2.15     0.02                              0.2                  40097  2   20 
+  3.21     0.01        0.8       0.2                              40097  2   21 
+  9.19     0.04        0.6       0.15                             40097  2   22 
+ 15.2      0.1         4.6       0.7                              40097  2   23 
+ 17.4      0.1         0.32      0.2                              40097  2   24 
+ 17.7      0.1         0.1       0.1                              40097  2   25 
+ 19.6      0.1         9.        2.                               40097  2   26 
+ 24.5      0.2                               2.4                  40097  2   27 
+ 27.4      0.2         0.4       0.4                              40097  2   28 
+ 28.1      0.2         0.4       0.4                              40097  2   29 
+ 29.3      0.25                              8.7                  40097  2   30 
+ 36.       0.3                               9.                   40097  2   31 
+ 46.9      0.5                              14.                   40097  2   32 
+52.        0.6                              16.                   40097  2   33 
+68.6       0.6                              54.                   40097  2   34 
+85.5       1.2                              15.                   40097  2   35 
+90.7       1.4                              42.                   40097  2   36 
+ENDDATA             19                                            40097  2   37 
+ENDSUBENT           36                                            40097  299999 
+SUBENT        40097003   20210727   20211112   20211112       420040097  3    1 
+BIB                  4          9                                 40097  3    2 
+REACTION   (66-DY-158(N,EL),,WID)                                 40097  3    3 
+SAMPLE     Isotope composition in quartz container -              40097  3    4 
+           Isotope   156.  158.  160.   161.   162.   163.   164. 40097  3    5 
+           Share,%   0.6   14.1  10.3   29.67  21.0   13.5   10.9 40097  3    6 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  3    7 
+            Table 1 of YFI-5,44,1967                              40097  3    8 
+            Table 1 of ICD-4,7,1967                               40097  3    9 
+HISTORY    (20210727S)                                            40097  3   10 
+           (20210728A) MEV -> MILLI-EV, DATA -> DATA-APRX.        40097  3   11 
+ENDBIB               9                                            40097  3   12 
+NOCOMMON             0          0                                 40097  3   13 
+DATA                 3          3                                 40097  3   14 
+EN-RES     EN-RES-ERR DATA-APRX                                   40097  3   15 
+EV         EV         MILLI-EV                                    40097  3   16 
+ 38.       1.         22.                                         40097  3   17 
+ 45.6      0.5        39.                                         40097  3   18 
+ 86.       1.5        81.                                         40097  3   19 
+ENDDATA              5                                            40097  3   20 
+ENDSUBENT           19                                            40097  399999 
+SUBENT        40097004   20210727   20211112   20211112       420040097  4    1 
+BIB                  5         12                                 40097  4    2 
+REACTION   (66-DY-160(N,EL),,WID)                                 40097  4    3 
+SAMPLE     Isotope composition in quartz container -              40097  4    4 
+           Isotope  156.   158.    160.   161.  162.  163.  164.  40097  4    5 
+           Share,%  0.1    0.1     68.    18.2  7.6   4.0   2.2   40097  4    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097  4    7 
+           article.                                               40097  4    8 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  4    9 
+            Table 1 of YFI-5,44,1967                              40097  4   10 
+            Table 1 of ICD-4,7,1967                               40097  4   11 
+HISTORY    (20210727S)                                            40097  4   12 
+           (20210728A) MEV -> MILLI-EV, part of data were moved in40097  4   13 
+           DATA-APRX.                                             40097  4   14 
+ENDBIB              12                                            40097  4   15 
+NOCOMMON             0          0                                 40097  4   16 
+DATA                 5          4                                 40097  4   17 
+EN-RES     EN-RES-ERR DATA       DATA-ERR   DATA-APRX             40097  4   18 
+EV         EV         MILLI-EV   MILLI-EV   MILLI-EV              40097  4   19 
+ 1.88      0.02        0.4        0.2                             40097  4   20 
+10.4       0.05       19.3        3.                              40097  4   21 
+20.5       0.1                               25.                  40097  4   22 
+85.        1.3                               93.                  40097  4   23 
+ENDDATA              6                                            40097  4   24 
+ENDSUBENT           23                                            40097  499999 
+SUBENT        40097005   20210727   20211112   20211112       420040097  5    1 
+BIB                  5         12                                 40097  5    2 
+REACTION   (66-DY-156(N,EL),,WID/RED)                             40097  5    3 
+SAMPLE     Isotope composition in quartz container -              40097  5    4 
+           Isotope  156.   158.   160.   161.  162.  163.   164.  40097  5    5 
+           Share,%  17.5    1.5    4.7   20.5  20.7  18.1   17.0  40097  5    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097  5    7 
+           article.                                               40097  5    8 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  5    9 
+            Table 1 of YFI-5,44,1967                              40097  5   10 
+            Table 1 of ICD-4,7,1967                               40097  5   11 
+HISTORY    (20210727S)                                            40097  5   12 
+           (20210728A) MEV -> MILLI-EV, part of data were moved in40097  5   13 
+           DATA-APRX                                              40097  5   14 
+ENDBIB              12                                            40097  5   15 
+COMMON               1          3                                 40097  5   16 
+MOMENTUM L                                                        40097  5   17 
+NO-DIM                                                            40097  5   18 
+ 0.                                                               40097  5   19 
+ENDCOMMON            3                                            40097  5   20 
+DATA                 5         17                                 40097  5   21 
+EN-RES     EN-RES-ERR DATA       DATA-ERR   DATA-APRX             40097  5   22 
+EV         EV         MILLI-EV   MILLI-EV   MILLI-EV              40097  5   23 
+ 2.15      0.02                              0.14                 40097  5   24 
+ 3.21      0.01       0.45       0.11                             40097  5   25 
+ 9.19      0.04       0.19       0.15                             40097  5   26 
+15.2       0.1        1.2        0.2                              40097  5   27 
+17.4       0.1        0.08       0.05                             40097  5   28 
+17.7       0.1        0.02       0.02                             40097  5   29 
+19.6       0.1        2.1        0.5                              40097  5   30 
+24.5       0.2                               0.48                 40097  5   31 
+27.4       0.2        0.08       0.08                             40097  5   32 
+28.1       0.2        0.08       0.08                             40097  5   33 
+29.3       0.25                              1.6                  40097  5   34 
+36.        0.3                               1.5                  40097  5   35 
+46.9       0.5                               2.                   40097  5   36 
+52.        0.6                               2.                   40097  5   37 
+68.6       0.6                               6.5                  40097  5   38 
+85.5       1.2                               1.7                  40097  5   39 
+90.7       1.4                               4.                   40097  5   40 
+ENDDATA             19                                            40097  5   41 
+ENDSUBENT           40                                            40097  599999 
+SUBENT        40097006   20210727   20211112   20211112       420040097  6    1 
+BIB                  4          9                                 40097  6    2 
+REACTION   (66-DY-158(N,EL),,WID/RED)                             40097  6    3 
+SAMPLE     Isotope composition in quartz container -              40097  6    4 
+           Isotope   156.  158.  160.   161.   162.   163.   164. 40097  6    5 
+           Share,%   0.6   14.1  10.3   29.67  21.0   13.5   10.9 40097  6    6 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  6    7 
+            Table 1 of YFI-5,44,1967                              40097  6    8 
+            Table 1 of ICD-4,7,1967                               40097  6    9 
+HISTORY    (20210727S)                                            40097  6   10 
+           (20210728A) MEV -> MILLI-EV, DATA -> DATA-APRX         40097  6   11 
+ENDBIB               9                                            40097  6   12 
+COMMON               1          3                                 40097  6   13 
+MOMENTUM L                                                        40097  6   14 
+NO-DIM                                                            40097  6   15 
+ 0.                                                               40097  6   16 
+ENDCOMMON            3                                            40097  6   17 
+DATA                 3          3                                 40097  6   18 
+EN-RES     EN-RES-ERR DATA-APRX                                   40097  6   19 
+EV         EV         MILLI-EV                                    40097  6   20 
+ 38.       1.         3.6                                         40097  6   21 
+ 45.6      0.5        5.7                                         40097  6   22 
+ 86.       1.5        8.7                                         40097  6   23 
+ENDDATA              5                                            40097  6   24 
+ENDSUBENT           23                                            40097  699999 
+SUBENT        40097007   20210727   20211112   20211112       420040097  7    1 
+BIB                  5         12                                 40097  7    2 
+REACTION   (66-DY-160(N,EL),,WID/RED)                             40097  7    3 
+SAMPLE     Isotope composition in quartz container -              40097  7    4 
+           Isotope  156.   158.    160.   161.  162.  163.  164.  40097  7    5 
+           Share,%  0.1    0.1     68.    18.2  7.6   4.0   2.2   40097  7    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097  7    7 
+           article.                                               40097  7    8 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  7    9 
+            Table 1 of YFI-5,44,1967                              40097  7   10 
+            Table 1 of ICD-4,7,1967                               40097  7   11 
+HISTORY    (20210727S)                                            40097  7   12 
+           (20210728A) MEV -> MILLI-EV, part of data were moved in40097  7   13 
+           DATA-APRX                                              40097  7   14 
+ENDBIB              12                                            40097  7   15 
+COMMON               1          3                                 40097  7   16 
+MOMENTUM L                                                        40097  7   17 
+NO-DIM                                                            40097  7   18 
+ 0.                                                               40097  7   19 
+ENDCOMMON            3                                            40097  7   20 
+DATA                 5          4                                 40097  7   21 
+EN-RES     EN-RES-ERR DATA       DATA-ERR   DATA-APRX             40097  7   22 
+EV         EV         MILLI-EV   MILLI-EV   MILLI-EV              40097  7   23 
+ 1.88      0.02        0.3       0.15                             40097  7   24 
+10.4       0.05        5.9       0.09                             40097  7   25 
+20.5       0.1                                5.6                 40097  7   26 
+85.        1.3                               10.                  40097  7   27 
+ENDDATA              6                                            40097  7   28 
+ENDSUBENT           27                                            40097  799999 
+SUBENT        40097008   20210727   20211112   20211112       420040097  8    1 
+BIB                  4          9                                 40097  8    2 
+REACTION   (66-DY-156(N,0),,EN)                                   40097  8    3 
+SAMPLE     Isotope composition in quartz container -              40097  8    4 
+           Isotope  156.   158.   160.   161.  162.  163.   164.  40097  8    5 
+           Share,%  17.5    1.5    4.7   20.5  20.7  18.1   17.0  40097  8    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097  8    7 
+           article.                                               40097  8    8 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  8    9 
+            Table 1 of YFI-5,44,1967                              40097  8   10 
+            Table 1 of ICD-4,7,1967                               40097  8   11 
+ENDBIB               9                                            40097  8   12 
+NOCOMMON             0          0                                 40097  8   13 
+DATA                 2         20                                 40097  8   14 
+DATA       DATA-ERR                                               40097  8   15 
+EV         EV                                                     40097  8   16 
+ 2.1500E+00 2.0000E-02                                            40097  8   17 
+ 3.2100E+00 4.0000E-02                                            40097  8   18 
+ 9.1900E+00 4.0000E-02                                            40097  8   19 
+ 1.5200E+01 1.0000E-01                                            40097  8   20 
+ 1.7400E+01 1.0000E-01                                            40097  8   21 
+ 1.7700E+01 1.0000E-01                                            40097  8   22 
+ 1.9600E+01 1.0000E-01                                            40097  8   23 
+ 2.4500E+01 2.0000E-01                                            40097  8   24 
+ 2.7400E+01 2.0000E-01                                            40097  8   25 
+ 2.8100E+01 2.0000E-01                                            40097  8   26 
+ 2.9300E+01 2.5000E-01                                            40097  8   27 
+ 3.6000E+01 3.0000E-01                                            40097  8   28 
+ 3.7800E+01 4.0000E-01                                            40097  8   29 
+ 3.8600E+01 4.0000E-01                                            40097  8   30 
+ 4.6900E+01 5.0000E-01                                            40097  8   31 
+ 5.2000E+01 6.0000E-01                                            40097  8   32 
+ 6.8600E+01 6.0000E-01                                            40097  8   33 
+ 8.5500E+01 1.2000E+00                                            40097  8   34 
+ 9.0700E+01 1.4000E+00                                            40097  8   35 
+ 1.2400E+02 2.0000E+00                                            40097  8   36 
+ENDDATA             22                                            40097  8   37 
+ENDSUBENT           36                                            40097  899999 
+SUBENT        40097009   20210727   20211112   20211112       420040097  9    1 
+BIB                  4          9                                 40097  9    2 
+REACTION   (66-DY-158(N,0),,EN)                                   40097  9    3 
+SAMPLE     Isotope composition in quartz container -              40097  9    4 
+           Isotope   156.  158.  160.   161.   162.   163.   164. 40097  9    5 
+           Share,%   0.6   14.1  10.3   29.67  21.0   13.5   10.9 40097  9    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097  9    7 
+           article.                                               40097  9    8 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097  9    9 
+            Table 1 of YFI-5,44,1967                              40097  9   10 
+            Table 1 of ICD-4,7,1967                               40097  9   11 
+ENDBIB               9                                            40097  9   12 
+NOCOMMON             0          0                                 40097  9   13 
+DATA                 2          6                                 40097  9   14 
+DATA       DATA-ERR                                               40097  9   15 
+EV         EV                                                     40097  9   16 
+ 3.8000E+01 1.0000E+00                                            40097  9   17 
+ 4.5600E+01 5.0000E-01                                            40097  9   18 
+ 5.9700E+01 7.0000E-01                                            40097  9   19 
+ 8.6000E+01 1.5000E+00                                            40097  9   20 
+ 1.7200E+02 3.5000E+00                                            40097  9   21 
+ 2.7100E+02 7.0000E+00                                            40097  9   22 
+ENDDATA              8                                            40097  9   23 
+ENDSUBENT           22                                            40097  999999 
+SUBENT        40097010   20210727   20211112   20211112       420040097 10    1 
+BIB                  4          9                                 40097 10    2 
+REACTION   (66-DY-160(N,0),,EN)                                   40097 10    3 
+SAMPLE     Isotope composition in quartz container -              40097 10    4 
+           Isotope  156.   158.    160.   161.  162.  163.  164.  40097 10    5 
+           Share,%  0.1    0.1     68.    18.2  7.6   4.0   2.2   40097 10    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097 10    7 
+           article.                                               40097 10    8 
+STATUS     (TABLE) Table 2 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097 10    9 
+            Table 1 of YFI-5,44,1967                              40097 10   10 
+            Table 1 of ICD-4,7,1967                               40097 10   11 
+ENDBIB               9                                            40097 10   12 
+NOCOMMON             0          0                                 40097 10   13 
+DATA                 2          6                                 40097 10   14 
+DATA       DATA-ERR                                               40097 10   15 
+EV         EV                                                     40097 10   16 
+ 1.8800E+00 2.0000E-02                                            40097 10   17 
+ 7.7200E+00 3.0000E-02                                            40097 10   18 
+ 1.0400E+01 5.0000E-02                                            40097 10   19 
+ 2.0500E+01 1.0000E-01                                            40097 10   20 
+ 3.5000E+01 3.0000E-01                                            40097 10   21 
+ 8.5000E+01 1.3000E+00                                            40097 10   22 
+ENDDATA              8                                            40097 10   23 
+ENDSUBENT           22                                            40097 1099999 
+SUBENT        40097011   20210727   20211112   20211112       420040097 11    1 
+BIB                  3          6                                 40097 11    2 
+REACTION   (66-DY-156(N,EL),,STF)                                 40097 11    3 
+SAMPLE     Isotope composition in quartz container -              40097 11    4 
+           Isotope  156.   158.   160.   161.  162.  163.   164.  40097 11    5 
+           Share,%  17.5    1.5    4.7   20.5  20.7  18.1   17.0  40097 11    6 
+STATUS     (TABLE) Text page 1815 of                              40097 11    7 
+           Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969                     40097 11    8 
+ENDBIB               6                                            40097 11    9 
+NOCOMMON             0          0                                 40097 11   10 
+DATA                 3          1                                 40097 11   11 
+EN-RES-MIN EN-RES-MAX DATA                                        40097 11   12 
+EV         EV         NO-DIM                                      40097 11   13 
+ 2.15       124.          2.2E-04                                 40097 11   14 
+ENDDATA              3                                            40097 11   15 
+ENDSUBENT           14                                            40097 1199999 
+SUBENT        40097012   20210727   20211112   20211112       420040097 12    1 
+BIB                  4          9                                 40097 12    2 
+REACTION   (66-DY-156(N,0),,D)                                    40097 12    3 
+SAMPLE     Isotope composition in quartz container -              40097 12    4 
+           Isotope  156.   158.   160.   161.  162.  163.   164.  40097 12    5 
+           Share,%  17.5    1.5    4.7   20.5  20.7  18.1   17.0  40097 12    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097 12    7 
+           article.                                               40097 12    8 
+STATUS     (TABLE) Table 3 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097 12    9 
+            Table 2 of YFI-5,44,1967                              40097 12   10 
+            Table 2 of ICD-4,7,1967                               40097 12   11 
+ENDBIB               9                                            40097 12   12 
+NOCOMMON             0          0                                 40097 12   13 
+DATA                 4          1                                 40097 12   14 
+EN-RES-MIN EN-RES-MAX DATA       DATA-ERR                         40097 12   15 
+EV         EV         EV         EV                               40097 12   16 
+ 2.15       124.       3.4        0.4                             40097 12   17 
+ENDDATA              3                                            40097 12   18 
+ENDSUBENT           17                                            40097 1299999 
+SUBENT        40097013   20210727   20211112   20211112       420040097 13    1 
+BIB                  5         10                                 40097 13    2 
+REACTION   (66-DY-158(N,0),,D)                                    40097 13    3 
+SAMPLE     Isotope composition in quartz container -              40097 13    4 
+           Isotope   156.  158.  160.   161.   162.   163.   164. 40097 13    5 
+           Share,%   0.6   14.1  10.3   29.67  21.0   13.5   10.9 40097 13    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097 13    7 
+           article.                                               40097 13    8 
+STATUS     (TABLE) Table 3 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097 13    9 
+            Table 2 of YFI-5,44,1967                              40097 13   10 
+            Table 2 of ICD-4,7,1967                               40097 13   11 
+HISTORY    (20210727C) M.M.                                       40097 13   12 
+ENDBIB              10                                            40097 13   13 
+NOCOMMON             0          0                                 40097 13   14 
+DATA                 5          1                                 40097 13   15 
+EN-RES-MIN EN-RES-MAX DATA       +DATA-ERR  -DATA-ERR             40097 13   16 
+EV         EV         EV         EV         EV                    40097 13   17 
+ 38.        271.       30.        12.        5.                   40097 13   18 
+ENDDATA              3                                            40097 13   19 
+ENDSUBENT           18                                            40097 1399999 
+SUBENT        40097014   20210727   20211112   20211112       420040097 14    1 
+BIB                  5         10                                 40097 14    2 
+REACTION   (66-DY-160(N,0),,D)                                    40097 14    3 
+SAMPLE     Isotope composition in quartz container -              40097 14    4 
+           Isotope  156.   158.    160.   161.  162.  163.  164.  40097 14    5 
+           Share,%  0.1    0.1     68.    18.2  7.6   4.0   2.2   40097 14    6 
+ERR-ANALYS (DATA-ERR) type of uncertainty is not explained in the 40097 14    7 
+           article.                                               40097 14    8 
+STATUS     (TABLE) Table 3 of Ukr.Fiz.Zh.,v.14,is.11,p.1810,1969  40097 14    9 
+            Table 2 of YFI-5,44,1967                              40097 14   10 
+            Table 2 of ICD-4,7,1967                               40097 14   11 
+HISTORY    (20210727C) M.M.                                       40097 14   12 
+ENDBIB              10                                            40097 14   13 
+NOCOMMON             0          0                                 40097 14   14 
+DATA                 5          1                                 40097 14   15 
+EN-RES-MIN EN-RES-MAX DATA       +DATA-ERR  -DATA-ERR             40097 14   16 
+EV         EV         EV         EV         EV                    40097 14   17 
+ 1.88       85.        11.        9.         5.                   40097 14   18 
+ENDDATA              3                                            40097 14   19 
+ENDSUBENT           18                                            40097 1499999 
+ENDENTRY            14          0                                 4009799999999 
+ENDTRANS             1          0                                 Z999999999999 

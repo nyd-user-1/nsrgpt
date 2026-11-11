@@ -1,0 +1,228 @@
+TRANS             9001   20261111                                 D0000  0    0 
+ENTRY            D0031   20171108                                 D0031  0    1 
+SUBENT        D0031001   20171108   20180316   20180313       D113D0031  1    1 
+BIB                 12         27                                 D0031  1    2 
+TITLE      Relative yields of the neutron groups from the         D0031  1    3 
+            7Li(p,n)7Be,7Be* reactions                            D0031  1    4 
+AUTHOR     (J.W.Meadows)                                          D0031  1    5 
+INSTITUTE  (1USAANL)                                              D0031  1    6 
+REFERENCE  (P,ANL-7910,17,1972) (p,n1)/(p,n0) ratio, (p,n) DA     D0031  1    7 
+           (R,ANL-7938,1972)    (p,n0) DA                         D0031  1    8 
+           (R,ANL-NDM-53,1980)  (p,n1)/(p,n0) ratio               D0031  1    9 
+EXP-YEAR   (1970)                                                 D0031  1   10 
+FACILITY   (DYNAM,1USAANL) proton current of 1-2 uA               D0031  1   11 
+SAMPLE     Thin layer of metallic Li (~75 keV thick to 1.88 MeV   D0031  1   12 
+            protons for the most case) evaporated onto a Ta       D0031  1   13 
+            backing                                               D0031  1   14 
+MONITOR    Beam current was monitored by a current integrator     D0031  1   15 
+            and the neutron yield of various targets were         D0031  1   16 
+            normalized to each other at Ep=4 MeV relative to a    D0031  1   17 
+            long counter                                          D0031  1   18 
+METHOD     (TOF) For separation of (p,n0) and (p,n1) neutrons by  D0031  1   19 
+            neutron detection at ~6 m from Li sample              D0031  1   20 
+DETECTOR   (SCIN) NE213 in a glass container (2.5 cm diam, 2.0 cm D0031  1   21 
+            thick)                                                D0031  1   22 
+           (LONGC)                                                D0031  1   23 
+STATUS     (APRVD) Approved by H.Liskien (1983-06-24)             D0031  1   24 
+HISTORY    (19830127C) DG.-                                       D0031  1   25 
+           (19830628U) DG.-(aprvd) added.-                        D0031  1   26 
+           (20060725A) BIB section upgrated                       D0031  1   27 
+           (20120124A) VS. Subentry 002 corrected.                D0031  1   28 
+           (20171108A) On. 004 added.                             D0031  1   29 
+ENDBIB              27                                            D0031  1   30 
+NOCOMMON             0          0                                 D0031  1   31 
+ENDSUBENT           30                                            D0031  199999 
+SUBENT        D0031002   20171108   20180316   20180313       D113D0031  2    1 
+BIB                  5         13                                 D0031  2    2 
+REACTION   ((3-LI-7(P,N)4-BE-7,PAR,DA)//                          D0031  2    3 
+           (3-LI-7(P,N)4-BE-7,PAR,DA))                            D0031  2    4 
+            (p,n1)/(p,n0) ratio                                   D0031  2    5 
+REL-REF    (N,F0004001,H.Liskien+,J,AND,15,57,1975)               D0031  2    6 
+            This data set is cited as ME72 by Liskien et al.      D0031  2    7 
+ERR-ANALYS (DATA-ERR) Largely due to the counting statistics and  D0031  2    8 
+            background subtraction.                               D0031  2    9 
+STATUS     (CURVE) Graph image (corresponding to Fig.1-10-1 of    D0031  2   10 
+            ANL-7910,p17,1972) from private communication by      D0031  2   11 
+            D.L.Smith to H.Liskien (1974-03-13).                  D0031  2   12 
+HISTORY    (19830628A) DG.-corrected 4 values after author's proofD0031  2   13 
+           (20120124A) VS. Reaction code, ERR-ANALYS corrected    D0031  2   14 
+           (20171108U) On. REL-REF introduced.                    D0031  2   15 
+ENDBIB              13                                            D0031  2   16 
+COMMON               3          3                                 D0031  2   17 
+E-LVL-NM   E-LVL-DN   DATA-ERR                                    D0031  2   18 
+MEV        MEV        PER-CENT                                    D0031  2   19 
+ 0.431      0.         5.                                         D0031  2   20 
+ENDCOMMON            3                                            D0031  2   21 
+DATA                 3         56                                 D0031  2   22 
+ANG        EN         DATA                                        D0031  2   23 
+ADEG       MEV        NO-DIM                                      D0031  2   24 
+  3.        3.6        0.115                                      D0031  2   25 
+  3.        3.8        0.120                                      D0031  2   26 
+  3.        4.0        0.135                                      D0031  2   27 
+  3.        4.2        0.115                                      D0031  2   28 
+  3.        4.6        0.070                                      D0031  2   29 
+  3.        4.8        0.065                                      D0031  2   30 
+  3.        5.0        0.065                                      D0031  2   31 
+  3.        5.2        0.070                                      D0031  2   32 
+  3.        5.4        0.095                                      D0031  2   33 
+  3.        5.6        0.145                                      D0031  2   34 
+  3.        5.8        0.200                                      D0031  2   35 
+  3.        6.0        0.265                                      D0031  2   36 
+  3.        6.2        0.310                                      D0031  2   37 
+  3.        6.4        0.380                                      D0031  2   38 
+  3.        6.6        0.410                                      D0031  2   39 
+  3.        6.8        0.410                                      D0031  2   40 
+  3.        7.0        0.340                                      D0031  2   41 
+ 15.        3.3        0.080                                      D0031  2   42 
+ 15.        3.4        0.115                                      D0031  2   43 
+ 15.        3.6        0.095                                      D0031  2   44 
+ 15.        3.8        0.115                                      D0031  2   45 
+ 15.        4.0        0.115                                      D0031  2   46 
+ 15.        4.2        0.115                                      D0031  2   47 
+ 15.        4.4        0.095                                      D0031  2   48 
+ 15.        4.6        0.080                                      D0031  2   49 
+ 15.        4.8        0.065                                      D0031  2   50 
+ 15.        5.0        0.065                                      D0031  2   51 
+ 15.        5.2        0.080                                      D0031  2   52 
+ 15.        5.4        0.110                                      D0031  2   53 
+ 15.        5.6        0.155                                      D0031  2   54 
+ 15.        5.8        0.220                                      D0031  2   55 
+ 15.        6.0        0.285                                      D0031  2   56 
+ 15.        6.2        0.330                                      D0031  2   57 
+ 15.        6.4        0.370                                      D0031  2   58 
+ 15.        6.6        0.390                                      D0031  2   59 
+ 15.        6.8        0.385                                      D0031  2   60 
+ 15.        7.0        0.330                                      D0031  2   61 
+ 50.        3.4        0.170                                      D0031  2   62 
+ 50.        3.6        0.160                                      D0031  2   63 
+ 50.        3.8        0.140                                      D0031  2   64 
+ 50.        4.0        0.140                                      D0031  2   65 
+ 50.        4.2        0.125                                      D0031  2   66 
+ 50.        4.4        0.105                                      D0031  2   67 
+ 50.        4.6        0.110                                      D0031  2   68 
+ 50.        4.8        0.105                                      D0031  2   69 
+ 50.        5.0        0.105                                      D0031  2   70 
+ 50.        5.2        0.120                                      D0031  2   71 
+ 50.        5.4        0.165                                      D0031  2   72 
+ 50.        5.6        0.215                                      D0031  2   73 
+ 50.        5.8        0.270                                      D0031  2   74 
+ 50.        6.0        0.310                                      D0031  2   75 
+ 50.        6.2        0.370                                      D0031  2   76 
+ 50.        6.4        0.410                                      D0031  2   77 
+ 50.        6.6        0.420                                      D0031  2   78 
+ 50.        6.8        0.420                                      D0031  2   79 
+ 50.        7.0        0.400                                      D0031  2   80 
+ENDDATA             58                                            D0031  2   81 
+ENDSUBENT           80                                            D0031  299999 
+SUBENT        D0031003   20171108   20180316   20180313       D113D0031  3    1 
+BIB                  6         14                                 D0031  3    2 
+REACTION   (3-LI-7(P,N)4-BE-7,,DA)                                D0031  3    3 
+ANALYSIS   Normalized at 4 MeV to the 0 deg data by Bevington et  D0031  3    4 
+            al. (1961).                                           D0031  3    5 
+REL-REF    (R,,P.R.Bevington+,J,PR,121,871,1961)                  D0031  3    6 
+ERR-ANALYS The errors due to counting statistics, background      D0031  3    7 
+            subtraction and normalization are estimated to be     D0031  3    8 
+            less than 10%.                                        D0031  3    9 
+           In addition the detector response curve can contain a  D0031  3   10 
+            systematic error which may be as large as 10%.        D0031  3   11 
+STATUS     (CURVE) Graph image (corresponding to Fig.1-10-2 of    D0031  3   12 
+            ANL-7910,p17,1972) from private communication by      D0031  3   13 
+            D.L.Smith to H.Liskien (1974-03-13).                  D0031  3   14 
+HISTORY    (19840309A) DG.-Corrected 1 value after author's proof.D0031  3   15 
+           (20171108U) On. ANALYSIS and REL-REF introduced.       D0031  3   16 
+ENDBIB              14                                            D0031  3   17 
+NOCOMMON             0          0                                 D0031  3   18 
+DATA                 3         52                                 D0031  3   19 
+ANG        EN         DATA                                        D0031  3   20 
+ADEG       MEV        MB/SR                                       D0031  3   21 
+  3.        3.6        52.0                                       D0031  3   22 
+  3.        4.0        46.5                                       D0031  3   23 
+  3.        4.2        46.0                                       D0031  3   24 
+  3.        4.8        71.5                                       D0031  3   25 
+  3.        5.0        66.5                                       D0031  3   26 
+  3.        5.2        67.5                                       D0031  3   27 
+  3.        5.4        60.0                                       D0031  3   28 
+  3.        5.6        57.5                                       D0031  3   29 
+  3.        5.8        50.5                                       D0031  3   30 
+  3.        6.0        47.5                                       D0031  3   31 
+  3.        6.2        41.0                                       D0031  3   32 
+  3.        6.4        37.5                                       D0031  3   33 
+  3.        6.8        26.0                                       D0031  3   34 
+  3.        7.0        23.0                                       D0031  3   35 
+ 15.        3.4        52.5                                       D0031  3   36 
+ 15.        3.6        48.0                                       D0031  3   37 
+ 15.        3.8        45.5                                       D0031  3   38 
+ 15.        4.0        45.0                                       D0031  3   39 
+ 15.        4.2        44.0                                       D0031  3   40 
+ 15.        4.4        49.0                                       D0031  3   41 
+ 15.        4.6        63.0                                       D0031  3   42 
+ 15.        4.8        68.0                                       D0031  3   43 
+ 15.        5.0        69.5                                       D0031  3   44 
+ 15.        5.2        65.0                                       D0031  3   45 
+ 15.        5.4        56.5                                       D0031  3   46 
+ 15.        5.6        55.0                                       D0031  3   47 
+ 15.        5.8        51.0                                       D0031  3   48 
+ 15.        6.0        46.0                                       D0031  3   49 
+ 15.        6.2        40.5                                       D0031  3   50 
+ 15.        6.4        35.0                                       D0031  3   51 
+ 15.        6.6        29.5                                       D0031  3   52 
+ 15.        6.8        25.5                                       D0031  3   53 
+ 15.        7.0        22.0                                       D0031  3   54 
+ 50.        3.4        40.0                                       D0031  3   55 
+ 50.        3.6        39.5                                       D0031  3   56 
+ 50.        3.8        37.0                                       D0031  3   57 
+ 50.        4.0        37.5                                       D0031  3   58 
+ 50.        4.2        38.0                                       D0031  3   59 
+ 50.        4.4        38.5                                       D0031  3   60 
+ 50.        4.6        42.0                                       D0031  3   61 
+ 50.        4.8        43.0                                       D0031  3   62 
+ 50.        5.0        39.5                                       D0031  3   63 
+ 50.        5.2        37.5                                       D0031  3   64 
+ 50.        5.4        32.5                                       D0031  3   65 
+ 50.        5.6        30.0                                       D0031  3   66 
+ 50.        5.8        26.0                                       D0031  3   67 
+ 50.        6.0        22.5                                       D0031  3   68 
+ 50.        6.2        20.0                                       D0031  3   69 
+ 50.        6.4        18.0                                       D0031  3   70 
+ 50.        6.6        16.0                                       D0031  3   71 
+ 50.        6.8        15.0                                       D0031  3   72 
+ 50.        7.0        14.5                                       D0031  3   73 
+ENDDATA             54                                            D0031  3   74 
+ENDSUBENT           73                                            D0031  399999 
+SUBENT        D0031004   20060725   20180316   20180313       D113D0031  4    1 
+BIB                  4          7                                 D0031  4    2 
+REACTION   (3-LI-7(P,N)4-BE-7,PAR,DA,,RS0)                        D0031  4    3 
+ADD-RES    Excitation function of fitting coefficients for        D0031  4    4 
+            dsigma/dOmega=a+b*cos(theta)                          D0031  4    5 
+           for (p,n0) and (p,n1) reactions plotted by smooth      D0031  4    6 
+           curves                                                 D0031  4    7 
+STATUS     (CURVE) Fig.3 of ANL-7938,1972                         D0031  4    8 
+HISTORY    (20171108C) On+LV                                      D0031  4    9 
+ENDBIB               7                                            D0031  4   10 
+COMMON               1          3                                 D0031  4   11 
+E-LVL                                                             D0031  4   12 
+MEV                                                               D0031  4   13 
+ 0.                                                               D0031  4   14 
+ENDCOMMON            3                                            D0031  4   15 
+DATA                 3         15                                 D0031  4   16 
+EN         ANG        DATA                                        D0031  4   17 
+MEV        ADEG       NO-DIM                                      D0031  4   18 
+ 2.6         0.        0.976                                      D0031  4   19 
+ 2.6        30.        0.849                                      D0031  4   20 
+ 2.6        60.        0.520                                      D0031  4   21 
+ 4.0         0.        1.014                                      D0031  4   22 
+ 4.0         3.        0.977                                      D0031  4   23 
+ 4.0        15.        0.953                                      D0031  4   24 
+ 4.0        30.        0.823                                      D0031  4   25 
+ 4.0        50.        0.782                                      D0031  4   26 
+ 4.0        60.        0.656                                      D0031  4   27 
+ 5.0         3.        0.959                                      D0031  4   28 
+ 5.0        15.        0.945                                      D0031  4   29 
+ 5.0        50.        0.524                                      D0031  4   30 
+ 7.0         3.        0.978                                      D0031  4   31 
+ 7.0        15.        0.934                                      D0031  4   32 
+ 7.0        50.        0.578                                      D0031  4   33 
+ENDDATA             17                                            D0031  4   34 
+ENDSUBENT           33                                            D0031  499999 
+ENDENTRY             4          0                                 D003199999999 
+ENDTRANS             1          0                                 Z999999999999 

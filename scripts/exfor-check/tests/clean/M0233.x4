@@ -1,0 +1,90 @@
+TRANS             9001   20261111                                 M0000  0    0 
+ENTRY            M0233   20121103                                 M0233  0    1 
+SUBENT        M0233001   20121103   20130328   20130315       M065M0233  1    1 
+BIB                 17         37                                 M0233  1    2 
+TITLE      Proton polarization in gamma He3,4 -> xp reactions and M0233  1    3 
+            quasideuteron model.                                  M0233  1    4 
+AUTHOR     (A.A.Zybalov,S.P.Karasev,O.G.Konovalov,S.V.Marekhin,   M0233  1    5 
+            P.V.Sorokin,Yu.O.Storozhenko,A.E.Tenishev)            M0233  1    6 
+INSTITUTE  (4UKRKFT)                                              M0233  1    7 
+REFERENCE  (J,YF,47,1505,1988)                                    M0233  1    8 
+           (J,SNP,47,955,1988) - Eng.trans.of YF,47,1505,1988     M0233  1    9 
+FACILITY   (LINAC,4UKRKFT). It was 2 GeV accelerator LUE-2.       M0233  1   10 
+INC-SOURCE (BRST) With end-point energy 600 MeV.                  M0233  1   11 
+INC-SPECT  The size of the photon beam was made as 16*16 mm-sq.   M0233  1   12 
+METHOD     (EXTB,SITA). The inclusive proton polarisation in      M0233  1   13 
+           photon interaction with He-3 and He-4 nuclei was       M0233  1   14 
+           produced.                                              M0233  1   15 
+DETECTOR   (IOCH)                                                 M0233  1   16 
+PART-DET   (P)                                                    M0233  1   17 
+SAMPLE     The liquid target with 120 mm in a long and 25 mm      M0233  1   18 
+           in a diameter was used.                                M0233  1   19 
+ANALYSIS   The polarization was independent from the minimum angleM0233  1   20 
+           of the secondary protons scattering on the He-3 and    M0233  1   21 
+           He-4 nuclei. As the result of the analysis the angle ofM0233  1   22 
+           polarization was taken to equal 5. degrees.            M0233  1   23 
+ADD-RES    (COMP). Comparison with polarization values measured   M0233  1   24 
+           in the Gd - pn reaction under similar conditions.      M0233  1   25 
+ERR-ANALYS (ERR-S) Statistical errors are presented.              M0233  1   26 
+           Distribution of pi-mesons was less than 2%.            M0233  1   27 
+           Distribution of protons from a target wall was         M0233  1   28 
+           less than 65%.                                         M0233  1   29 
+COMMENT    Ang-min is the minimum value of scattering angle.      M0233  1   30 
+           Ang-max is the maximum value of scattering angle.      M0233  1   31 
+STATUS     (CURVE)                                                M0233  1   32 
+HISTORY    (19900226C)                                            M0233  1   33 
+           (19910202A) Corrected by V.Varlamov, V.Mclane          M0233  1   34 
+           (20121103A) SD: Updated to new date formats,lower case.M0233  1   35 
+                Corrected according last EXFOR rules and Dict.    M0233  1   36 
+                Ref. on transl. was added.                        M0233  1   37 
+                       VV: REACTION code in SUBENTs 002 - 003 was M0233  1   38 
+                corrected.                                        M0233  1   39 
+ENDBIB              37                                            M0233  1   40 
+NOCOMMON             0          0                                 M0233  1   41 
+ENDSUBENT           40                                            M0233  199999 
+SUBENT        M0233002   20121103   20130328   20130315       M065M0233  2    1 
+BIB                  2          2                                 M0233  2    2 
+REACTION   (2-HE-3(G,X)1-H-1,,POL/DA,,BRA/REL)                    M0233  2    3 
+HISTORY    (20121029A) VV: REACTION code: BRS -> BRA.             M0233  2    4 
+ENDBIB               2                                            M0233  2    5 
+COMMON               2          3                                 M0233  2    6 
+EN-MAX     ANG-MAX                                                M0233  2    7 
+MEV        ADEG                                                   M0233  2    8 
+   600.        15.                                                M0233  2    9 
+ENDCOMMON            3                                            M0233  2   10 
+DATA                 3          7                                 M0233  2   11 
+ANG-MIN    DATA       ERR-S                                       M0233  2   12 
+ADEG       ARB-UNITS  ARB-UNITS                                   M0233  2   13 
+     3.        -0.26        0.08                                  M0233  2   14 
+     4.        -0.42        0.08                                  M0233  2   15 
+     5.        -0.32        0.095                                 M0233  2   16 
+     6.        -0.33        0.09                                  M0233  2   17 
+     7.        -0.28        0.09                                  M0233  2   18 
+     8.        -0.31        0.10                                  M0233  2   19 
+     9.        -0.35        0.09                                  M0233  2   20 
+ENDDATA              9                                            M0233  2   21 
+ENDSUBENT           20                                            M0233  299999 
+SUBENT        M0233003   20121103   20130328   20130315       M065M0233  3    1 
+BIB                  2          2                                 M0233  3    2 
+REACTION   (2-HE-4(G,X)1-H-1,,POL/DA,,BRA/REL)                    M0233  3    3 
+HISTORY    (20121029A) VV: REACTION code: BRS -> BRA.             M0233  3    4 
+ENDBIB               2                                            M0233  3    5 
+COMMON               2          3                                 M0233  3    6 
+EN-MAX     ANG-MAX                                                M0233  3    7 
+MEV        ADEG                                                   M0233  3    8 
+   600.        25.                                                M0233  3    9 
+ENDCOMMON            3                                            M0233  3   10 
+DATA                 3          7                                 M0233  3   11 
+ANG-MIN    DATA       ERR-S                                       M0233  3   12 
+ADEG       ARB-UNITS  ARB-UNITS                                   M0233  3   13 
+     3.        -0.31        0.07                                  M0233  3   14 
+     4.        -0.42        0.08                                  M0233  3   15 
+     5.        -0.404       0.085                                 M0233  3   16 
+     6.        -0.42        0.10                                  M0233  3   17 
+     7.        -0.38        0.09                                  M0233  3   18 
+     8.        -0.42        0.09                                  M0233  3   19 
+     9.        -0.40        0.09                                  M0233  3   20 
+ENDDATA              9                                            M0233  3   21 
+ENDSUBENT           20                                            M0233  399999 
+ENDENTRY             3          0                                 M023399999999 
+ENDTRANS             1          0                                 Z999999999999 

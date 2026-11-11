@@ -1,0 +1,151 @@
+TRANS             9001   20261111                                 E0000  0    0 
+ENTRY            E2584   20181228                                 E2584  0    1 
+SUBENT        E2584001   20181228   20190131   20190118       E121E2584  1    1 
+BIB                 11         58                                 E2584  1    2 
+TITLE      Inelastic scattering of neutron-rich Ni and Zn         E2584  1    3 
+           isotopes off a proton target                           E2584  1    4 
+AUTHOR     (M.L.Cortes, P.Doornenbal, M.Dupuis, S.M.Lenzi,        E2584  1    5 
+            F.Nowacki, A.Obertelli, S.Peru, N.Pietralla, V.Werner,E2584  1    6 
+            K.Wimmer, G.Authelet, H.Baba, D.Calvet, F.Chateau,    E2584  1    7 
+            A.Corsi, A.Delbart, J-M.Gheller, A.Gillibert, T.Isobe,E2584  1    8 
+            V.Lapoux, C.Louchart, M.Matsushita, S.Momiyama,       E2584  1    9 
+            T.Motobayashi, M.Niikura, H.Otsu, C.Peron, A.Peyaud,  E2584  1   10 
+            E.C.Pollacco, J-Y.Rousse, H.Sakurai, C.Santamaria,    E2584  1   11 
+            M.Sasano, Y.Shiga, S.Takeuchi, R.Taniuchi, T.Uesaka,  E2584  1   12 
+            H.Wang, K.Yoneda, F.Browne, L.X.Chung, Zs.Dombradi,   E2584  1   13 
+            S.Franchoo, F.Giacoppo, A.Gottardo, K.Hadynska-Klek,  E2584  1   14 
+            Z.Korkulu, S.Koyama, Y.Kubota, J.Lee, M.Lettmann,     E2584  1   15 
+            R.Lozeva, K.Matsui, T.Miyazaki, S.Nishimura,          E2584  1   16 
+            L.Olivier, S.Ota, Z.Patel, E.Sahin, C.M.Shand,        E2584  1   17 
+            P-A.Soderstrom, I.Stefan, D.Steppenbeck, T.Sumikama,  E2584  1   18 
+            D.Suzuki, Zs.Vajta, J.Wu, Z.Xu)                       E2584  1   19 
+INSTITUTE  (2GERTHD) Institut fur Kernphysik                      E2584  1   20 
+           (2GERGSI)                                              E2584  1   21 
+           (2JPNIPC)                                              E2584  1   22 
+           (2FR BRC)                                              E2584  1   23 
+           (2ITYUPV) Dipartimento di Fisica e Astronomia          E2584  1   24 
+           (2FR ULP)                                              E2584  1   25 
+           (2FR SAC)                                              E2584  1   26 
+           (2JPNTOK) Department of Physics                        E2584  1   27 
+           (2JPNTOK) Center for Nuclear Study                     E2584  1   28 
+           (2JPNYOK) Department of Physics                        E2584  1   29 
+           (2UK UK) School of Computing Engineering and           E2584  1   30 
+                    Mathematics, University of Brighton, Brighton E2584  1   31 
+           (3VN STH)                                              E2584  1   32 
+           (3HUNDEB)                                              E2584  1   33 
+           (2FR PAR) Institut de Physique Nucleaire Orsay,        E2584  1   34 
+                     IN2P3-CNRS                                   E2584  1   35 
+           (2NOROSL) Department of Physics                        E2584  1   36 
+           (2GERGER) Helmholtz Institute Mainz, Mainz,            E2584  1   37 
+           (2ITYPAD)                                              E2584  1   38 
+           (3HKGHKG) Department of Physics, The University of     E2584  1   39 
+                     Hong Kong, Pokfulam                          E2584  1   40 
+           (2FR CSN)                                              E2584  1   41 
+           (2UK SUR) Department of Physics                        E2584  1   42 
+           (2JPNTOH) Department of Physics                        E2584  1   43 
+           (3CPRBJG) State Key Laboratory of Nuclear Physics and  E2584  1   44 
+                     Technology                                   E2584  1   45 
+REFERENCE  (J,PR/C,97,044315,2018)                                E2584  1   46 
+INC-SOURCE (FRAGM) Ni and Zn beams were produced from 9Be         E2584  1   47 
+                   production target                              E2584  1   48 
+SAMPLE     - Chemical-form of target is element.                  E2584  1   49 
+           - Physical-form of target is liquid.                   E2584  1   50 
+           - Target-thickness is 735 mg/cm2.                      E2584  1   51 
+METHOD     (EDE,TOF)                                              E2584  1   52 
+           (COINC) Prompt gamma and outgoing nucleus detected in  E2584  1   53 
+                   coincidence                                    E2584  1   54 
+FACILITY   (CYCLO,2JPNIPC) To accelerate primary 345 MeV/nucleon  E2584  1   55 
+                           238U beam                              E2584  1   56 
+DETECTOR   (NAICR) DALI2 NaI(Tl) based gamma-ray spectrometer     E2584  1   57 
+           (MAGSP) Zero Degree Spectrometer                       E2584  1   58 
+ERR-ANALYS (DATA-ERR) No information on source of uncertainties   E2584  1   59 
+HISTORY    (20181112C) Ichiko                                     E2584  1   60 
+ENDBIB              58                                            E2584  1   61 
+COMMON               1          3                                 E2584  1   62 
+EN-MEAN                                                           E2584  1   63 
+MEV/A                                                             E2584  1   64 
+ 235.                                                             E2584  1   65 
+ENDCOMMON            3                                            E2584  1   66 
+ENDSUBENT           65                                            E2584  199999 
+SUBENT        E2584002   20181228   20190131   20190118       E121E2584  2    1 
+BIB                  5          9                                 E2584  2    2 
+REACTION   ((1-H-1(28-NI-72,INL)1-H-1,PAR,SIG)=                   E2584  2    3 
+           (28-NI-72(P,INL)28-NI-72,PAR,SIG))                     E2584  2    4 
+PART-DET   (G,28-NI-72)                                           E2584  2    5 
+EN-SEC     (E-LVL,28-NI-72)                                       E2584  2    6 
+LEVEL-PROP ((1.)28-NI-72,E-LVL=1.096,SPIN=2.,PARITY=+1.)          E2584  2    7 
+           ((2.)28-NI-72,E-LVL=1.941,SPIN=4.,PARITY=+1.)          E2584  2    8 
+           ((3.)28-NI-72,E-LVL=2.220,SPIN=2.,PARITY=+1.)          E2584  2    9 
+STATUS     (TABLE) Presented in Table.II of Phys.Rev.C            E2584  2   10 
+                   97(2018)044315                                 E2584  2   11 
+ENDBIB               9                                            E2584  2   12 
+NOCOMMON             0          0                                 E2584  2   13 
+DATA                 4          3                                 E2584  2   14 
+E-LVL      DATA       DATA-ERR   LVL-FLAG                         E2584  2   15 
+MEV        MB         MB         NO-DIM                           E2584  2   16 
+      1.096        2.2        0.7         1.                      E2584  2   17 
+      1.941        0.8        0.1         2.                      E2584  2   18 
+      2.220        0.7        0.3         3.                      E2584  2   19 
+ENDDATA              5                                            E2584  2   20 
+ENDSUBENT           19                                            E2584  299999 
+SUBENT        E2584003   20181228   20190131   20190118       E121E2584  3    1 
+BIB                  5          9                                 E2584  3    2 
+REACTION   ((1-H-1(28-NI-74,INL)1-H-1,PAR,SIG)=                   E2584  3    3 
+           (28-NI-74(P,INL)28-NI-74,PAR,SIG))                     E2584  3    4 
+PART-DET   (G,28-NI-74)                                           E2584  3    5 
+EN-SEC     (E-LVL,28-NI-74)                                       E2584  3    6 
+LEVEL-PROP ((1.)28-NI-74,E-LVL=1.024,SPIN=2.,PARITY=+1.)          E2584  3    7 
+           ((2.)28-NI-74,E-LVL=1.763,SPIN=4.,PARITY=+1.)          E2584  3    8 
+           ((3.)28-NI-74,E-LVL=2.242,SPIN=2.,PARITY=+1.)          E2584  3    9 
+STATUS     (TABLE) Presented in Table.II of Phys.Rev.C            E2584  3   10 
+                   97(2018)044315                                 E2584  3   11 
+ENDBIB               9                                            E2584  3   12 
+NOCOMMON             0          0                                 E2584  3   13 
+DATA                 4          3                                 E2584  3   14 
+E-LVL      DATA       DATA-ERR   LVL-FLAG                         E2584  3   15 
+MEV        MB         MB         NO-DIM                           E2584  3   16 
+      1.024        2.7        1.0         1.                      E2584  3   17 
+      1.763        0.6        0.2         2.                      E2584  3   18 
+      2.242        0.9        0.5         3.                      E2584  3   19 
+ENDDATA              5                                            E2584  3   20 
+ENDSUBENT           19                                            E2584  399999 
+SUBENT        E2584004   20181228   20190131   20190118       E121E2584  4    1 
+BIB                  5          8                                 E2584  4    2 
+REACTION   ((1-H-1(30-ZN-76,INL)1-H-1,PAR,SIG)=                   E2584  4    3 
+           (30-ZN-76(P,INL)30-ZN-76,PAR,SIG))                     E2584  4    4 
+PART-DET   (G,30-ZN-76)                                           E2584  4    5 
+EN-SEC     (E-LVL,30-ZN-76)                                       E2584  4    6 
+LEVEL-PROP ((1.)30-ZN-76,E-LVL=0.599,SPIN=2.,PARITY=+1.)          E2584  4    7 
+           ((2.)30-ZN-76,E-LVL=1.297,SPIN=4.,PARITY=+1.)          E2584  4    8 
+STATUS     (TABLE) Presented in Table.II of Phys.Rev.C            E2584  4    9 
+                   97(2018)044315                                 E2584  4   10 
+ENDBIB               8                                            E2584  4   11 
+NOCOMMON             0          0                                 E2584  4   12 
+DATA                 4          2                                 E2584  4   13 
+E-LVL      DATA       DATA-ERR   LVL-FLAG                         E2584  4   14 
+MEV        MB         MB         NO-DIM                           E2584  4   15 
+      0.599        1.9        1.0         1.                      E2584  4   16 
+      1.297        1.3        0.6         2.                      E2584  4   17 
+ENDDATA              4                                            E2584  4   18 
+ENDSUBENT           17                                            E2584  499999 
+SUBENT        E2584005   20181228   20190131   20190118       E121E2584  5    1 
+BIB                  5          8                                 E2584  5    2 
+REACTION   ((1-H-1(30-ZN-80,INL)1-H-1,PAR,SIG)=                   E2584  5    3 
+           (30-ZN-80(P,INL)30-ZN-80,PAR,SIG))                     E2584  5    4 
+PART-DET   (G,30-ZN-80)                                           E2584  5    5 
+EN-SEC     (E-LVL,30-ZN-80)                                       E2584  5    6 
+LEVEL-PROP ((1.)30-ZN-80,E-LVL=1.492,SPIN=2.,PARITY=+1.)          E2584  5    7 
+           ((2.)30-ZN-80,E-LVL=1.974,SPIN=4.,PARITY=+1.)          E2584  5    8 
+STATUS     (TABLE) Presented in Table.II of Phys.Rev.C            E2584  5    9 
+                   97(2018)044315                                 E2584  5   10 
+ENDBIB               8                                            E2584  5   11 
+NOCOMMON             0          0                                 E2584  5   12 
+DATA                 4          2                                 E2584  5   13 
+E-LVL      DATA       DATA-ERR   LVL-FLAG                         E2584  5   14 
+MEV        MB         MB         NO-DIM                           E2584  5   15 
+      1.492        1.3        0.3         1.                      E2584  5   16 
+      1.974        1.1        0.2         2.                      E2584  5   17 
+ENDDATA              4                                            E2584  5   18 
+ENDSUBENT           17                                            E2584  599999 
+ENDENTRY             5          0                                 E258499999999 
+ENDTRANS             1          0                                 Z999999999999 

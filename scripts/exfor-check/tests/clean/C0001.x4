@@ -1,0 +1,162 @@
+TRANS             9001   20261111                                 C0000  0    0 
+ENTRY            C0001   20020213                                 C0001  0    1 
+SUBENT        C0001001   20020213   20020411   20050926       0000C0001  1    1 
+BIB                  7         13                                 C0001  1    2 
+INSTITUTE  (1USALAS)                                              C0001  1    3 
+REFERENCE  (J,PR,87,612,195208)                                   C0001  1    4 
+AUTHOR     (H.V.Argo,R.F.Taschek,H.M.Agnew,A.Hemmendinger,        C0001  1    5 
+           W.T.Leland)                                            C0001  1    6 
+TITLE      Cross sections of the D(t,n)He4 reaction for 80- to    C0001  1    7 
+           120-keV tritons                                        C0001  1    8 
+SAMPLE     Deuterium gas target.                                  C0001  1    9 
+DETECTOR   (LONGC) BF3 long counter detector.                     C0001  1   10 
+HISTORY    (19780518C)TWB                                         C0001  1   11 
+           (19800303A)TWB                                         C0001  1   12 
+           (19880304A) REACTION SEQUENCE CORRECTED.               C0001  1   13 
+           (19960222A) converted to lower case.                   C0001  1   14 
+           (20020213A) Converted to new date formats.             C0001  1   15 
+ENDBIB              13                                            C0001  1   16 
+NOCOMMON             0          0                                 C0001  1   17 
+ENDSUBENT           16                                            C0001  199999 
+SUBENT        C0001002   20020213   20020411   20050926       0000C0001  2    1 
+BIB                  4          5                                 C0001  2    2 
+REACTION   (1-H-2(T,N)2-HE-4,,SIG)                                C0001  2    3 
+ANALYSIS   (4PI1A) Deduced from 0-degree cross section assuming   C0001  2    4 
+           center-of-mass isotropy                                C0001  2    5 
+ERR-ANALYS (DATA-ERR) estimated overall accuracy.                 C0001  2    6 
+STATUS     Data taken from article                                C0001  2    7 
+ENDBIB               5                                            C0001  2    8 
+COMMON               1          3                                 C0001  2    9 
+DATA-ERR                                                          C0001  2   10 
+PER-CENT                                                          C0001  2   11 
+ 10.                                                              C0001  2   12 
+ENDCOMMON            3                                            C0001  2   13 
+DATA                 2         25                                 C0001  2   14 
+EN         DATA                                                   C0001  2   15 
+KEV        B                                                      C0001  2   16 
+  80.       1.76                                                  C0001  2   17 
+  87.       2.21                                                  C0001  2   18 
+  96.       2.62                                                  C0001  2   19 
+ 104.       3.11                                                  C0001  2   20 
+ 114.       3.67                                                  C0001  2   21 
+ 124.       4.13                                                  C0001  2   22 
+ 134.       4.58                                                  C0001  2   23 
+ 144.       4.82                                                  C0001  2   24 
+ 154.       4.90                                                  C0001  2   25 
+ 164.       4.90                                                  C0001  2   26 
+ 174.       4.80                                                  C0001  2   27 
+ 184.       4.80                                                  C0001  2   28 
+ 194.       4.61                                                  C0001  2   29 
+ 204.       4.40                                                  C0001  2   30 
+ 214.       4.20                                                  C0001  2   31 
+ 224.       3.97                                                  C0001  2   32 
+ 244.       3.54                                                  C0001  2   33 
+ 264.       3.10                                                  C0001  2   34 
+ 284.       2.78                                                  C0001  2   35 
+ 304.       2.54                                                  C0001  2   36 
+ 324.       2.26                                                  C0001  2   37 
+ 344.       2.04                                                  C0001  2   38 
+ 364.       1.85                                                  C0001  2   39 
+ 384.       1.67                                                  C0001  2   40 
+ 404.       1.50                                                  C0001  2   41 
+ENDDATA             27                                            C0001  2   42 
+ENDSUBENT           41                                            C0001  299999 
+SUBENT        C0001003   20020213   20020411   20050926       0000C0001  3    1 
+BIB                  3          4                                 C0001  3    2 
+REACTION   (1-H-2(T,N)2-HE-4,,DA)                                 C0001  3    3 
+ERR-ANALYS (DATA-ERR) from background and energy sensitivity of   C0001  3    4 
+             long counter.                                        C0001  3    5 
+STATUS     (CURVE)                                                C0001  3    6 
+ENDBIB               4                                            C0001  3    7 
+NOCOMMON             0          0                                 C0001  3    8 
+DATA                 4         20                                 C0001  3    9 
+EN         ANG-CM     DATA-CM    DATA-ERR                         C0001  3   10 
+KEV        ADEG       MB/SR      MB/SR                            C0001  3   11 
+ 380.        0.0      131.        5.                              C0001  3   12 
+ 380.       30.       135.        5.                              C0001  3   13 
+ 380.       60.       131.        5.                              C0001  3   14 
+ 380.       90.0      130.        5.                              C0001  3   15 
+ 570.        0.0       56.        2.2                             C0001  3   16 
+ 570.       30.        63.        2.5                             C0001  3   17 
+ 570.       60.        62.        2.5                             C0001  3   18 
+ 570.       90.0       62.        2.5                             C0001  3   19 
+ 980.        0.0       26.        1.00                            C0001  3   20 
+ 980.       30.        28.        1.1                             C0001  3   21 
+ 980.       60.        30.        1.2                             C0001  3   22 
+ 980.       90.0       31.        1.2                             C0001  3   23 
+ 980.      120.        31.        1.2                             C0001  3   24 
+ 980.      138.        30.        1.2                             C0001  3   25 
+1200.        0.0       21.5       0.9                             C0001  3   26 
+1200.       30.        22.        0.9                             C0001  3   27 
+1200.       60.        23.        0.9                             C0001  3   28 
+1200.       90.0       23.5       0.9                             C0001  3   29 
+1200.      120.        24.5       1.0                             C0001  3   30 
+1200.      138.        25.5       1.00                            C0001  3   31 
+ENDDATA             22                                            C0001  3   32 
+ENDSUBENT           31                                            C0001  399999 
+SUBENT        C0001004   20020213   20020411   20050926       0000C0001  4    1 
+BIB                  4          5                                 C0001  4    2 
+REACTION   (1-H-2(T,N)2-HE-4,,DA)                                 C0001  4    3 
+ANALYSIS   Derived by compiler from total given in C0001002 by    C0001  4    4 
+           reversing authors procedure                            C0001  4    5 
+ERR-ANALYS (DATA-ERR) estimated overall accuracy.                 C0001  4    6 
+STATUS     (DEP,C0001002)                                         C0001  4    7 
+ENDBIB               5                                            C0001  4    8 
+COMMON               2          3                                 C0001  4    9 
+ANG        DATA-ERR                                               C0001  4   10 
+ADEG       PER-CENT                                               C0001  4   11 
+ 0.         10.                                                   C0001  4   12 
+ENDCOMMON            3                                            C0001  4   13 
+DATA                 2         25                                 C0001  4   14 
+EN         DATA                                                   C0001  4   15 
+KEV        B/SR                                                   C0001  4   16 
+ 8.0000 +01 1.4006 -01                                            C0001  4   17 
+ 8.7000 +01 1.7587 -01                                            C0001  4   18 
+ 9.6000 +01 2.0849 -01                                            C0001  4   19 
+ 1.0400 +02 2.4749 -01                                            C0001  4   20 
+ 1.1400 +02 2.9205 -01                                            C0001  4   21 
+ 1.2400 +02 3.2865 -01                                            C0001  4   22 
+ 1.3400 +02 3.6446 -01                                            C0001  4   23 
+ 1.4400 +02 3.8356 -01                                            C0001  4   24 
+ 1.5400 +02 3.8993 -01                                            C0001  4   25 
+ 1.6400 +02 3.8993 -01                                            C0001  4   26 
+ 1.7400 +02 3.8197 -01                                            C0001  4   27 
+ 1.8400 +02 3.8197 -01                                            C0001  4   28 
+ 1.9400 +02 3.6685 -01                                            C0001  4   29 
+ 2.0400 +02 3.5014 -01                                            C0001  4   30 
+ 2.1400 +02 3.3423 -01                                            C0001  4   31 
+ 2.2400 +02 3.1592 -01                                            C0001  4   32 
+ 2.4400 +02 2.8170 -01                                            C0001  4   33 
+ 2.6400 +02 2.4669 -01                                            C0001  4   34 
+ 2.8400 +02 2.2123 -01                                            C0001  4   35 
+ 3.0400 +02 2.0213 -01                                            C0001  4   36 
+ 3.2400 +02 1.7985 -01                                            C0001  4   37 
+ 3.4400 +02 1.6234 -01                                            C0001  4   38 
+ 3.6400 +02 1.4722 -01                                            C0001  4   39 
+ 3.8400 +02 1.3289 -01                                            C0001  4   40 
+ 4.0400 +02 1.1937 -01                                            C0001  4   41 
+ENDDATA             27                                            C0001  4   42 
+ENDSUBENT           41                                            C0001  499999 
+SUBENT        C0001005   20020213   20020411   20050926       0000C0001  5    1 
+BIB                  4          4                                 C0001  5    2 
+REACTION   (1-H-2(T,N)2-HE-4,,SIG)                                C0001  5    3 
+ANALYSIS   (INTAD)                                                C0001  5    4 
+ERR-ANALYS (DATA-ERR) estimated overall accuracy.                 C0001  5    5 
+STATUS     (DEP,C0001003) Integrated angular distributions        C0001  5    6 
+ENDBIB               4                                            C0001  5    7 
+COMMON               1          3                                 C0001  5    8 
+DATA-ERR                                                          C0001  5    9 
+PER-CENT                                                          C0001  5   10 
+      10.                                                         C0001  5   11 
+ENDCOMMON            3                                            C0001  5   12 
+DATA                 2          4                                 C0001  5   13 
+EN         DATA                                                   C0001  5   14 
+KEV        B                                                      C0001  5   15 
+  377.      1.67                                                  C0001  5   16 
+  575.      0.77                                                  C0001  5   17 
+  980.      0.38                                                  C0001  5   18 
+ 1200.      0.30                                                  C0001  5   19 
+ENDDATA              6                                            C0001  5   20 
+ENDSUBENT           19                                            C0001  599999 
+ENDENTRY             5          0                                 C000199999999 
+ENDTRANS             1          0                                 Z999999999999 

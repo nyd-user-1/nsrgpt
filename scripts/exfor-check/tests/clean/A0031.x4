@@ -1,0 +1,169 @@
+TRANS             9001   20261111                                 A0000  0    0 
+ENTRY            A0031   20120327                                 A0031  0    1 
+SUBENT        A0031001   20120327   20120530   20120522       A077A0031  1    1 
+BIB                 12         28                                 A0031  1    2 
+TITLE      Experimental investigation of the nuclear reaction     A0031  1    3 
+           U-238+Xe-136                                           A0031  1    4 
+AUTHOR     (Kh.Bruchertzeifer, K.A.Gavrilov, Ju.E.Penionzhkevich, A0031  1    5 
+           T.Reetz, Choi Val Sek)                                 A0031  1    6 
+REFERENCE  (J,YF,26,26,1977)                                      A0031  1    7 
+           (J,SNP,26,12,1977) English translation                 A0031  1    8 
+           (R,JINR-P6-10010,1976)                                 A0031  1    9 
+INSTITUTE  (4ZZZDUB)                                              A0031  1   10 
+HISTORY    (19780920C)                                            A0031  1   11 
+           (20020125A) 3-th subent is corrected. Lower case. New  A0031  1   12 
+           date format.                                           A0031  1   13 
+           (20080609A) BIB section updated                        A0031  1   14 
+            Corrections were made according new exfor rules.      A0031  1   15 
+           (20120327A) English translation of 'YF' was added,     A0031  1   16 
+FACILITY   (CYCTM,4ZZZDUB).Beam intensity 1.0E+10 par/sec,        A0031  1   17 
+           ions Xe-136 energy about 1 GeV.                        A0031  1   18 
+METHOD     (SITA,INTB,CHSEP,MOMIX,BCINT).The transition from      A0031  1   19 
+           thick target yield to cross-section was produced       A0031  1   20 
+           by method of compound nucleus excitation function at   A0031  1   21 
+           R0=1.3 Fm.                                             A0031  1   22 
+MONITOR    (92-U-238(54-XE-136,X)92-U-237,,SIG)                   A0031  1   23 
+DETECTOR   (SOLST).X-rays detector, Volume=2 cm**3,resolution     A0031  1   24 
+           200-350 eV for interval 30-70 keV.                     A0031  1   25 
+           (GELI) Gamma-rays detector                             A0031  1   26 
+ANALYSIS   (AREA)                                                 A0031  1   27 
+ADD-RES    (COMP)                                                 A0031  1   28 
+           (G-SPC)                                                A0031  1   29 
+SAMPLE     Metal, uranium.                                        A0031  1   30 
+ENDBIB              28                                            A0031  1   31 
+COMMON               1          3                                 A0031  1   32 
+EN                                                                A0031  1   33 
+MEV                                                               A0031  1   34 
+      1000.                                                       A0031  1   35 
+ENDCOMMON            3                                            A0031  1   36 
+ENDSUBENT           35                                            A0031  199999 
+SUBENT        A0031002   20120327   20120530   20120522       A077A0031  2    1 
+BIB                  3          4                                 A0031  2    2 
+REACTION   (92-U-0(54-XE-136,X)ELEM/MASS,,SIG)                    A0031  2    3 
+ERR-ANALYS (DATA-ERR).The uncertainty is reported by authors      A0031  2    4 
+           (ERR-1).Beam current was measured with accuracy 20%.   A0031  2    5 
+STATUS     (TABLE).Table (without number) of J,YF,26,26,1977      A0031  2    6 
+ENDBIB               4                                            A0031  2    7 
+COMMON               1          3                                 A0031  2    8 
+ERR-1                                                             A0031  2    9 
+PER-CENT                                                          A0031  2   10 
+20.                                                               A0031  2   11 
+ENDCOMMON            3                                            A0031  2   12 
+DATA                 6         70                                 A0031  2   13 
+ELEMENT    MASS       ISOMER     DATA       DATA-MAX   DATA-ERR   A0031  2   14 
+NO-DIM     NO-DIM     NO-DIM     MB         MB         MB         A0031  2   15 
+        40.        88.                 0.262                 0.052A0031  2   16 
+        40.        89.         0.     0.0994                  0.03A0031  2   17 
+        40.        95.                  10.5                   3.2A0031  2   18 
+        42.        99.                  6.16                   2.5A0031  2   19 
+        44.       103.                  12.2                   2.4A0031  2   20 
+        45.       105.         0.       3.88                  0.78A0031  2   21 
+        47.       105.         0.      0.254                 0.076A0031  2   22 
+        47.       106.         1.      0.292                 0.073A0031  2   23 
+        47.       110.         1.      0.792                 0.158A0031  2   24 
+        48.       115.         0.       2.02                  0.61A0031  2   25 
+        50.       117.         1.       1.96                  0.59A0031  2   26 
+        51.       120.         1.      0.664                 0.166A0031  2   27 
+        51.       122.         0.       1.01                   0.2A0031  2   28 
+        51.       124.         0.       4.96                  0.99A0031  2   29 
+        51.       126.         0.       4.08                  0.82A0031  2   30 
+        51.       127.                  6.24                  1.25A0031  2   31 
+        52.       119.         1.      0.552                 0.166A0031  2   32 
+        52.       121.         1.       1.73                  0.35A0031  2   33 
+        52.       121.         0.       1.66                  0.33A0031  2   34 
+        52.       123.         1.       2.44                  0.49A0031  2   35 
+        52.       129.         1.       37.2                  11.2A0031  2   36 
+        52.       131.         1.       0.27                 0.081A0031  2   37 
+        52.       132.                  4.48                   0.9A0031  2   38 
+        53.       126.                  3.48                  1.04A0031  2   39 
+        53.       130.         0.       15.3                   4.6A0031  2   40 
+        53.       131.                  28.4                   8.5A0031  2   41 
+        55.       129.                 0.832                  0.25A0031  2   42 
+        55.       132.                  3.04                  0.61A0031  2   43 
+        55.       134.         0.       8.36                  1.67A0031  2   44 
+        55.       136.         0.       17.8                   3.6A0031  2   45 
+        56.       131.         0.       1.14                  0.28A0031  2   46 
+        56.       133.         0.        2.4                   1.2A0031  2   47 
+        56.       140.                  12.1                   2.4A0031  2   48 
+        58.       139.         0.        5.6                  1.12A0031  2   49 
+        58.       141.                  19.9                    4.A0031  2   50 
+        58.       143.                  2.16                  0.43A0031  2   51 
+        58.       144.                  8.26                  2.07A0031  2   52 
+        60.       147.                  5.76                  1.73A0031  2   53 
+        61.       143.                 0.988                 0.296A0031  2   54 
+        61.       144.                  1.01                   0.3A0031  2   55 
+        61.       148.         1.       1.04                  0.31A0031  2   56 
+        64.       149.                 0.123                 0.062A0031  2   57 
+        65.       153.                 0.296                 0.089A0031  2   58 
+        65.       155.                  0.76                 0.152A0031  2   59 
+        65.       156.         0.      0.748                 0.299A0031  2   60 
+        65.       160.                  0.55                 0.192A0031  2   61 
+        69.       167.                  0.32                 0.096A0031  2   62 
+        69.       168.                 0.212                 0.148A0031  2   63 
+        70.       169.         0.      0.312                 0.094A0031  2   64 
+        71.       171.         0.      0.196                 0.049A0031  2   65 
+        71.       172.         0.                  0.11      0.077A0031  2   66 
+        72.       171.                 0.173                 0.086A0031  2   67 
+        72.       173.                 0.137                 0.055A0031  2   68 
+        72.       175.                 0.206                 0.082A0031  2   69 
+        72.       181.                           0.0514     0.0257A0031  2   70 
+        79.       193.         0.       0.17                 0.051A0031  2   71 
+        79.       194.                 0.123                 0.025A0031  2   72 
+        79.       196.         1.     0.0706                0.0353A0031  2   73 
+        79.       196.         0.      0.138                 0.028A0031  2   74 
+        79.       198.         1.      0.502                  0.01A0031  2   75 
+        79.       198.         0.     0.0842                0.0168A0031  2   76 
+        79.       199.                0.0632                0.0126A0031  2   77 
+        81.       200.                  0.35                  0.07A0031  2   78 
+        81.       201.                 0.554                 0.111A0031  2   79 
+        81.       202.                 0.216                 0.043A0031  2   80 
+        82.       203.         0.      0.426                 0.128A0031  2   81 
+        83.       204.                  0.24                 0.048A0031  2   82 
+        85.       210.                  1.81                  0.63A0031  2   83 
+        88.       223.                  1.91                  0.67A0031  2   84 
+        92.       237.                  73.8                  14.8A0031  2   85 
+ENDDATA             72                                            A0031  2   86 
+ENDSUBENT           85                                            A0031  299999 
+SUBENT        A0031003   20080617   20080908   20080901       A063A0031  3    1 
+BIB                  6         13                                 A0031  3    2 
+REACTION   (92-U-0(54-XE-136,F)MASS,,SIG,,,DERIV)                 A0031  3    3 
+STATUS     (DEP,A0031002)                                         A0031  3    4 
+           (CURVE).By Cajad.                                      A0031  3    5 
+CORRECTION Correction on cumulativity and neutron evaporation     A0031  3    6 
+           had been made.                                         A0031  3    7 
+ERR-ANALYS (+DATA-ERR).An information is absent.                  A0031  3    8 
+           (-DATA-ERR).An information is absent.                  A0031  3    9 
+REL-REF    (N,,JU.C.OGANESJAN+,R,JINR-E7-9187,1975)               A0031  3   10 
+           Mass-distribution                                      A0031  3   11 
+           (N,,JU.C.OGANESJAN+,R,JINR-P7-4538,1969).Method of     A0031  3   12 
+           correction on cumulativity.                            A0031  3   13 
+MISC-COL   (MISC).It is element which have been used for deducing A0031  3   14 
+           mass-distribution.                                     A0031  3   15 
+ENDBIB              13                                            A0031  3   16 
+NOCOMMON             0          0                                 A0031  3   17 
+DATA                 6         19                                 A0031  3   18 
+MASS       DATA       DATA-MAX   +DATA-ERR  -DATA-ERR  MISC       A0031  3   19 
+NO-DIM     MB         MB         MB         MB         NO-DIM     A0031  3   20 
+       167.        0.5                                         69.A0031  3   21 
+       168.        0.8                                         69.A0031  3   22 
+       169.        0.6                                         70.A0031  3   23 
+       171.        0.4                   0.1        0.1        71.A0031  3   24 
+       171.        0.8                   0.4       0.45        72.A0031  3   25 
+       172.                   0.4        0.3                   71.A0031  3   26 
+       173.                   0.2        0.3                   72.A0031  3   27 
+       175.       0.32                   0.2       0.12        72.A0031  3   28 
+       181.                  0.55       0.25                   72.A0031  3   29 
+       193.       0.45                   0.2       0.08        79.A0031  3   30 
+       194.        0.4                   0.1        0.1        79.A0031  3   31 
+       196.        0.7                   0.2       0.25        79.A0031  3   32 
+       198.        0.5                   0.2        0.2        79.A0031  3   33 
+       199.       0.25                  0.05       0.06        79.A0031  3   34 
+       200.       0.65                   0.1       0.15        81.A0031  3   35 
+       201.        0.9                   0.1        0.2        81.A0031  3   36 
+       202.        0.7                   0.2       0.15        81.A0031  3   37 
+       203.        0.7                   0.3        0.2        82.A0031  3   38 
+       204.        0.6                   0.1        0.1        83.A0031  3   39 
+ENDDATA             21                                            A0031  3   40 
+ENDSUBENT           39                                            A0031  399999 
+ENDENTRY             3          0                                 A003199999999 
+ENDTRANS             1          0                                 Z999999999999 

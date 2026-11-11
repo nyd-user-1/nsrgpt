@@ -1,0 +1,257 @@
+TRANS             9001   20261111                                 30000  0    0 
+ENTRY            30007   20040109                                 30007  0    1 
+SUBENT        30007001   20040109   20040311   20050926       000030007  1    1 
+BIB                 15         32                                 30007  1    2 
+INSTITUTE  (3INDMUA)                                              30007  1    3 
+REFERENCE  (J,NP,85,476,196609) Tabulated results on 13 isotopes. 30007  1    4 
+EXP-YEAR   (1965)                                                 30007  1    5 
+AUTHOR     (R.PRASAD, D.C.SARKAR)                                 30007  1    6 
+TITLE      Measurement of (n,p) and (n,a) reaction cross sections 30007  1    7 
+           at 14.8 MeV.                                           30007  1    8 
+FACILITY   (CCW) 130 keV Cockcroft-Walton accelerator.            30007  1    9 
+INC-SOURCE (D-T) Deuteron-tritium.                                30007  1   10 
+SAMPLE     Powdery samples were uniformly spread in a thin        30007  1   11 
+            perspex ring and sandwiched between two cellulose     30007  1   12 
+            tapes. Spectroscopically pure substances of chemical  30007  1   13 
+            purity more than 99.9 percent were used.              30007  1   14 
+METHOD     (ACTIV) Activation technique.                          30007  1   15 
+DETECTOR   End-window beta-counter of 2.5 mg/sqcm window          30007  1   16 
+            thickness.                                            30007  1   17 
+           (SCIN)  ZnS-Lucite crystal mounted on a PM tube was    30007  1   18 
+            used as flux monitor.                                 30007  1   19 
+PART-DET   (B-) Decay beta-.                                      30007  1   20 
+MONITOR    (26-FE-56(N,P)25-MN-56,,SIG)                           30007  1   21 
+            Iron-26 n-p sigma value used was 126.mb               30007  1   22 
+            at 14.8 MeV.                                          30007  1   23 
+ERR-ANALYS The quoted error includes statistical errors,and other 30007  1   24 
+           errors which may occur in estimation of total number of30007  1   25 
+           nuclei in target material and in determination of      30007  1   26 
+           effective flux. While statistical errors vary from case30007  1   27 
+           to case, all other errors were estimated to be less    30007  1   28 
+           than 3.percent.                                        30007  1   29 
+COMMENT    Cross-reference=  the (n,p) cross sections have been   30007  1   30 
+             republished (partly with minor numerical changes)    30007  1   31 
+             together with 37 other nuclides in Nuovo Cim.A3,3,   30007  1   32 
+             467(1971). For these see EXFOR entry 30336.          30007  1   33 
+HISTORY    (20040109A) OS. Dates converted, lower case.           30007  1   34 
+ENDBIB              32                                            30007  1   35 
+COMMON               2          3                                 30007  1   36 
+EN         MONIT                                                  30007  1   37 
+MEV        MB                                                     30007  1   38 
+ 1.4800E+01 1.2600E+02                                            30007  1   39 
+ENDCOMMON            3                                            30007  1   40 
+ENDSUBENT           39                                            30007  199999 
+SUBENT        30007002   20040109   20040311   20050926       000030007  2    1 
+BIB                  4          7                                 30007  2    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Result republished without   30007  2    3 
+             numerical change                                     30007  2    4 
+REACTION   (7-N-15(N,P)6-C-15,,SIG)                               30007  2    5 
+STATUS     Data from nucl.Phys.85,476(1966),Table 1.              30007  2    6 
+HISTORY    (19691125C)                                            30007  2    7 
+           (19701123T) Previously DASTAR-01127.                   30007  2    8 
+           (19760601U) OS. Reference added                        30007  2    9 
+ENDBIB               7                                            30007  2   10 
+NOCOMMON             0          0                                 30007  2   11 
+DATA                 2          1                                 30007  2   12 
+DATA       DATA-ERR                                               30007  2   13 
+MB         MB                                                     30007  2   14 
+ 1.6000E+01 4.0000E+00                                            30007  2   15 
+ENDDATA              3                                            30007  2   16 
+ENDSUBENT           15                                            30007  299999 
+SUBENT        30007003   20040109   20040311   20050926       000030007  3    1 
+BIB                  5          8                                 30007  3    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Minor numerical alteration   30007  3    3 
+REACTION   (8-O-16(N,P)7-N-16,,SIG)                               30007  3    4 
+COMMENT    Old value was 29+-2 mb.                                30007  3    5 
+STATUS     Data from Nuovo Cim.A3,467(1971),Table 1.              30007  3    6 
+HISTORY    (19691125C)                                            30007  3    7 
+           (19701123T) PREVIOUSLY DASTAR-01128.                   30007  3    8 
+           (19760601A) OS. NUMERICAL VALUE CORRECTED, REFERENCE   30007  3    9 
+             ADDED.                                               30007  3   10 
+ENDBIB               8                                            30007  3   11 
+NOCOMMON             0          0                                 30007  3   12 
+DATA                 2          1                                 30007  3   13 
+DATA       DATA-ERR                                               30007  3   14 
+MB         MB                                                     30007  3   15 
+ 3.0000E+01 5.0000E+00                                            30007  3   16 
+ENDDATA              3                                            30007  3   17 
+ENDSUBENT           16                                            30007  399999 
+SUBENT        30007004   20040109   20040311   20050926       000030007  4    1 
+BIB                  5          9                                 30007  4    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Result republished, error    30007  4    3 
+             limits altered.                                      30007  4    4 
+REACTION   (9-F-19(N,P)8-O-19,,SIG)                               30007  4    5 
+COMMENT    Old value was 51+-10 mb.                               30007  4    6 
+STATUS     Data from nuovo cim.a3,467(1971),table 1.              30007  4    7 
+HISTORY    (19691125C)                                            30007  4    8 
+           (19701123T) Previously DASTAR-01129.                   30007  4    9 
+           (19760601A) OS. Error limits corrected, reference      30007  4   10 
+            added.                                                30007  4   11 
+ENDBIB               9                                            30007  4   12 
+NOCOMMON             0          0                                 30007  4   13 
+DATA                 2          1                                 30007  4   14 
+DATA       DATA-ERR                                               30007  4   15 
+MB         MB                                                     30007  4   16 
+ 5.1000E+01 7.0000E+00                                            30007  4   17 
+ENDDATA              3                                            30007  4   18 
+ENDSUBENT           17                                            30007  499999 
+SUBENT        30007005   20040109   20040311   20050926       000030007  5    1 
+BIB                  5          8                                 30007  5    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Result republished, error    30007  5    3 
+             limits altered                                       30007  5    4 
+REACTION   (11-NA-23(N,P)10-NE-23,,SIG)                           30007  5    5 
+COMMENT    Old value was 45+-5 mb.                                30007  5    6 
+STATUS     Data from nuovo cim.a3,467(1971), Table 1.             30007  5    7 
+HISTORY    (19691125C)                                            30007  5    8 
+           (19701123T) Previously DASTAR-01130.                   30007  5    9 
+           (19760601A)OS. Error limits corrected, reference added.30007  5   10 
+ENDBIB               8                                            30007  5   11 
+NOCOMMON             0          0                                 30007  5   12 
+DATA                 2          1                                 30007  5   13 
+DATA       DATA-ERR                                               30007  5   14 
+MB         MB                                                     30007  5   15 
+ 4.5000E+01 8.0000E+00                                            30007  5   16 
+ENDDATA              3                                            30007  5   17 
+ENDSUBENT           16                                            30007  599999 
+SUBENT        30007006   20040109   20040311   20050926       000030007  6    1 
+BIB                  5          9                                 30007  6    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Result republished, error    30007  6    3 
+             limits altered                                       30007  6    4 
+REACTION   (12-MG-25(N,P)11-NA-25,,SIG)                           30007  6    5 
+COMMENT    Old value was 54+-6 mb.                                30007  6    6 
+STATUS     Data from Nuovo Cim.A3,467(1971),Table 1.              30007  6    7 
+HISTORY    (19691125C)                                            30007  6    8 
+           (19701123T) Previously DASTAR-01131.                   30007  6    9 
+           (19760601A) OS. Error limits corrected, reference      30007  6   10 
+            added.                                                30007  6   11 
+ENDBIB               9                                            30007  6   12 
+NOCOMMON             0          0                                 30007  6   13 
+DATA                 2          1                                 30007  6   14 
+DATA       DATA-ERR                                               30007  6   15 
+MB         MB                                                     30007  6   16 
+ 5.4000E+01 1.0000E+01                                            30007  6   17 
+ENDDATA              3                                            30007  6   18 
+ENDSUBENT           17                                            30007  699999 
+SUBENT        30007007   20040109   20040311   20050926       000030007  7    1 
+BIB                  4          7                                 30007  7    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Result republished without   30007  7    3 
+             numerical change                                     30007  7    4 
+REACTION   (16-S-34(N,P)15-P-34,,SIG)                             30007  7    5 
+STATUS     Data from Nucl.Phys.85,476(1966),Table 1.              30007  7    6 
+HISTORY    (19691125C)                                            30007  7    7 
+           (19701123T) Previously DASTAR-01132.                   30007  7    8 
+           (19760601U) OS. Reference added.                       30007  7    9 
+ENDBIB               7                                            30007  7   10 
+NOCOMMON             0          0                                 30007  7   11 
+DATA                 2          1                                 30007  7   12 
+DATA       DATA-ERR                                               30007  7   13 
+MB         MB                                                     30007  7   14 
+ 3.2000E+01 8.0000E+00                                            30007  7   15 
+ENDDATA              3                                            30007  7   16 
+ENDSUBENT           15                                            30007  799999 
+SUBENT        30007008   20040109   20040311   20050926       000030007  8    1 
+BIB                  4          7                                 30007  8    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Result republished without   30007  8    3 
+             numerical change                                     30007  8    4 
+REACTION   (44-RU-100(N,P)43-TC-100,,SIG)                         30007  8    5 
+STATUS     Data from Nucl.Phys.85,476(1966),Table 1.              30007  8    6 
+HISTORY    (19691125C)                                            30007  8    7 
+           (19701123T) Previously DASTAR-01133.                   30007  8    8 
+           (19760601U) OS. Reference added.                       30007  8    9 
+ENDBIB               7                                            30007  8   10 
+NOCOMMON             0          0                                 30007  8   11 
+DATA                 2          1                                 30007  8   12 
+DATA       DATA-ERR                                               30007  8   13 
+MB         MB                                                     30007  8   14 
+ 1.5000E+01 6.0000E+00                                            30007  8   15 
+ENDDATA              3                                            30007  8   16 
+ENDSUBENT           15                                            30007  899999 
+SUBENT        30007009   20040109   20040311   20050926       000030007  9    1 
+BIB                  4          7                                 30007  9    2 
+REFERENCE  (J,NC/A,3,(3),467,197106) Result republished without   30007  9    3 
+             numerical change                                     30007  9    4 
+REACTION   (44-RU-102(N,P)43-TC-102,,SIG)                         30007  9    5 
+STATUS     Data from Nucl.Phys.85,476(1966),Table 1.              30007  9    6 
+HISTORY    (19691125C)                                            30007  9    7 
+           (19701123T) Previously DASTAR-01134.                   30007  9    8 
+           (19760601U) OS. Reference added.                       30007  9    9 
+ENDBIB               7                                            30007  9   10 
+NOCOMMON             0          0                                 30007  9   11 
+DATA                 2          1                                 30007  9   12 
+DATA       DATA-ERR                                               30007  9   13 
+MB         MB                                                     30007  9   14 
+ 2.0000E+00 5.0000E-01                                            30007  9   15 
+ENDDATA              3                                            30007  9   16 
+ENDSUBENT           15                                            30007  999999 
+SUBENT        30007010   20040109   20040311   20050926       000030007 10    1 
+BIB                  2          4                                 30007 10    2 
+REACTION   (9-F-19(N,A)7-N-16,,SIG)                               30007 10    3 
+HISTORY    (19691125C) Data compiled,taken from Table 2,          30007 10    4 
+            Nucl.Phys.85,476,9/1966.                              30007 10    5 
+           (19701123T) Previously DASTAR-01135.                   30007 10    6 
+ENDBIB               4                                            30007 10    7 
+NOCOMMON             0          0                                 30007 10    8 
+DATA                 2          1                                 30007 10    9 
+DATA       DATA-ERR                                               30007 10   10 
+MB         MB                                                     30007 10   11 
+ 2.4000E+01 5.0000E+00                                            30007 10   12 
+ENDDATA              3                                            30007 10   13 
+ENDSUBENT           12                                            30007 1099999 
+SUBENT        30007011   20040109   20040311   20050926       000030007 11    1 
+BIB                  2          4                                 30007 11    2 
+REACTION   (12-MG-26(N,A)10-NE-23,,SIG)                           30007 11    3 
+HISTORY    (19691125C) Data compiled,taken from Table 2,          30007 11    4 
+            Nucl.Phys. 85,476,9/1966.                             30007 11    5 
+           (19701123T) Previously DASTAR-01136.                   30007 11    6 
+ENDBIB               4                                            30007 11    7 
+NOCOMMON             0          0                                 30007 11    8 
+DATA                 2          1                                 30007 11    9 
+DATA       DATA-ERR                                               30007 11   10 
+MB         MB                                                     30007 11   11 
+ 8.3000E+01 7.0000E+00                                            30007 11   12 
+ENDDATA              3                                            30007 11   13 
+ENDSUBENT           12                                            30007 1199999 
+SUBENT        30007012   20040109   20040311   20050926       000030007 12    1 
+BIB                  2          4                                 30007 12    2 
+REACTION   (17-CL-37(N,A)15-P-34,,SIG)                            30007 12    3 
+HISTORY    (19691125C) Data compiled,taken from Table 2,          30007 12    4 
+            Nucl.Phys. 85 476,9/66.                               30007 12    5 
+           (19701123T) Previously DASTAR-01137.                   30007 12    6 
+ENDBIB               4                                            30007 12    7 
+NOCOMMON             0          0                                 30007 12    8 
+DATA                 2          1                                 30007 12    9 
+DATA       DATA-ERR                                               30007 12   10 
+MB         MB                                                     30007 12   11 
+ 2.8000E+01 1.0000E+01                                            30007 12   12 
+ENDDATA              3                                            30007 12   13 
+ENDSUBENT           12                                            30007 1299999 
+SUBENT        30007013   20040109   20040311   20050926       000030007 13    1 
+BIB                  2          4                                 30007 13    2 
+REACTION   (31-GA-71(N,A)29-CU-68,,SIG)                           30007 13    3 
+HISTORY    (19691125C) Data compiled,taken from Table 2,          30007 13    4 
+            Nucl.Phys. 85,476,9/1966.                             30007 13    5 
+           (19701123T) Previously DASTAR-01138.                   30007 13    6 
+ENDBIB               4                                            30007 13    7 
+NOCOMMON             0          0                                 30007 13    8 
+DATA                 2          1                                 30007 13    9 
+DATA       DATA-ERR                                               30007 13   10 
+MB         MB                                                     30007 13   11 
+ 6.0000E+01 4.0000E+00                                            30007 13   12 
+ENDDATA              3                                            30007 13   13 
+ENDSUBENT           12                                            30007 1399999 
+SUBENT        30007014   20040109   20040311   20050926       000030007 14    1 
+BIB                  2          4                                 30007 14    2 
+REACTION   (45-RH-103(N,A)43-TC-100,,SIG)                         30007 14    3 
+HISTORY    (19691125C) Data compiled,taken from Table 2,          30007 14    4 
+            Nucl.Phys.85,476,9/1966.                              30007 14    5 
+           (19701123T) Previously DASTAR-01139.                   30007 14    6 
+ENDBIB               4                                            30007 14    7 
+NOCOMMON             0          0                                 30007 14    8 
+DATA                 2          1                                 30007 14    9 
+DATA       DATA-ERR                                               30007 14   10 
+MB         MB                                                     30007 14   11 
+ 8.0000E+01 7.0000E+00                                            30007 14   12 
+ENDDATA              3                                            30007 14   13 
+ENDSUBENT           12                                            30007 1499999 
+ENDENTRY            14          0                                 3000799999999 
+ENDTRANS             1          0                                 Z999999999999 

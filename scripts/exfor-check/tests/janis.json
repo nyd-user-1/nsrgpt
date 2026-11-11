@@ -1,0 +1,2356 @@
+{
+ "10031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "10097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   7,
+   0
+  ],
+  "janis_messages": []
+ },
+ "10151": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "10233": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   47,
+   0
+  ],
+  "janis_messages": []
+ },
+ "20031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "20097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   8,
+   0
+  ],
+  "janis_messages": []
+ },
+ "20377": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "20499": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   16,
+   0
+  ],
+  "janis_messages": []
+ },
+ "30001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "30007": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "30031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   22,
+   0
+  ],
+  "janis_messages": []
+ },
+ "30097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "40001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "40007": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "40031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "40097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   5,
+   0
+  ],
+  "janis_messages": []
+ },
+ "A0001": {
+  "janis": [
+   0,
+   2
+  ],
+  "mine": [
+   0,
+   2
+  ],
+  "janis_messages": [
+   {
+    "id": "A0001.001",
+    "severity": "warning",
+    "message": "OBS INSTITUTE code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "4UKRUFT",
+    "line": 38
+   },
+   {
+    "id": "A0001.001",
+    "severity": "warning",
+    "message": "OBS FACILITY code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "4UKRUFT",
+    "line": 38
+   }
+  ]
+ },
+ "A0007": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "A0031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "A0097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "A0151": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   2,
+   0
+  ],
+  "janis_messages": []
+ },
+ "C0001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "C0007": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "C0031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "C0151": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   11,
+   0
+  ],
+  "janis_messages": []
+ },
+ "D0007": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "D0031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   4,
+   0
+  ],
+  "janis_messages": []
+ },
+ "D0097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "D0377": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "E0811": {
+  "janis": [
+   1,
+   0
+  ],
+  "mine": [
+   22,
+   3
+  ],
+  "janis_messages": [
+   {
+    "id": "E0811.006",
+    "severity": "error",
+    "message": "EXFOR_Exception Ignored field(s)",
+    "detail": "3",
+    "line": 310
+   }
+  ]
+ },
+ "E1201": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "E2584": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "F0001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "F0007": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   1,
+   0
+  ],
+  "janis_messages": []
+ },
+ "F0031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "F0097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "G0001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "G0031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "G3001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "K2003": {
+  "janis": [
+   1,
+   4
+  ],
+  "mine": [
+   6,
+   4
+  ],
+  "janis_messages": [
+   {
+    "id": "K2003.002",
+    "severity": "warning",
+    "message": "Obsolete data heading",
+    "detail": "+EN-RSL-HW",
+    "line": 61
+   },
+   {
+    "id": "K2003.002",
+    "severity": "warning",
+    "message": "Obsolete data heading",
+    "detail": "-EN-RSL-HW",
+    "line": 61
+   },
+   {
+    "id": "K2003.003",
+    "severity": "warning",
+    "message": "Obsolete data heading",
+    "detail": "+EN-RSL-HW",
+    "line": 95
+   },
+   {
+    "id": "K2003.003",
+    "severity": "warning",
+    "message": "Obsolete data heading",
+    "detail": "-EN-RSL-HW",
+    "line": 95
+   },
+   {
+    "id": "K2003.004",
+    "severity": "error",
+    "message": "EXFOR_Exception Ignored field(s)",
+    "detail": "2",
+    "line": 185
+   }
+  ]
+ },
+ "L0001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "L0031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "L0097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "L0151": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "M0031": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "M0097": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "M0151": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "M0233": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "O0151": {
+  "janis": [
+   0,
+   6
+  ],
+  "mine": [
+   12,
+   6
+  ],
+  "janis_messages": [
+   {
+    "id": "O0151.002",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 73
+   },
+   {
+    "id": "O0151.003",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 104
+   },
+   {
+    "id": "O0151.004",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 135
+   },
+   {
+    "id": "O0151.005",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 167
+   },
+   {
+    "id": "O0151.006",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 201
+   },
+   {
+    "id": "O0151.007",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 232
+   }
+  ]
+ },
+ "O0233": {
+  "janis": [
+   0,
+   19
+  ],
+  "mine": [
+   25,
+   19
+  ],
+  "janis_messages": [
+   {
+    "id": "O0233.002",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 69
+   },
+   {
+    "id": "O0233.003",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 95
+   },
+   {
+    "id": "O0233.004",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 121
+   },
+   {
+    "id": "O0233.005",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 147
+   },
+   {
+    "id": "O0233.006",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 172
+   },
+   {
+    "id": "O0233.007",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 197
+   },
+   {
+    "id": "O0233.008",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 223
+   },
+   {
+    "id": "O0233.009",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 250
+   },
+   {
+    "id": "O0233.010",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 275
+   },
+   {
+    "id": "O0233.011",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 300
+   },
+   {
+    "id": "O0233.012",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 328
+   },
+   {
+    "id": "O0233.013",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 355
+   },
+   {
+    "id": "O0233.014",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 380
+   },
+   {
+    "id": "O0233.015",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 408
+   },
+   {
+    "id": "O0233.016",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 433
+   },
+   {
+    "id": "O0233.017",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 460
+   },
+   {
+    "id": "O0233.018",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 487
+   },
+   {
+    "id": "O0233.019",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 510
+   },
+   {
+    "id": "O0233.020",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 531
+   }
+  ]
+ },
+ "O0377": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "O0499": {
+  "janis": [
+   1,
+   0
+  ],
+  "mine": [
+   27,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "O0499.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Ignored field(s)",
+    "detail": "3",
+    "line": 58
+   }
+  ]
+ },
+ "O0613": {
+  "janis": [
+   0,
+   6
+  ],
+  "mine": [
+   0,
+   6
+  ],
+  "janis_messages": [
+   {
+    "id": "O0613.002",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 67
+   },
+   {
+    "id": "O0613.002",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 67
+   },
+   {
+    "id": "O0613.003",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 79
+   },
+   {
+    "id": "O0613.003",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 79
+   },
+   {
+    "id": "O0613.004",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 91
+   },
+   {
+    "id": "O0613.004",
+    "severity": "warning",
+    "message": "OBS REACTION (SF9) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "EXP",
+    "line": 91
+   }
+  ]
+ },
+ "O0811": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "O0997": {
+  "janis": [
+   0,
+   1
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "O0997.002",
+    "severity": "warning",
+    "message": "OBS REACTION (SF5-8) code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "IND,SIG",
+    "line": 130
+   }
+  ]
+ },
+ "O1201": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "S0001": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "S0097": {
+  "janis": [
+   0,
+   1
+  ],
+  "mine": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "S0097.001",
+    "severity": "warning",
+    "message": "OBS FACILITY code : obsolete (not to be used on EXFOR exchange files)",
+    "detail": "PRJFS",
+    "line": 54
+   }
+  ]
+ },
+ "S0233": {
+  "janis": [
+   0,
+   0
+  ],
+  "mine": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "10031:institute": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10031.001",
+    "severity": "warning",
+    "message": "[INSTITUTE] : Unknown Institute",
+    "detail": "1USAXYZ",
+    "line": 6
+   }
+  ]
+ },
+ "10031:sf3-sf6": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10031.002",
+    "severity": "warning",
+    "message": "[REACTION] : SF4 should be empty for reactions that are implicit sums (TOT)",
+    "detail": "13-AL-27(N,TOT)11-NA-24,,DA",
+    "line": 59
+   }
+  ]
+ },
+ "10097:institute": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10097.001",
+    "severity": "warning",
+    "message": "[INSTITUTE] : Unknown Institute",
+    "detail": "1USAXYZ",
+    "line": 6
+   }
+  ]
+ },
+ "10097:sf3-sf6": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10097.011",
+    "severity": "warning",
+    "message": "[REACTION] : SF4 should be empty for reactions that are implicit sums (TOT)",
+    "detail": "8-O-16(N,TOT)8-O-16,,DA",
+    "line": 189
+   }
+  ]
+ },
+ "10151:institute": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10151.001",
+    "severity": "warning",
+    "message": "[INSTITUTE] : Unknown Institute",
+    "detail": "1USAXYZ",
+    "line": 6
+   }
+  ]
+ },
+ "10151:units-short": {
+  "janis": [
+   1,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10151.002",
+    "severity": "warning",
+    "message": "Data unit is not left adjusted",
+    "detail": "#3",
+    "line": 43
+   },
+   {
+    "id": "10151.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Empty data heading",
+    "detail": "DATA N1=3 unit #3 is empty",
+    "line": 43
+   }
+  ]
+ },
+ "10233:institute": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10233.001",
+    "severity": "warning",
+    "message": "[INSTITUTE] : Unknown Institute",
+    "detail": "1USAXYZ",
+    "line": 6
+   }
+  ]
+ },
+ "10233:units-short": {
+  "janis": [
+   1,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "10233.002",
+    "severity": "warning",
+    "message": "Data unit is not left adjusted",
+    "detail": "#4",
+    "line": 51
+   },
+   {
+    "id": "10233.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Empty data heading",
+    "detail": "DATA N1=4 unit #4 is empty",
+    "line": 51
+   }
+  ]
+ },
+ "20031:institute": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "20031.001",
+    "severity": "warning",
+    "message": "[INSTITUTE] : Unknown Institute",
+    "detail": "1USAXYZ",
+    "line": 6
+   }
+  ]
+ },
+ "20031:sf3-sf6": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "20031.002",
+    "severity": "warning",
+    "message": "[REACTION] : SF4 should be empty for reactions that are implicit sums (TOT)",
+    "detail": "78-PT-196(N,TOT)77-IR-196-G,,DA",
+    "line": 39
+   }
+  ]
+ },
+ "20097:sf3-sf6": {
+  "janis": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "20097:units-short": {
+  "janis": [
+   1,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "20097.002",
+    "severity": "warning",
+    "message": "Data unit is not left adjusted",
+    "detail": "#4",
+    "line": 49
+   },
+   {
+    "id": "20097.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Empty data heading",
+    "detail": "DATA N1=4 unit #4 is empty",
+    "line": 49
+   }
+  ]
+ },
+ "20377:sf3-sf6": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "20377.002",
+    "severity": "warning",
+    "message": "[REACTION] : SF4 should be empty for reactions that are implicit sums (TOT)",
+    "detail": "26-FE-56(N,TOT)25-MN-56,,DA",
+    "line": 100
+   }
+  ]
+ },
+ "20377:units-short": {
+  "janis": [
+   1,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "20377.002",
+    "severity": "warning",
+    "message": "Data unit is not left adjusted",
+    "detail": "#4",
+    "line": 70
+   },
+   {
+    "id": "20377.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Empty data heading",
+    "detail": "DATA N1=4 unit #4 is empty",
+    "line": 70
+   }
+  ]
+ },
+ "20499:units-short": {
+  "janis": [
+   1,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "20499.002",
+    "severity": "warning",
+    "message": "Data unit is not left adjusted",
+    "detail": "#4",
+    "line": 61
+   },
+   {
+    "id": "20499.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Empty data heading",
+    "detail": "DATA N1=4 unit #4 is empty",
+    "line": 61
+   }
+  ]
+ },
+ "20499:non-numeric": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "20499.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Bad value",
+    "detail": "1.2X-03",
+    "line": 61
+   }
+  ]
+ },
+ "30001:non-numeric": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "30001.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Bad value",
+    "detail": "1.2X-03",
+    "line": 39
+   }
+  ]
+ },
+ "30001:endsubent-count": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "30001.001",
+    "severity": "warning",
+    "message": "ENDSUBENT : bad N1 (number of records within the subentry)",
+    "detail": "N1=26, found 25",
+    "line": 29
+   }
+  ]
+ },
+ "30007:non-numeric": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "30007.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Bad value",
+    "detail": "1.2X-03",
+    "line": 57
+   }
+  ]
+ },
+ "30007:endsubent-count": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "30007.001",
+    "severity": "warning",
+    "message": "ENDSUBENT : bad N1 (number of records within the subentry)",
+    "detail": "N1=40, found 39",
+    "line": 43
+   }
+  ]
+ },
+ "30031:non-numeric": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "30031.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Bad value",
+    "detail": "1.2X-03",
+    "line": 54
+   }
+  ]
+ },
+ "30031:endsubent-count": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "30031.001",
+    "severity": "warning",
+    "message": "ENDSUBENT : bad N1 (number of records within the subentry)",
+    "detail": "N1=38, found 37",
+    "line": 41
+   }
+  ]
+ },
+ "30097:non-numeric": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "30097.002",
+    "severity": "error",
+    "message": "EXFOR_Exception Bad value",
+    "detail": "1.2X-03",
+    "line": 55
+   }
+  ]
+ },
+ "30097:endsubent-count": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "30097.001",
+    "severity": "warning",
+    "message": "ENDSUBENT : bad N1 (number of records within the subentry)",
+    "detail": "N1=43, found 42",
+    "line": 46
+   }
+  ]
+ },
+ "40001:endsubent-count": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "40001.001",
+    "severity": "warning",
+    "message": "ENDSUBENT : bad N1 (number of records within the subentry)",
+    "detail": "N1=70, found 69",
+    "line": 73
+   }
+  ]
+ },
+ "40001:missing-endbib": {
+  "janis": [
+   34,
+   45
+  ],
+  "janis_messages": [
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "COMMON",
+    "line": 111
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException COMMON is not a valid keyword",
+    "detail": "",
+    "line": 111
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EN-NRM",
+    "line": 112
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EN-NRM is not a valid keyword",
+    "detail": "",
+    "line": 112
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "KEV",
+    "line": 113
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException KEV is not a valid keyword",
+    "detail": "",
+    "line": 113
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "740.",
+    "line": 114
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 740. is not a valid keyword",
+    "detail": "",
+    "line": 114
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "ENDCOMMON",
+    "line": 115
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException ENDCOMMON is not a valid keyword",
+    "detail": "",
+    "line": 115
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "DATA",
+    "line": 116
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException DATA is not a valid keyword",
+    "detail": "",
+    "line": 116
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EN",
+    "line": 117
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EN is not a valid keyword",
+    "detail": "",
+    "line": 117
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "MEV",
+    "line": 118
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException MEV is not a valid keyword",
+    "detail": "",
+    "line": 118
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "4.1800E-0",
+    "line": 119
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 4.1800E-0 is not a valid keyword",
+    "detail": "",
+    "line": 119
+   },
+   {
+    "id": "40001.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "5.2900E-0",
+    "line": 120
+   },
+   {
+    "id": "40001.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 5.2900E-0 is not a valid keyword",
+    "detail": "",
+    "line": 120
+   }
+  ]
+ },
+ "40007:missing-endbib": {
+  "janis": [
+   43,
+   54
+  ],
+  "janis_messages": [
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "COMMON",
+    "line": 76
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException COMMON is not a valid keyword",
+    "detail": "",
+    "line": 76
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "MONIT1",
+    "line": 77
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException MONIT1 is not a valid keyword",
+    "detail": "",
+    "line": 77
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "B",
+    "line": 78
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException B is not a valid keyword",
+    "detail": "",
+    "line": 78
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "0.45",
+    "line": 79
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 0.45 is not a valid keyword",
+    "detail": "",
+    "line": 79
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "ENDCOMMON",
+    "line": 80
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException ENDCOMMON is not a valid keyword",
+    "detail": "",
+    "line": 80
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "DATA",
+    "line": 81
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException DATA is not a valid keyword",
+    "detail": "",
+    "line": 81
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EN",
+    "line": 82
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EN is not a valid keyword",
+    "detail": "",
+    "line": 82
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "KEV",
+    "line": 83
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException KEV is not a valid keyword",
+    "detail": "",
+    "line": 83
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "8.6",
+    "line": 84
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 8.6 is not a valid keyword",
+    "detail": "",
+    "line": 84
+   },
+   {
+    "id": "40007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "14.",
+    "line": 85
+   },
+   {
+    "id": "40007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 14. is not a valid keyword",
+    "detail": "",
+    "line": 85
+   }
+  ]
+ },
+ "40007:duplicate-subentry": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "40007.001",
+    "severity": "error",
+    "message": "EXFOR_Exception SUBENT Subentry number mismatch",
+    "detail": "Read [2] expecting [1]",
+    "line": 65
+   }
+  ]
+ },
+ "40031:missing-endbib": {
+  "janis": [
+   15,
+   27
+  ],
+  "janis_messages": [
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "COMMON",
+    "line": 59
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException COMMON is not a valid keyword",
+    "detail": "",
+    "line": 59
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EN-ERR",
+    "line": 60
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EN-ERR is not a valid keyword",
+    "detail": "",
+    "line": 60
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "KEV",
+    "line": 61
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException KEV is not a valid keyword",
+    "detail": "",
+    "line": 61
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "100.",
+    "line": 62
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 100. is not a valid keyword",
+    "detail": "",
+    "line": 62
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "ENDCOMMON",
+    "line": 63
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException ENDCOMMON is not a valid keyword",
+    "detail": "",
+    "line": 63
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "DATA",
+    "line": 64
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException DATA is not a valid keyword",
+    "detail": "",
+    "line": 64
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EN",
+    "line": 65
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EN is not a valid keyword",
+    "detail": "",
+    "line": 65
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "MEV",
+    "line": 66
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException MEV is not a valid keyword",
+    "detail": "",
+    "line": 66
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "1.",
+    "line": 67
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 1. is not a valid keyword",
+    "detail": "",
+    "line": 67
+   },
+   {
+    "id": "40031.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "3.",
+    "line": 68
+   },
+   {
+    "id": "40031.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 3. is not a valid keyword",
+    "detail": "",
+    "line": 68
+   }
+  ]
+ },
+ "40031:duplicate-subentry": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "40031.001",
+    "severity": "error",
+    "message": "EXFOR_Exception SUBENT Subentry number mismatch",
+    "detail": "Read [2] expecting [1]",
+    "line": 45
+   }
+  ]
+ },
+ "40097:missing-endbib": {
+  "janis": [
+   25,
+   35
+  ],
+  "janis_messages": [
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "NOCOMMON",
+    "line": 64
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException NOCOMMON is not a valid keyword",
+    "detail": "",
+    "line": 64
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "DATA",
+    "line": 65
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException DATA is not a valid keyword",
+    "detail": "",
+    "line": 65
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EN-RES",
+    "line": 66
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EN-RES is not a valid keyword",
+    "detail": "",
+    "line": 66
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EV",
+    "line": 67
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EV is not a valid keyword",
+    "detail": "",
+    "line": 67
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "2.15",
+    "line": 68
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 2.15 is not a valid keyword",
+    "detail": "",
+    "line": 68
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "3.21",
+    "line": 69
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 3.21 is not a valid keyword",
+    "detail": "",
+    "line": 69
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "9.19",
+    "line": 70
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 9.19 is not a valid keyword",
+    "detail": "",
+    "line": 70
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "15.2",
+    "line": 71
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 15.2 is not a valid keyword",
+    "detail": "",
+    "line": 71
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "17.4",
+    "line": 72
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 17.4 is not a valid keyword",
+    "detail": "",
+    "line": 72
+   },
+   {
+    "id": "40097.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "17.7",
+    "line": 73
+   },
+   {
+    "id": "40097.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 17.7 is not a valid keyword",
+    "detail": "",
+    "line": 73
+   }
+  ]
+ },
+ "40097:duplicate-subentry": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "40097.001",
+    "severity": "error",
+    "message": "EXFOR_Exception SUBENT Subentry number mismatch",
+    "detail": "Read [2] expecting [1]",
+    "line": 49
+   }
+  ]
+ },
+ "A0007:missing-endbib": {
+  "janis": [
+   21,
+   31
+  ],
+  "janis_messages": [
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "COMMON",
+    "line": 73
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException COMMON is not a valid keyword",
+    "detail": "",
+    "line": 73
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "ERR-1",
+    "line": 74
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException ERR-1 is not a valid keyword",
+    "detail": "",
+    "line": 74
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "PER-CENT",
+    "line": 75
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException PER-CENT is not a valid keyword",
+    "detail": "",
+    "line": 75
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "3.",
+    "line": 76
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 3. is not a valid keyword",
+    "detail": "",
+    "line": 76
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "ENDCOMMON",
+    "line": 77
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException ENDCOMMON is not a valid keyword",
+    "detail": "",
+    "line": 77
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "DATA",
+    "line": 78
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException DATA is not a valid keyword",
+    "detail": "",
+    "line": 78
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "EN",
+    "line": 79
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException EN is not a valid keyword",
+    "detail": "",
+    "line": 79
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "KEV",
+    "line": 80
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException KEV is not a valid keyword",
+    "detail": "",
+    "line": 80
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "31.2",
+    "line": 81
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 31.2 is not a valid keyword",
+    "detail": "",
+    "line": 81
+   },
+   {
+    "id": "A0007.002",
+    "severity": "warning",
+    "message": "Unknown Keyword",
+    "detail": "37.0",
+    "line": 82
+   },
+   {
+    "id": "A0007.002",
+    "severity": "error",
+    "message": "IllegalArgumentException 37.0 is not a valid keyword",
+    "detail": "",
+    "line": 82
+   }
+  ]
+ },
+ "A0007:duplicate-subentry": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "A0007.001",
+    "severity": "error",
+    "message": "EXFOR_Exception SUBENT Subentry number mismatch",
+    "detail": "Read [2] expecting [1]",
+    "line": 35
+   }
+  ]
+ },
+ "A0031:duplicate-subentry": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "A0031.001",
+    "severity": "error",
+    "message": "EXFOR_Exception SUBENT Subentry number mismatch",
+    "detail": "Read [2] expecting [1]",
+    "line": 39
+   }
+  ]
+ },
+ "A0031:journal": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "A0031.001",
+    "severity": "warning",
+    "message": "[REFERENCE] : Bad Journal reference coding, unknown Journal code",
+    "detail": "QQQJ",
+    "line": 10
+   }
+  ]
+ },
+ "A0097:date": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "null",
+    "severity": "error",
+    "message": "EXFOR_Exception Invalid date",
+    "detail": "SUBENT [ 20081327] (month)",
+    "line": 2
+   }
+  ]
+ },
+ "A0097:en-order": {
+  "janis": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "A0151:date": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "null",
+    "severity": "error",
+    "message": "EXFOR_Exception Invalid date",
+    "detail": "SUBENT [ 20211310] (month)",
+    "line": 2
+   }
+  ]
+ },
+ "C0001:journal": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "C0001.001",
+    "severity": "warning",
+    "message": "[REFERENCE] : Bad Journal reference coding, unknown Journal code",
+    "detail": "QQQJ",
+    "line": 7
+   }
+  ]
+ },
+ "C0001:date": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "null",
+    "severity": "error",
+    "message": "EXFOR_Exception Invalid date",
+    "detail": "SUBENT [ 20021313] (month)",
+    "line": 2
+   }
+  ]
+ },
+ "C0007:journal": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "C0007.001",
+    "severity": "warning",
+    "message": "[REFERENCE] : Bad Journal reference coding, unknown Journal code",
+    "detail": "QQQJ",
+    "line": 7
+   }
+  ]
+ },
+ "C0007:date": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "null",
+    "severity": "error",
+    "message": "EXFOR_Exception Invalid date",
+    "detail": "SUBENT [ 20021313] (month)",
+    "line": 2
+   }
+  ]
+ },
+ "C0031:journal": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "C0031.001",
+    "severity": "warning",
+    "message": "[REFERENCE] : Bad Journal reference coding, unknown Journal code",
+    "detail": "QQQJ",
+    "line": 7
+   }
+  ]
+ },
+ "C0031:date": {
+  "janis": [
+   1,
+   0
+  ],
+  "janis_messages": [
+   {
+    "id": "null",
+    "severity": "error",
+    "message": "EXFOR_Exception Invalid date",
+    "detail": "SUBENT [ 20021313] (month)",
+    "line": 2
+   }
+  ]
+ },
+ "C0151:journal": {
+  "janis": [
+   0,
+   1
+  ],
+  "janis_messages": [
+   {
+    "id": "C0151.001",
+    "severity": "warning",
+    "message": "[REFERENCE] : Bad Journal reference coding, unknown Journal code",
+    "detail": "QQQJ",
+    "line": 7
+   }
+  ]
+ },
+ "C0151:en-order": {
+  "janis": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "D0007:en-order": {
+  "janis": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "D0097:en-order": {
+  "janis": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ },
+ "F0001:en-order": {
+  "janis": [
+   0,
+   0
+  ],
+  "janis_messages": []
+ }
+}

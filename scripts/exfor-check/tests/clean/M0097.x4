@@ -1,0 +1,169 @@
+TRANS             9001   20261111                                 M0000  0    0 
+ENTRY            M0097   20130528                                 M0097  0    1 
+SUBENT        M0097001   20130528   20130823   20130819       M067M0097  1    1 
+BIB                 12         20                                 M0097  1    2 
+TITLE      Photodisintegration of Li-7 by bremsstrahlung with     M0097  1    3 
+            end-point energy 9.5 MeV.                             M0097  1    4 
+AUTHOR     (V.G.Shevchenko,B.A.Yur'eV)                            M0097  1    5 
+INSTITUTE  (4RUSMOS)                                              M0097  1    6 
+REFERENCE  (J,IZV,25,1269,1961)                                   M0097  1    7 
+           (J,BAS,25,1280,1962)                                   M0097  1    8 
+            English translation of IZV,25,1269,1961.              M0097  1    9 
+FACILITY   (BETAT,4RUSMOS)                                        M0097  1   10 
+INC-SOURCE (BRST)                                                 M0097  1   11 
+METHOD     (EXTB,SITA)                                            M0097  1   12 
+DETECTOR   (BF3)                                                  M0097  1   13 
+PART-DET   (T)                                                    M0097  1   14 
+STATUS     (CURVE)                                                M0097  1   15 
+COMMENT    Reaction Li-7(g,t)He-4 was studied for bremsstrahlung  M0097  1   16 
+            end-point energy 9.5 MeV for the purpose of detail    M0097  1   17 
+            investigation of Li-7 excitation states features.     M0097  1   18 
+HISTORY    (19840328C)                                            M0097  1   19 
+           (19910202A) Corrected by V.Varlamov, V.Mclane.         M0097  1   20 
+           (20130528A) Corrected by V.Varlamov: dates, REFERENCE, M0097  1   21 
+            REACTION, STATUS, lowercase.                          M0097  1   22 
+ENDBIB              20                                            M0097  1   23 
+NOCOMMON             0          0                                 M0097  1   24 
+ENDSUBENT           23                                            M0097  199999 
+SUBENT        M0097002   20130528   20130823   20130819       M067M0097  2    1 
+BIB                  4          5                                 M0097  2    2 
+REACTION   (3-LI-7(G,T)2-HE-4,,DA/DE,,BRA/REL)                    M0097  2    3 
+ERR-ANALYS (ERR-S) Statistical errors.                            M0097  2    4 
+STATUS      Data from Fig. 2.                                     M0097  2    5 
+HISTORY    (20130528A) Corrected by V.Varlamov: BRS -> BRA,       M0097  2    6 
+            PAR deleted.                                          M0097  2    7 
+ENDBIB               5                                            M0097  2    8 
+COMMON               3          3                                 M0097  2    9 
+ANG-MIN    ANG-MAX    EN-MAX                                      M0097  2   10 
+ADEG       ADEG       MEV                                         M0097  2   11 
+    30.       135.       9.5                                      M0097  2   12 
+ENDCOMMON            3                                            M0097  2   13 
+DATA                 4         17                                 M0097  2   14 
+E          E-ERR      DATA       ERR-S                            M0097  2   15 
+MEV        MEV        ARB-UNITS  ARB-UNITS                        M0097  2   16 
+     1.31       0.2        7.                                     M0097  2   17 
+     1.5        0.2       29.                                     M0097  2   18 
+     1.69       0.2      149.        19.                          M0097  2   19 
+     1.91       0.2       26.         7.                          M0097  2   20 
+     2.11       0.2       70.                                     M0097  2   21 
+     2.31       0.2      145.                                     M0097  2   22 
+     2.52       0.2      186.        15.                          M0097  2   23 
+     2.73       0.2      119.                                     M0097  2   24 
+     2.93       0.2       86.         9.                          M0097  2   25 
+     3.14       0.2       95.        10.                          M0097  2   26 
+     3.35       0.2       42.         9.                          M0097  2   27 
+     3.55       0.2       73.        11.                          M0097  2   28 
+     3.75       0.2       26.                                     M0097  2   29 
+     3.96       0.2        5.                                     M0097  2   30 
+     4.16       0.2        4.                                     M0097  2   31 
+     4.37       0.2        2.                                     M0097  2   32 
+     4.58       0.2        1.                                     M0097  2   33 
+ENDDATA             19                                            M0097  2   34 
+ENDSUBENT           33                                            M0097  299999 
+SUBENT        M0097003   20130528   20130823   20130819       M067M0097  3    1 
+BIB                  5          5                                 M0097  3    2 
+REACTION   (3-LI-7(G,T)2-HE-4,,SIG,,BRS)                          M0097  3    3 
+ANALYSIS   (UNFLD)                                                M0097  3    4 
+ERR-ANALYS (DATA-ERR) Root-mean-squared errors.                   M0097  3    5 
+STATUS      Data from Fig. 3.                                     M0097  3    6 
+HISTORY    (20130528A) Corrected by V.Varlamov: BRA -> BRS.       M0097  3    7 
+ENDBIB               5                                            M0097  3    8 
+NOCOMMON             0          0                                 M0097  3    9 
+DATA                 3         22                                 M0097  3   10 
+EN         DATA       DATA-ERR                                    M0097  3   11 
+MEV        MB         MB                                          M0097  3   12 
+     4.8        0.009                                             M0097  3   13 
+     5.2        0.04                                              M0097  3   14 
+     5.26       0.067      0.008                                  M0097  3   15 
+     5.45       0.039                                             M0097  3   16 
+     5.55       0.014                                             M0097  3   17 
+     5.65       0.013      0.006                                  M0097  3   18 
+     5.75       0.014                                             M0097  3   19 
+     6.2        0.06                                              M0097  3   20 
+     6.5        0.128                                             M0097  3   21 
+     6.56       0.133      0.01                                   M0097  3   22 
+     6.62       0.128                                             M0097  3   23 
+     6.82       0.08                                              M0097  3   24 
+     7.19       0.078      0.009                                  M0097  3   25 
+     7.3        0.08                                              M0097  3   26 
+     7.47       0.1                                               M0097  3   27 
+     7.51       0.103      0.011                                  M0097  3   28 
+     7.55       0.1                                               M0097  3   29 
+     7.88       0.058      0.009                                  M0097  3   30 
+     8.26       0.121      0.012                                  M0097  3   31 
+     8.48       0.089                                             M0097  3   32 
+     8.65       0.043                                             M0097  3   33 
+     8.95       0.021                                             M0097  3   34 
+ENDDATA             24                                            M0097  3   35 
+ENDSUBENT           34                                            M0097  399999 
+SUBENT        M0097004   20130528   20130823   20130819       M067M0097  4    1 
+BIB                  5          5                                 M0097  4    2 
+REACTION   (3-LI-7(G,T)2-HE-4,PAR,DA,,BRA/REL)                    M0097  4    3 
+EN-SEC     (E-EXC,3-LI-7)                                         M0097  4    4 
+ERR-ANALYS (ERR-S) Statistical errors.                            M0097  4    5 
+STATUS      Data from Fig. 4.                                     M0097  4    6 
+HISTORY    (20130528A) Corrected by V.Varlamov: BRS -> BRA.       M0097  4    7 
+ENDBIB               5                                            M0097  4    8 
+COMMON               2          3                                 M0097  4    9 
+E-EXC      EN-MAX                                                 M0097  4   10 
+MEV        MEV                                                    M0097  4   11 
+     5.3      9.5                                                 M0097  4   12 
+ENDCOMMON            3                                            M0097  4   13 
+DATA                 3          5                                 M0097  4   14 
+ANG        DATA       ERR-S                                       M0097  4   15 
+ADEG       ARB-UNITS  ARB-UNITS                                   M0097  4   16 
+    30.         0.52       0.15                                   M0097  4   17 
+    60.         0.76       0.16                                   M0097  4   18 
+    90.         0.77       0.16                                   M0097  4   19 
+   120.         0.58       0.16                                   M0097  4   20 
+   135.         0.45       0.17                                   M0097  4   21 
+ENDDATA              7                                            M0097  4   22 
+ENDSUBENT           21                                            M0097  499999 
+SUBENT        M0097005   20130528   20130823   20130819       M067M0097  5    1 
+BIB                  5          5                                 M0097  5    2 
+REACTION   (3-LI-7(G,T)2-HE-4,PAR,DA,,BRA/REL)                    M0097  5    3 
+EN-SEC     (E-EXC,3-LI-7)                                         M0097  5    4 
+ERR-ANALYS (ERR-S) Statistical errors.                            M0097  5    5 
+STATUS      Data from Fig. 5.                                     M0097  5    6 
+HISTORY    (20130528A) Corrected by V.Varlamov: BRS -> BRA.       M0097  5    7 
+ENDBIB               5                                            M0097  5    8 
+COMMON               2          3                                 M0097  5    9 
+E-EXC      EN-MAX                                                 M0097  5   10 
+MEV        MEV                                                    M0097  5   11 
+     6.6      9.5                                                 M0097  5   12 
+ENDCOMMON            3                                            M0097  5   13 
+DATA                 3          5                                 M0097  5   14 
+ANG        DATA       ERR-S                                       M0097  5   15 
+ADEG       ARB-UNITS  ARB-UNITS                                   M0097  5   16 
+    30.         0.4        0.15                                   M0097  5   17 
+    60.         0.59       0.16                                   M0097  5   18 
+    90.         0.86       0.16                                   M0097  5   19 
+   120.         0.78       0.16                                   M0097  5   20 
+   135.         0.61       0.17                                   M0097  5   21 
+ENDDATA              7                                            M0097  5   22 
+ENDSUBENT           21                                            M0097  599999 
+SUBENT        M0097006   20130528   20130823   20130819       M067M0097  6    1 
+BIB                  5          5                                 M0097  6    2 
+REACTION   (3-LI-7(G,T)2-HE-4,PAR,DA,,BRA/REL)                    M0097  6    3 
+EN-SEC     (E-EXC,3-LI-7)                                         M0097  6    4 
+ERR-ANALYS (ERR-S) Statistical errors.                            M0097  6    5 
+STATUS      Data from Fig. 6.                                     M0097  6    6 
+HISTORY    (20130528A) Corrected by V.Varlamov: BRS -> BRA.       M0097  6    7 
+ENDBIB               5                                            M0097  6    8 
+COMMON               2          3                                 M0097  6    9 
+E-EXC      EN-MAX                                                 M0097  6   10 
+MEV        MEV                                                    M0097  6   11 
+     8.3      9.5                                                 M0097  6   12 
+ENDCOMMON            3                                            M0097  6   13 
+DATA                 3          5                                 M0097  6   14 
+ANG        DATA       ERR-S                                       M0097  6   15 
+ADEG       ARB-UNITS  ARB-UNITS                                   M0097  6   16 
+    30.         0.85       0.15                                   M0097  6   17 
+    60.         0.42       0.16                                   M0097  6   18 
+    90.         0.62       0.16                                   M0097  6   19 
+   120.         0.51       0.16                                   M0097  6   20 
+   135.         0.91       0.18                                   M0097  6   21 
+ENDDATA              7                                            M0097  6   22 
+ENDSUBENT           21                                            M0097  699999 
+ENDENTRY             6          0                                 M009799999999 
+ENDTRANS             1          0                                 Z999999999999 

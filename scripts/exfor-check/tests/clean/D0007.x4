@@ -1,0 +1,395 @@
+TRANS             9001   20261111                                 D0000  0    0 
+ENTRY            D0007   20171122                                 D0007  0    1 
+SUBENT        D0007001   20171122   20171122   20171122       D112D0007  1    1 
+BIB                 16         53                                 D0007  1    2 
+TITLE      Unified absolute differential cross sections for       D0007  1    3 
+            neutron production by the hydrogen isotopes for       D0007  1    4 
+            charged-particle energies between 6 and 17 MeV        D0007  1    5 
+AUTHOR     (M.Drosg)                                              D0007  1    6 
+INSTITUTE  (1USALAS,2AUSVIE)                                      D0007  1    7 
+REFERENCE  (J,NSE,67,190,1978)                                    D0007  1    8 
+           (R,LA-6262-MS,1976) Prelim. Ed=7 and 10MeV data        D0007  1    9 
+FACILITY   (VDGT,1USALAS)                                         D0007  1   10 
+            with a time of flight system. Klystron buncher used.  D0007  1   11 
+INC-SPECT  The entrance foil was made of molybdenum and the beam  D0007  1   12 
+           stop was made of gold. the absolute value of the energyD0007  1   13 
+           loss is known to about +-0.02MeV. The energy spread is D0007  1   14 
+           less than 0.1MeV(fwhm).                                D0007  1   15 
+SAMPLE     The target (sample) cell, about 3 cm long, was filled  D0007  1   16 
+           with tritium at a pressure of ca. 1.7 atm.  The cell   D0007  1   17 
+           was cooled by a fine jet of air                        D0007  1   18 
+METHOD     (TOF) flight path = 256 cm. quasi-absolute method.     D0007  1   19 
+           The relative efficiency of the long liquid scinti-     D0007  1   20 
+           llator was determined originally by H-1(n,n)H-1,  and  D0007  1   21 
+           it was checked over a wide range by means of           D0007  1   22 
+           H-3(d,n)He-4 and H-2(d,n)He-4 reactions.               D0007  1   23 
+           To establish an absolute scale for the tof measurementsD0007  1   24 
+           the same cross-section standard and the same experimentD0007  1   25 
+           conditions were used for all 3 reactions, H-3(p,n)He-3,D0007  1   26 
+           H-3(d,n)He-4 and h-2(d,n)he-3 (and also for H2(t,n)He4)D0007  1   27 
+           The experimental setup has been calibrated with        D0007  1   28 
+           appropriate reference cross section, rather than       D0007  1   29 
+           normalizing relative angular distribution to an        D0007  1   30 
+           absolute 0-deg excitation.                             D0007  1   31 
+DETECTOR   (SCIN)                                                 D0007  1   32 
+           12 cm diameter by 6-cm long liquid scintillator, NE-213D0007  1   33 
+            coupled to a 56 avp photo-tube.                       D0007  1   34 
+REL-REF    (M,,M.Drosg,J,NIM,105,573,1972)                        D0007  1   35 
+            Counting efficiency determination                     D0007  1   36 
+PART-DET   (N)                                                    D0007  1   37 
+MONITOR    Absolute, tof method with a well established efficiencyD0007  1   38 
+           curve by H-1(n,el)H-1 scattering experiment.           D0007  1   39 
+CORRECTION To obtain the data with accuracy as close to 1 percent D0007  1   40 
+           as possible, whenever an effect was found to be larger D0007  1   41 
+           than 0.5 percent, the data were corrected              D0007  1   42 
+           correspondingly.                                       D0007  1   43 
+ERR-ANALYS The combination of the statistical uncertainty with theD0007  1   44 
+           uncertainty of the background subtraction.             D0007  1   45 
+STATUS     (APRVD) approved by M.Drosg,79/03/06.comment+correct'n D0007  1   46 
+HISTORY    (19790105C) KO.                                        D0007  1   47 
+           (19970428U) HW.- corrections in reaction code in       D0007  1   48 
+            subents 002 - 007.-                                   D0007  1   49 
+           (19980717A) HW.- correction in author code, subents    D0007  1   50 
+            004,005 modified. new subents 008 and 009 added.      D0007  1   51 
+           (20060724A) SD. BIB upgraded.                          D0007  1   52 
+           (20171005A) VS. REACTION corrected in 003.             D0007  1   53 
+                           EN corrected in 008-009.               D0007  1   54 
+           (20171122A) On. Major revisions in 003,008-009.        D0007  1   55 
+ENDBIB              53                                            D0007  1   56 
+NOCOMMON             0          0                                 D0007  1   57 
+ENDSUBENT           56                                            D0007  199999 
+SUBENT        D0007002   20060724   20061121   20061120       D048D0007  2    1 
+BIB                  4          8                                 D0007  2    2 
+REACTION   (1-H-3(D,N)2-HE-4,,DA)                                 D0007  2    3 
+            0 deg.cross-sections between 7 and 16.5 MeV           D0007  2    4 
+ERR-ANALYS (DATA-ERR1)  differential error                        D0007  2    5 
+           (DATA-ERR2)  a systematic error of about 0.4 percent   D0007  2    6 
+            per MeV must be added, above 11 MeV. this is due to   D0007  2    7 
+            the extrapolation of the efficiency curve.            D0007  2    8 
+STATUS     data taken from table X of Nucl.Sci.Eng.,67(1978)190.  D0007  2    9 
+HISTORY    (19970428U) hw.- n deleted from sf7.-                  D0007  2   10 
+ENDBIB               8                                            D0007  2   11 
+COMMON               1          3                                 D0007  2   12 
+ANG                                                               D0007  2   13 
+ADEG                                                              D0007  2   14 
+0.                                                                D0007  2   15 
+ENDCOMMON            3                                            D0007  2   16 
+DATA                 4         13                                 D0007  2   17 
+EN         DATA       DATA-ERR1  DATA-ERR2                        D0007  2   18 
+MEV        MB/SR      PER-CENT   PER-CENT                         D0007  2   19 
+ 7.00      27.4       1.0                                         D0007  2   20 
+ 8.00      26.7       1.0                                         D0007  2   21 
+ 9.00      25.8       1.0                                         D0007  2   22 
+10.00      25.3       1.0                                         D0007  2   23 
+11.00      25.0       1.0                                         D0007  2   24 
+12.00      24.8       1.0        0.4                              D0007  2   25 
+13.36      24.9       1.0        0.9                              D0007  2   26 
+14.00      25.6       1.0        1.2                              D0007  2   27 
+14.50      25.6       1.1        1.6                              D0007  2   28 
+15.00      26.1       1.1        1.6                              D0007  2   29 
+15.50      26.0       1.1        1.8                              D0007  2   30 
+16.00      26.5       2.0        2.0                              D0007  2   31 
+16.50      26.7       2.8        2.2                              D0007  2   32 
+ENDDATA             15                                            D0007  2   33 
+ENDSUBENT           32                                            D0007  299999 
+SUBENT        D0007003   20171122   20171122   20171122       D112D0007  3    1 
+BIB                  4          7                                 D0007  3    2 
+REACTION   (1-H-2(T,N)2-HE-4,,DA)                                 D0007  3    3 
+ERR-ANALYS (ERR-1) Scale error  (1.5%)                            D0007  3    4 
+           (ERR-2) Differential error                             D0007  3    5 
+STATUS     (TABLE) Table V of Nucl.Sci.Eng.67(1978)190            D0007  3    6 
+HISTORY    (19970428U) HW.- N deleted from SF7.-                  D0007  3    7 
+           (20171005A) VS. REACTION corrected.                    D0007  3    8 
+           (20171122A) On. DATA-ERR1 -> ERR-1, DATA-ERR2 -> ERR-2.D0007  3    9 
+ENDBIB               7                                            D0007  3   10 
+COMMON               2          3                                 D0007  3   11 
+ANG        ERR-1                                                  D0007  3   12 
+ADEG       PER-CENT                                               D0007  3   13 
+ 0.         1.5                                                   D0007  3   14 
+ENDCOMMON            3                                            D0007  3   15 
+DATA                 3          7                                 D0007  3   16 
+EN         DATA       ERR-2                                       D0007  3   17 
+MEV        MB/SR      PER-CENT                                    D0007  3   18 
+  7.49      11.85      1.0                                        D0007  3   19 
+  8.99      10.57      1.1                                        D0007  3   20 
+ 10.48      10.44      1.0                                        D0007  3   21 
+ 11.98      11.52      1.2                                        D0007  3   22 
+ 13.48      12.33      1.8                                        D0007  3   23 
+ 14.98      12.6       2.5                                        D0007  3   24 
+ 16.65      13.2       4.4                                        D0007  3   25 
+ENDDATA              9                                            D0007  3   26 
+ENDSUBENT           25                                            D0007  399999 
+SUBENT        D0007004   20060724   20061121   20061120       D048D0007  4    1 
+BIB                  5          9                                 D0007  4    2 
+REACTION   (1-H-3(D,N)2-HE-4,,DA)                                 D0007  4    3 
+            center-of-mass differential cross sections at 7.00MeV D0007  4    4 
+MISC-COL   (MISC) = angle in laboratory system.                   D0007  4    5 
+ERR-ANALYS (DATA-ERR1) scale error +-1.5 percent.                 D0007  4    6 
+           (DATA-ERR2) differential error                         D0007  4    7 
+STATUS     Data taken from table XI of Nucl.Sci.Eng.,(1978)190.   D0007  4    8 
+HISTORY    (19980717A) HW- reaction code and data section         D0007  4    9 
+            modified.                                             D0007  4   10 
+           (20030325A) OS. reaction and data heading corrected    D0007  4   11 
+ENDBIB               9                                            D0007  4   12 
+COMMON               2          3                                 D0007  4   13 
+EN         DATA-ERR1                                              D0007  4   14 
+MEV        PER-CENT                                               D0007  4   15 
+7.00       1.5                                                    D0007  4   16 
+ENDCOMMON            3                                            D0007  4   17 
+DATA                 4         21                                 D0007  4   18 
+ANG-CM     MISC       DATA-CM    DATA-ERR2                        D0007  4   19 
+ADEG       ADEG       MB/SR      PER-CENT                         D0007  4   20 
+  0.0        0.0      19.62      1.0                              D0007  4   21 
+  5.9        5.0      18.75      1.2                              D0007  4   22 
+ 11.8       10.0      16.77      1.0                              D0007  4   23 
+ 17.7       15.0      14.00      1.3                              D0007  4   24 
+ 23.6       20.0      10.79      2.0                              D0007  4   25 
+ 29.4       25.0       8.30      0.9                              D0007  4   26 
+ 35.25      30.0       6.65      1.1                              D0007  4   27 
+ 46.75      40.0      5.48       2.0                              D0007  4   28 
+ 58.05      50.0       5.86      1.1                              D0007  4   29 
+ 69.1       60.0       5.85      0.9                              D0007  4   30 
+ 79.85      70.0       5.06      2.0                              D0007  4   31 
+ 85.15      75.0       4.57      1.4                              D0007  4   32 
+ 90.35      80.0       3.96      1.1                              D0007  4   33 
+100.5       90.0       3.31      1.1                              D0007  4   34 
+105.5       95.0       3.23      1.3                              D0007  4   35 
+110.3      100.0       3.27      2.0                              D0007  4   36 
+115.1      105.0       3.59      1.4                              D0007  4   37 
+119.9      110.0       3.97      2.5                              D0007  4   38 
+129.1      120.0       4.74      1.2                              D0007  4   39 
+138.0      130.0       5.48      1.1                              D0007  4   40 
+139.6      131.8       5.50      1.1                              D0007  4   41 
+ENDDATA             23                                            D0007  4   42 
+ENDSUBENT           41                                            D0007  499999 
+SUBENT        D0007005   20060724   20061121   20061120       D048D0007  5    1 
+BIB                  5          9                                 D0007  5    2 
+REACTION   (1-H-3(D,N)2-HE-4,,DA)                                 D0007  5    3 
+            center-of-mass differential cross sections at 10.0 MeVD0007  5    4 
+MISC-COL   (MISC) = angle in laboratory system.                   D0007  5    5 
+ERR-ANALYS (DATA-ERR1) scale error +-1.5 percent.                 D0007  5    6 
+           (DATA-ERR2) differential error.                        D0007  5    7 
+STATUS     Data taken from table XII of Nucl.Sci.Eng.,67(1978)190.D0007  5    8 
+HISTORY    (19980717A) HW- reaction code and data section         D0007  5    9 
+            modified.                                             D0007  5   10 
+           (20060724U) corrected: 4-dig. year, lower cases        D0007  5   11 
+ENDBIB               9                                            D0007  5   12 
+COMMON               2          3                                 D0007  5   13 
+EN         DATA-ERR1                                              D0007  5   14 
+MEV        PER-CENT                                               D0007  5   15 
+10.00      1.5                                                    D0007  5   16 
+ENDCOMMON            3                                            D0007  5   17 
+DATA                 4         31                                 D0007  5   18 
+ANG-CM     MISC       DATA-CM    DATA-ERR2                        D0007  5   19 
+ADEG       ADEG       MB/SR      PER-CENT                         D0007  5   20 
+  0.0        0.0      17.26      1.0                              D0007  5   21 
+ 12.1       10.0      13.40      0.9                              D0007  5   22 
+ 17.9       14.8      10.12      1.5                              D0007  5   23 
+ 24.1       20.0       6.81      1.5                              D0007  5   24 
+ 30.7       25.5       4.29      1.1                              D0007  5   25 
+ 32.6       27.1       3.76      1.5                              D0007  5   26 
+ 35.3       29.4       3.29      1.3                              D0007  5   27 
+ 36.0       30.0       3.18      1.5                              D0007  5   28 
+ 40.0       33.3       3.00      1.1                              D0007  5   29 
+ 43.7       36.5       3.09      1.6                              D0007  5   30 
+ 47.8       40.0       3.59      1.5                              D0007  5   31 
+ 49.05      41.1       3.74      1.0                              D0007  5   32 
+ 52.3       43.9       4.22      1.5                              D0007  5   33 
+ 53.3       44.8       4.38      1.2                              D0007  5   34 
+ 55.0       46.3       4.55      1.5                              D0007  5   35 
+ 57.3       48.3       4.84      0.9                              D0007  5   36 
+ 59.25      50.0       5.02      1.1                              D0007  5   37 
+ 62.3       52.7       5.09      0.9                              D0007  5   38 
+ 66.8       56.7       5.21      1.0                              D0007  5   39 
+ 70.45      60.0       5.13      1.5                              D0007  5   40 
+ 71.25      60.7       5.10      1.1                              D0007  5   41 
+ 81.4       70.0       3.96      1.5                              D0007  5   42 
+ 89.0       77.2       3.00      1.5                              D0007  5   43 
+ 96.0       84.0       2.34      1.2                              D0007  5   44 
+102.1       90.0       2.06      1.5                              D0007  5   45 
+106.4       94.3       2.02      1.6                              D0007  5   46 
+111.9      100.0       2.25      1.5                              D0007  5   47 
+120.0      108.5       2.81      1.2                              D0007  5   48 
+121.3      110.0       2.39      1.5                              D0007  5   49 
+128.65     118.0       3.42      1.4                              D0007  5   50 
+140.7      131.7       4.16      1.5                              D0007  5   51 
+ENDDATA             33                                            D0007  5   52 
+ENDSUBENT           51                                            D0007  599999 
+SUBENT        D0007006   20060724   20061121   20061120       D048D0007  6    1 
+BIB                  4          7                                 D0007  6    2 
+REACTION   (1-H-3(D,N)2-HE-4,,DA)                                 D0007  6    3 
+            center-of-mass differential cross sections at 13.355  D0007  6    4 
+            MeV.                                                  D0007  6    5 
+ERR-ANALYS (DATA-ERR1) differential error                         D0007  6    6 
+           (DATA-ERR2) scale error                                D0007  6    7 
+STATUS     Data taken from table XIII of Nucl.Sci.Eng.,67(1978)190D0007  6    8 
+HISTORY    (19970428U) hw.- n deleted from sf7.-                  D0007  6    9 
+ENDBIB               7                                            D0007  6   10 
+COMMON               2          3                                 D0007  6   11 
+EN         DATA-ERR2                                              D0007  6   12 
+MEV        PER-CENT                                               D0007  6   13 
+13.355     1.5                                                    D0007  6   14 
+ENDCOMMON            3                                            D0007  6   15 
+DATA                 3         22                                 D0007  6   16 
+ANG-CM     DATA-CM    DATA-ERR1                                   D0007  6   17 
+ADEG       MB/SR      PER-CENT                                    D0007  6   18 
+  0.0      16.36      1.5                                         D0007  6   19 
+ 12.5      11.64      2.5                                         D0007  6   20 
+ 24.7       4.67      1.6                                         D0007  6   21 
+ 30.7       2.68      1.5                                         D0007  6   22 
+ 35.6       1.963     2.0                                         D0007  6   23 
+ 41.6       2.214     1.4                                         D0007  6   24 
+ 47.7       3.158     1.0                                         D0007  6   25 
+ 53.8       4.182     1.0                                         D0007  6   26 
+ 60.0       4.867     1.0                                         D0007  6   27 
+ 66.3       4.902     1.0                                         D0007  6   28 
+ 72.7       4.413     1.0                                         D0007  6   29 
+ 79.3       3.455     1.0                                         D0007  6   30 
+ 86.1       2.398     1.0                                         D0007  6   31 
+ 93.2       1.643     1.1                                         D0007  6   32 
+100.7       1.365     1.3                                         D0007  6   33 
+103.8       1.423     1.5                                         D0007  6   34 
+113.2       1.95      2.5                                         D0007  6   35 
+114.8       2.11      1.7                                         D0007  6   36 
+122.6       2.64      1.5                                         D0007  6   37 
+131.6       2.88      1.9                                         D0007  6   38 
+135.2       2.95      1.7                                         D0007  6   39 
+140.2       3.03      1.9                                         D0007  6   40 
+ENDDATA             24                                            D0007  6   41 
+ENDSUBENT           40                                            D0007  699999 
+SUBENT        D0007007   20060724   20061121   20061120       D048D0007  7    1 
+BIB                  4          8                                 D0007  7    2 
+REACTION   (1-H-3(D,N)2-HE-4,,DA)                                 D0007  7    3 
+            differential cross-section at 16.5 MeV (lab.-system)  D0007  7    4 
+ERR-ANALYS (DATA-ERR1) these errors include uncertainties due to  D0007  7    5 
+            the extrapolation of the efficiency curve             D0007  7    6 
+           (DATA-ERR2) scale error,+-1.5 percent                  D0007  7    7 
+STATUS     Data taken from table xiv of Nucl.Sci.Eng.,67(1978)190.D0007  7    8 
+HISTORY    (19970428U) hw.- n deleted from sf7.-                  D0007  7    9 
+           (20060724U) corrected: 4-dig. year, lower cases        D0007  7   10 
+ENDBIB               8                                            D0007  7   11 
+COMMON               2          3                                 D0007  7   12 
+EN         DATA-ERR2                                              D0007  7   13 
+MEV        PER-CENT                                               D0007  7   14 
+16.5       1.5                                                    D0007  7   15 
+ENDCOMMON            3                                            D0007  7   16 
+DATA                 3         14                                 D0007  7   17 
+ANG        DATA       DATA-ERR1                                   D0007  7   18 
+ADEG       MB/SR      PER-CENT                                    D0007  7   19 
+  0.       26.71      3.4                                         D0007  7   20 
+ 10.       18.15      2.8                                         D0007  7   21 
+ 20.        5.74      3.2                                         D0007  7   22 
+ 30.        2.38      2.7                                         D0007  7   23 
+ 40.        4.93      2.3                                         D0007  7   24 
+ 50.        6.25      1.5                                         D0007  7   25 
+ 60.        4.94      1.6                                         D0007  7   26 
+ 70.        2.50      2.5                                         D0007  7   27 
+ 80.        1.16      2.8                                         D0007  7   28 
+ 90.        1.15      3.3                                         D0007  7   29 
+100.        1.77      3.0                                         D0007  7   30 
+110.        2.05      3.0                                         D0007  7   31 
+120.        1.92      4.9                                         D0007  7   32 
+130.        1.65      6.0                                         D0007  7   33 
+ENDDATA             16                                            D0007  7   34 
+ENDSUBENT           33                                            D0007  799999 
+SUBENT        D0007008   20171122   20171122   20171122       D112D0007  8    1 
+BIB                  6         11                                 D0007  8    2 
+REACTION   (1-H-3(D,N)2-HE-4,,DA,,,DERIV)                         D0007  8    3 
+ANALYSIS   Derived from Et=10.483 MeV 2H(t,n)4He data set         D0007  8    4 
+MISC-COL   (MISC) Angle in laboratory system                      D0007  8    5 
+ERR-ANALYS (ERR-1) Scale error (1.5%)                             D0007  8    6 
+           (ERR-2) Differential error                             D0007  8    7 
+STATUS     (TABLE) Table XI of Nucl.Sci.Eng.67(1978)190           D0007  8    8 
+           (COREL,D0007004) Data from direct 3H(d,n)4He exp.      D0007  8    9 
+HISTORY    (19980717A) HW.- subent 004 splited up.-               D0007  8   10 
+           (20030325A) OS. reaction and data heading corrected    D0007  8   11 
+           (20171005A) VS. EN value corrected.                    D0007  8   12 
+           (20171122A) On. DATA-ERR1 -> ERR-1, DATA-ERR2 -> ERR-2.D0007  8   13 
+ENDBIB              11                                            D0007  8   14 
+COMMON               2          3                                 D0007  8   15 
+EN         ERR-1                                                  D0007  8   16 
+MEV        PER-CENT                                               D0007  8   17 
+ 7.00       1.5                                                   D0007  8   18 
+ENDCOMMON            3                                            D0007  8   19 
+DATA                 4         20                                 D0007  8   20 
+ANG-CM     MISC       DATA-CM    ERR-2                            D0007  8   21 
+ADEG       ADEG       MB/SR      PER-CENT                         D0007  8   22 
+  36.5                 6.32       2.0                             D0007  8   23 
+  41.0                 5.71       1.4                             D0007  8   24 
+  47.1                 5.53       1.2                             D0007  8   25 
+  52.4                 5.48       1.4                             D0007  8   26 
+  58.05      50.0      5.81       1.1                             D0007  8   27 
+  69.1       60.0      6.03       1.2                             D0007  8   28 
+  79.85      70.0      5.23       1.2                             D0007  8   29 
+  85.15      75.0      4.57       1.1                             D0007  8   30 
+  87.15                4.34       1.0                             D0007  8   31 
+ 100.5       90.0      3.29       1.4                             D0007  8   32 
+ 105.5       95.0      3.20       1.2                             D0007  8   33 
+ 110.3      100.0      3.34       1.1                             D0007  8   34 
+ 115.1      105.0      3.55       1.2                             D0007  8   35 
+ 119.9      110.0      3.89       1.2                             D0007  8   36 
+ 129.1      120.0      4.69       1.0                             D0007  8   37 
+ 138.0      130.0      5.37       1.2                             D0007  8   38 
+ 144.6                 5.65       1.1                             D0007  8   39 
+ 155.25                6.26       1.3                             D0007  8   40 
+ 167.65                6.41       1.3                             D0007  8   41 
+ 180.0                 6.43       1.0                             D0007  8   42 
+ENDDATA             22                                            D0007  8   43 
+ENDSUBENT           42                                            D0007  899999 
+SUBENT        D0007009   20171122   20171122   20171122       D112D0007  9    1 
+BIB                  6         10                                 D0007  9    2 
+REACTION   (1-H-3(D,N)2-HE-4,,DA,,,DERIV)                         D0007  9    3 
+ANALYSIS   Derived from Et=14.975 MeV 2H(t,n)4He data set         D0007  9    4 
+MISC-COL   (MISC) Angle in laboratory system                      D0007  9    5 
+ERR-ANALYS (ERR-1) Scale error (1.5%)                             D0007  9    6 
+           (ERR-2) Differential error                             D0007  9    7 
+STATUS     (TABLE) Table XII of Nucl.Sci.Eng.67(1978)190          D0007  9    8 
+           (COREL,D0007005) Data from direct 3H(d,n)4He exp.      D0007  9    9 
+HISTORY    (19980717A) HW.- subent 005 splited up.-               D0007  9   10 
+           (20171005A) VS. EN value corrected.                    D0007  9   11 
+           (20171122A) On. DATA-ERR1 -> ERR-1, DATA-ERR2 -> ERR-2.D0007  9   12 
+ENDBIB              10                                            D0007  9   13 
+COMMON               2          3                                 D0007  9   14 
+EN         ERR-1                                                  D0007  9   15 
+MEV        PER-CENT                                               D0007  9   16 
+ 10.00      1.5                                                   D0007  9   17 
+ENDCOMMON            3                                            D0007  9   18 
+DATA                 4         32                                 D0007  9   19 
+ANG-CM     MISC       DATA-CM    ERR-2                            D0007  9   20 
+ADEG       ADEG       MB/SR      PER-CENT                         D0007  9   21 
+  35.3       29.4      3.45       4.4                             D0007  9   22 
+  40.0       33.3      3.11       4.9                             D0007  9   23 
+  44.3                 3.25       3.4                             D0007  9   24 
+  49.05      41.1      3.78       2.4                             D0007  9   25 
+  53.3       44.8      4.36       2.0                             D0007  9   26 
+  57.3       48.3      4.81       1.8                             D0007  9   27 
+  59.25      50.0      4.93       2.0                             D0007  9   28 
+  62.3       52.7      5.21       1.4                             D0007  9   29 
+  66.8       56.7      5.20       1.5                             D0007  9   30 
+  70.45      60.0      5.12       1.7                             D0007  9   31 
+  71.25      60.7      5.10       1.1                             D0007  9   32 
+  80.0                 4.18       1.3                             D0007  9   33 
+  89.0       77.2      3.00       1.1                             D0007  9   34 
+  91.9                 2.69       2.5                             D0007  9   35 
+  97.3                 2.26       2.5                             D0007  9   36 
+ 102.1       90.0      2.08       2.5                             D0007  9   37 
+ 104.2                 2.04       1.8                             D0007  9   38 
+ 108.2                 2.08       2.3                             D0007  9   39 
+ 113.4                 2.33       2.3                             D0007  9   40 
+ 114.6                 2.45       1.4                             D0007  9   41 
+ 118.5                 2.66       2.3                             D0007  9   42 
+ 123.2                 3.04       2.3                             D0007  9   43 
+ 125.3                 3.21       1.3                             D0007  9   44 
+ 128.65     118.0      3.47       1.3                             D0007  9   45 
+ 139.3                 4.19       1.3                             D0007  9   46 
+ 140.7      131.7      4.31       1.2                             D0007  9   47 
+ 145.1                 4.58       1.4                             D0007  9   48 
+ 147.7                 4.77       1.1                             D0007  9   49 
+ 153.8                 5.26       1.1                             D0007  9   50 
+ 160.4                 5.84       1.2                             D0007  9   51 
+ 167.6                 6.64       1.0                             D0007  9   52 
+ 180.0                 7.24       1.5                             D0007  9   53 
+ENDDATA             34                                            D0007  9   54 
+ENDSUBENT           53                                            D0007  999999 
+ENDENTRY             9          0                                 D000799999999 
+ENDTRANS             1          0                                 Z999999999999 

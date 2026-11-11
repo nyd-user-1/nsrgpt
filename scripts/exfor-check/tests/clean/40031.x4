@@ -1,0 +1,227 @@
+TRANS             9001   20261111                                 40000  0    0 
+ENTRY            40031   20201020                                 40031  0    1 
+SUBENT        40031001   20201020   20210320   20210319       419340031  1    1 
+BIB                 12         38                                 40031  1    2 
+INSTITUTE  (4RUSEPA)                                              40031  1    3 
+REFERENCE  (J,YF,14,73,1971) Iss.1                                40031  1    4 
+           (J,SNP,14,41,1972) Engl.translation                    40031  1    5 
+            Main reference.                                       40031  1    6 
+            Curves of incident spectra and data tables are given  40031  1    7 
+AUTHOR     (E.F.Fomushkin,E.K.Gutnikova,A.N.Maslov,G.F.Novoselov, 40031  1    8 
+           V.I.Panin)                                             40031  1    9 
+TITLE      Neutron-fission cross sections of Bk249 and Cf249      40031  1   10 
+SAMPLE     Films of U-235 monitor samples, U-235 content is 90.0 %40031  1   11 
+           and its amount is (1.640+-0.025)*10**15 nuclei         40031  1   12 
+METHOD     (FISCT) Direct counting of fission fragments           40031  1   13 
+DETECTOR   (TRD) Dielectric track detector with:                  40031  1   14 
+            polycarbonate thin film of 10.E4 molecular weight -   40031  1   15 
+            for measurements by monoenergetic neutrons;           40031  1   16 
+            silicate glass plates - for measurements by thermal   40031  1   17 
+            and fast reactor neutrons.                            40031  1   18 
+            Detection efficiency ~12.86 % for isotropic angular   40031  1   19 
+            distribution.                                         40031  1   20 
+MONITOR    (92-U-235(N,F),,SIG)                                   40031  1   21 
+PART-DET   (FF)                                                   40031  1   22 
+DECAY-DATA (98-CF-249,345.YR,A)) 345.+-15 yr                      40031  1   23 
+           (97-BK-249,314.D,B-) 314+-8 d;                         40031  1   24 
+             Bk-249 alpha decay half-life (5.93+-0.36)*10**4 yr.  40031  1   25 
+            ALPHA/BETA=(1.45+-0.08)*10**-5 .                      40031  1   26 
+            Half-lives used for determination of nuclei amount in 40031  1   27 
+            samples.                                              40031  1   28 
+CORRECTION  For background of scattered neutrons  < 1.5%;         40031  1   29 
+            for effect of evaporated neutrons for U235 at         40031  1   30 
+            En=3.0 MeV - ~3-5 %,                                  40031  1   31 
+            for impurities in samples (Cf-249 in Bk-249 sample,   40031  1   32 
+           assuming fis.C-S 2.2 b at En= 1.5 , 3.0 MeV) <1.5%.    40031  1   33 
+HISTORY    (19771125C) Compiled at the centre - CJD               40031  1   34 
+           (20040723A) Date is corrected,                         40031  1   35 
+            Reaction Code of 007 and 008 Subentries was corrected 40031  1   36 
+           (20040818U) Last checking has been done.               40031  1   37 
+           (20201020A) Ref. SNP,14,41,1972 was added.             40031  1   38 
+            Subents 007,008 were corrected                        40031  1   39 
+            STATUS information was updated.                       40031  1   40 
+ENDBIB              38                                            40031  1   41 
+NOCOMMON             0          0                                 40031  1   42 
+ENDSUBENT           41                                            40031  199999 
+SUBENT        40031002   20201020   20210320   20210319       419340031  2    1 
+BIB                  6         11                                 40031  2    2 
+REACTION   (97-BK-249(N,F),,SIG)                                  40031  2    3 
+FACILITY   (VDG)                                                  40031  2    4 
+INC-SOURCE (P-T)                                                  40031  2    5 
+           (D-T)                                                  40031  2    6 
+SAMPLE     Bk layer, amount of Bk-249 (2.19+-0.13)*10**15 nuclei, 40031  2    7 
+           Cf-249 content in Bk-249 sample is 8.0 %               40031  2    8 
+           and Cf-252 content is 4.0E-6 %                         40031  2    9 
+ERR-ANALYS (EN-ERR) Error in neutron energy of a beam -           40031  2   10 
+                   total energy spread.                           40031  2   11 
+           (DATA-ERR)  Mainly due to half-lives and statistics.   40031  2   12 
+STATUS     (TABLE) From Table 2 of Sov.Nucl.Phys.,v.14,p.41,1972  40031  2   13 
+ENDBIB              11                                            40031  2   14 
+COMMON               1          3                                 40031  2   15 
+EN-ERR                                                            40031  2   16 
+KEV                                                               40031  2   17 
+     100.                                                         40031  2   18 
+ENDCOMMON            3                                            40031  2   19 
+DATA                 3          3                                 40031  2   20 
+EN         DATA       DATA-ERR                                    40031  2   21 
+MEV        B          B                                           40031  2   22 
+        1.5       1.21     9.E-02                                 40031  2   23 
+        3.0       1.34     1.E-01                                 40031  2   24 
+       14.5       2.65     2.E-01                                 40031  2   25 
+ENDDATA              5                                            40031  2   26 
+ENDSUBENT           25                                            40031  299999 
+SUBENT        40031003   20201020   20210320   20210319       419340031  3    1 
+BIB                  7          9                                 40031  3    2 
+REACTION   (97-BK-249(N,F),,SIG,,FST)                             40031  3    3 
+FACILITY   (REAC) Fast reactor                                    40031  3    4 
+INC-SOURCE (REAC) Fast reactor                                    40031  3    5 
+SAMPLE     Bk layer, amount of Bk-249 (2.19+-0.13)*10**15 nuclei, 40031  3    6 
+           Cf-249 content in Bk-249 sample is 8.0 %               40031  3    7 
+           and Cf-252 content is 4.0E-6 %                         40031  3    8 
+ERR-ANALYS (DATA-ERR)  Mainly due to half-lives and statistics.   40031  3    9 
+STATUS     (TABLE) From Table 2 of Sov.Nucl.Phys.,v.14,p.41,1972  40031  3   10 
+HISTORY    (20201020A) MONIT was added.                           40031  3   11 
+ENDBIB               9                                            40031  3   12 
+COMMON               1          3                                 40031  3   13 
+EN-DUMMY                                                          40031  3   14 
+MEV                                                               40031  3   15 
+         1.                                                       40031  3   16 
+ENDCOMMON            3                                            40031  3   17 
+DATA                 3          1                                 40031  3   18 
+DATA       DATA-ERR   MONIT                                       40031  3   19 
+B          B          B                                           40031  3   20 
+    0.75       0.06    1.27                                       40031  3   21 
+ENDDATA              3                                            40031  3   22 
+ENDSUBENT           21                                            40031  399999 
+SUBENT        40031004   20201020   20210320   20210319       419340031  4    1 
+BIB                  7         10                                 40031  4    2 
+REACTION   (98-CF-249(N,F),,SIG)                                  40031  4    3 
+FACILITY   (VDG)                                                  40031  4    4 
+INC-SOURCE (D-T)                                                  40031  4    5 
+SAMPLE     Layer of Cf, Cf-249 content is (0.353+-0.015)*10**15   40031  4    6 
+           and (1.28+-0.06)*10**15 nuclei                         40031  4    7 
+CORRECTION Cf-252 content in samples is 2.0E-5 per-cent           40031  4    8 
+ERR-ANALYS (EN-ERR) Error in neutron energy of a beam -           40031  4    9 
+                   total energy spread.                           40031  4   10 
+           (DATA-ERR)  Mainly due to half-lives and statistics.   40031  4   11 
+STATUS     (TABLE) From Table 2 of Sov.Nucl.Phys.,v.14,p.41,1972  40031  4   12 
+ENDBIB              10                                            40031  4   13 
+NOCOMMON             0          0                                 40031  4   14 
+DATA                 4          1                                 40031  4   15 
+EN         EN-ERR     DATA       DATA-ERR                         40031  4   16 
+MEV        KEV        B          B                                40031  4   17 
+       14.5     100.         2.87    0.21                         40031  4   18 
+ENDDATA              3                                            40031  4   19 
+ENDSUBENT           18                                            40031  499999 
+SUBENT        40031005   20201020   20210320   20210319       419340031  5    1 
+BIB                  9         14                                 40031  5    2 
+REACTION   (98-CF-249(N,F),,SIG,,MXW)                             40031  5    3 
+FACILITY   (REAC) Thermal reactor                                 40031  5    4 
+INC-SOURCE (REAC)                                                 40031  5    5 
+INC-SPECT  Neutron temperature= 320. degrees Kelvin.              40031  5    6 
+           Cd difference was measured with stat. accuracy ~2.%.   40031  5    7 
+SAMPLE     Layer of Cf, Cf-249 content is (0.353+-0.015)*10**15   40031  5    8 
+           and (1.28+-0.06)*10**15 nuclei                         40031  5    9 
+MONITOR    ((MONIT)92-U-235(N,F),,SIG)                            40031  5   10 
+ERR-ANALYS (DATA-ERR)  Mainly due to half-lives and statistics.   40031  5   11 
+STATUS     (TABLE) From Table 2 of Sov.Nucl.Phys.,v.14,p.41,1972  40031  5   12 
+HISTORY    (20201020A) MONIT was added.                           40031  5   13 
+            EN-DUMMY=2.53E-02 eV -> KT-K=320 DEG-K according to   40031  5   14 
+            a comment of N.Otsuka (NDS, IAEA).                    40031  5   15 
+            DEG-K -> K.                                           40031  5   16 
+ENDBIB              14                                            40031  5   17 
+COMMON               1          3                                 40031  5   18 
+KT-K                                                              40031  5   19 
+K                                                                 40031  5   20 
+   320.                                                           40031  5   21 
+ENDCOMMON            3                                            40031  5   22 
+DATA                 3          1                                 40031  5   23 
+DATA       DATA-ERR   MONIT                                       40031  5   24 
+B          B          B                                           40031  5   25 
+   1630.     100.        577.                                     40031  5   26 
+ENDDATA              3                                            40031  5   27 
+ENDSUBENT           26                                            40031  599999 
+SUBENT        40031006   20201020   20210320   20210319       419340031  6    1 
+BIB                  6          7                                 40031  6    2 
+REACTION   (98-CF-249(N,F),,SIG,,FST)                             40031  6    3 
+FACILITY   (REAC) Fast reactor                                    40031  6    4 
+INC-SOURCE (REAC) Fast reactor                                    40031  6    5 
+SAMPLE     Layer of Cf, Cf-249 content is (0.353+-0.015)*10**15   40031  6    6 
+           and (1.28+-0.06)*10**15 nuclei                         40031  6    7 
+ERR-ANALYS (DATA-ERR)  Mainly due to half-lives and statistics.   40031  6    8 
+STATUS     (TABLE) From Table 2 of Sov.Nucl.Phys.,v.14,p.41,1972  40031  6    9 
+ENDBIB               7                                            40031  6   10 
+COMMON               1          3                                 40031  6   11 
+EN-DUMMY                                                          40031  6   12 
+MEV                                                               40031  6   13 
+         1.                                                       40031  6   14 
+ENDCOMMON            3                                            40031  6   15 
+DATA                 3          1                                 40031  6   16 
+DATA       DATA-ERR   MONIT                                       40031  6   17 
+B          B          B                                           40031  6   18 
+       2.01    0.13    1.27                                       40031  6   19 
+ENDDATA              3                                            40031  6   20 
+ENDSUBENT           19                                            40031  699999 
+SUBENT        40031007   20201020   20210320   20210319       419340031  7    1 
+BIB                  7         16                                 40031  7    2 
+REACTION   (97-BK-249(N,F),,DA,FF,RSD)                            40031  7    3 
+FACILITY   (VDG)                                                  40031  7    4 
+INC-SOURCE (P-T)                                                  40031  7    5 
+           (D-T)                                                  40031  7    6 
+ANALYSIS    Angular anisotropy was determined as                  40031  7    7 
+             (a0+a2)/(a0-0.5*a2), where a0, a2 - coefficients of  40031  7    8 
+           Legendre polynomials P in angular distribution         40031  7    9 
+            a0+a2*P2(cos(angle)).                                 40031  7   10 
+ERR-ANALYS (EN-ERR) Error in neutron energy of a beam -           40031  7   11 
+                   total energy spread.                           40031  7   12 
+           (DATA-ERR)  Mainly due to statistics and geometrical   40031  7   13 
+           factors.                                               40031  7   14 
+STATUS     (TABLE) From Table 3 of Sov.Nucl.Phys.,v.14,p.41,1972  40031  7   15 
+HISTORY    (20040817A)Reaction code was corrected                 40031  7   16 
+           (20040818U) Last checking has been done.               40031  7   17 
+           (20201020A) PRE code was deleted from SF5              40031  7   18 
+ENDBIB              16                                            40031  7   19 
+COMMON               1          3                                 40031  7   20 
+ANG                                                               40031  7   21 
+ADEG                                                              40031  7   22 
+         0.                                                       40031  7   23 
+ENDCOMMON            3                                            40031  7   24 
+DATA                 4          3                                 40031  7   25 
+EN         EN-ERR     DATA       DATA-ERR                         40031  7   26 
+MEV        KEV        NO-DIM     NO-DIM                           40031  7   27 
+        1.5     100.        1.072    1.8E-02                      40031  7   28 
+        3.      100.        1.035    1.2E-02                      40031  7   29 
+       14.5     100.        1.082    1.1E-02                      40031  7   30 
+ENDDATA              5                                            40031  7   31 
+ENDSUBENT           30                                            40031  799999 
+SUBENT        40031008   20201020   20210320   20210319       419340031  8    1 
+BIB                  7         15                                 40031  8    2 
+REACTION   (98-CF-249(N,F),,DA,FF,RSD)                            40031  8    3 
+FACILITY   (VDG)                                                  40031  8    4 
+INC-SOURCE (D-T)                                                  40031  8    5 
+ANALYSIS    Angular anisotropy was determined as                  40031  8    6 
+             (a0+a2)/(a0-0.5*a2), where a0, a2 - coefficients of  40031  8    7 
+           Legendre polynomials P in angular distribution         40031  8    8 
+            a0+a2*P2(cos(angle)).                                 40031  8    9 
+ERR-ANALYS (EN-ERR) Error in neutron energy of a beam -           40031  8   10 
+                   total energy spread.                           40031  8   11 
+           (DATA-ERR)  Mainly due to statistics and geometrical   40031  8   12 
+           factors.                                               40031  8   13 
+STATUS     (TABLE) From Table 3 of Sov.Nucl.Phys.,v.14,p.41,1972  40031  8   14 
+HISTORY    (20040817A) Reaction code was corrected                40031  8   15 
+           (20040818U) Last checking has been done.               40031  8   16 
+           (20201020A) PRE code was deleted from SF5              40031  8   17 
+ENDBIB              15                                            40031  8   18 
+COMMON               1          3                                 40031  8   19 
+ANG                                                               40031  8   20 
+ADEG                                                              40031  8   21 
+         0.                                                       40031  8   22 
+ENDCOMMON            3                                            40031  8   23 
+DATA                 4          1                                 40031  8   24 
+EN         EN-ERR     DATA       DATA-ERR                         40031  8   25 
+MEV        KEV        NO-DIM     NO-DIM                           40031  8   26 
+       14.5     100.        1.095    1.5E-02                      40031  8   27 
+ENDDATA              3                                            40031  8   28 
+ENDSUBENT           27                                            40031  899999 
+ENDENTRY             8          0                                 4003199999999 
+ENDTRANS             1          0                                 Z999999999999 

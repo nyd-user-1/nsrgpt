@@ -1,0 +1,96 @@
+TRANS             9001   20261111                                 S0000  0    0 
+ENTRY            S0233   20211203                                 S0233  0    1 
+SUBENT        S0233001   20211203   20220323   20220323       S030S0233  1    1 
+BIB                 12         38                                 S0233  1    2 
+TITLE      Differential cross-section for the T(12C,T)12C         S0233  1    3 
+           elastic recoil reaction                                S0233  1    4 
+AUTHOR     (Yiming Duan,Wei Ding,Weidu Wang,Wei Zhang,Liqun Shi)  S0233  1    5 
+INSTITUTE  (3CPRFUD,3CPRNPC)                                      S0233  1    6 
+REFERENCE  (J,NIM/B,483,1,2020)                                   S0233  1    7 
+           #doi:10.1016/j.nimb.2020.10.001                        S0233  1    8 
+FACILITY   (VDGT,3CPRFUD) NEC 9SDH-2 2x3 MV tandem accelerator    S0233  1    9 
+INC-SOURCE The incident beam current was limited to less than 30  S0233  1   10 
+           nA as monitored by a Faraday cup. During the           S0233  1   11 
+           experiment, the chamber was kept at a high vacuum of   S0233  1   12 
+           less than 3.0E-5 Pa.                                   S0233  1   13 
+SAMPLE     A thin solid target Ni/TiTx/Al2O3 was prepared by the  S0233  1   14 
+           conventional hydrogenation method, the atomic ratios   S0233  1   15 
+           of Ti, T and H is 10:8:1, and the atomic thickness of  S0233  1   16 
+           the TiTx layer is about 3.5E17 atoms/cm2.              S0233  1   17 
+DETECTOR   (SIBAR) An Au/Si surface barrier detector was          S0233  1   18 
+           employed to detect the backscattered ions at a         S0233  1   19 
+           laboratory angle of 165 deg, with a solid angle of     S0233  1   20 
+           0.00183 sr. At a laboratory angle of 30 deg, another   S0233  1   21 
+           Au/Si surface barrier detector with a solid angle of   S0233  1   22 
+           0.00246 sr was placed to detect the elastic recoil     S0233  1   23 
+           spectrum. The angular resolution of both detectors     S0233  1   24 
+           were approximately +-0.5 deg and the energy            S0233  1   25 
+           resolution of the detection system was about 30 keV    S0233  1   26 
+           for 12C ions.                                          S0233  1   27 
+METHOD     The relative determination method.                     S0233  1   28 
+ERR-ANALYS (ERR-T) The total error, 5.8%                          S0233  1   29 
+           (ERR-1,2.,3.) The error of peak areas resulting from   S0233  1   30 
+           the statistics and background, 2-3%                    S0233  1   31 
+           (ERR-2)The error of Rutherford scattering cross        S0233  1   32 
+           section for Ni-C(E0), 0.44%                            S0233  1   33 
+           (ERR-3)The error of Rutherford scattering cross        S0233  1   34 
+           section for T-O(ER), 2.6%                              S0233  1   35 
+           (ERR-4)The error of Rutherford scattering cross        S0233  1   36 
+           section for Ni-O(ER0), 0.53%                           S0233  1   37 
+STATUS     (TABLE) Table 2 of Nuclear Inst. and Methods in        S0233  1   38 
+                   Physics Research,B,483,1,2020.                 S0233  1   39 
+HISTORY    (20211203C) Jimin Wang (CNDC)                          S0233  1   40 
+ENDBIB              38                                            S0233  1   41 
+COMMON               4          3                                 S0233  1   42 
+ERR-T      ERR-2      ERR-3      ERR-4                            S0233  1   43 
+PER-CENT   PER-CENT   PER-CENT   PER-CENT                         S0233  1   44 
+        5.8       0.44        2.6       0.53                      S0233  1   45 
+ENDCOMMON            3                                            S0233  1   46 
+ENDSUBENT           45                                            S0233  199999 
+SUBENT        S0233002   20211203   20220323   20220323       S030S0233  2    1 
+BIB                  1          1                                 S0233  2    2 
+REACTION   (6-C-12(T,EL)6-C-12,,DA)                               S0233  2    3 
+ENDBIB               1                                            S0233  2    4 
+COMMON               1          3                                 S0233  2    5 
+ANG                                                               S0233  2    6 
+ADEG                                                              S0233  2    7 
+        30.                                                       S0233  2    8 
+ENDCOMMON            3                                            S0233  2    9 
+DATA                 2         31                                 S0233  2   10 
+EN         DATA                                                   S0233  2   11 
+KEV        MB/SR                                                  S0233  2   12 
+      5227.       191.                                            S0233  2   13 
+      5477.       170.                                            S0233  2   14 
+      5727.       143.                                            S0233  2   15 
+      5977.       126.                                            S0233  2   16 
+      6177.       105.                                            S0233  2   17 
+      6377.        95.                                            S0233  2   18 
+      6577.        77.                                            S0233  2   19 
+      6777.        65.                                            S0233  2   20 
+      6978.        55.                                            S0233  2   21 
+      7178.        47.                                            S0233  2   22 
+      7378.        32.                                            S0233  2   23 
+      7578.        32.                                            S0233  2   24 
+      7778.        32.                                            S0233  2   25 
+      7979.        27.                                            S0233  2   26 
+      8179.        30.                                            S0233  2   27 
+      8379.        28.                                            S0233  2   28 
+      8579.        29.                                            S0233  2   29 
+      8779.        29.                                            S0233  2   30 
+      8879.        27.                                            S0233  2   31 
+      8980.        30.                                            S0233  2   32 
+      9180.        36.                                            S0233  2   33 
+      9480.        46.                                            S0233  2   34 
+      9780.        48.                                            S0233  2   35 
+     10081.        48.                                            S0233  2   36 
+     10381.        48.                                            S0233  2   37 
+     10681.        47.                                            S0233  2   38 
+     10982.        43.                                            S0233  2   39 
+     11282.        41.                                            S0233  2   40 
+     11582.        34.                                            S0233  2   41 
+     11882.        32.                                            S0233  2   42 
+     12183.        28.                                            S0233  2   43 
+ENDDATA             33                                            S0233  2   44 
+ENDSUBENT           43                                            S0233  299999 
+ENDENTRY             2          0                                 S023399999999 
+ENDTRANS             1          0                                 Z999999999999 

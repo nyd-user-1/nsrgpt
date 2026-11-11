@@ -1,0 +1,101 @@
+TRANS             9001   20261111                                 G0000  0    0 
+ENTRY            G0001   20220907                                 G0001  0    1 
+SUBENT        G0001001   20220907   20230117   20230116       G049G0001  1    1 
+BIB                 13         22                                 G0001  1    2 
+TITLE      Study of isomer ratio in (n,2n) and (g,n) reactions    G0001  1    3 
+           at 92Mo, 90Zr, 86Sr, 74Se                              G0001  1    4 
+AUTHOR     (Fam Zui Hien, Ngo Kuang Zui, Nguen Tak An)            G0001  1    5 
+INSTITUTE  (3VN DAL)                                              G0001  1    6 
+REFERENCE  (J,SNP,35,145,1982)                                    G0001  1    7 
+           (J,YF,35,257,1982) in russian                          G0001  1    8 
+REL-REF    (O,30601001,Fam Zui Hien+,J,SNP,35,145,1982)           G0001  1    9 
+             (n,2n) isomeric ratios compiled separately.          G0001  1   10 
+FACILITY   (MICRT)                                                G0001  1   11 
+SAMPLE     metallic samples from natural mixture of isotopes for  G0001  1   12 
+           Mo and Zn.                                             G0001  1   13 
+           oxide sample from natural mixture of isotopes for Sn.  G0001  1   14 
+           metallic sample enriched to 41 per-cent on Se-74 in    G0001  1   15 
+           case of Se-74 measurement                              G0001  1   16 
+INC-SPECT  Bremsstrahlung spectrum with maximum energy 14.5 MeV   G0001  1   17 
+DETECTOR   (GELI)                                                 G0001  1   18 
+METHOD     (ACTIV)                                                G0001  1   19 
+ERR-ANALYS (DATA-ERR) total error.                                G0001  1   20 
+STATUS     (TABLE) data were taken from main ref.                 G0001  1   21 
+HISTORY    (19811120C) VP.                                        G0001  1   22 
+           (20060729A) BIB section updated.The main ref.added     G0001  1   23 
+           (20220907A) VT. Revision in 002-005                    G0001  1   24 
+ENDBIB              22                                            G0001  1   25 
+COMMON               1          3                                 G0001  1   26 
+EN-MAX                                                            G0001  1   27 
+MEV                                                               G0001  1   28 
+   14.5                                                           G0001  1   29 
+ENDCOMMON            3                                            G0001  1   30 
+ENDSUBENT           29                                            G0001  199999 
+SUBENT        G0001002   20220907   20230117   20230116       G049G0001  2    1 
+BIB                  4          5                                 G0001  2    2 
+REACTION   (42-MO-92(G,N)42-MO-91-M/G,,SIG/RAT)                   G0001  2    3 
+DECAY-DATA (42-MO-91-M,65.5SEC,DG,658.,0.55)                      G0001  2    4 
+STATUS     (TABLE) data were taken from tabl.1 of main ref.       G0001  2    5 
+HISTORY    (20220907A) VT. REACTION:SF4: M1/G->M/G and            G0001  2    6 
+           DECAY-DATA: M1->M replaced.                            G0001  2    7 
+ENDBIB               5                                            G0001  2    8 
+NOCOMMON             0          0                                 G0001  2    9 
+DATA                 2          1                                 G0001  2   10 
+DATA       DATA-ERR                                               G0001  2   11 
+NO-DIM     NO-DIM                                                 G0001  2   12 
+    1.54       0.15                                               G0001  2   13 
+ENDDATA              3                                            G0001  2   14 
+ENDSUBENT           13                                            G0001  299999 
+SUBENT        G0001003   20220907   20230117   20230116       G049G0001  3    1 
+BIB                  3          5                                 G0001  3    2 
+REACTION   (40-ZR-90(G,N)40-ZR-89-M/G,,SIG/RAT)                   G0001  3    3 
+DECAY-DATA (40-ZR-89-M,4.18MIN,DG,588.,0.94)                      G0001  3    4 
+           (40-ZR-89-G,78.43HR,DG,908.,1.)                        G0001  3    5 
+HISTORY    (20220907A) VT. REACTION:SF4: M1/G->M/G and            G0001  3    6 
+           DECAY-DATA: M1->M replaced.                            G0001  3    7 
+ENDBIB               5                                            G0001  3    8 
+NOCOMMON             0          0                                 G0001  3    9 
+DATA                 2          1                                 G0001  3   10 
+DATA       DATA-ERR                                               G0001  3   11 
+NO-DIM     NO-DIM                                                 G0001  3   12 
+    1.52       0.04                                               G0001  3   13 
+ENDDATA              3                                            G0001  3   14 
+ENDSUBENT           13                                            G0001  399999 
+SUBENT        G0001004   20220907   20230117   20230116       G049G0001  4    1 
+BIB                  3          5                                 G0001  4    2 
+REACTION   (38-SR-86(G,N)38-SR-85-M/G,,SIG/RAT)                   G0001  4    3 
+DECAY-DATA (38-SR-85-M,69.5MIN,DG,237.,0.87)                      G0001  4    4 
+           (38-SR-85-G,65.19D,DG,514.,1.)                         G0001  4    5 
+HISTORY    (20220907A) VT. REACTION:SF4: M1/G->M/G and            G0001  4    6 
+           DECAY-DATA: M1->M replaced.                            G0001  4    7 
+ENDBIB               5                                            G0001  4    8 
+NOCOMMON             0          0                                 G0001  4    9 
+DATA                 2          1                                 G0001  4   10 
+DATA       DATA-ERR                                               G0001  4   11 
+NO-DIM     NO-DIM                                                 G0001  4   12 
+    0.70       0.07                                               G0001  4   13 
+ENDDATA              3                                            G0001  4   14 
+ENDSUBENT           13                                            G0001  499999 
+SUBENT        G0001005   20220907   20230117   20230116       G049G0001  5    1 
+BIB                  3         11                                 G0001  5    2 
+REACTION   (34-SE-74(G,N)34-SE-73-M/G,,SIG/RAT)                   G0001  5    3 
+DECAY-DATA (34-SE-73-G,7.1HR,DG,361.,1.0)                         G0001  5    4 
+           (34-SE-73-M,38.9MIN,DG,361.,0.73)                      G0001  5    5 
+           it was measured the decay curve of the 34-Se-73-G      G0001  5    6 
+           which included the curve of Se-73-G decay formed       G0001  5    7 
+           directly after (g,n) reaction plus decays of Se-74-G   G0001  5    8 
+           formed after internal gamma transitions from Se-74-M   G0001  5    9 
+           state to Se-74-G state and then equation of the        G0001  5   10 
+           decay was solved relative isomer ratio                 G0001  5   11 
+HISTORY    (20220907A) VT. REACTION:SF4: M1/G->M/G and            G0001  5   12 
+           DECAY-DATA: M1->M replaced.                            G0001  5   13 
+ENDBIB              11                                            G0001  5   14 
+NOCOMMON             0          0                                 G0001  5   15 
+DATA                 2          1                                 G0001  5   16 
+DATA       DATA-ERR                                               G0001  5   17 
+NO-DIM     NO-DIM                                                 G0001  5   18 
+    7.5        1.0                                                G0001  5   19 
+ENDDATA              3                                            G0001  5   20 
+ENDSUBENT           19                                            G0001  599999 
+ENDENTRY             5          0                                 G000199999999 
+ENDTRANS             1          0                                 Z999999999999 
