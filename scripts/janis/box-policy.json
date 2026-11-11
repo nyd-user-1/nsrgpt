@@ -1,0 +1,2 @@
+{"Version":"2012-10-17","Statement":[
+ {"Effect":"Allow","Action":["s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload"],"Resource":["arn:aws:s3:::nsr-lake-613473203863/lake/janis/*","arn:aws:s3:::nsr-lake-613473203863/lake/_work/janis/*"]}]}
