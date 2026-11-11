@@ -1,7 +1,8 @@
 -- exfor_serve_search_index: one row per dataset (a subentry's REACTION record: subentry + pointer; one per subentry
 -- for the 9 in 10 subentries with a single reaction), every field the EXFOR search form filters on.
 -- Source: J4 2026-10-28 (exfor_j4_*), the dictionary (exfor_dict_*), C5 (exfor_c5_datasets).
--- Energy min and max are incident energies (dictionary 24 families A and C) in eV, from DATA columns and COMMON values
+-- Energy min and max are incident energies in eV: the points' own range where exfor_serve_points holds the dataset
+-- (brief 70 follow-up), else (dictionary 24 families A and C) from DATA columns and COMMON values
 -- (the subentry's own and its entry's subentry 001) whose pointer is blank or the dataset's, times dictionary 25's
 -- factor for the unit. Only dictionary 25 energy units (family E) with a fixed factor count: per-nucleon units
 -- (MEV/A, GEV/A) and temperatures (KT in K) are left out, and so are *-DUMMY headings.
@@ -36,7 +37,10 @@ rng AS (
   SELECT r.subent, r.pointer, min(e.emin) AS energy_min_ev, max(e.emax) AS energy_max_ev
   FROM rec r JOIN ev_ptr e ON e.subent = r.subent AND (e.pointer = '' OR e.pointer = r.pointer)
   GROUP BY 1, 2),
-c5 AS (SELECT DISTINCT dataset FROM exfor_c5_datasets)
+c5 AS (SELECT DISTINCT dataset FROM exfor_c5_datasets),
+-- brief 70 follow-up (elpis-fill, 2026-11-11): where a dataset has points in exfor_serve_points, its range is theirs
+-- (2026-11-11: 9,378 ranges differed from the points by more than 1%, 1,959 did not overlap them, 18,764 were empty)
+pts AS (SELECT dataset, min(e_ev) AS pmin, max(e_ev) AS pmax FROM exfor_serve_points WHERE e_ev > 0 GROUP BY dataset)
 SELECT r.subent || r.pointer AS dataset, r.entry, r.subent, r.pointer, r.code,
        r.units, r.unit_combination, r.targets,
        r.target, regexp_replace(r.target, '^[0-9]+-', '') AS target_sym, r.target_za, r.target_state,
@@ -44,7 +48,7 @@ SELECT r.subent || r.pointer AS dataset, r.entry, r.subent, r.pointer, r.code,
        r.projectile || ',' || r.process AS reaction, r.product, r.product_za, r.quantity,
        split_part(r.quantity, ',', 1) AS sf5, split_part(r.quantity, ',', 2) AS sf6,
        split_part(r.quantity, ',', 3) AS sf7, split_part(r.quantity, ',', 4) AS sf8, r.data_type,
-       g.energy_min_ev, g.energy_max_ev,
+       coalesce(pts.pmin, g.energy_min_ev) AS energy_min_ev, coalesce(pts.pmax, g.energy_max_ev) AS energy_max_ev,
        e.year, element_at(e.authors, 1) AS first_author, cardinality(e.authors) AS n_authors,
        element_at(e.institute, 1) AS institute, element_at(e."references", 1) AS reference, e.title,
        s.n_data_rows AS points, s.n_data_cols AS columns, s.date AS subentry_date, e.date AS entry_date,
@@ -54,5 +58,6 @@ JOIN exfor_j4_subentries s ON s.subent = r.subent
 JOIN exfor_j4_entries e ON e.entry = r.entry
 LEFT JOIN rng g ON g.subent = r.subent AND g.pointer = r.pointer
 LEFT JOIN c5 ON c5.dataset = r.subent || r.pointer
+LEFT JOIN pts ON pts.dataset = r.subent || r.pointer
 ) TO 's3://nsr-lake-613473203863/lake/serve/exfor/2026-10-28/search_index/'
 WITH (format = 'PARQUET', compression = 'SNAPPY')
