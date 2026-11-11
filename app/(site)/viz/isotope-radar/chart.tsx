@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Pause, Play } from 'lucide-react'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { NuclidePicker, type PickerOption } from '@/components/viz/NuclidePicker'
 import { decayIndex, halfLifeText, isDark, keyOf, loadMassesAndDecay, nucName, parseMasses, type DecayNuclide, type Mass } from '@/lib/viz-physics'
@@ -134,7 +135,7 @@ export function IsotopeRadarChart() {
           {count ? `${count} isotopes` : ''}
         </span>
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
     </div>
   )
 }
