@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { HOVER, LINE, LINK, Mark, TINT } from "@/components/elpis/parts"
 import { useCrawl, useCrawlFile } from "@/components/elpis/use-crawl"
+import { useBrowseCounts } from "@/components/elpis/use-counts"
+import { compact } from "@/lib/compact"
 import { browse, browseCrawl, crawlFile } from "@/lib/janis-tree"
 import { cn } from "@/lib/utils"
 
@@ -20,6 +22,9 @@ export function ElpisBrowse({ path }: { path: string[] }) {
   // While the index loads, a path the hand list cannot answer waits instead of saying it is past the tree.
   const v = (crawl && browseCrawl(crawl, path, lib)) || (crawl === undefined && hand.missing ? { ...hand, missing: false, loading: true } : hand)
   const last = v.trail[v.trail.length - 1]
+  // The lake's figure for each held row, in JANIS's muted figure column (brief 69).
+  const countOf = useBrowseCounts(path)
+  const figure = (n: number) => { const f = compact(n); return `${f.count.toFixed(f.decimals)}${f.suffix}` }
   return (
     <div className="mx-auto w-full max-w-[1140px] px-4 py-6 sm:px-6">
       <h2 className="mb-4 text-3xl tracking-tight text-[var(--paper-text)]" style={SERIF}>Browse database</h2>
@@ -49,6 +54,10 @@ export function ElpisBrowse({ path }: { path: string[] }) {
               ) : (
                 <span className={r.mark === "missing" ? "text-[var(--paper-muted)]" : "text-[var(--paper-text)]"}>{r.name}<Mark kind={r.mark} />{r.format && <span className="ml-3 text-xs text-[var(--paper-muted)]">{r.format}</span>}</span>
               )}
+              {(() => {
+                const c = countOf(r)
+                return c ? <span className="ml-auto shrink-0 pl-3 font-mono text-xs text-[var(--paper-muted)]" title={`${c.n.toLocaleString("en-US")} ${c.unit}`}>{figure(c.n)}</span> : null
+              })()}
             </li>
           ))}
         </ul>
