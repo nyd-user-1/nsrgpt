@@ -78,7 +78,17 @@ NSUB_WORDS = {"n": "neutrons", "tsl": "thermal_scatt", "decay": "decay", "nfpy":
               "photo": "photoat", "e": "electrons", "ard": "atomic_relax"}
 
 
+def split_key(key):
+    """Brief 70: a key may end in #<token> (`…/brond22n.dat#n`, `…/n/n_0125_1-H-1.zip#n`), naming the sublibrary of an
+    archive or tape whose file name does not carry one. (S3 key, token or None)."""
+    k, _, tok = key.partition("#")
+    return k, (tok or None)
+
+
 def sub_word(key):
+    key, tok = split_key(key)
+    if tok:
+        return NSUB_WORDS.get(tok.lower(), tok)
     b = key.rsplit("/", 1)[-1]
     m = re.match(r".+_([a-z0-9]+)\.sublib\.zip$", b, re.I) or re.match(r"JEFF33-([a-z0-9]+)\.tgz$", b, re.I)
     return NSUB_WORDS.get(m.group(1).lower()) if m else None
@@ -347,11 +357,13 @@ def stream_files(name, f):
                 continue
             with z.open(info) as g:
                 yield zn, info.file_size, lines_of(g)
-    elif n.endswith((".tgz", ".tar.gz")):
-        with tarfile.open(fileobj=f, mode="r:gz") as t:  # the local file: members read in order, each seekable
+    elif n.endswith((".tgz", ".tar.gz", ".tar")):
+        with tarfile.open(fileobj=f, mode="r:gz" if n.endswith("gz") else "r:") as t:  # members read in order, each seekable
             for m in t:
                 if m.isfile() and not m.name.lower().endswith(SKIP_EXT):
                     yield m.name, m.size, lines_of(t.extractfile(m))
+    else:  # brief 70: a plain tape (BROND-2.2's brond22n.dat), read as one file
+        yield name, None, lines_of(f)
 
 
 ARCHIVES = []  # per archive: key, bytes, sublibrary, files read, duplicates skipped
@@ -360,8 +372,9 @@ ARCHIVES = []  # per archive: key, bytes, sublibrary, files read, duplicates ski
 def archive_files():
     """(file_name, sublibrary, lines) for every ENDF file in every archive of the release, in the order given."""
     for key in KEYS:
-        arch = key.rsplit("/", 1)[-1]
-        src = lake.download(key, f"{WORK}/src/{arch}")
+        s3key = split_key(key)[0]
+        arch = s3key.rsplit("/", 1)[-1]
+        src = lake.download(s3key, f"{WORK}/src/{arch}")
         word = sub_word(key)
         a = {"key": key, "bytes": os.path.getsize(src), "sublibrary": word, "files_read": 0, "duplicates_skipped": []}
         ARCHIVES.append(a)
@@ -594,12 +607,18 @@ def rerun_check(manifest, mine, ref, rerun):
 
 def lst_mats(key):
     """MATs listed in the IAEA .lst for a sublibrary zip (one line "  n)  MAT  material ..." each): beside the zip, or
-    one folder up (JEFF-3.3). (key, [MAT, ...]) or (None, None)."""
-    if not key.endswith(".sublib.zip"):
+    one folder up (JEFF-3.3); brief 70: also beside any IAEA <lib>_<token>.zip or tape (cendl-2_n.lst, brond22n.dat.lst).
+    (key, [MAT, ...]) or (None, None)."""
+    key, tok = split_key(key)
+    if key.endswith(".sublib.zip"):
+        lst = key[:-4] + ".lst"
+        head, _, name = lst.rpartition("/")
+        tries = (lst, f"{head.rpartition('/')[0]}/{name}")
+    elif tok and not re.search(r"/[a-z0-9]+_\d{4}_[^/]+\.zip$", key, re.I):  # not a per-material zip
+        tries = (re.sub(r"\.(zip|tgz|tar\.gz)$", "", key) + ".lst", key + ".lst")
+    else:
         return None, None
-    lst = key[:-4] + ".lst"
-    head, _, name = lst.rpartition("/")
-    for k in (lst, f"{head.rpartition('/')[0]}/{name}"):
+    for k in tries:
         try:
             body = lake.s3.get_object(Bucket=lake.BUCKET, Key=k)["Body"].read().decode("latin-1")
         except Exception:  # noqa: BLE001

@@ -33,10 +33,14 @@ NUC = f"s3://{BUCKET}/lake/serve/nuclide/2026-11-05"
 ENDF = f"s3://{BUCKET}/lake/serve/endf"
 ENDFB = f"s3://{BUCKET}/lake/endfb"
 RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II",
-            "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]  # brief 43 added the last four; xs_<n> indexes this list
+            "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2",  # brief 43 added these four; xs_<n> indexes this list
+            # brief 70 (elpis-fill): the libraries JANIS lists that the lake lacked, every one served INDEXED
+            "JEFF-4.0", "JEFF-3.1.1", "JEF-2.2", "B-VI.8-HE", "JENDL-4.0-HE", "JENDL-AD-2017", "JENDL-DEU-2020",
+            "JENDL-PD-2016", "IAEA-PD-2019", "PADF-2007", "RUSFOND-2010", "BROND-3.1", "BROND-2.2", "CENDL-2.1", "FENDL-2.1",
+            "IRDFF-II", "IRDFF-1.05", "IRDFF-1.0", "IRDF-2002"]
 # Releases with too many MF3 rows to load into memory (brief 43): read like the POINT releases, through xs_index (held in
 # memory) and xs_series/series.bin (one S3 byte-range request a section), built by serve.py point_files.
-INDEXED = ["JEFF-3.3", "JENDL-5", "TENDL-2023"]
+INDEXED = ["JEFF-3.3", "JENDL-5", "TENDL-2023"] + RELEASES[RELEASES.index("CENDL-3.2") + 1:]
 # NNDC's reconstructed, linearized libraries (POINT2025 for B-VIII.1, POINT2018 for B-VIII.0), one release per temperature;
 # 600 to 1800 K since brief 56 (scripts/parse/serve-structure/point_hot.sh)
 HOT = ["600K", "900K", "1200K", "1500K", "1800K"]

@@ -19,6 +19,8 @@ import zipfile
 
 import duckdb
 
+import structure  # brief 70: the release list lives there
+
 BUCKET = os.environ.get("BUCKET", "nsr-lake-613473203863")
 L = f"s3://{BUCKET}/lake"
 SOURCES = {"ensdf": ("ENSDF", "ensdf/2026-11-05", "2026-11-05"), "xundl": ("XUNDL", "xundl/2026-10-01", "2026-10-01")}
@@ -28,6 +30,7 @@ J4 = f"{L}/exfor/j4-2026-10-28"
 NSR_SERVE = f"{L}/serve/search/{os.environ.get('SEARCH_VERSION', '2026-11-08')}/nsr/*"
 ENDF_RELEASES = ["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-V", "B-IV", "B-III", "B-II",
                  "JEFF-3.3", "JENDL-5", "TENDL-2023", "CENDL-3.2"]  # brief 43 added the last four
+ENDF_RELEASES += [r for r in structure.RELEASES if r not in ENDF_RELEASES]  # brief 70: structure.py's list
 PUBLIC = os.environ.get("PUBLIC_BASE", "https://daw1qggkn69lv.cloudfront.net")
 HERE = os.path.dirname(os.path.abspath(__file__))
 # The small per-dataset tables, held in memory per container (about 60 MB of Parquet for both releases).

@@ -26,7 +26,13 @@ Rules, from the lake:
   information, resonances) take their parent's mark.
 A node under a missing node is missing. Ours: ENDF/B-VIII.1, JENDL-5 and TENDL-2023 under each category whose
 sublibrary the lake holds, the POINT files (seven temperatures) under neutrons, CINDA under Base, ICRP 107 and RIPL
-under Nuclear properties, and the data types a held release has in the lake that JANIS lists none for."""
+under Nuclear properties, and the data types a held release has in the lake that JANIS lists none for.
+Brief 70 (elpis-fill, 2026-11-11): a JANIS library is a held release whenever its label, "ENDF/" dropped and slashes
+turned to hyphens (JENDL/AD-2017 -> JENDL-AD-2017, ENDF/B-VI.8-HE -> B-VI.8-HE), names a release in
+nsr.endfb_materials; held.json is rebuilt whenever that table's release list changes. "TSL <release>" rows are that
+release's thermal scattering files (MF7; JANIS draws them under "Cross sections", one row per principal scatterer):
+same when the release holds MF7 sections. Libraries held as files but not parsed (Nubase texts, multigroup sets) are
+in CATALOGUED: same, with a `format` field naming the form and where the files are."""
 import csv
 import io
 import json
@@ -81,13 +87,40 @@ def athena_csv(sql):
     return list(csv.DictReader(io.StringIO(body))), e["Statistics"].get("DataScannedInBytes", 0)
 
 
-def held_sets():
-    """held.json: per release and sublibrary the kinds held, and per (release, sublibrary, kind) the nuclides and MTs."""
+def lake_name(label):
+    """A JANIS library label as the lake names its release (brief 70): ENDF/B-VII.0 -> B-VII.0, JENDL/AD-2017 -> JENDL-AD-2017."""
+    return label.strip().replace("ENDF/B-", "B-").replace("/", "-")
+
+
+# Brief 70: libraries the lake holds as files, not parsed into tables: JANIS label -> (format, where the files are).
+CATALOGUED = {
+    "Nubase 2016": ("AMDC NUBASE2016 text table", "lake/_raw/Nubase-2016/nubase2016.txt"),
+    "Nubase 2012": ("AMDC NUBASE2012 text table", "lake/_raw/Nubase-2012/nubtab12.asc"),
+    "Nubase 2003": ("AMDC NUBASE2003 text table", "lake/_raw/Nubase-2003/nubtab03.asc"),
+    "Nubase 1997": ("AMDC NUBASE97 text table", "lake/_raw/Nubase-1997/nubtab97.asc"),
+}
+
+
+def lake_has(key):
     try:
-        return json.loads(s3.get_object(Bucket=BUCKET, Key=f"{OUT}/held.json")["Body"].read())
+        s3.head_object(Bucket=BUCKET, Key=key)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def held_sets():
+    """held.json: per release and sublibrary the kinds held, and per (release, sublibrary, kind) the nuclides and MTs.
+    Rebuilt when nsr.endfb_materials holds a release the cached file lacks (brief 70), or with --fresh."""
+    now_rel, _ = athena_csv("SELECT DISTINCT release FROM endfb_materials")
+    now_rel = sorted(r["release"] for r in now_rel if r.get("release"))
+    try:
+        held = json.loads(s3.get_object(Bucket=BUCKET, Key=f"{OUT}/held.json")["Body"].read())
+        if "--fresh" not in sys.argv and held.get("release_list") == now_rel:
+            return held
     except s3.exceptions.NoSuchKey:
         pass
-    rel = ", ".join(f"'{r}'" for r in list(RELEASE.values()) + OURS_RELEASES)
+    rel = ", ".join(f"'{r}'" for r in now_rel)
     rows, scanned = athena_csv(f"""
       SELECT s.release, s.sublibrary,
              CASE WHEN s.mf = 8 AND s.mt IN (454, 459) THEN 'FY' WHEN s.mf = 8 AND s.mt = 457 THEN 'DEC'
@@ -120,8 +153,11 @@ def held_sets():
     scanned3 += scanned4
     x4, scanned2 = athena_csv("""SELECT DISTINCT upper(projectile) AS projectile, CAST(target_za AS integer) AS za,
                                  coalesce(target_state, '') AS state FROM exfor_serve_search_index""")
-    held = {"releases": {}, "exfor": {}, "scanned_bytes": scanned + scanned2 + scanned3}
+    held = {"releases": {}, "exfor": {}, "scanned_bytes": scanned + scanned2 + scanned3, "release_list": now_rel}
     for r in rows:
+        if r["kind"] == "7":  # thermal scattering: the sections carry no nuclide; the release and sublibrary are the holding
+            held["releases"].setdefault(r["release"], {}).setdefault(r["sublibrary"], {}).setdefault("7", {})["any"] = 1
+            continue
         if not r["za"] or r["za"] == "0":
             continue  # sections without a nuclide (ZA 0 or empty)
         k = held["releases"].setdefault(r["release"], {}).setdefault(r["sublibrary"], {}).setdefault(r["kind"], {})
@@ -199,13 +235,31 @@ def mark_tree(tree, held):
             elif code == "PROPS":
                 if name.replace(" ", "").upper() == "NUBASE2020":
                     under(lib, "same", "NUBASE2020, held through the Live Chart holdings")
+                elif name in CATALOGUED and lake_has(CATALOGUED[name][1]):
+                    catalogued(lib, name)
                 else:
                     under(lib, "missing", "an older Nubase; the lake holds NUBASE2020")
-            elif name in RELEASE and sublibs(held, RELEASE[name], code):
-                mark_release(lib, held, RELEASE[name], code)
+            elif name in CATALOGUED and lake_has(CATALOGUED[name][1]):
+                catalogued(lib, name)
+            elif name.startswith("TSL "):
+                rel = lake_name(name[4:])
+                subs = sorted(s for s, kinds in held["releases"].get(rel, {}).items() if "7" in kinds)
+                if subs:
+                    under(lib, "same", f"{rel} holds thermal scattering sections (MF7) in {', '.join(subs)}")
+                else:
+                    under(lib, "missing", f"no {rel} thermal scattering sections (MF7) in the lake")
+            elif lake_name(name) in held["releases"] and sublibs(held, lake_name(name), code):
+                mark_release(lib, held, lake_name(name), code)
             else:
                 under(lib, "missing", f"{name} is not in nsr.endfb_materials for this category")
         add_ours(cat, code, held, jlabels)
+
+
+def catalogued(lib, name):
+    """Brief 70: held as files, not parsed; the page shows the format instead of a bare mark."""
+    fmt, where = CATALOGUED[name]
+    under(lib, "same", f"held as files ({fmt}) at {where}; not parsed into tables")
+    lib["format"] = fmt
 
 
 def mark_release(lib, held, release, cat):

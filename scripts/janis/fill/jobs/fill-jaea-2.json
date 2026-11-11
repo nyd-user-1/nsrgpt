@@ -1,0 +1,24 @@
+{
+  "name": "fill-jaea-2",
+  "prefix": "lake/_raw/jaea",
+  "warm": "https://wwwndc.jaea.go.jp/jendl/jendl.html",
+  "items": [
+    {
+      "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendlan2005.tar.gz",
+      "key": "lake/_raw/jaea/jendlan2005.tar.gz"
+    },
+    {
+      "url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendlac2008.tar.gz",
+      "key": "lake/_raw/jaea/jendlac2008.tar.gz"
+    }
+  ],
+  "seeds": [],
+  "scope": [],
+  "hosts": [],
+  "lines": [
+    5
+  ],
+  "rate": 0.5,
+  "minutes": 60,
+  "nav_files": true
+}

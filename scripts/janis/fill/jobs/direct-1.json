@@ -1,0 +1,21 @@
+{"items": [
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY91/GEFY91_n.zip", "key": "lake/_raw/GEFY-9.1/GEFY91_n.zip", "library": "GEFY-9.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY91/GEFY91_s.zip", "key": "lake/_raw/GEFY-9.1/GEFY91_s.zip", "library": "GEFY-9.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY91/GEFY91_mn.zip", "key": "lake/_raw/GEFY-9.1/GEFY91_mn.zip", "library": "GEFY-9.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY81/GEFY81_n.zip", "key": "lake/_raw/GEFY-8.1/GEFY81_n.zip", "library": "GEFY-8.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY81/GEFY81_s.zip", "key": "lake/_raw/GEFY-8.1/GEFY81_s.zip", "library": "GEFY-8.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY81/GEFY81_mn.zip", "key": "lake/_raw/GEFY-8.1/GEFY81_mn.zip", "library": "GEFY-8.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY62/GEFY62_n.zip", "key": "lake/_raw/GEFY-6.2/GEFY62_n.zip", "library": "GEFY-6.2"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY62/GEFY62_s.zip", "key": "lake/_raw/GEFY-6.2/GEFY62_s.zip", "library": "GEFY-6.2"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY62/GEFY62_mn.zip", "key": "lake/_raw/GEFY-6.2/GEFY62_mn.zip", "library": "GEFY-6.2"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY61/GEFY61_n.zip", "key": "lake/_raw/GEFY-6.1/GEFY61_n.zip", "library": "GEFY-6.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY61/GEFY61_s.zip", "key": "lake/_raw/GEFY-6.1/GEFY61_s.zip", "library": "GEFY-6.1"},
+ {"url": "https://www.khschmidts-nuclear-web.eu/GEFY_data/GEFY61/GEFY61_mn.zip", "key": "lake/_raw/GEFY-6.1/GEFY61_mn.zip", "library": "GEFY-6.1"},
+ {"url": "https://www-nds.iaea.org/amdc/ame2016/nubase2016.txt", "key": "lake/_raw/Nubase-2016/nubase2016.txt", "library": "Nubase 2016"},
+ {"url": "https://www-nds.iaea.org/amdc/ame2012/nubtab12.asc", "key": "lake/_raw/Nubase-2012/nubtab12.asc", "library": "Nubase 2012"},
+ {"url": "https://www-nds.iaea.org/amdc/ame2003/nubtab03.asc", "key": "lake/_raw/Nubase-2003/nubtab03.asc", "library": "Nubase 2003"},
+ {"url": "https://www-nds.iaea.org/amdc/nubase/nubtab97.asc", "key": "lake/_raw/Nubase-1997/nubtab97.asc", "library": "Nubase 1997"},
+ {"url": "https://www-nds.iaea.org/amdc/ame1995/nubtab97.asc", "key": "lake/_raw/Nubase-1997/nubtab97.asc", "library": "Nubase 1997"},
+ {"url": "https://www-nds.iaea.org/amdc/web/nubdisk.html", "key": "lake/_raw/_work/amdc-nubdisk.html", "library": "Nubase"},
+ {"url": "https://www-nds.iaea.org/amdc/", "key": "lake/_raw/_work/amdc-index.html", "library": "Nubase"}
+]}

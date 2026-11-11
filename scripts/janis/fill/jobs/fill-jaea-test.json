@@ -1,0 +1,3 @@
+{"name": "fill-jaea-test", "prefix": "lake/_raw/jaea", "warm": "https://wwwndc.jaea.go.jp/jendl/jendl.html",
+ "items": [{"url": "https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/jendlan2005.tar.gz"}], "seeds": [], "scope": [], "hosts": [],
+ "nav_files": true, "lines": ["direct"], "rate": 0.5, "minutes": 10}

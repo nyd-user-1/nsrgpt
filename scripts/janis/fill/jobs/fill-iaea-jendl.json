@@ -1,0 +1,92 @@
+{
+  "name": "fill-iaea-jendl",
+  "prefix": "lake/_raw/iaea",
+  "warm": "https://nds.iaea.org/",
+  "items": [
+    {
+      "url": "https://www-nds.iaea.org/exfor/endf.htm"
+    },
+    {
+      "url": "https://www-nds.iaea.org/exfor/e4explorer.htm"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/e/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/nfpy/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/photo/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/sfpy/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/tsl/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/e/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/nfpy/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/photo/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/sfpy/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/tsl/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-3.3/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-3.3/nfpy/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-HE-2007/n/"
+    },
+    {
+      "url": "https://www-nds.iaea.org/public/download-endf/JENDL-HE-2007/p/"
+    }
+  ],
+  "seeds": [],
+  "scope": [
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/n/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/e/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/nfpy/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/photo/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/sfpy/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0/tsl/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/n/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/e/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/nfpy/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/photo/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/sfpy/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-4.0u2-20160106/tsl/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-3.3/n/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-3.3/nfpy/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-HE-2007/n/",
+    "https://www-nds.iaea.org/public/download-endf/JENDL-HE-2007/p/"
+  ],
+  "skip": "\\?C=|-index\\.htm",
+  "files": "\\.(zip|lst)$",
+  "hosts": [
+    "www-nds.iaea.org",
+    "nds.iaea.org"
+  ],
+  "lines": [
+    0
+  ],
+  "rate": 2.0,
+  "minutes": 600,
+  "render": true
+}

@@ -67,7 +67,11 @@ const EXFOR_DECAY = ["Angular distributions", "Energy-angle distributions", "Fis
 
 /** The libraries I hold (brief 59 and the night's briefs); every other name in JANIS's lists is a gap. */
 const HELD = new Set(["CENDL-3.2", "ENDF/B-VI.8", "ENDF/B-VII.0", "ENDF/B-VII.1", "ENDF/B-VIII.0", "ENDF/B-VIII.1",
-  "JEFF-3.3", "JENDL-5", "TENDL-2023", "POINT2025 (ENDF/B-VIII.1)", "POINT2018 (ENDF/B-VIII.0)"])
+  "JEFF-3.3", "JENDL-5", "TENDL-2023", "POINT2025 (ENDF/B-VIII.1)", "POINT2018 (ENDF/B-VIII.0)",
+  // brief 70 (elpis-fill, 2026-11-11): parsed and served
+  "JEFF-4.0", "JEFF-3.1.1", "JEF-2.2", "ENDF/B-VI.8-HE", "JENDL-4.0/HE", "JENDL/AD-2017", "JENDL/DEU-2020", "JENDL/PD-2016",
+  "IAEA/PD-2019", "PADF-2007", "RUSFOND-2010", "BROND-2.2", "BROND-3.1", "CENDL-2.1", "FENDL-2.1", "IRDF-2002",
+  "IRDFF-1.0", "IRDFF-1.05", "IRDFF-II", "TSL ENDF/B-VI.8", "TSL ENDF/B-VII.0"])
 const lib = (name: string, ours = false) => node(name, HELD.has(name), HELD.has(name) ? leaves(LIBRARY_LEAVES) : undefined, ours ? { ours } : {})
 const libs = (theirs: string[], ours: string[] = []) => [...theirs.map((n) => lib(n)), ...ours.map((n) => lib(n, true))]
 const exfor = (quantities: string[]) => node("EXFOR", true, leaves(quantities))
