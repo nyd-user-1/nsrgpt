@@ -90,3 +90,50 @@ reference code found or not, the disagreements). One final line: rules, corpus p
 
 ## Kickoff
 `Read ~/Code/nsrgpt/docs/briefs/71-exfor-trans-checker.md and do it; one line to lead-agent per milestone.`
+
+## Report
+elpis-check, 2026-11-11.
+
+- **Commits:** 717326c (the checker, dictionaries, corpus and route, deployed) and the commit carrying this report (the
+  page and the README).
+- **Live:** `POST /exfor/check` on nsr-api, and `/elpis/checker` on the box. Types and lint are clean. Both themes were
+  driven in Playwright: check, severity filter, line jump, rule text, Download report, a clean held entry, a PDF, and
+  pasted text.
+- **Rules implemented: 47.** The list is in `scripts/exfor-check/README.md`. They cover:
+  - records and record identification
+  - the order of system identifiers, and N1/N2 on every system line
+  - dates
+  - keywords: spelling, placement, required
+  - codes against dictionaries 2-38, 207, 209, 227 and 236
+  - reference forms
+  - REACTION SF1-SF9 and quantities in 236
+  - SF3/SF6 combinations
+  - heading and unit families
+  - the table: counts, numbers, empty columns, -MIN/-MAX, MONIT, EN order, duplicate points
+  - repeated or undescribed headings
+  - pointers and cross-references
+- **Rules not implemented:**
+  - the contents of LEVEL-PROP and FLAG, and HALF-LIFE
+  - unit families beyond the heading's own family and independent-variable units under DATA (dictionaries 236 and 25
+    don't map one to one)
+  - ordering by anything but EN
+- **Reference code:** found. JANIS Web's own checker takes a POST at oecd-nea.org/janisweb/trans-checker, the endpoint
+  the NEA's GitLab CI template calls, so it is the reference rather than chex/x4chex. The dictionaries come from
+  forexy's dict_9134.json (Otuka; transmission 9134, 2026-01-24), copied to lake/_work/exfor-check/dictionary/.
+- **Corpus:** 50/50 clean (JANIS-clean held entries from 14 areas) and 50/50 faults reported at their line with their
+  rule. JANIS flags 44 of the 50 faults and none of the EN swaps.
+- **Speed:** 2.2 MB in 0.46 s in the Lambda (0.66 s end to end), about 0.2 s per MB. A PDF or an empty file gets one
+  error and no trace.
+- **Disagreements with JANIS** on five NRDC TRANS files (mine against JANIS):
+
+  | File | Mine | JANIS | Difference |
+  |---|---|---|---|
+  | 1356 | 3/29 | 2/29 | A flagged NOSUBENT: JANIS gives one error per entry, I give one per record. |
+  | 3139 | 0/28 | 0/37 | JANIS repeats a subentry-001 MONITOR warning under 9 subentries; I give it once. |
+  | c145 | 0/3 | 0/3 | none |
+  | y008 | 1/20 | 0/21 | UND,SIG is still obsolete in JANIS's dictionary but absent from 9134. |
+  | j011 | 0/0 | 0/0 | none |
+
+  JANIS points at section ends; mine points at the record. JANIS stops reading an entry at its first exception, while
+  mine cascades (E0811: 1 error against 22).
+- **Not done:** a /docs article, because the docs area has no section for tools.
