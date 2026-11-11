@@ -4,6 +4,7 @@
 import type { ReactNode } from "react";
 import { RightViewHeader } from "@/components/nsr/graph/RightInsetPanel";
 import { Input } from "@/components/ui/input";
+import { MenuSelect } from "@/components/viz/MenuSelect";
 import { INSET, InsetBody, InsetTip } from "@/components/nsr/graph/InsetPanel";
 import {
   EDGE_KINDS, EDGE_LABEL, GRIDS, KIND_LABEL, LABEL_FIELDS, SHAPES, SUBTYPES, SUBTYPE_LABEL,
@@ -206,7 +207,6 @@ const SECTIONS: Section[] = [
 // The rows take the left inset panel's type, spacing and hover (InsetPanel.tsx INSET, Brendan, 2026-11-08).
 const ROW = cn(INSET.row, "justify-between gap-3");
 const LABEL = "min-w-0 truncate";
-const SELECT = "h-7 rounded-md border bg-[var(--paper)] px-2 font-mono text-xs text-[var(--paper-text)]";
 
 /** A row's on-or-off box, the accent filled when on. */
 function Check({ on, onClick, label }: { on: boolean; onClick: () => void; label?: string }) {
@@ -259,21 +259,18 @@ function DiagramRows({ diagram, setDiagramConfig }: { diagram: { spec: DiagramSp
       </div>
       <div className={ROW}>
         <span className={LABEL}>Type</span>
-        <select value={config.subtype} onChange={(e) => setDiagramConfig({ subtype: e.target.value })} className={SELECT}>
-          {SUBTYPES[diagram.spec.kind].map((s) => <option key={s} value={s}>{SUBTYPE_LABEL[s] ?? s}</option>)}
-        </select>
+        <MenuSelect label="Type" className="h-7 w-40 font-mono" value={config.subtype} onChange={(v) => setDiagramConfig({ subtype: v })}
+          options={SUBTYPES[diagram.spec.kind].map((s) => ({ value: s, label: SUBTYPE_LABEL[s] ?? s }))} />
       </div>
       <div className={ROW}>
         <span className={LABEL}>Shape</span>
-        <select value={config.shape} onChange={(e) => setDiagramConfig({ shape: e.target.value as NodeShape })} className={SELECT}>
-          {SHAPES.map((s) => <option key={s} value={s}>{SHAPE_LABEL[s]}</option>)}
-        </select>
+        <MenuSelect label="Shape" className="h-7 w-40 font-mono" value={config.shape} onChange={(v) => setDiagramConfig({ shape: v as NodeShape })}
+          options={SHAPES.map((s) => ({ value: s, label: SHAPE_LABEL[s] }))} />
       </div>
       <div className={ROW}>
         <span className={LABEL}>Grid</span>
-        <select value={config.grid} onChange={(e) => setDiagramConfig({ grid: e.target.value as GridKind })} className={SELECT}>
-          {GRIDS.map((g) => <option key={g} value={g}>{GRID_LABEL[g]}</option>)}
-        </select>
+        <MenuSelect label="Grid" className="h-7 w-40 font-mono" value={config.grid} onChange={(v) => setDiagramConfig({ grid: v as GridKind })}
+          options={GRIDS.map((g) => ({ value: g, label: GRID_LABEL[g] }))} />
       </div>
       <div className={ROW}>
         <span className={LABEL}>Bands</span>
@@ -334,19 +331,15 @@ export function FlowSettingsPanel({
       <p className={INSET.section}>Nodes &amp; Edges</p>
       <div className={ROW}>
         <span className={LABEL}>Dataset</span>
-        <select value={dataset} onChange={(e) => onDataset(e.target.value)} className={SELECT}>
-          {datasets.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
-        </select>
+        <MenuSelect label="Dataset" className="h-7 w-40 font-mono" value={dataset} onChange={onDataset}
+          options={datasets.map((d) => ({ value: d.id, label: d.label }))} />
       </div>
 
       <p className={INSET.section}>Layouting algorithms</p>
       <div className={ROW}>
         <span className={LABEL}>Library</span>
-        <select value={layoutMode} onChange={(e) => onLayoutMode(e.target.value)} className={SELECT}>
-          <option value="none">None</option>
-          <option value="dagre-lr">Dagre (LR)</option>
-          <option value="dagre-tb">Dagre (TB)</option>
-        </select>
+        <MenuSelect label="Library" className="h-7 w-40 font-mono" value={layoutMode} onChange={onLayoutMode}
+          options={[{ value: "none", label: "None" }, { value: "dagre-lr", label: "Dagre (LR)" }, { value: "dagre-tb", label: "Dagre (TB)" }]} />
       </div>
 
       {SECTIONS.map((s) => (
@@ -376,9 +369,8 @@ export function FlowSettingsPanel({
                 />
               )}
               {r.kind === "select" && (
-                <select value={String(value[r.key])} onChange={(e) => set(r.key, e.target.value)} className={SELECT}>
-                  {r.options.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
+                <MenuSelect label={r.key} className="h-7 w-40 font-mono" value={String(value[r.key])} onChange={(v) => set(r.key, v)}
+                  options={r.options.map((o) => ({ value: o, label: o }))} />
               )}
             </div>
             </InsetTip>
