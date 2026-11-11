@@ -278,3 +278,46 @@ Types and lint are clean on the box for every commit.
 | Job | Release | Material | MT | Error | Seen |
 | --- | --- | --- | --- | --- | --- |
 | broaden, 1 K | ENDF/B-VI.8 | Fe-56, MAT 2631 | 102 | `no MF3 MT 102 for MAT 2631 in SIGMA1.OUT` | Elpis Reconstruct, 2026-11-11; the other six releases' Fe-56 MT 102 jobs succeeded |
+
+### Follow-up 3: production from MT 5, and Brendan's side-by-side with JANIS (elpis-wire, 2026-11-11 15:30 ET)
+
+**Production from MT 5.**
+- **Route:** `/endf/section/production?name=&sub=&zap=&release=&compare=` (`f5dc49a`, in endf_sections.py; nsr-api deployed 19:14 UTC after elpis-fill confirmed nothing of theirs was undeployed). One series per release, in /endf/xs's shape. For each release:
+  - File 10 MT 5's own production section for the residual where the material gives one, summed over final states;
+  - else MT 5's File 3 cross section times the residual's File 6 yield, summed over its isomeric levels, on the union energy grid, lin-lin.
+- **Index:** it carries each nuclide's MT 5 residuals per release (from endfb_eang yields and endfb_mult File 10; 192 MB scanned).
+- **Book page:** an MT JANIS lists and I hold no section for, whose residual some release's MT 5 produces, is drawn as that production.
+  - The row is labelled as JANIS labels it ("MT11 (p,2n+d) or MT5 (Fe53 production)") and loses its ❌.
+  - The legend notes "Production of Fe-53 from MT 5".
+  - EXFOR is read as JANIS reads it there: reaction P,X with the residual as the product.
+- **Cleared:** 1,695 of the 1,839 ❌ rows (n 40, γ 24, p 706, d 170, t 1, h 164, α 590). 144 remain ❌: rows whose residual no held release's MT 5 produces.
+- **Against JANIS's computed tables** (its Tabler, every page read):
+
+| Page | Library | JANIS points > 0 | Relative difference, median / largest |
+| --- | --- | --- | --- |
+| p + Fe-56 → Fe-53 (MT11) | ENDF/B-VIII.0 | 158 | 0 / 3e-16 |
+| | PADF-2007 | 141 | 0 / 3e-16 |
+| | JENDL/HE-2007 | 129 | 0 / one point at the range's end |
+| n + Fe-56 → Mn-52 (MT154) | ENDF/B-VIII.0 | 37 | 0 / 1.1% |
+| | JENDL/HE-2007 | 125 | 0 / one point at the range's end |
+| | JEFF-3.3 | 120 | 0.02% / 5.2% (interpolation law) |
+| α + Au-197 → Au-198 (MT44) | (JANIS draws only TENDL-2019, not held) | | |
+
+- **Also against JANIS:**
+  - The Au-198 page lists the same 4 EXFOR subentries as JANIS (B0042.011, D6290.011, F0858.007, O1355.005).
+  - JANIS's TENDL-2019 node is the one library on these pages I do not serve.
+
+**Brendan's side-by-side, U-235 (n,f)** (before `lake/_work/elpis/qa/u235-before.png`, after `lake/_work/elpis/qa/u235-after.png`; commits `3f0152a`, `86942fa`, `a28c3f8`):
+1. **EXFOR points:** 2.5 to 3 px, filled, at 55%, drawn first under the lines, and coloured by set from the palette past 40 sets. Lines are 1.5 px on top.
+2. **Y range:** from the drawn lines' smallest positive value (not below 1e-5 b) to their largest. EXFOR sets it only when no line is drawn. U-235 reads 10 mb to 100000 b, as JANIS does.
+3. **Decade labels:** every decade on both log axes (10 µeV … 10 GeV; b, mb, µb). They are given as explicit tick values, because ECharts' own log ticks skipped decades. The zoom box keeps them.
+4. **Legend:** only the lines drawn, plus "EXFOR, n sets" and the Reconstruct note and button. The off releases and the list of releases that can't be reconstructed are in the Series sheet.
+5. **POINT lines:** no resampling any more. ENDF/B-VIII.1 and VIII.0 at 0 K draw the whole resonance range as a dense band.
+6. **Header title:** "92-U-235 · MT18 (n,fission)" (PageTitle).
+7. **Default set:** JANIS's book libraries plus my newest: ENDF/B-VIII.1, VIII.0, JEFF-4.0, JEFF-3.3, JENDL-5, JENDL-4.0u, JENDL/HE-2007, TENDL-2023, CENDL-3.2, BROND-3.1, EAF-2010, IRDFF-II and PADF-2007. Every other release that answers is listed in the sheet, off. TENDL-2019 isn't held.
+8. **Energy range:** from every drawn line. JENDL/HE-2007 runs to 3 GeV, so the axis ends at 10 GeV.
+9. **P, T, I per sheet row:**
+   - P draws the series.
+   - T opens its values as a table.
+   - I shows an EXFOR set's information. JANIS's I is Information, offered on EXFOR rows only, not an integral.
+- **Loading:** AtomSpinner replaces every loading line (`63957e5`).
