@@ -4,6 +4,7 @@ import * as React from 'react'
 import { X } from 'lucide-react'
 import { useSwitchboard } from '@/components/SwitchboardPanel'
 import { useEChart, valueRow, type ChartClick } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { loadMatrixRows, loadNuclideMatrix, nuclideName, type NuclideMatrix } from '@/lib/viz-data'
 import { useData } from '@/lib/use-data'
@@ -53,7 +54,7 @@ function PairScatter({ pair }: { pair: [number, number] }) {
     undefined,
     { onPick: () => {}, marks: true },
   )
-  return <div ref={ref} className="h-[320px] w-full" />
+  return <ChartBox chart={ref} className="h-[320px] w-full" />
 }
 
 /** The labels, the nuclide count, and each pair's r by "i-j", for the scatter a cell opens. */
@@ -139,7 +140,7 @@ export function MatrixChart() {
   const r = meta?.r.get(key)
   return (
     <div className="flex min-h-0 w-full flex-1">
-      <div ref={ref} className="min-h-0 min-w-0 flex-1" />
+      <ChartBox chart={ref} className="min-h-0 min-w-0 flex-1" />
       <VizControls>
         {pair && meta ? (
           <VizSection>
