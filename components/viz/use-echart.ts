@@ -498,6 +498,8 @@ function tileMark(G: any, chart: any, at: At, ink: string, zlevel: number): Shap
 export type EChartExtras = {
   view?: number
   replace?: boolean
+  /** No fade-in on mount: the canvas shows the moment it has drawn (the JANIS book, 2026-11-11). */
+  still?: boolean
   point?: (row: number) => { seriesIndex: number; dataIndex: number } | null
   onPick?: (p: ChartClick) => void
   marks?: boolean
@@ -829,7 +831,7 @@ export function useEChart<D>(
   const ref = React.useRef<HTMLDivElement>(null)
   const path = usePathname()
   const { openPane } = useShellPanel()
-  const now = { path, openPane, rowOf, build, view: extras.view ?? 0, replace: !!extras.replace, point: extras.point, onPick: extras.onPick, marks: !!extras.marks, picked: extras.picked ?? [] }
+  const now = { path, openPane, rowOf, build, view: extras.view ?? 0, replace: !!extras.replace, point: extras.point, onPick: extras.onPick, marks: !!extras.marks, picked: extras.picked ?? [], still: !!extras.still }
   const latest = React.useRef(now)
   latest.current = now
   const redraw = React.useRef<(() => void) | null>(null)
@@ -845,8 +847,8 @@ export function useEChart<D>(
     let rules: ReturnType<typeof makeRules> | undefined
     let marked: ReturnType<typeof makeMarks> | undefined
     let glMarked: ReturnType<typeof makeGLMarks> | undefined
-    // Hidden until the first draw, which fades it in.
-    if (ref.current) ref.current.style.opacity = '0'
+    // Hidden until the first draw, which fades it in (unless `still`).
+    if (ref.current && !latest.current.still) ref.current.style.opacity = '0'
     let unhook: (() => void) | undefined
     ;(async () => {
       const [echarts, data] = await Promise.all([
@@ -866,7 +868,7 @@ export function useEChart<D>(
       // The canvas fades in once it has drawn, rather than popping in after the page's reveal (2026-11-06).
       requestAnimationFrame(() => {
         if (!ref.current) return
-        ref.current.style.transition = 'opacity 0.35s ease'
+        ref.current.style.transition = latest.current.still ? '' : 'opacity 0.35s ease'
         ref.current.style.opacity = '1'
       })
       // The datum under a click, when there is one; the canvas's own click decides whether it was a click.

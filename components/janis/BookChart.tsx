@@ -116,7 +116,7 @@ export function BookChart({ range, scales, hidden, version, onZoom }: {
   state.current = { range, scales, hidden }
   const zoom = useRef(onZoom)
   zoom.current = onZoom
-  const ref = useEChart(async () => null, () => bookOption(state.current.range, state.current.scales, state.current.hidden), false, undefined, { view: version, replace: true })
+  const ref = useEChart(async () => null, () => bookOption(state.current.range, state.current.scales, state.current.hidden), false, undefined, { view: version, replace: true, still: true })
 
   // The zoom box, on the chart's own zrender events, once use-echart has made the chart.
   useEffect(() => {
