@@ -26,27 +26,36 @@ export const slotOf = (release: string, k: number) => RELEASE_SLOT[release] ?? k
 
 const isDark = () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
 
-/** The whole range of the data: energy over the lines (the points when there are none), cross section over positive
- *  values; on a log axis widened to whole decades. */
+/** The data's range: energy over the lines where they are above zero (the points when there are none); cross section
+ *  from the 1st percentile of every positive value, lines and points, to the largest, so one stray value near a
+ *  threshold does not stretch the axis over nine decades. Energy rounds out to 1, 2 or 5 times a power of ten, cross
+ *  section to whole decades (a log axis labels its powers of ten). */
 export function rangeOf(lines: BookLine[], sets: BookSet[]): Range | null {
-  let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity
-  const take = (xs: number[], ys: number[]) => {
+  let xmin = Infinity, xmax = -Infinity, ymax = -Infinity
+  const ys: number[] = []
+  const take = (xs: number[], yv: number[], energy: boolean) => {
+    const step = Math.max(1, Math.floor(xs.length / 4000))
     for (let i = 0; i < xs.length; i++) {
-      const x = xs[i], y = ys[i]
-      if (!(x > 0)) continue
-      if (x < xmin) xmin = x
-      if (x > xmax) xmax = x
-      if (y > 0 && y < ymin) ymin = y
+      const x = xs[i], y = yv[i]
+      if (!(x > 0) || !(y > 0)) continue
+      if (energy) { if (x < xmin) xmin = x; if (x > xmax) xmax = x }
       if (y > ymax) ymax = y
+      if (i % step === 0) ys.push(y)
     }
   }
-  for (const l of lines) take(l.x, l.y)
-  if (!lines.length) for (const s of sets) take(s.x, s.y)
-  if (!Number.isFinite(xmin) || !Number.isFinite(ymax) || xmax <= xmin) return null
-  ymin = Math.max(ymin, ymax * 1e-9)
+  for (const l of lines) take(l.x, l.y, true)
+  for (const s of sets) take(s.x, s.y, !lines.length)
+  if (!Number.isFinite(xmin) || !Number.isFinite(ymax) || xmax <= xmin || !ys.length) return null
+  ys.sort((a, b) => a - b)
+  const ymin = Math.max(ys[Math.floor(ys.length * 0.01)], ymax * 1e-7)
   const down = (v: number) => 10 ** Math.floor(Math.log10(v) + 1e-9)
   const up = (v: number) => 10 ** Math.ceil(Math.log10(v) - 1e-9)
-  return { xmin: down(xmin), xmax: up(xmax), ymin: down(ymin), ymax: up(ymax) }
+  const nice = (v: number, dir: 1 | -1) => {
+    const p = 10 ** Math.floor(Math.log10(v))
+    const steps = dir < 0 ? [5, 2, 1] : [1, 2, 5, 10]
+    return p * (dir < 0 ? steps.find((s) => s * p <= v * (1 + 1e-9)) ?? 1 : steps.find((s) => s * p >= v * (1 - 1e-9)) ?? 10)
+  }
+  return { xmin: nice(xmin, -1), xmax: nice(xmax, 1), ymin: down(ymin), ymax: up(ymax) }
 }
 
 export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; range: Range; scales: Scales; hidden: Set<string>; threshold: number | null }) {

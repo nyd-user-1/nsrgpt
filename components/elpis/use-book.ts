@@ -49,22 +49,25 @@ const q = (o: Record<string, string | number | undefined>) =>
 async function points(target: string, reaction: string): Promise<{ ds: Map<string, Ds>; pts: Pt[]; truncated: boolean; error?: string }> {
   const base = { target, reaction, quantity: "SIG", limit: 50000 }
   const first = await getJson<Points>(`/exfor/points?${q(base)}`)
-  if (!first.ok) return { ds: new Map(), pts: [], truncated: false, error: first.body.error ? `EXFOR: ${first.body.error}` : `EXFOR answered ${first.status}` }
-  if (!first.body.truncated) return { ds: new Map(first.body.datasets.map((d) => [d.dataset_id, d])), pts: first.body.points, truncated: false }
+  if (!first.ok || !Array.isArray(first.body.datasets)) return { ds: new Map(), pts: [], truncated: false, error: first.body.error ? `EXFOR: ${first.body.error}` : `EXFOR answered ${first.status}` }
+  if (!first.body.truncated) return { ds: new Map(first.body.datasets.map((d) => [d.dataset_id, d])), pts: first.body.points ?? [], truncated: false }
   // Eight windows, 10 µeV to 1 GeV in equal log steps; each window's lower edge is open so no point comes twice.
   const edges = Array.from({ length: 9 }, (_, i) => 10 ** (-5 + (14 * i) / 8))
-  const parts = await Promise.all(edges.slice(0, -1).map((lo, i) => getJson<Points>(`/exfor/points?${q({ ...base, emin: i ? lo * (1 + 1e-12) : 0, emax: edges[i + 1] })}`)))
+  // Two at a time: eight at once can meet the API's throttle.
+  const parts: { ok: boolean; status: number; body: Points }[] = []
+  for (let i = 0; i < 8; i += 2)
+    parts.push(...(await Promise.all([i, i + 1].map((k) => getJson<Points>(`/exfor/points?${q({ ...base, emin: k ? edges[k] * (1 + 1e-12) : 0, emax: edges[k + 1] })}`).catch(() => ({ ok: false, status: 0, body: {} as Points }))))))
   const ds = new Map<string, Ds>(first.body.datasets.map((d) => [d.dataset_id, { ...d, n: 0 }]))
   const pts: Pt[] = []
   let truncated = false
   for (const p of parts) {
-    if (!p.ok) { truncated = true; continue }
+    if (!p.ok || !Array.isArray(p.body.datasets)) { truncated = true; continue }
     truncated ||= !!p.body.truncated
     for (const d of p.body.datasets) {
       const had = ds.get(d.dataset_id)
       ds.set(d.dataset_id, { ...(had ?? d), units: had?.units ?? d.units, n: (had?.n ?? 0) + (d.n ?? 0) })
     }
-    pts.push(...p.body.points)
+    for (const pt of p.body.points ?? []) pts.push(pt)
   }
   return { ds, pts, truncated }
 }
@@ -77,7 +80,8 @@ export function loadBook(o: { name: string; sub: string; mt: number; releases: s
     const xsP = o.releases.length
       ? getJson<{ series?: XsSeries[]; error?: string }>(`/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: o.releases[0], compare: o.releases.slice(1).join(",") })}`)
       : Promise.resolve(null)
-    const exP = o.reaction ? points(o.target, o.reaction) : Promise.resolve(null)
+    // EXFOR's trouble is reported beside the lines, never in their place.
+    const exP = o.reaction ? points(o.target, o.reaction).catch((e) => ({ ds: new Map<string, Ds>(), pts: [] as Pt[], truncated: false, error: `EXFOR: ${e instanceof Error ? e.message : String(e)}` })) : Promise.resolve(null)
     const [xs, ex] = await Promise.all([xsP, exP])
     const lines: BookLine[] = []
     if (xs && !xs.ok && xs.status !== 404) errors.push(xs.body.error ? `ENDF: ${xs.body.error}` : `ENDF answered ${xs.status}`)
@@ -105,7 +109,7 @@ export function loadBook(o: { name: string; sub: string; mt: number; releases: s
       }
     }
     return { lines, sets, off, truncated: !!ex?.truncated, reaction: o.reaction, errors }
-  })())
+  })().catch((e) => { cache.delete(key); throw e }))
   return cache.get(key)!
 }
 
