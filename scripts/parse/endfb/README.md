@@ -56,3 +56,4 @@ Rerun, one line per step, from the Mac (one AWS CLI call each; `R` a release):
 - Part B, parse every material (all seven tables at once): the same with `"stage":"parse"`; add `"missing":true` for the materials with no summary, `"rejected":true` for those with a rejected section, `"ids":[…]` for named ones, `"chunks":n` to split a long material's sections over n invocations.
 - Part C, register, count and write the manifest: `{"job":"collect","release":"R"}`
 - `/counts`' total_values: `{"job":"values"}` (writes `lake/endfb/_values/latest.json`).
+- Delete the split text after a run (130 GB for all 13; the indexes stay, Part A rebuilds it): `{"job":"clean"}` (or `"release":"R"`); each manifest's `mf4_15.split_text` records it.

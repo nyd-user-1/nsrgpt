@@ -1066,6 +1066,28 @@ def values(ev):
     return {k: body[k] for k in ("total_values", "by_release", "seconds", "storage")} | {"tables": {x["table"]: x["values"] for x in out}}
 
 
+def clean(ev):
+    """Delete the split text (Part A rebuilds it in about a minute a release); the split indexes stay for collect."""
+    n = 0
+    for r in ([ev["release"]] if ev.get("release") else RELEASES):
+        keys = [k for k, _ in list_keys(f"lake/_work/endf-split/{r}/") if "/_index/" not in k]
+        for i in range(0, len(keys), 1000):
+            s3.delete_objects(Bucket=BUCKET, Delete={"Objects": [{"Key": k} for k in keys[i:i + 1000]], "Quiet": True})
+        n += len(keys)
+        try:  # record it in the manifest
+            key = f"lake/endfb/{r}/manifest.json"
+            m = get_json(key)
+            if "mf4_15" in m:
+                m["mf4_15"]["split_text"] = {"deleted_at": now(), "prefix": f"lake/_work/endf-split/{r}/",
+                                             "note": "the per-material text of MF 4-15 was deleted after the run (130 GB "
+                                                     "for all 13 releases); the split indexes stay, and Part A "
+                                                     "(fanout stage split) rebuilds the text in about a minute"}
+                put_json(key, m)
+        except Exception:  # noqa: BLE001
+            pass
+    return {"deleted": n}
+
+
 def lambda_handler(event, context=None):
     job = event.get("job")
     if job == "split":
@@ -1080,6 +1102,8 @@ def lambda_handler(event, context=None):
         return probe(event)
     if job == "values":
         return values(event)
+    if job == "clean":
+        return clean(event)
     if job == "lines":  # a material's lines by MF, for checks
         lines, keys = material_lines(event["release"], event["id"])
         return {"lines": len(lines), "keys": keys}
