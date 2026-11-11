@@ -20,8 +20,8 @@ import { arrange, useNavRows, type NavEntry } from "@/lib/nav-rows"
 
 const CHARTS = VIZ_CHARTS.map((c) => ({ href: c.href, label: HEADER_TITLES[c.href] ?? c.title }))
 // A table goes by its chart's name, so two tables never share one. The GNDS 2.0 compiler sits with them, under Data
-// (brief 58 follow-up).
-const TABLES = [...Object.keys(VIZ_TABLES).map((slug) => ({ href: `/viz/data/${slug}`, label: tableName(slug) })), { href: "/gnds", label: "GNDS 2.0 compiler" }]
+// (brief 58 follow-up). CINDA joins them (brief 65).
+const TABLES = [...Object.keys(VIZ_TABLES).map((slug) => ({ href: `/viz/data/${slug}`, label: tableName(slug) })), { href: "/gnds", label: "GNDS 2.0 compiler" }, { href: "/cinda", label: "CINDA" }]
 // Every row the menu can show, for Pin to top, Hide and Archive (lib/nav-rows.ts).
 const ALL: NavEntry[] = [
   { href: "/chat", label: "Chat", group: "Main" },
