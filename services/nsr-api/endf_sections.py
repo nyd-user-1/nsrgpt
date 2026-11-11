@@ -9,6 +9,13 @@
 #   GET /endf/section/laws?name=U-235&release=B-VIII.1[&mf=6&mt=5]
 #       Every MF 4-15 section the material holds (rows, values, incident energies, laws and products), or with mf and mt
 #       the incident energies held, per product for MF6.
+#   GET /endf/section/production?name=Fe-56&sub=protons&zap=27055&release=TENDL-2023&compare=JEFF-3.3,JENDL-5[&lip=]
+#       The cross section for producing one residual (zap = 1000 Z + A) through MT 5 (brief 69 follow-up, elpis-wire): File
+#       10 MT 5's own production section for that product where the material gives one (summed over final states), else
+#       MT 5's File 3 cross section times the product's File 6 yield (summed over its isomeric levels LIP, or one with lip),
+#       on the union of the two energy grids where both are defined, both read lin-lin. One series per release, in
+#       /endf/xs's shape (release, held, energy_ev, xs_barn, method, note), so a page reads both alike.
+import bisect
 import json
 import os
 import time
@@ -161,6 +168,83 @@ def laws(q):
     return 200, out
 
 
+def lin(xs, ys, x):
+    """y at x on a lin-lin table (xs ascending; a repeated x, a step, takes its left value); 0 outside it."""
+    if not xs or x < xs[0] or x > xs[-1]:
+        return 0.0
+    i = bisect.bisect_left(xs, x)
+    if xs[i] == x:
+        return ys[i]
+    x0, x1, y0, y1 = xs[i - 1], xs[i], ys[i - 1], ys[i]
+    return y0 + (y1 - y0) * (x - x0) / (x1 - x0) if x1 > x0 else y0
+
+
+def summed(tables):
+    """Several lin-lin tables [(xs, ys)] summed on the union of their grids."""
+    grid = sorted({x for xs, _ in tables for x in xs})
+    return grid, [sum(lin(xs, ys, x) for xs, ys in tables) for x in grid]
+
+
+def production(q):
+    try:
+        zap = int(float(q.get("zap") or ""))
+    except ValueError:
+        return 400, {"error": "zap (1000 Z + A of the residual, e.g. 27055 for Co-55) is required"}
+    lip = whole(q, "lip")
+    wanted = [q.get("release") or S.DEFAULT_RELEASE] + [c for c in (q.get("compare") or "").split(",") if c.strip()]
+    series, name = [], None
+    for w in wanted:
+        found, err = material({**q, "release": w})
+        if err:
+            series.append({"release": w.strip(), "held": False, "note": err[1].get("error")})
+            continue
+        r, name, sub, m, entry = found
+        tables, method = [], None
+        try:
+            rows = S.records(f"SELECT lfs, e_ev, value FROM read_parquet('{S.ENDFB}/{r}/mult/{entry['id']}*.parquet') "
+                             "WHERE mf = 10 AND mt = 5 AND CAST(round(izap) AS INTEGER) = ? ORDER BY lfs, e_seq", [zap])
+        except Exception:  # noqa: BLE001  no mult file: no MF9 or MF10 for this material
+            rows = []
+        if rows:
+            for k in sorted({x["lfs"] for x in rows}):
+                part = [x for x in rows if x["lfs"] == k]
+                tables.append(([x["e_ev"] for x in part], [x["value"] for x in part]))
+            grid, xs_b = summed(tables)
+            method = "File 10 MT 5, the material's own production section"
+        else:
+            try:
+                rows = S.records(f"SELECT lip, e_in_ev, value FROM read_parquet('{S.ENDFB}/{r}/eang/{entry['id']}*.parquet') "
+                                 "WHERE mt = 5 AND quantity = 'yield' AND CAST(round(zap) AS INTEGER) = ?"
+                                 + (" AND lip = ?" if lip is not None else "") + " ORDER BY lip, product_seq, e_seq",
+                                 [zap] + ([lip] if lip is not None else []))
+            except Exception:  # noqa: BLE001
+                rows = []
+            if not rows:
+                series.append({"release": r, "held": True, "found": False, "mat": m["mat"],
+                               "note": f"no MT 5 production of ZA {zap} in {name}, {r} {sub}"})
+                continue
+            for k in sorted({x["lip"] for x in rows}):
+                part = [x for x in rows if x["lip"] == k]
+                tables.append(([x["e_in_ev"] for x in part], [x["value"] for x in part]))
+            ye, yv = summed(tables)
+            st, body = S.xs({"name": name, "mt": "5", "sub": sub, "release": r})
+            s5 = next((x for x in body.get("series", []) if x.get("energy_ev")), None)
+            if not s5:
+                series.append({"release": r, "held": True, "found": False, "mat": m["mat"],
+                               "note": f"the File 6 yield is there but no MF3 MT 5 for {name} in {r} {sub}"})
+                continue
+            e5, x5 = s5["energy_ev"], s5["xs_barn"]
+            lo, hi = max(e5[0], ye[0]), min(e5[-1], ye[-1])
+            grid = sorted({x for x in e5 + ye if lo <= x <= hi})
+            xs_b = [lin(e5, x5, x) * lin(ye, yv, x) for x in grid]
+            method = "MT 5's File 3 cross section times the product's File 6 yield"
+        series.append({"release": r, "held": True, "mat": m["mat"], "zap": zap, "energy_ev": grid, "xs_barn": xs_b,
+                       "n_points": len(grid), "method": method, "note": f"production from MT 5: {method}"})
+    found_any = any(x.get("energy_ev") for x in series)
+    return (200 if found_any else 404), {"name": name, "zap": zap, "lip": lip, "mt": 5, "units": {"energy": "eV", "xs": "barn"},
+                                         "series": series}
+
+
 def route(path, q):
     q = q or {}
     p = path.rstrip("/")
@@ -169,6 +253,8 @@ def route(path, q):
             return section(q)
         if p == "/endf/section/laws":
             return laws(q)
-        return 404, {"error": "routes: /endf/section, /endf/section/laws"}
+        if p == "/endf/section/production":
+            return production(q)
+        return 404, {"error": "routes: /endf/section, /endf/section/laws, /endf/section/production"}
     except (ValueError, duckdb.Error) as ex:
         return 400, {"error": str(ex)[:500]}
