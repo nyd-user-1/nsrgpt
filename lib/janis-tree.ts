@@ -174,13 +174,15 @@ export function browse(path: string[]): JanisView {
 export type MarkCounts = Record<Mark, number>
 
 /** The hand list's marks, each distinct name once (the generated element and nuclide rows are not counted). */
+const RANK: Record<Mark, number> = { same: 2, ours: 1, missing: 0 }
+
 export function handCounts(): MarkCounts {
   const seen = new Map<string, Mark>()
   const walk = (n: JanisNode, root = false) => {
     if (!root) {
       const m = markOf(n)
       const was = seen.get(n.name)
-      if (!was || was === "same") seen.set(n.name, m) // a name held in one base and missing in another counts once, marked
+      if (!was || RANK[m] > RANK[was]) seen.set(n.name, m) // once a name: both hold it anywhere, else mine alone, else theirs alone
     }
     n.children?.forEach((c) => walk(c))
   }
