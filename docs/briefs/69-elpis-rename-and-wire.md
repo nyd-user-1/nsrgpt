@@ -246,3 +246,35 @@ Types and lint are clean on the box for every commit.
 - **U-235 (n,f):** 26 libraries and 254 EXFOR sets, no errors. One call with 46 releases had passed the gateway's 30 s, and four dosimetry curves in one answer had passed Lambda's 6 MB.
 - **Console errors.** The only ones on these pages are 500s from `/api/housekeeping`, which is not Elpis's.
 - **Types and lint** are clean for every commit.
+
+### Follow-up 2: the five U-235 (n,f) subentries, summed MTs (elpis-wire, 2026-11-11 14:20 ET)
+
+**The five subentries** (23453.016, 40070.039.1, 40156.004, 40218.002, 40588.003). `scripts/parse/serve/points.py` did not skip them: all five are in `nsr.exfor_serve_points`, 151 points from C5, in barns. Three causes kept them off the book:
+1. **NaN uncertainties.** C5 carries 5,165 NaN dData values in 36 datasets. points.py copied them into the points table, nsr-api's Python json wrote them as bare `NaN`, and a browser's JSON parser refuses the whole answer.
+   - Effect: 21 target, reaction and quantity answers, 1,292 datasets and 338,762 points, could not be read in a browser. Sixteen of them are cross sections (934 datasets), so those book pages showed no EXFOR points at all: U-234, U-235 and Np-237 (n,f), Zr-96 (n,γ), Si-28 (n,p), (n,α) and (n,n′), and more.
+   - Fixed at the source: points.py writes NaN and infinite values as NULL (`fc6fba2`), rebuilt on nsr-jobs-1 in 101 s.
+   - Before: 17,799,454 points, 5,165 NaN. After: 17,799,454 points, 0 NaN, no rows lost.
+   - The book also reads a stray NaN or Infinity as null.
+2. **The 50,000-point cap.** `/exfor/points` stops at 50,000 points in dataset order.
+   - Across EXFOR, 25 reactions have more than 50,000 cross-section points; in them, the book's eight energy windows dropped 57 datasets whole and cut 109 more (199,713 of 2,039,317 points).
+   - Fixed in the book (`0775cd2`): a capped window is asked again as four, down three levels.
+3. **Wrong index energy range.** The search index's energy range misses the points of 2,730 of 133,856 datasets. 40070.039.1 is indexed 100 eV to 30 keV while its points run 0.15 to 27.5 eV, so a windowed search never finds it.
+   - Fixed in the book (`8d92f67`): a dataset the windows leave empty is asked for by its subentry with no window.
+   - The index ranges themselves are not rebuilt. They are the EXFOR search index's (briefs 18, 51), for its owner.
+
+**U-235 (n,f).** Before: 254 sets drawn, and JANIS listed 5 I lacked. After: 295 drawn, all five among them, and none of JANIS's 228 missing. That leaves 11 datasets listed as "no points served"; their entries carry no plottable points (no energy, or not barns).
+
+**Summed MTs.** Of the 1,839 ❌ book rows now open (1,940 at the first report; elpis-fill's releases filled 101), only 8 can be served as a sum of partial sections a release holds: five MT 4, and one each of MT 103, 105 and 107 (γ book 1, p 3, d 4).
+- The other 1,831 are not sums. 1,837 of the 1,839 sit on nuclides whose files hold MT 5, lumped production, with the products' yields in File 6 or their production cross sections in File 10. JANIS's own labels show where its rows come from: "MT107 (n,α) or MT5 (Li8 production)".
+- Decision: I did not add sums to `/endf/xs` for 8 rows. A structure.py change and an API deploy for 8 of 1,839 is not worth it.
+- The route that closes the ❌ rows is residual production from MT 5: σ(MT 5) times each product's File 6 yield, or File 10 directly, labelled the way JANIS labels it. That is a build of its own (`endfb_eang`/`endfb_mult` hold the File 6 yields and File 10 sections). Say if you want it.
+
+**Also.**
+- Browse shows elpis-fill's `note` beside a library (JENDL-4.0u's partial parse).
+- The book index, resonance ranges and browse figures were rebuilt for 47 releases (`8689545`).
+
+**For the nsr-jobs owner (brief 51).**
+
+| Job | Release | Material | MT | Error | Seen |
+| --- | --- | --- | --- | --- | --- |
+| broaden, 1 K | ENDF/B-VI.8 | Fe-56, MAT 2631 | 102 | `no MF3 MT 102 for MAT 2631 in SIGMA1.OUT` | Elpis Reconstruct, 2026-11-11; the other six releases' Fe-56 MT 102 jobs succeeded |
