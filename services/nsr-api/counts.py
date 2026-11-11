@@ -28,6 +28,12 @@ NOT_RECORDS = {"ensdf_cards", "xundl_cards", "endfb_records"}
 # ... nor model data (vectors, evaluation and training tables), nor a snapshot a newer one replaces (X4Pro 2023 -> 2025)
 NOT_RECORDS_PREFIX += ("nsr_embeddings", "nsr_eval_", "nsr_train_")
 SUPERSEDED = ("lake/exfor/x4pro-2023-07-14/",)
+# ENDF Files 4-15 (brief 64): one Parquet file per material per table (about 100,000 files), so their rows come from each
+# release's manifest (mf4_15, Athena counts at collect time) instead of the footers. total_values comes from
+# lake/endfb/_values/latest.json (nsr-endf-parse's "values" job: every non-null numeric value of the endfb_* tables).
+MF4_15 = {"endfb_ang": "ang", "endfb_edist": "edist", "endfb_eang": "eang", "endfb_mult": "mult",
+          "endfb_photon_xs": "photon_xs", "endfb_photon_ang": "photon_ang", "endfb_photon_edist": "photon_edist"}
+VALUES_KEY = "lake/endfb/_values/latest.json"
 _mem = {"at": 0.0, "body": None}
 
 
@@ -92,6 +98,7 @@ def endf():
                "decay_lines": n("mf8_mf33", "endfb_decay_lines"), "cov": n("mf8_mf33", "endfb_cov"),
                "res_ranges": n("mf2_mf32", "endfb_res_ranges"), "res_params": n("mf2_mf32", "endfb_res_params"),
                "res_cov": n("mf2_mf32", "endfb_res_cov"),
+               **{k: n("mf4_15", t) for t, k in MF4_15.items()},
                "counted_at": m.get("built_at") or (m.get("mf2_mf32") or {}).get("built_at")}
         out[r] = row
         for k in tot:
@@ -101,14 +108,14 @@ def endf():
 
 def collections_total():
     return {k: 0 for k in ("materials", "sections", "points", "fy", "decay", "decay_modes", "decay_lines", "cov",
-                           "res_ranges", "res_params", "res_cov")}
+                           "res_ranges", "res_params", "res_cov", *MF4_15.values())}
 
 
 def refresh():
     """Count everything and write lake/serve/counts/latest.json (minutes; runs as an asynchronous invocation)."""
     t0 = time.time()
     tables = {}
-    names = glue_tables()
+    names = [(n, p) for n, p in glue_tables() if n not in MF4_15]
 
     def one(item):
         name, prefixes = item
@@ -132,6 +139,15 @@ def refresh():
     except Exception as e:  # noqa: BLE001
         tables["nsrgpt_jobs"] = {"rows": None, "error": str(e)[:160], "counted_at": now()}
     endf_rows, endf_tot = endf()
+    for t, k in MF4_15.items():  # from the manifests
+        held = {r: v[k] for r, v in endf_rows.items() if v.get(k) is not None}
+        if held:
+            tables[t] = {"rows": sum(held.values()), "counted_at": now(), "source": "manifests (mf4_15, Athena count)",
+                         "location": f"{len(held)} partitions", "by_release": held}
+    try:
+        values = json.loads(s3.get_object(Bucket=B, Key=VALUES_KEY)["Body"].read())
+    except Exception as e:  # noqa: BLE001
+        values = {"error": str(e)[:160]}
     gnds = {}
     try:
         files = [f for p in dict(names).get("gnds_files", []) for f in files_under(p)]
@@ -156,6 +172,10 @@ def refresh():
                                   "search documents (search_*), tables of raw text lines (ensdf_cards, xundl_cards, "
                                   "endfb_records), model data (nsr_embeddings*, nsr_eval_*, nsr_train_*) and the X4Pro "
                                   "2023 snapshot the 2025 one replaces",
+            "total_values": values.get("total_values"), "total_values_of": values.get("total_values_of"),
+            "total_values_note": values.get("note") or values.get("error"),
+            "total_values_counted_at": values.get("counted_at"),
+            "total_values_by_table": {x["table"]: x["values"] for x in values.get("tables", [])},
             "endf": endf_rows, "endf_total": endf_tot, "gnds": gnds,
             "counted_at": now(), "seconds": round(time.time() - t0, 1)}
     s3.put_object(Bucket=B, Key=KEY, Body=json.dumps(body, default=str).encode(), ContentType="application/json")

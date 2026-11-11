@@ -1,0 +1,37 @@
+CREATE EXTERNAL TABLE IF NOT EXISTS `endfb_photon_xs` (
+  `sublibrary` string,
+  `file_name` string,
+  `mat` int,
+  `mf` int,
+  `mt` int,
+  `lo` int,
+  `lg` int,
+  `subsection` int,
+  `kind` string,
+  `eg_ev` double,
+  `es_ev` double,
+  `lp` int,
+  `lf` int,
+  `level_ev` double,
+  `e_seq` int,
+  `e_ev` double,
+  `value` double,
+  `interpolation` int
+)
+PARTITIONED BY (`release` string)
+STORED AS PARQUET
+LOCATION 's3://nsr-lake-613473203863/lake/endfb/'
+TBLPROPERTIES ('parquet.compression'='SNAPPY');
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.1') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.1/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-VIII.0') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VIII.0/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-VII.1') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VII.1/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-VII.0') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VII.0/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-VI.8') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-VI.8/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-V') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-V/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-IV') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-IV/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-III') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-III/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='B-II') LOCATION 's3://nsr-lake-613473203863/lake/endfb/B-II/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='CENDL-3.2') LOCATION 's3://nsr-lake-613473203863/lake/endfb/CENDL-3.2/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='JEFF-3.3') LOCATION 's3://nsr-lake-613473203863/lake/endfb/JEFF-3.3/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='JENDL-5') LOCATION 's3://nsr-lake-613473203863/lake/endfb/JENDL-5/photon_xs/';
+ALTER TABLE `endfb_photon_xs` ADD IF NOT EXISTS PARTITION (release='TENDL-2023') LOCATION 's3://nsr-lake-613473203863/lake/endfb/TENDL-2023/photon_xs/';

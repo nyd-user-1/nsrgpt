@@ -274,7 +274,8 @@ def respond(status, body, t0):
 # keyword_search.py parsing-2's (brief 18), dataset.py and community.py ui-layer's (brief 34), resonances.py, library.py, icrp.py
 # and counts.py brief 56's, cinda.py brief 65's.
 MODULES = {"/nuclide": "structure", "/endf/material": "dataset", "/endf/resonances": "resonances",
-           "/endf/fy": "library", "/endf/decay": "library", "/endf/decay-vs-ensdf": "library", "/endf": "structure",
+           "/endf/fy": "library", "/endf/decay": "library", "/endf/decay-vs-ensdf": "library", "/endf/section": "endf_sections",
+           "/endf": "structure",
            "/icrp": "icrp", "/counts": "counts", "/search": "keyword_search",
            "/suggest": "keyword_search", "/nsr": "keyword_search", "/dataset": "dataset", "/exfor/entry": "dataset",
            "/community": "community", "/files": "community", "/sweep": "sweep", "/gnds": "gnds",
