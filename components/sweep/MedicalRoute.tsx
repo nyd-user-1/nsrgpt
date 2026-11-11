@@ -7,6 +7,7 @@ import { useSwitchboard } from "@/components/SwitchboardPanel"
 import { Verdict, yieldText } from "@/components/sweep/MedicalPage"
 import { EChartLegend } from "@/components/viz/EChartLegend"
 import { useEChart } from "@/components/viz/use-echart"
+import { ChartBox } from "@/components/viz/chart-kebab"
 import { VizControls, VizSection } from "@/components/viz/VizControls"
 import { labHref } from "@/lib/lab/canvases/from-pair"
 import { RELEASE_SLOT, SLOTS, energyLabel } from "@/lib/lab/canvases/plot"
@@ -61,7 +62,7 @@ function RouteChart({ d }: { d: MedDetail }) {
   const ref = useEChart(async () => null, () => routeOption(dRef.current, isDark()), false, undefined, { onPick: () => {}, marks: true })
   return (
     <>
-      <div ref={ref} className="h-[360px] w-full" />
+      <ChartBox chart={ref} className="h-[360px] w-full" />
       <VizControls>
         <VizSection>
           <EChartLegend chart={ref} />
