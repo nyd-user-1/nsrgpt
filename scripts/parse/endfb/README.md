@@ -52,6 +52,7 @@ rejected section at `mf4_15/rejects.json`, and the release's counts (`sections_b
 Rerun, one line per step, from the Mac (one AWS CLI call each; `R` a release):
 
 - Deploy: `./services/nsr-endf-parse/deploy.sh`
+- Before a fan-out, cap it so the other functions keep 100 of the account's 400: `aws lambda put-function-concurrency --function-name nsr-endf-parse --reserved-concurrent-executions 300`; after it, give the 300 back: `aws lambda delete-function-concurrency --function-name nsr-endf-parse` (released 2026-11-11 after the run).
 - Part A, split `endfb_records` into per-material text of MF 4-15: `aws lambda invoke --function-name nsr-endf-parse --cli-binary-format raw-in-base64-out --payload '{"job":"fanout","release":"R","stage":"split"}' out.json`
 - Part B, parse every material (all seven tables at once): the same with `"stage":"parse"`; add `"missing":true` for the materials with no summary, `"rejected":true` for those with a rejected section, `"ids":[…]` for named ones, `"chunks":n` to split a long material's sections over n invocations.
 - Part C, register, count and write the manifest: `{"job":"collect","release":"R"}`
