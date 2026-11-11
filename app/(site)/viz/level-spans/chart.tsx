@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useEChart, valueRow } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { MenuSelect } from '@/components/viz/MenuSelect'
 import { loadLevelStats, nuclideName, type LevelStats } from '@/lib/viz-data'
@@ -137,7 +138,7 @@ export function LevelSpansChart() {
           className="min-w-[180px] text-[12px]"
         />
       </VizControls>
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
       <VizControls>
       <p className="m-0 text-[12px] leading-relaxed text-[var(--paper-muted)]" style={SANS}>
         Each bar is one isotope. It runs from the ground state at 0 MeV up to the highest level known; the tick on the left
