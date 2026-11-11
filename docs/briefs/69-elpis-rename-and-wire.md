@@ -122,3 +122,97 @@ linked, differences from JANIS, box minutes.
 
 ## Kickoff
 `Read ~/Code/nsrgpt/docs/briefs/69-elpis-rename-and-wire.md and do it; one line to lead-agent per milestone.`
+
+## Report (elpis-wire, 2026-11-11 05:10 ET)
+
+**Commits.**
+- `816d0e2` the rename, with redirects from `/janis` and `/janis/*`.
+- `51b0332` the lead's sidebar icon and plate names, carried.
+- `6c1a4e3` book, browse, search and home wired.
+- `c3c2629` and `322ec81` the chart's range.
+- `7ddffeb` search row keys.
+- `aac0cb9` Q values written as JANIS writes them.
+- `151dc2d` and `6679c92` the crawl read from the CDN, with the repo copy as fallback.
+- `7c14869` browse figures.
+
+Types and lint are clean on the box for every commit.
+
+**Book index** (`public/elpis/book-<p>.json`; lake `lake/elpis/2026-11-11/`). JANIS's rails were crawled from its book pages: 7 books, 1,396 nuclides, 7,292 pages, no errors. Every nuclide JANIS's books list is one I hold.
+
+| Book | Nuclides I hold | JANIS's nuclides | MTs both | ❌ JANIS only | ✅ mine only |
+| --- | --- | --- | --- | --- | --- |
+| n | 2,912 | 533 | 2,423 | 143 | 230,935 |
+| γ | 3,484 | 177 | 346 | 45 | 70,185 |
+| p | 2,925 | 236 | 1,009 | 737 | 83,268 |
+| d | 2,889 | 158 | 486 | 199 | 91,024 |
+| t | 2,866 | 19 | 20 | 11 | 88,846 |
+| h | 2,882 | 76 | 351 | 174 | 88,490 |
+| α | 2,884 | 197 | 717 | 631 | 65,171 |
+
+**QA on the box.**
+- **40 random book pages** across the seven books (seed 69; 10 n, 5 γ, 6 p, 5 d, 4 t, 5 h, 5 α):
+  - All 40 draw real lines: 1 to 13 libraries, EXFOR sets where EXFOR has them.
+  - The legend lists what is drawn.
+  - The Q value is a number on all 40.
+  - Every EXFOR sheet row links to `/datasets/exfor/<id>`.
+  - No console errors, except React's hydration warning on 2 of about 50 loads; it did not recur on reload.
+  - Ten pages in both themes are in `lake/_work/elpis/qa/`, with the run logs (`run1`–`run4.jsonl`): n/53-I-125/102, n/33-As-75/4, n/41-Nb-102/62, g/77-Ir-181/102, p/30-Zn-64/105, p/83-Bi-196m/106, d/24-Cr-53/4, t/42-Mo-101/25, h/77-Ir-178/117, a/49-In-127/42.
+  - Rails are closed on load. The Plotter, rail clicks and data loads redraw without animation; only the zoom box animates.
+- **Search** (one test per form):
+  - EXFOR B-11 (n,α): 14 rows.
+  - ENDF B-11 MT107: 10 rows.
+  - CINDA B-11: 100 rows.
+  - Resonances Fe-56: 2,769 rows.
+  - Decay lines Co-60: 323 rows.
+  - Covariances U-235: 372 rows.
+- **Browse.**
+  - Isotope rows open the book (cross sections), `/datasets/endf?name=&release=` (the other types) or Elpis's EXFOR search (EXFOR rows).
+  - The figure column reads: Fe-56 under ENDF/B-VIII.0 cross sections, 37.4K File 3 points; under EXFOR cross sections, 55.4K points.
+
+**Against JANIS Web** (its book pages and data cards, read from the Mac).
+- **B-11 (n,α)**
+  - EXFOR: the same 4 subentries (11219.002, 20833.002, 23457.002, 30530.005). I also list 5 I do not draw: one ratio, three PAR,SIG and one with no points.
+  - Q value: the same, −6.63095 MeV.
+  - Libraries in both: CENDL-3.2, ENDF/B-VIII.0, JEFF-3.3.
+  - JANIS only: BROND-3.1, EAF-2010, JENDL-4.0u, TENDL-2019.
+  - Mine only: ENDF/B-VIII.1, JENDL-5, TENDL-2023, ENDF/B-VII.1, VII.0, VI.8, V, IV, III.
+- **Fe-56 (n,total)**
+  - EXFOR: the same 16 subentries.
+  - Q value: the same, 0 eV.
+  - Libraries in both: CENDL-3.2, ENDF/B-VIII.0, JEFF-3.3.
+  - JANIS only: BROND-3.1, JENDL-4.0u, JENDL/HE-2007, TENDL-2019.
+  - Mine only: ENDF/B-VIII.1, JENDL-5, TENDL-2023, ENDF/B-VII.1, VII.0, VI.8.
+- **U-235 (n,f)**
+  - JANIS's page answered 504 twice, then loaded in 20 s.
+  - EXFOR: JANIS lists 228; I hold 262 in barns with points; 223 are in both.
+    - JANIS only: 5 (23453.016, 40070.039.1, 40156.004, 40218.002, 40588.003). I hold their entries but serve no points for them.
+    - Mine only: 39.
+    - Two of my eight energy windows pass 50,000 points, so the page draws 254 of my 262.
+  - Q value: JANIS shows 193.4054 MeV, from ENDF/B-VIII.0. I show 194.077 MeV, from ENDF/B-VIII.1, the first library I draw; my ENDF/B-VIII.0 value is 193.4054 MeV.
+  - Libraries in both: CENDL-3.2, ENDF/B-VIII.0, JEFF-3.3.
+  - JANIS only: BROND-3.1, EAF-2010, IRDFF-II, JENDL-4.0u, JENDL/HE-2007, TENDL-2019.
+  - Mine only: ENDF/B-VIII.1, JENDL-5, TENDL-2023, ENDF/B-VII.1, VII.0, VI.8, V, IV, III, II.
+
+**What JANIS shows that I do not.**
+- **Reconstructed curves inside the resolved resonance range for every library.** My lines for JEFF-3.3, JENDL-5, ENDF/B-VII.1 and older, TENDL-2023 and CENDL-3.2 are File 3 as evaluated: the background only. The sheet says so line by line. ENDF/B-VIII.x come from POINT at 0 K.
+- **Libraries the lake now holds but `/endf/xs` does not serve:** BROND-3.1, EAF-2010, IRDFF-II, JENDL-4.0/HE, FENDL, JEFF-4.0 and the rest of elpis-fill's additions. They are in the book index already and draw once `RELEASES` in `services/nsr-api/structure.py` and their serve tables include them.
+- **1,940 book MTs** (❌ in the rails), most of them charged-particle channels JANIS fills from its own processing.
+- **JANIS's own UI controls.** The sheet's Settings column (P, T, I) is now a Points column. Search results have no row checkboxes for plotting.
+- **Search fields marked ❌:** quantity group, title, 1st author, reference type, main reference and code, area, country, BOXER, Material #2, Reaction #2.
+- **Searches without a nuclide.** Resonances and Decay lines need a target nuclide; the ENDF and Covariances forms need one to list sections.
+- **Every EXFOR set on a page.** Points past 50,000 in one energy window are not drawn, and the sheet says so.
+
+**What I show that JANIS does not.**
+- ENDF/B-VIII.1, JENDL-5, TENDL-2023 and the older ENDF/B releases on every page.
+- 718,000 MT rows JANIS's books do not list: levels, MT 5, partial and production MTs.
+- 39 more U-235 (n,f) subentries.
+- The threshold line.
+- Per-line notes: POINT, or background only.
+- The list of EXFOR sets not drawn, with the reason for each.
+- The lake's figures beside each browse row.
+
+**Open.**
+- **Crawl from the CDN.** The browser gets no CORS header on `/lake/*` (CDP shows `MissingAllowOriginHeader`; curl gets the header). elpis-fill has the evidence. Until it's fixed, `use-crawl.ts` falls back to `public/janis-tree*`, so those files must stay until it passes.
+- **Stale marks.** The crawl still marks EAF-2010 and CENDL-3.1 ❌ although the lake holds them; elpis-fill's next mark run.
+
+**Box minutes:** about 55: twelve type and lint runs, and the QA drives.
