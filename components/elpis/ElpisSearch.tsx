@@ -22,6 +22,7 @@ import { useSearchParams } from "next/navigation"
 import { RotateCcw, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { AtomSpinner } from "@/components/AtomSpinner"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { LINE, LINK, Mark, SEARCHES, TINT } from "@/components/elpis/parts"
 import { cn } from "@/lib/utils"
@@ -474,7 +475,7 @@ export function ElpisSearch({ form }: { form: string }) {
             {!(state.status === "done" && r?.rows.length) && (
               <tr>
                 <td colSpan={f.columns.length} className="px-3 py-6 text-center text-sm text-[var(--paper-muted)]">
-                  {state.status === "loading" ? "Searching…" : state.status === "error" ? state.error : state.status === "done" ? r?.note ?? "No rows match." : "Fill in the form and search."}
+                  {state.status === "loading" ? <span className="inline-flex justify-center"><AtomSpinner size={40} label="Searching" /></span> : state.status === "error" ? state.error : state.status === "done" ? r?.note ?? "No rows match." : "Fill in the form and search."}
                 </td>
               </tr>
             )}

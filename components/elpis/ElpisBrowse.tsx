@@ -11,6 +11,7 @@ import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { HOVER, LINE, LINK, Mark, TINT } from "@/components/elpis/parts"
 import { useCrawl, useCrawlFile } from "@/components/elpis/use-crawl"
 import { useBrowseCounts } from "@/components/elpis/use-counts"
+import { AtomSpinner } from "@/components/AtomSpinner"
 import { compact } from "@/lib/compact"
 import { browse, browseCrawl, crawlFile } from "@/lib/janis-tree"
 import { cn } from "@/lib/utils"
@@ -39,7 +40,8 @@ export function ElpisBrowse({ path }: { path: string[] }) {
         </ol>
       </nav>
       {v.missing && <p className="text-sm text-[var(--paper-muted)]">Nothing here yet: the path goes past the tree. <Link href={last.href} className={LINK}>Back to {last.name}</Link>.</p>}
-      {!v.missing && !v.rows.length && <p className="text-sm text-[var(--paper-muted)]">{v.loading ? `Loading ${last.name}…` : v.pending ? `JANIS's rows under ${last.name} are still being read.` : `Nothing listed under ${last.name}.`}</p>}
+      {!v.missing && !v.rows.length && v.loading && <div className="flex justify-center py-8 text-[var(--paper-muted)]"><AtomSpinner size={40} label={`Loading ${last.name}`} /></div>}
+      {!v.missing && !v.rows.length && !v.loading && <p className="text-sm text-[var(--paper-muted)]">{ v.pending ? `JANIS's rows under ${last.name} are still being read.` : `Nothing listed under ${last.name}.`}</p>}
       {v.rows.length > 0 && (
         <ul className={cn("overflow-hidden rounded-lg border", LINE)}>
           {v.rows.map((r, i) => (

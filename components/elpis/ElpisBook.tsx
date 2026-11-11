@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button"
 import { CircleButton } from "@/components/ui/circle-button"
 import { SHEET_BAR_HOVER, Sheet, useSheet } from "@/components/lab/OutputPane"
 import { Input } from "@/components/ui/input"
+import { AtomSpinner } from "@/components/AtomSpinner"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
 import { useRailClosed } from "@/components/rail-toggle"
@@ -249,7 +250,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
       <InsetPanel side="left" storageKey="elpis:book-left-w">
         <div className={cn(INSET.header, LINE)}><h3 className={INSET.title}>By nuclide</h3></div>
         <InsetBody>
-        {idx === undefined && <p className="px-3 py-2 text-sm text-[var(--paper-muted)]">Loading the {proj.symbol} book…</p>}
+        {idx === undefined && <div className="flex justify-center px-3 py-4 text-[var(--paper-muted)]"><AtomSpinner size={28} label={`Loading the ${proj.symbol} book`} /></div>}
         {idx === null && <p className="px-3 py-2 text-sm text-[var(--paper-muted)]">The {proj.symbol} book index is not built yet.</p>}
         <ul className="text-sm" aria-label="By nuclide" onKeyDown={railKeys}>
           {elements.map(({ z: zz, nuclides }) => (
@@ -301,7 +302,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
             <BookChart lines={lines} sets={sets} spans={spans} range={range} full={full} scales={scales} hidden={hidden} threshold={threshold} version={version} onZoom={zoomed} />
             {(!data || empty || data.errors.length > 0) && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 text-center text-sm text-[var(--paper-muted)]">
-                {!data ? `Reading ${label} ${labelOf(mt)}…`
+                {!data ? <AtomSpinner size={40} label={`Reading ${label} ${labelOf(mt)}`} />
                   : data.errors.length ? data.errors.join(" · ")
                   : prod ? `No release draws the production of ${productTarget(prod.zap)} from MT 5 here, and ${why}.` : `No File 3 section for ${labelOf(mt)} of ${label} in any release I hold, and ${why}.`}
               </div>
@@ -414,7 +415,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
             </>
           )}
           <dd className="mt-1 text-xs text-[var(--paper-muted)]">
-            {prod ? `Production from MT 5 has no Q value of its own (${labelOf(mt)} is not a section I hold)` : head ? `File 3 of ${libraryName(head.release)}` : data ? "No File 3 section in any release I hold" : "Reading File 3…"}
+            {prod ? `Production from MT 5 has no Q value of its own (${labelOf(mt)} is not a section I hold)` : head ? `File 3 of ${libraryName(head.release)}` : data ? "No File 3 section in any release I hold" : <AtomSpinner size={16} label="Reading File 3" />}
           </dd>
           {threshold && (
             <>
