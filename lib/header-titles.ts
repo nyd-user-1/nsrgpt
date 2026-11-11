@@ -44,7 +44,7 @@ export const HEADER_TITLES: Record<string, string> = {
   // The Lab (brief 52, 2026-11-09): a canvas of blocks that run.
   "/lab": "Lab",
   // Brief 58 (2026-11-10): the model's page.
-  "/nsrcpt": "NSR-CPT",
+  "/nsrcpt": "NSRcpt",
   "/about": "About",
   "/sweep": "Sweep",
   "/sweep/pair": "Sweep pair",
