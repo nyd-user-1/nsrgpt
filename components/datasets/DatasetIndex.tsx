@@ -11,6 +11,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MenuSelect } from "@/components/viz/MenuSelect";
 import { Skeleton } from "@/components/ui/nova/skeleton";
 import { apiJson, isSource, short, SOURCES, type SourceDef } from "@/lib/datasets";
 import { compileUpload } from "@/lib/gnds";
@@ -62,14 +63,14 @@ function Index({ def }: { def: SourceDef }) {
           <label key={f.key} className="flex min-w-[180px] flex-col gap-1 text-xs text-[var(--paper-muted)]">
             {f.label}
             {f.key === "release" ? (
-              <select
+              // No browser dropdowns (Brendan's rule): the house menu.
+              <MenuSelect
+                label={f.label}
                 value={draft.release ?? ""}
-                onChange={(e) => { const next = { ...draft, release: e.target.value }; setDraft(next); go(next); }}
-                className="h-10 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]"
-              >
-                <option value="">{f.placeholder}</option>
-                {releases.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
+                onChange={(v) => { const next = { ...draft, release: v }; setDraft(next); go(next); }}
+                options={[{ value: "", label: f.placeholder ?? "Any" }, ...releases.map((r) => ({ value: r, label: r }))]}
+                className="h-10 text-sm"
+              />
             ) : (
               <Input value={draft[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })} className="text-[var(--paper-text)]" />
             )}
