@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronDown, ChevronUp, Download } from "lucide-react"
-import { lazy, Suspense, useRef, useState, type PointerEvent, type ReactNode } from "react"
+import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react"
 
 import type { RunLog } from "@/components/lab/useLab"
 import { isDataset, seriesList, type AnyValue, type Block, type Dataset, type Outputs } from "@/lib/lab/blocks"
@@ -21,28 +21,50 @@ const TAB = (on: boolean) =>
 /** A bottom sheet's bar and open heights (the Lab's pane, the JANIS book's Series sheet). */
 export const SHEET_BAR = 36
 const SHEET_OPEN = 260
+/** An open sheet is at least this tall; a drag that ends below it shuts the sheet. */
+const SHEET_MIN_OPEN = SHEET_BAR + 24
+/** The tallest a sheet drags, as a share of the viewport. */
+const SHEET_MAX = 0.6
 /** The bar's hover, the rail rows' (components/sidebar/SideBarMenuItem.tsx). */
 export const SHEET_BAR_HOVER = "hover:bg-[color-mix(in_oklab,var(--paper-text)_8%,var(--paper))]"
 
-/** A bottom sheet (Brendan, 2026-11-11 01:12): shut at rest, the whole bar toggles it (a tab still picks its tab), and
- *  the grip centred on the bar (the inset rails' gripper, laid flat) drags its height, remembered as the open height.
- *  `bar` goes on the bar (relative, the click surface), `grip` on the grip, `style` and `motion` on the sheet. */
-export function useSheet() {
+/** A bottom sheet (Brendan, 2026-11-11 01:30): shut on load, the whole bar toggles it (a tab still picks its tab). While
+ *  it is open the inset rails' gripper (components/nsr/graph/InsetPanel.tsx) sits on its top line and drags its height
+ *  from 36 px to 60% of the viewport, remembered per browser under `storageKey`; double-click for 260, arrow keys in
+ *  24 px steps; 500 ms open and close, none while dragging. Wear it with <Sheet>, `bar` on the bar. */
+export function useSheet(storageKey: string) {
   const [h, setH] = useState(SHEET_BAR)
   const [dragging, setDragging] = useState(false)
   const last = useRef(SHEET_OPEN)
-  const moved = useRef(false)
+  const box = useRef<HTMLDivElement>(null)
   const open = h > SHEET_BAR
+  const max = () => Math.round(window.innerHeight * SHEET_MAX)
+  const clamp = (v: number, min = SHEET_MIN_OPEN) => Math.max(min, Math.min(v, max()))
+  // Read after mount, as the rails' widths are: the sheet loads shut, so the remembered height is first seen on opening.
+  useEffect(() => {
+    try {
+      const v = Number(localStorage.getItem(storageKey))
+      if (v >= SHEET_MIN_OPEN) last.current = v
+    } catch {}
+  }, [storageKey])
+  // An open height, once the drag is done, is the one remembered.
+  useEffect(() => {
+    if (dragging || !open) return
+    last.current = h
+    try { localStorage.setItem(storageKey, String(h)) } catch {}
+  }, [h, open, dragging, storageKey])
+  useEffect(() => {
+    if (!dragging) return
+    const s = document.body.style
+    const prev = [s.cursor, s.userSelect]
+    s.cursor = "row-resize"; s.userSelect = "none"
+    return () => { s.cursor = prev[0]; s.userSelect = prev[1] }
+  }, [dragging])
   const setOpen = (want: boolean | ((o: boolean) => boolean)) =>
-    setH((cur) => ((typeof want === "function" ? want(cur > SHEET_BAR) : want) ? (cur > SHEET_BAR ? cur : last.current) : SHEET_BAR))
-  const max = () => Math.round(window.innerHeight * 0.75)
+    setH((cur) => ((typeof want === "function" ? want(cur > SHEET_BAR) : want) ? (cur > SHEET_BAR ? cur : clamp(last.current)) : SHEET_BAR))
   const end = () => {
     setDragging(false)
-    setH((cur) => {
-      if (cur < SHEET_BAR + 24) return SHEET_BAR
-      last.current = cur
-      return cur
-    })
+    setH((cur) => (cur < SHEET_MIN_OPEN ? SHEET_BAR : cur))
   }
   const grip = {
     role: "separator" as const,
@@ -52,47 +74,42 @@ export function useSheet() {
     onPointerDown: (e: PointerEvent<HTMLElement>) => {
       if (e.button !== 0) return
       e.preventDefault()
-      e.stopPropagation()
       e.currentTarget.setPointerCapture(e.pointerId)
-      moved.current = false
       setDragging(true)
     },
+    // The sheet's top line follows the pointer.
     onPointerMove: (e: PointerEvent<HTMLElement>) => {
       if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
-      const sheet = e.currentTarget.closest("[data-sheet]")
-      if (!sheet) return
-      moved.current = true
-      setH(Math.max(SHEET_BAR, Math.min(sheet.getBoundingClientRect().bottom - e.clientY + SHEET_BAR / 2, max())))
+      const r = box.current?.getBoundingClientRect()
+      setH(clamp((r?.bottom ?? window.innerHeight) - e.clientY, SHEET_BAR))
     },
     onPointerUp: end,
     onPointerCancel: end,
     onLostPointerCapture: end,
-    onClick: (e: { stopPropagation: () => void }) => e.stopPropagation(),
-    onKeyDown: (e: { key: string; preventDefault: () => void }) => {
+    onDoubleClick: () => setH(clamp(SHEET_OPEN)),
+    onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
       if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return
       e.preventDefault()
-      setH((cur) => {
-        const next = Math.max(SHEET_BAR, Math.min(cur + (e.key === "ArrowUp" ? 24 : -24), max()))
-        if (next > SHEET_BAR) last.current = next
-        return next
-      })
+      setH((cur) => clamp(cur + (e.key === "ArrowUp" ? 24 : -24)))
     },
   }
-  const bar = {
-    onClick: () => {
-      if (moved.current) { moved.current = false; return }
-      setOpen((o) => !o)
-    },
-  }
-  return { open, setOpen, bar, grip, style: { height: h }, motion: dragging ? "" : "transition-[height] duration-[500ms] ease-in-out" }
+  const bar = { onClick: () => setOpen((o) => !o) }
+  // The grip stays through a drag that reaches the bar, so the drag can come back up; it goes when the sheet shuts.
+  return { open, setOpen, bar, grip, gripShown: open || dragging, dragging, box, style: { height: h }, motion: dragging ? "" : "transition-[height] duration-[500ms] ease-in-out" }
 }
 
-/** The grip on a sheet's bar: the inset rails' gripper (components/nsr/graph/InsetPanel.tsx), 32 by 4, centred. */
-export function SheetGrip({ grip }: { grip: ReturnType<typeof useSheet>["grip"] }) {
+/** A bottom sheet's frame, the inset rails' (InsetPanel): the outer box carries the height and the grip, centred on the
+ *  top line, 64 by 18, row-resize; the inner box draws the line and clips the bar and body. */
+export function Sheet({ sheet, children }: { sheet: ReturnType<typeof useSheet>; children: ReactNode }) {
   return (
-    <span {...grip} className="group absolute left-1/2 top-0 z-10 flex h-full w-16 -translate-x-1/2 cursor-row-resize touch-none items-center justify-center outline-none">
-      <span className="h-1 w-8 rounded-full bg-[rgba(22,24,29,0.18)] transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] dark:bg-[rgba(240,233,216,0.2)]" />
-    </span>
+    <div ref={sheet.box} style={sheet.style} className={cn("relative shrink-0", sheet.motion)}>
+      {sheet.gripShown && (
+        <div {...sheet.grip} className="group absolute left-1/2 top-0 z-40 flex h-[18px] w-16 -translate-x-1/2 -translate-y-1/2 cursor-row-resize touch-none items-center justify-center outline-none">
+          <span className={`h-1 w-8 rounded-full transition-colors group-hover:bg-[#033882] group-focus-visible:bg-[#033882] ${sheet.dragging ? "bg-[#033882]" : "bg-[rgba(22,24,29,0.18)] dark:bg-[rgba(240,233,216,0.2)]"}`} />
+        </div>
+      )}
+      <div className="flex h-full flex-col overflow-hidden border-t border-[var(--paper-rule)] bg-[var(--paper)]">{children}</div>
+    </div>
   )
 }
 
@@ -129,8 +146,9 @@ const asTable = (v: AnyValue): Dataset | null => (isDataset(v) ? v : typeof v ==
 export function OutputPane({ block, outputs, logs, preview }: { block: Block | null; outputs: Outputs | undefined; logs: RunLog[]; preview?: ReactNode }) {
   const [tab, setTab] = useState<"output" | "logs">("output")
   const [handle, setHandle] = useState<string | null>(null)
-  // Shut on load (Brendan, 2026-11-09); the bar (anywhere on it) toggles it, a tab opens it on that tab, the grip drags it.
-  const sheet = useSheet()
+  // Shut on load (Brendan, 2026-11-09); the bar (anywhere on it) toggles it, a tab opens it on that tab, the grip on its
+  // top line drags it.
+  const sheet = useSheet("lab:pane-h")
   const { open, setOpen } = sheet
   const handles = Object.entries(outputs ?? {}).filter(([, v]) => v !== undefined) as [string, AnyValue][]
   const cur = handles.find(([h]) => h === handle) ?? handles[0]
@@ -140,9 +158,8 @@ export function OutputPane({ block, outputs, logs, preview }: { block: Block | n
   const own = (f: () => void) => (e: { stopPropagation: () => void }) => { e.stopPropagation(); f() }
 
   return (
-    <div data-sheet style={sheet.style} className={cn("flex shrink-0 flex-col overflow-hidden border-t border-[var(--paper-rule)] bg-[var(--paper)]", sheet.motion)}>
-      <div {...sheet.bar} className={cn("relative flex h-9 shrink-0 cursor-pointer items-center gap-1 px-2 transition-colors", SHEET_BAR_HOVER)}>
-        <SheetGrip grip={sheet.grip} />
+    <Sheet sheet={sheet}>
+      <div {...sheet.bar} className={cn("flex h-9 shrink-0 cursor-pointer items-center gap-1 px-2 transition-colors", SHEET_BAR_HOVER)}>
         <button type="button" className={TAB(tab === "output")} onClick={own(() => { setTab("output"); setOpen(true) })}>Output</button>
         <button type="button" className={TAB(tab === "logs")} onClick={own(() => { setTab("logs"); setOpen(true) })}>Logs{logs.length ? ` ${short(logs.length)}` : ""}</button>
         {tab === "output" && handles.length > 1 && (
@@ -192,6 +209,6 @@ export function OutputPane({ block, outputs, logs, preview }: { block: Block | n
           ) : null}
         </div>
       )}
-    </div>
+    </Sheet>
   )
 }

@@ -1,20 +1,20 @@
 "use client"
 // /janis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's book page. The two side columns are inset rails with
 // their tabs, as /graph's panels (InsetPanel, Brendan 2026-11-11), closed on load; the Node table is the Series sheet, the
-// Lab's pane (useSheet: the whole bar toggles, the grip drags), closed on load; the chart takes the room left, with an
-// undo circle for the zoom box and its own legend (an accordion that moves corner to corner, Brendan 01:12). Left, "By nuclide":
-// elements that open to isotopes that open to MT rows, the page's own highlighted. Centre: one row of the chart pages'
-// circle steppers (Brendan, 2026-11-11 00:55), the nuclide on the left and the reaction on the right, each name between
-// its circles; the chart with its zoom box (BookChart); the Node table (Node, Settings, Display). JANIS Web's nav strip
-// and the tab strip are gone from this page. Right: the Plotter (scales, ranges, Apply), the
-// reaction's Q value and the two links. Placeholder rows and series only.
+// Lab's pane (useSheet: the whole bar toggles, the grip on its top line drags), closed on load; the chart takes the room
+// left, with an undo circle for the zoom box and its own legend (an accordion that moves corner to corner, Brendan
+// 01:12). Left, "By nuclide": elements that open to isotopes that open to MT rows, the page's own highlighted. Centre:
+// one row of the chart pages' circle steppers (Brendan, 2026-11-11 00:55), the nuclide on the left and the reaction on
+// the right, each name between its circles; the chart with its zoom box (BookChart); the Node table (Node, Settings,
+// Display). JANIS Web's nav strip and the tab strip are gone from this page. Right: the Plotter (scales, ranges, Apply),
+// the reaction's Q value and the two links. Placeholder rows and series only.
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Move, Undo2 } from "lucide-react"
 import { HOVER as CIRCLE_HOVER } from "@/components/CopyTitle"
 import { Button } from "@/components/ui/button"
 import { CircleButton } from "@/components/ui/circle-button"
-import { SHEET_BAR_HOVER, SheetGrip, useSheet } from "@/components/lab/OutputPane"
+import { SHEET_BAR_HOVER, Sheet, useSheet } from "@/components/lab/OutputPane"
 import { Input } from "@/components/ui/input"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
@@ -95,8 +95,8 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
     redraw()
   }
 
-  // The Series sheet: the Lab's pane (useSheet), shut on load, the bar toggling it, the grip dragging it.
-  const sheet = useSheet()
+  // The Series sheet: the Lab's pane (useSheet), shut on load, the bar toggling it, the grip on its top line dragging it.
+  const sheet = useSheet("janis:book-sheet-h")
 
   // The rail: the page's element and isotope open, its MT row scrolled into view once the rail is open.
   const leftClosed = useRailClosed("left")
@@ -187,10 +187,9 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
           </div>
         </div>
 
-        {/* the Series sheet: the Lab's OutputPane (useSheet), a 36 px bar at rest, 260 px open or dragged, closed on load */}
-        <div data-sheet style={sheet.style} className={cn("flex shrink-0 flex-col overflow-hidden border-t border-[var(--paper-rule)] bg-[var(--paper)]", sheet.motion)}>
-          <div {...sheet.bar} className={cn("relative flex h-9 shrink-0 cursor-pointer items-center gap-1 px-2 transition-colors", SHEET_BAR_HOVER)}>
-            <SheetGrip grip={sheet.grip} />
+        {/* the Series sheet: the Lab's OutputPane (useSheet), a 36 px bar, 260 px open, dragged to 60% of the viewport */}
+        <Sheet sheet={sheet}>
+          <div {...sheet.bar} className={cn("flex h-9 shrink-0 cursor-pointer items-center gap-1 px-2 transition-colors", SHEET_BAR_HOVER)}>
             <button type="button" className={SHEET_TAB(sheet.open)} aria-expanded={sheet.open} onClick={(e) => { e.stopPropagation(); sheet.setOpen(true) }}>Series</button>
             <div className="ml-auto flex items-center gap-1">
               <button type="button" aria-label={sheet.open ? "Close the pane" : "Open the pane"} aria-expanded={sheet.open} className={SHEET_TAB(false)} onClick={(e) => { e.stopPropagation(); sheet.setOpen((o) => !o) }}>
@@ -222,7 +221,7 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
           </table>
         </div>
           )}
-        </div>
+        </Sheet>
       </section>
 
       {/* right: the plotter, an inset rail with its tab, closed on load */}
