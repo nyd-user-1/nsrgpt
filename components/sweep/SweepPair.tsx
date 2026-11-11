@@ -8,6 +8,7 @@ import { useShellPanel } from "@/components/shell"
 import { reactionText } from "@/components/sweep/SweepPage"
 import { Pills } from "@/components/viz/Pills"
 import { useEChart } from "@/components/viz/use-echart"
+import { ChartBox } from "@/components/viz/chart-kebab"
 import { labHref } from "@/lib/lab/canvases/from-pair"
 import { RELEASE_SLOT, SLOTS, energyLabel, exforHref } from "@/lib/lab/canvases/plot"
 import { evText, fetchPair, pctText, type PairRelease, type SweepPair } from "@/lib/sweep"
@@ -97,7 +98,7 @@ function RatioChart({ rel }: { rel: PairRelease }) {
     undefined,
     { view: version.current, replace: true, onPick: () => {}, marks: true },
   )
-  return <div ref={ref} className="h-[340px] w-full" />
+  return <ChartBox chart={ref} className="h-[340px] w-full" />
 }
 
 export function SweepPairView() {
