@@ -71,7 +71,12 @@ const HELD = new Set(["CENDL-3.2", "ENDF/B-VI.8", "ENDF/B-VII.0", "ENDF/B-VII.1"
   // brief 70 (elpis-fill, 2026-11-11): parsed and served
   "JEFF-4.0", "JEFF-3.1.1", "JEF-2.2", "ENDF/B-VI.8-HE", "JENDL-4.0/HE", "JENDL/AD-2017", "JENDL/DEU-2020", "JENDL/PD-2016",
   "IAEA/PD-2019", "PADF-2007", "RUSFOND-2010", "BROND-2.2", "BROND-3.1", "CENDL-2.1", "FENDL-2.1", "IRDF-2002",
-  "IRDFF-1.0", "IRDFF-1.05", "IRDFF-II", "TSL ENDF/B-VI.8", "TSL ENDF/B-VII.0"])
+  "IRDFF-1.0", "IRDFF-1.05", "IRDFF-II", "TSL ENDF/B-VI.8", "TSL ENDF/B-VII.0",
+  "JEFF-3.2", "JEFF-3.1.2", "JEFF-3.1", "JEFF-3.0", "JENDL-4.0", "JENDL-4.0u", "JENDL-3.3", "JENDL/HE-2007", "JENDL/AC-2008",
+  "JENDL/PD-2016.1", "JENDL/PD-2004", "JENDL/AN-2005", "JENDL/FPY-2011", "JENDL/DDF-2015", "JENDL/FPD-2000", "JENDL/FPD-2011",
+  "CENDL-3.1", "EAF-2010", "IRDF-2002 MG", "GEFY-6.1", "GEFY-6.2", "GEFY-8.1", "GEFY-9.1", "TSL JEFF-3.0", "TSL JEFF-3.1",
+  // held as files, not parsed (the marked tree carries their format)
+  "EAF-2007"])
 const lib = (name: string, ours = false) => node(name, HELD.has(name), HELD.has(name) ? leaves(LIBRARY_LEAVES) : undefined, ours ? { ours } : {})
 const libs = (theirs: string[], ours: string[] = []) => [...theirs.map((n) => lib(n)), ...ours.map((n) => lib(n, true))]
 const exfor = (quantities: string[]) => node("EXFOR", true, leaves(quantities))
@@ -84,7 +89,7 @@ const NUBASE = (year: string, held: boolean) =>
 
 /** Base, as JANIS's tree root lists it. */
 export const JANIS_TREE: JanisNode = node("Base", true, [
-  node("Nuclear properties", true, [NUBASE("1997", false), NUBASE("2003", false), NUBASE("2012", false), NUBASE("2016", false), NUBASE("2020", true),
+  node("Nuclear properties", true, [NUBASE("1997", true), NUBASE("2003", true), NUBASE("2012", false), NUBASE("2016", true), NUBASE("2020", true),
     node("ICRP 107", true, undefined, { ours: true, leaf: "elements" }), node("RIPL", true, undefined, { ours: true, leaf: "elements" })], { slug: "PROPS" }),
   node("Radioactive data", true, [
     node("EXFOR", true, leaves(EXFOR_DECAY)),
