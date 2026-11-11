@@ -2,13 +2,15 @@
 // /janis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's book page. The two side columns are inset rails with
 // their tabs, as /graph's panels (InsetPanel, Brendan 2026-11-11), closed on load; the Node table is a bottom sheet in the
 // Lab's OutputPane shape, closed on load; the chart takes the room left. Left, "By nuclide":
-// elements that open to isotopes that open to MT rows, the page's own highlighted. Centre: the title bar (the nuclide
-// before and after, the reaction before and after), a tab strip ("Home" and the datasets' tab), the chart with its zoom
-// box (BookChart), and the Node table (Node, Settings, Display). Right: the Plotter (scales, ranges, Apply), the
+// elements that open to isotopes that open to MT rows, the page's own highlighted. Centre: one row of the chart pages'
+// circle steppers (Brendan, 2026-11-11 00:55), the nuclide on the left and the reaction on the right, each name between
+// its circles; the chart with its zoom box (BookChart); the Node table (Node, Settings, Display). JANIS Web's nav strip
+// and the tab strip are gone from this page. Right: the Plotter (scales, ranges, Apply), the
 // reaction's Q value and the two links. Placeholder rows and series only.
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { ChevronDown, ChevronRight, ChevronUp, House } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
+import { HOVER as CIRCLE_HOVER } from "@/components/CopyTitle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
@@ -100,7 +102,6 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
     })
 
   const libraryRows = LIBRARIES.map((lib) => ({ name: lib, node: `${lib} / Cross sections / ${target} / ${label(mt)}` }))
-  const tab = `${target} ${label(mt)}: ${[...LIBRARIES, ...EXFOR_SETS.map((s) => s.id)].join(", ")}`
 
   return (
     <div className="flex h-full min-h-0 flex-1">
@@ -148,32 +149,15 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
         </InsetBody>
       </InsetPanel>
 
-      {/* centre: title bar, tabs, the chart in the room the rails and the sheet leave, the Node sheet */}
+      {/* centre: the two steppers, the chart in the room the rails and the sheet leave, the Node sheet. JANIS Web's own
+          nav strip (the layout's) is hidden on this page only; the plot's series list is the sheet. */}
+      <style>{'nav[aria-label="JANIS"]{display:none}'}</style>
       <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className={cn("flex flex-col gap-1 border-b px-4 py-3 text-sm", LINE)}>
-          <p className="flex flex-wrap items-baseline justify-center gap-x-2 text-center">
-            {isoNeighbours.prev ? <Link href={href(isoNeighbours.prev, mt)} className={LINK}>&lt;&lt; {isoNeighbours.prev}</Link> : <span className="text-[var(--paper-faint)]">&lt;&lt;</span>}
-            <span className="text-[var(--paper-faint)]">·</span>
-            <strong className="text-xl font-normal tracking-tight text-[var(--paper-text)]" style={SERIF}>{here}</strong>
-            <span className="text-[var(--paper-faint)]">·</span>
-            {isoNeighbours.next ? <Link href={href(isoNeighbours.next, mt)} className={LINK}>{isoNeighbours.next} &gt;&gt;</Link> : <span className="text-[var(--paper-faint)]">&gt;&gt;</span>}
-          </p>
-          <p className="flex flex-wrap items-baseline justify-center gap-x-2 text-center">
-            {prevMt ? <Link href={prevMt.href} className={LINK}>&lt;&lt; {prevMt.text}</Link> : <span className="text-[var(--paper-faint)]">&lt;&lt;</span>}
-            <span className="text-[var(--paper-faint)]">·</span>
-            <strong className="font-medium text-[var(--paper-text)]">{current}</strong>
-            <span className="text-[var(--paper-faint)]">·</span>
-            {nextMt ? <Link href={nextMt.href} className={LINK}>{nextMt.text} &gt;&gt;</Link> : <span className="text-[var(--paper-faint)]">&gt;&gt;</span>}
-          </p>
-        </div>
-
-        <div className={cn("flex items-end gap-1 border-b px-3 pt-2", LINE)} role="tablist">
-          <Link href="/janis" role="tab" aria-selected={false} className={cn("inline-flex h-8 items-center gap-1.5 rounded-t-md px-3 text-sm text-[var(--paper-muted)]", HOVER)}>
-            <House className="size-3.5" aria-hidden="true" />Home
-          </Link>
-          <span role="tab" aria-selected className={cn("-mb-px inline-flex h-8 min-w-0 max-w-full items-center rounded-t-md border border-b-[var(--paper)] bg-[var(--paper)] px-3 text-sm text-[var(--paper-text)]", LINE)}>
-            <span className="truncate font-mono text-xs" title={tab}>{tab}</span>
-          </span>
+        <div className={cn("flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b px-4 py-3", LINE)}>
+          <Stepper what="nuclide" current={here}
+            prev={isoNeighbours.prev ? { href: href(isoNeighbours.prev, mt), text: isoNeighbours.prev } : null}
+            next={isoNeighbours.next ? { href: href(isoNeighbours.next, mt), text: isoNeighbours.next } : null} />
+          <Stepper what="reaction" current={current} prev={prevMt} next={nextMt} />
         </div>
 
         <div className="min-h-[240px] flex-1 px-2 pt-2">
@@ -252,6 +236,31 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
         </section>
         </InsetBody>
       </InsetPanel>
+    </div>
+  )
+}
+
+/** The chart pages' back and forward circles (components/AppLayout.tsx ChartNav: 40 px, the paper border, 2 px on hover,
+ *  the shadow, the hover tint, the destination as the tooltip), with the current name in the display face between them.
+ *  A circle with nowhere to go is drawn faint. */
+type Step = { href: string; text: string } | null
+function Stepper({ what, current, prev, next }: { what: string; current: string; prev: Step; next: Step }) {
+  const circle = cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] shadow-md transition-colors", CIRCLE_HOVER)
+  const go = (s: Step, dir: "Previous" | "Next") => {
+    const Icon = dir === "Previous" ? ChevronLeft : ChevronRight
+    return s ? (
+      <Link href={s.href} aria-label={`${dir} ${what}: ${s.text}`} title={s.text} className={cn(circle, "hover:border-2")}>
+        <Icon className="h-4 w-4 text-[var(--paper-text)]" />
+      </Link>
+    ) : (
+      <span aria-hidden="true" className={cn(circle, "pointer-events-none opacity-40 shadow-none")}><Icon className="h-4 w-4 text-[var(--paper-muted)]" /></span>
+    )
+  }
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      {go(prev, "Previous")}
+      <strong className="min-w-0 truncate text-xl font-normal tracking-tight text-[var(--paper-text)]" style={SERIF} title={current}>{current}</strong>
+      {go(next, "Next")}
     </div>
   )
 }
