@@ -6,11 +6,25 @@
 # nsr-lake-site, two behaviors (/lake/gnds/* and /lake/jobs/*, GET and HEAD, AWS's managed CachingOptimized policy), and
 # a bucket-policy statement (Sid CloudFrontReadsNsrApi) letting that distribution read those two prefixes only.
 # Brief 70 (elpis-fill, 2026-11-11): a third behavior, /lake/janis/* (the marked JANIS tree the Elpis pages read,
-# lake/janis/current/ written by scripts/janis/mark.py with Cache-Control max-age=300), with AWS's managed SimpleCORS
-# response headers since the site fetches it from its own origin; the bucket policy covers lake/janis/* too.
+# lake/janis/current/ written by scripts/janis/mark.py with Cache-Control max-age=300), with the CloudFront Function
+# nsr-lake-acao (lake-acao.js) setting Access-Control-Allow-Origin: * on every response: AWS's managed SimpleCORS policy
+# drops the header when the request carries Chromium's "priority" header. The bucket policy covers lake/janis/* too.
 # Idempotent; one AWS CLI call at a time.
 set -euo pipefail
 A=(--profile nysgpt-new --region us-east-2)
+# The viewer-response function for /lake/janis/* (scripts/gnds/lake-acao.js), created or updated, then published.
+FN=nsr-lake-acao
+if aws cloudfront describe-function --name $FN "${A[@]}" >/dev/null 2>&1; then
+  FE=$(aws cloudfront describe-function --name $FN "${A[@]}" --query ETag --output text)
+  aws cloudfront update-function --name $FN --if-match "$FE" --function-config Comment=brief70,Runtime=cloudfront-js-2.0 \
+    --function-code fileb://$(dirname "$0")/lake-acao.js "${A[@]}" >/dev/null
+else
+  aws cloudfront create-function --name $FN --function-config Comment=brief70,Runtime=cloudfront-js-2.0 \
+    --function-code fileb://$(dirname "$0")/lake-acao.js "${A[@]}" >/dev/null
+fi
+FE=$(aws cloudfront describe-function --name $FN "${A[@]}" --query ETag --output text)
+aws cloudfront publish-function --name $FN --if-match "$FE" "${A[@]}" >/dev/null
+FARN=$(aws cloudfront describe-function --name $FN --stage LIVE "${A[@]}" --query FunctionSummary.FunctionMetadata.FunctionARN --output text)
 ACCT=613473203863
 BUCKET=nsr-lake-613473203863
 T=$(mktemp -d)
@@ -18,7 +32,7 @@ DIST=$(aws cloudfront list-distributions "${A[@]}" --query "DistributionList.Ite
 OAC=$(aws cloudfront list-origin-access-controls "${A[@]}" --query "OriginAccessControlList.Items[?Name=='nsr-lake-site'].Id | [0]" --output text)
 aws cloudfront get-distribution-config --id "$DIST" "${A[@]}" --output json > $T/d.json
 ETAG=$(jq -r .ETag $T/d.json)
-jq --arg oac "$OAC" --arg dom "$BUCKET.s3.us-east-2.amazonaws.com" '
+jq --arg oac "$OAC" --arg dom "$BUCKET.s3.us-east-2.amazonaws.com" --arg farn "$FARN" '
   .DistributionConfig
   | .Origins.Items |= (map(select(.Id != "nsr-lake")) + [{Id: "nsr-lake", DomainName: $dom, OriginPath: "",
       CustomHeaders: {Quantity: 0}, S3OriginConfig: {OriginAccessIdentity: ""}, OriginAccessControlId: $oac,
@@ -30,7 +44,7 @@ jq --arg oac "$OAC" --arg dom "$BUCKET.s3.us-east-2.amazonaws.com" '
           Compress: false, SmoothStreaming: false, FieldLevelEncryptionId: "",
           CachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6",
           LambdaFunctionAssociations: {Quantity: 0}, FunctionAssociations: {Quantity: 0}}
-          + (if . == "/lake/janis/*" then {ResponseHeadersPolicyId: "60669652-455b-4ae9-85a4-c4c02393f86c"} else {} end)])
+          + (if . == "/lake/janis/*" then {FunctionAssociations: {Quantity: 1, Items: [{FunctionARN: $farn, EventType: "viewer-response"}]}} else {} end)])
   | .CacheBehaviors.Quantity = (.CacheBehaviors.Items | length)' $T/d.json > $T/new.json
 aws cloudfront update-distribution --id "$DIST" --if-match "$ETAG" --distribution-config file://$T/new.json "${A[@]}" \
   --query 'Distribution.[Id,Status,DistributionConfig.CacheBehaviors.Quantity]' --output text
