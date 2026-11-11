@@ -26,6 +26,7 @@ export const PAGE_ICONS: Record<string, SideBarIcon> = {
   "/factory": Boxes,
   "/glossary": NotebookPen,
   "/graph": Blocks,
+  "/lab": FlaskConical,
   "/elpis": Layers,
   "/nsrcpt": Atom,
   "/pipeline": Layers,
