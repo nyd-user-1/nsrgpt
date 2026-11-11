@@ -4,6 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { fetchData, useData } from '@/lib/use-data'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { VizControls } from '@/components/viz/VizControls'
 import { AXIS, formatSeconds, ink, isDark, keyOf, loadDecay, nucName, type Decay } from '@/lib/viz-physics'
 
@@ -135,7 +136,7 @@ export function GammaLinesChart({ switcher }: { switcher?: React.ReactNode } = {
 
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
 
       <VizControls>
         {switcher}
