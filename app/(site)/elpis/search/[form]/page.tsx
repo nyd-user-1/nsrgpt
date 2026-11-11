@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation"
-import { JanisSearch } from "@/components/janis/JanisSearch"
-import { FORMS } from "@/components/janis/search-forms"
+import { ElpisSearch } from "@/components/elpis/ElpisSearch"
+import { FORMS } from "@/components/elpis/search-forms"
 
-// /janis/search/{endf|exfor|cinda|resonances|decay|covariances} (brief 67): JANIS Web's search forms, UI only.
+// /elpis/search/{endf|exfor|cinda|resonances|decay|covariances} (brief 67): JANIS Web's search forms, UI only.
 type Props = { params: Promise<{ form: string }> }
 
 export function generateStaticParams() {
@@ -11,11 +11,11 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const f = FORMS[(await params).form]
-  return { title: f ? `JANIS · Search ${f.title}` : "JANIS" }
+  return { title: f ? `Elpis · Search ${f.title}` : "Elpis" }
 }
 
 export default async function Page({ params }: Props) {
   const { form } = await params
   if (!FORMS[form]) notFound()
-  return <JanisSearch form={form} />
+  return <ElpisSearch form={form} />
 }

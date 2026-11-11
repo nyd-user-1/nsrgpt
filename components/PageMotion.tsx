@@ -48,7 +48,7 @@ export function PageMotion() {
       if (url.origin !== window.location.origin || url.pathname === window.location.pathname || url.pathname === '/' || url.pathname.startsWith('/api')) return
       // The JANIS book's rail rows and steppers are links between its own pages (Brendan, 2026-11-11): no clone, no
       // grow, the next chart lands at once.
-      if (url.pathname.startsWith('/janis/book') && window.location.pathname.startsWith('/janis/book')) return
+      if (url.pathname.startsWith('/elpis/book') && window.location.pathname.startsWith('/elpis/book')) return
       e.preventDefault()
       e.stopPropagation()
       chartForward(() => router.push(url.pathname + url.search + url.hash))

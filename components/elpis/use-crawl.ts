@@ -1,5 +1,5 @@
 "use client"
-// /janis (brief 67): brief 68's crawl of JANIS Web's tree, public/janis-tree.json, fetched once a session. Until the
+// /elpis (brief 67): brief 68's crawl of JANIS Web's tree, public/janis-tree.json, fetched once a session. Until the
 // file is there (or when it fails to load) the pages use the hand list in lib/janis-tree.ts.
 import { useEffect, useState } from "react"
 import type { CrawlNode } from "@/lib/janis-tree"

@@ -42,7 +42,7 @@ const TOOLS = [
   { href: "/sweep/icrp", label: "ICRP 107 half-lives against ENSDF" },
   { href: "/gnds", label: "GNDS 2.0 compiler" },
   { href: "/cinda", label: "CINDA" },
-  { href: "/janis", label: "JANIS" },
+  { href: "/elpis", label: "Elpis" },
   { href: "/pipeline", label: "Pipeline" },
   { href: "/factory", label: "Factory" },
 ]
@@ -59,7 +59,7 @@ const ALL: NavEntry[] = [
 export function SideBarMenu() {
   const path = usePathname()
   const isOn = (href: string) => path === href
-  // A page and the pages beneath it light its row (/docs/*, /janis/*, /sweep/medical/*); /sweep itself only for the list and the pair.
+  // A page and the pages beneath it light its row (/docs/*, /elpis/*, /sweep/medical/*); /sweep itself only for the list and the pair.
   const sectionOn = (href: string) =>
     href === "/sweep" ? path === "/sweep" || path === "/sweep/pair" : path === href || path.startsWith(`${href}/`)
   const { rows } = useNavRows()

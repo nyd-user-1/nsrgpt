@@ -88,7 +88,7 @@ export function InsetTip({ name, side, children }: { name: string; side: InsetSi
 export function InsetPanel({ side, storageKey, tabs, children }: { side: InsetSide; storageKey: string; tabs?: ReactNode; children: ReactNode }) {
   const closed = useRailClosed(side);
   // The server and the first client render both draw the 284 px start; the width this browser remembers is read after
-  // mount (2026-11-11: reading localStorage in the initial state made /janis/book's rail 280 on the client and 284 on the
+  // mount (2026-11-11: reading localStorage in the initial state made /elpis/book's rail 280 on the client and 284 on the
   // server, a hydration mismatch). The panel loads closed, so the change is never seen.
   const [w, setW] = useState(W.start);
   const [read, setRead] = useState(false);

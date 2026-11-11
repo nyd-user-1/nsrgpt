@@ -18,7 +18,7 @@ const SHOWN = 500
 const TAB = (on: boolean) =>
   cn("rounded-md px-2 py-1 text-xs transition-colors", on ? "bg-[var(--paper-quiet)] text-[var(--paper-text)]" : "text-[var(--paper-muted)] hover:text-[var(--paper-text)]")
 
-/** A bottom sheet's bar and open heights (the Lab's pane, the JANIS book's Series sheet). */
+/** A bottom sheet's bar and open heights (the Lab's pane, the Elpis book's Series sheet). */
 export const SHEET_BAR = 36
 const SHEET_OPEN = 260
 /** An open sheet is at least this tall; a drag that ends below it shuts the sheet. */

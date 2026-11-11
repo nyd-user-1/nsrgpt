@@ -1,5 +1,5 @@
 "use client"
-// /janis/book (brief 67): the book page's chart, through components/viz/use-echart.ts. Log-log, cross section against
+// /elpis/book (brief 67): the book page's chart, through components/viz/use-echart.ts. Log-log, cross section against
 // incident energy, placeholder series shaped like B-11 (n,α): seven library lines in the dataviz palette (colour by
 // library, lib/lab/canvases/plot.ts's slots) and four EXFOR point sets with distinct markers in the paper's ink, the
 // legend boxed top left as JANIS draws it. No data is read.
@@ -76,7 +76,7 @@ export function bookOption(range: Range, scales: Scales, hidden: Set<string>) {
     grid: { left: 72, right: 24, top: 18, bottom: 48 },
     xAxis: axis(scales.x, "Incident energy", range.xmin, range.xmax, true),
     yAxis: axis(scales.y, "Cross section (b)", range.ymin, range.ymax, false),
-    // hidden: the page draws the legend (JanisBook.tsx ChartLegend, 2026-11-11); `selected` still hides the series
+    // hidden: the page draws the legend (ElpisBook.tsx ChartLegend, 2026-11-11); `selected` still hides the series
     legend: {
       show: false,
       data: names.map((n) => (LIBRARIES.includes(n) ? { name: n, icon: "path://M0,3 L18,3 L18,5 L0,5 Z" } : { name: n })), selected: Object.fromEntries(names.map((n) => [n, !hidden.has(n)])),

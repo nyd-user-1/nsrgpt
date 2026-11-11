@@ -1,10 +1,10 @@
 "use client"
-// /janis (brief 67): the home page's foot, every mark counted: from brief 68's crawl once public/janis-tree.json is
+// /elpis (brief 67): the home page's foot, every mark counted: from brief 68's crawl once public/janis-tree.json is
 // there (node by node), else the hand list (each name once); the home page's two ❌ cards are added to the ❌ count.
-import { useCrawl } from "@/components/janis/use-crawl"
+import { useCrawl } from "@/components/elpis/use-crawl"
 import { crawlCounts, handCounts, HOME_GAPS } from "@/lib/janis-tree"
 
-export function JanisCounts() {
+export function ElpisCounts() {
   const crawl = useCrawl()
   const c = crawl ? crawlCounts(crawl) : handCounts()
   const n = (v: number) => v.toLocaleString("en-US")

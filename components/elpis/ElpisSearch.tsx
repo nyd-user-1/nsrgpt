@@ -1,5 +1,5 @@
 "use client"
-// /janis/search/{endf|exfor|cinda|resonances|decay|covariances} (brief 67): JANIS Web's six search forms in their
+// /elpis/search/{endf|exfor|cinda|resonances|decay|covariances} (brief 67): JANIS Web's six search forms in their
 // shape and order (oecd-nea.org/janisweb/search/*, read 2026-11-10): each group a bold label over its fields, Search and
 // Reset beneath, then an empty results table with JANIS's own column headers. UI only: Search runs nothing. An option
 // JANIS has and I do not carries ❌; one I have and JANIS does not, ✅.
@@ -9,9 +9,9 @@ import { RotateCcw, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
-import { LINE, LINK, Mark, SEARCHES, TINT } from "@/components/janis/parts"
+import { LINE, LINK, Mark, SEARCHES, TINT } from "@/components/elpis/parts"
 import { cn } from "@/lib/utils"
-import { FORMS, type Group } from "@/components/janis/search-forms"
+import { FORMS, type Group } from "@/components/elpis/search-forms"
 
 const SELECT = "h-10 w-full rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]"
 const SMALL = "text-xs text-[var(--paper-muted)]"
@@ -148,7 +148,7 @@ function Field({ g, id }: { g: Group; id: string }) {
   }
 }
 
-export function JanisSearch({ form }: { form: string }) {
+export function ElpisSearch({ form }: { form: string }) {
   const f = FORMS[form]
   const [round, setRound] = useState(0) // Reset remounts the fields
   const [searched, setSearched] = useState(false)
@@ -158,7 +158,7 @@ export function JanisSearch({ form }: { form: string }) {
       <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <h2 className="text-3xl tracking-tight text-[var(--paper-text)]" style={SERIF}>{f.title}</h2>
         <span className="flex flex-wrap gap-x-3 text-sm">
-          {SEARCHES.filter((s) => s.key !== form).map((s) => <Link key={s.key} href={`/janis/search/${s.key}`} className={LINK}>{s.name}</Link>)}
+          {SEARCHES.filter((s) => s.key !== form).map((s) => <Link key={s.key} href={`/elpis/search/${s.key}`} className={LINK}>{s.name}</Link>)}
         </span>
       </div>
       <form key={round} className="flex flex-col gap-5" onSubmit={(e) => { e.preventDefault(); setSearched(true) }}>

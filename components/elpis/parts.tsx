@@ -1,4 +1,4 @@
-// /janis (brief 67): what every JANIS page shares, safe on the server and the client. After a label, ❌ marks what
+// /elpis (brief 67): what every Elpis page shares, safe on the server and the client. After a label, ❌ marks what
 // JANIS has and I do not, ✅ what I have and JANIS does not; no mark where both hold it (Brendan, 23:45 ET).
 import { cn } from "@/lib/utils"
 import type { Mark as MarkKind } from "@/lib/janis-tree"

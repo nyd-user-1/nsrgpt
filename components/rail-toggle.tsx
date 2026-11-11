@@ -54,7 +54,7 @@ const subscribe = (l: () => void) => {
 }
 const isClosed = (side: Side) => (typeof document === "undefined" ? false : document.documentElement.getAttribute(attr(side)) === "closed")
 
-// The rails a reader opened this visit (Brendan, 2026-11-11): a page that mounts again on a route change (the JANIS book's
+// The rails a reader opened this visit (Brendan, 2026-11-11): a page that mounts again on a route change (the Elpis book's
 // steppers and rail rows change the route on every click) leaves an opened rail open; a fresh load still starts closed.
 const openedThisVisit = new Set<Side>()
 

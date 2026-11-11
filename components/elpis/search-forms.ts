@@ -1,4 +1,4 @@
-// /janis/search (brief 67): JANIS Web's six search forms as data, their groups in order and their result columns, from
+// /elpis/search (brief 67): JANIS Web's six search forms as data, their groups in order and their result columns, from
 // oecd-nea.org/janisweb/search/* read 2026-11-10. Each option's mark: missing (JANIS has it, I do not), same, or ours
 // (I hold it, JANIS does not).
 export type Opt = { label: string; held: boolean; mark: "missing" | "same" | "ours" }

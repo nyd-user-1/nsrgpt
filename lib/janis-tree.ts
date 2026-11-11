@@ -1,4 +1,4 @@
-// /janis (brief 67): JANIS Web's database tree (oecd-nea.org/janisweb/tree, walked 2026-11-10) as data, with what I hold
+// /elpis (brief 67): JANIS Web's database tree (oecd-nea.org/janisweb/tree, walked 2026-11-10) as data, with what I hold
 // marked. A node not held carries held: false and the pages draw a red ❌ after its label, so the tree doubles as the gap
 // list. Rows JANIS has none of but I hold (ENDF/B-VIII.1, JENDL-5, TENDL-2023, the POINT files) carry ours: true. Slugs
 // follow JANIS's paths (/tree/N/EXFOR, a library's slash as a dash). Elements and nuclides are generated: the element
@@ -138,14 +138,14 @@ export const JANIS_TREE: JanisNode = node("Base", true, [
   node("CINDA", true, undefined, { ours: true, href: "/cinda" }),
 ], { slug: "" })
 
-const BASE = "/janis/browse"
+const BASE = "/elpis/browse"
 
 /** "0 - n - Neutron", "5 - B - Boron". */
 export const elementLabel = (z: number) => `${z} - ${symbolOfZ(z)} - ${nameOfZ(z)}`
 /** "5-B-11"; "5-B-Nat" for the natural element. */
 export const nuclideLabel = (z: number, a: number | "Nat") => `${z}-${symbolOfZ(z)}-${a}`
 
-/** What /janis/browse/<path> shows: the trail for the breadcrumb and the rows beneath, each a link one level down. */
+/** What /elpis/browse/<path> shows: the trail for the breadcrumb and the rows beneath, each a link one level down. */
 export function browse(path: string[]): JanisView {
   const trail = [{ name: "Base", href: BASE }]
   let at: JanisNode = JANIS_TREE
@@ -167,7 +167,7 @@ export function browse(path: string[]): JanisView {
     if (Number.isFinite(z) && z >= 0 && z <= Z_MAX && rest.length === 1) {
       href += `/${rest[0]}`
       trail.push({ name: elementLabel(z), href })
-      return { trail, nuclides: true, missing: false, source: "hand", rows: massesOf(z, 2).map((a) => ({ name: nuclideLabel(z, a), href: `/janis/book/n/${nuclideLabel(z, a)}/1`, held: true, mark: "same" as Mark, open: true })) }
+      return { trail, nuclides: true, missing: false, source: "hand", rows: massesOf(z, 2).map((a) => ({ name: nuclideLabel(z, a), href: `/elpis/book/n/${nuclideLabel(z, a)}/1`, held: true, mark: "same" as Mark, open: true })) }
     }
     return { trail, rows: [], nuclides: false, missing: true, source: "hand" }
   }
@@ -231,7 +231,7 @@ function crawlNuclide(label: string): string | null {
   return m && z >= 0 ? nuclideLabel(z, parseInt(m[2], 10)) : null
 }
 
-/** What /janis/browse/<path> shows from the crawl, or null when the path is not in it (the hand list answers then).
+/** What /elpis/browse/<path> shows from the crawl, or null when the path is not in it (the hand list answers then).
  *  A level whose page is not read yet comes back with no rows and pending set. */
 /** The library file a path needs: the first index row on the path that names one (null when none does). */
 export function crawlFile(root: CrawlNode, path: string[]): string | null {
@@ -272,7 +272,7 @@ export function browseCrawl(root: CrawlNode, path: string[], lib?: CrawlNode | n
       const nuc = crawlNuclide(c.label)
       if (c.leaf || (!c.children?.length && c.crawled !== false && nuc && !c.file)) {
         const book = BOOK_OF_BASE[path[0]] ?? "n"
-        return { name: c.label, href: nuc ? `/janis/book/${book}/${nuc}/1` : "", held: mark !== "missing" && !!nuc, mark, open: true }
+        return { name: c.label, href: nuc ? `/elpis/book/${book}/${nuc}/1` : "", held: mark !== "missing" && !!nuc, mark, open: true }
       }
       const own = OUR_PAGES[c.label]
       const open = !!c.children?.length || c.crawled === false || !!c.file

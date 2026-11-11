@@ -11,7 +11,7 @@ import { RevealFx } from "@/components/RevealFx";
 // the chart must land at once, with no reveal.
 export default function Template({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  if (path.startsWith("/janis/book")) return <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>;
+  if (path.startsWith("/elpis/book")) return <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>;
   return (
     <RevealFx className="flex min-h-0 min-w-0 flex-1 flex-col" translateY={4}>
       {children}

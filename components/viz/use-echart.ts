@@ -498,7 +498,7 @@ function tileMark(G: any, chart: any, at: At, ink: string, zlevel: number): Shap
 export type EChartExtras = {
   view?: number
   replace?: boolean
-  /** No fade-in on mount: the canvas shows the moment it has drawn (the JANIS book, 2026-11-11). */
+  /** No fade-in on mount: the canvas shows the moment it has drawn (the Elpis book, 2026-11-11). */
   still?: boolean
   point?: (row: number) => { seriesIndex: number; dataIndex: number } | null
   onPick?: (p: ChartClick) => void

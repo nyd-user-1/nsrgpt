@@ -1,5 +1,5 @@
 "use client"
-// /janis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's book page. The two side columns are inset rails with
+// /elpis/book/{n|g|p|d|t|h|a}/[nuclide]/[mt] (brief 67): JANIS Web's book page. The two side columns are inset rails with
 // their tabs, as /graph's panels (InsetPanel, Brendan 2026-11-11), closed on load; the Node table is the Series sheet, the
 // Lab's pane (useSheet: the whole bar toggles, the grip on its top line drags), closed on load; the chart takes the room
 // left, with an undo circle for the zoom box and its own legend (an accordion that moves corner to corner, Brendan
@@ -17,8 +17,8 @@ import { Input } from "@/components/ui/input"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { INSET, InsetBody, InsetPanel } from "@/components/nsr/graph/InsetPanel"
 import { useRailClosed } from "@/components/rail-toggle"
-import { BookChart, EXFOR_SETS, FULL, LIBRARIES, type Range, type Scales } from "@/components/janis/BookChart"
-import { HOVER, LINE, LINK, TINT } from "@/components/janis/parts"
+import { BookChart, EXFOR_SETS, FULL, LIBRARIES, type Range, type Scales } from "@/components/elpis/BookChart"
+import { HOVER, LINE, LINK, TINT } from "@/components/elpis/parts"
 import { BOOK_MTS, bookNuclides, mtLabel, nuclideLabel, PROJECTILES, symbolOfZ, Z_MAX } from "@/lib/janis-tree"
 import { RELEASE_SLOT, SLOTS } from "@/lib/lab/canvases/plot"
 import { cn } from "@/lib/utils"
@@ -32,10 +32,10 @@ const exp = (v: number) => (Number.isFinite(v) ? v.toExponential(3) : "")
 /** JANIS's naming of a product: "Li8" for Z 3, A 8. */
 const short = (z: number, a: number) => `${symbolOfZ(z)}${a}`
 
-export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "Nat"; mt: number }) {
+export function ElpisBook({ p, z, a, mt }: { p: string; z: number; a: number | "Nat"; mt: number }) {
   const proj = PROJECTILES.find((x) => x.key === p) ?? PROJECTILES[0]
   const here = nuclideLabel(z, a)
-  const href = (label: string, m: number) => `/janis/book/${proj.key}/${label}/${m}`
+  const href = (label: string, m: number) => `/elpis/book/${proj.key}/${label}/${m}`
   const label = (m: number) => mtLabel(m, proj.symbol)
 
   const target = typeof a === "number" ? short(z, a) : `${symbolOfZ(z)}0`
@@ -80,7 +80,7 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
   }
 
   // The Series sheet: the Lab's pane (useSheet), shut on load, the bar toggling it, the grip on its top line dragging it.
-  const sheet = useSheet("janis:book-sheet-h")
+  const sheet = useSheet("elpis:book-sheet-h")
 
   // The rail: the page's element and isotope open, its MT row scrolled into view once the rail is open.
   const leftClosed = useRailClosed("left")
@@ -118,7 +118,7 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
   return (
     <div className="flex h-full min-h-0 flex-1">
       {/* left: by nuclide, an inset rail with its tab, closed on load (InsetPanel, as /graph's) */}
-      <InsetPanel side="left" storageKey="janis:book-left-w">
+      <InsetPanel side="left" storageKey="elpis:book-left-w">
         <div className={cn(INSET.header, LINE)}><h3 className={INSET.title}>By nuclide</h3></div>
         <InsetBody>
         <ul className="text-sm" aria-label="By nuclide" onKeyDown={railKeys}>
@@ -163,7 +163,7 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
 
       {/* centre: the chart in the room the rails and the sheet leave, the Node sheet. JANIS Web's own nav strip (the
           layout's) is hidden on this page only; the plot's series list is the sheet. */}
-      <style>{'nav[aria-label="JANIS"]{display:none}'}</style>
+      <style>{'nav[aria-label="Elpis"]{display:none}'}</style>
       <section className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="min-h-[240px] flex-1 px-2 pt-2">
           <div className="relative h-full w-full">
@@ -216,7 +216,7 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
       </section>
 
       {/* right: the plotter, an inset rail with its tab, closed on load */}
-      <InsetPanel side="right" storageKey="janis:book-right-w">
+      <InsetPanel side="right" storageKey="elpis:book-right-w">
         <div className={cn(INSET.header, LINE)}><h3 className={INSET.title}>Plotter</h3></div>
         <InsetBody className="px-4 pt-4" >
         <section aria-label="Plotter">
@@ -244,8 +244,8 @@ export function JanisBook({ p, z, a, mt }: { p: string; z: number; a: number | "
           <dd className="font-mono text-[var(--paper-text)]">—</dd>
         </dl>
         <div className="mt-6 flex flex-col gap-2 text-sm">
-          <Link href="/janis/search/exfor" className={LINK}>Additional EXFOR</Link>
-          <Link href="/janis/search/endf" className={LINK}>Additional ENDF</Link>
+          <Link href="/elpis/search/exfor" className={LINK}>Additional EXFOR</Link>
+          <Link href="/elpis/search/endf" className={LINK}>Additional ENDF</Link>
         </div>
         </section>
         </InsetBody>

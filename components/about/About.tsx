@@ -150,7 +150,8 @@ export function About() {
             against six libraries at once, rank the disagreements, flag the datasets that do not belong, test the ranking
             against the next release, compute production yields for the medical isotopes, compile any material to GNDS 2.0,
             and search NSR, ENSDF, XUNDL, EXFOR and ICRP 107 together, with a chat that cites what it read. JANIS has the
-            polished browse tree, the printed comparison books and the compiler checker; I do not, yet.
+            compiler checker; I do not, yet. <Link href="/elpis" className={LINK}>Elpis</Link>, my viewer, follows JANIS Web&apos;s browse tree,
+            searches and books page for page, reading the lake.
           </p>
         </section>
 

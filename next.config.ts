@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
       { source: "/viz", destination: "/", permanent: false },
       // Knowledge map 2 is the knowledge map's 3D switch now (2026-11-06).
       { source: "/viz/knowledge-3d", destination: "/viz/knowledge", permanent: false },
+      // /janis became /elpis (brief 69, 2026-11-11); old bookmarks and open tabs land on the same page.
+      { source: "/janis", destination: "/elpis", permanent: true },
+      { source: "/janis/:path*", destination: "/elpis/:path*", permanent: true },
     ];
   },
 };
