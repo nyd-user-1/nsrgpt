@@ -81,6 +81,8 @@ export function barnTick(v: number): string {
   if (v >= 1e-6) return `${f(v * 1e6)} µb`
   return `${f(v * 1e9)} nb`
 }
+/** Every decade a book's axes can reach, 1e-12 to 1e12. */
+const DECADES = Array.from({ length: 25 }, (_, i) => 10 ** (i - 12))
 /** Past this many EXFOR sets the points are coloured by set from the palette, as JANIS colours them. */
 export const MANY_SETS = 40
 /** A set's look: past MANY_SETS a palette colour and a dot; else the ink and one of four shapes. */
@@ -101,14 +103,15 @@ export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; spans?: Reco
   const names = [...lines.map((l) => libraryName(l.release)), ...sets.map((s) => s.id)]
   const logY = scales.y === "log"
   const many = sets.reduce((n, s) => n + s.x.length, 0) > 20000
-  // A labelled tick on every decade of a log axis (interval 1 counts decades there), none hidden.
+  // A labelled tick on every decade of a log axis, none hidden: the decades given outright (ECharts' own log ticks skip
+  // decades on a wide axis), the ones inside the range shown, zoomed or not.
   const axis = (type: "log" | "value", name: string, min: number, max: number, energy: boolean) => ({
     type, name, min, max, nameLocation: "middle", nameGap: energy ? 30 : 66, logBase: 10,
-    ...(type === "log" ? { interval: 1 } : {}),
     nameTextStyle: { color: muted, fontSize: 12 },
-    axisLine: { lineStyle: { color: rule } }, axisTick: { lineStyle: { color: rule } },
+    axisLine: { lineStyle: { color: rule } },
+    axisTick: { lineStyle: { color: rule }, ...(type === "log" ? { customValues: DECADES } : {}) },
     splitLine: { show: true, lineStyle: { color: rule, type: "dashed" } },
-    axisLabel: { color: muted, fontSize: 11, hideOverlap: false, formatter: (v: number) => (energy ? energyTick(v) : barnTick(v)) },
+    axisLabel: { color: muted, fontSize: 11, hideOverlap: false, ...(type === "log" ? { customValues: DECADES } : {}), formatter: (v: number) => (energy ? energyTick(v) : barnTick(v)) },
   })
   const setInfo = new Map(sets.map((s) => [s.id, s]))
   return {

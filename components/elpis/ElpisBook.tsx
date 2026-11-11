@@ -363,10 +363,10 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
                 <NodeRow key={s.id} indent="pl-10" mark={<Marker j={j} n={sets.length} />} n={s.x.length}
                   node={<SetName s={s} />} on={!hidden.has(s.id)} onToggle={(v) => show([s.id], v)}
                   table={tables.has(s.id)} onTable={() => flip2(setTables, s.id)} info={infos.has(s.id)} onInfo={() => flip2(setInfos, s.id)}
-                  detail={<>
+                  detail={infos.has(s.id) || tables.has(s.id) ? <>
                     {infos.has(s.id) && <SetInfo s={s} />}
                     {tables.has(s.id) && <ValueTable x={s.x} y={s.y} dy={s.dy} />}
-                  </>} />
+                  </> : null} />
               ))}
               {(data?.off ?? []).map((o) => (
                 <tr key={o.id} className={cn("border-b text-[var(--paper-muted)]", LINE)}>
