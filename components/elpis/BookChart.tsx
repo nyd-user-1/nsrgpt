@@ -27,33 +27,46 @@ export const slotOf = (release: string, k: number) => RELEASE_SLOT[release] ?? k
 const isDark = () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
 
 /** The data's range: energy over the lines where they are above zero (the points when there are none); cross section
- *  from the 1st percentile of every positive value, lines and points, to the largest, so one stray value near a
- *  threshold does not stretch the axis over nine decades. Energy rounds out to 1, 2 or 5 times a power of ten, cross
- *  section to whole decades (a log axis labels its powers of ten). */
+ *  from the lines' 10th percentile (read on an even log-energy grid along each line, 300 steps; the points' 2nd
+ *  percentile when no line is drawn) to the largest value, so neither a stray value nor a steep rise from a threshold stretches the
+ *  axis over many empty decades. A line whose File 3 is only the background inside the resonance range (the API's note)
+ *  is drawn but does not set the range. Energy rounds out to 1, 2 or 5 times a power of ten, cross section to whole decades (a log axis labels its
+ *  powers of ten). */
 export function rangeOf(lines: BookLine[], sets: BookSet[]): Range | null {
   let xmin = Infinity, xmax = -Infinity, ymax = -Infinity
-  const ys: number[] = []
-  const take = (xs: number[], yv: number[], energy: boolean) => {
-    const step = Math.max(1, Math.floor(xs.length / 4000))
-    for (let i = 0; i < xs.length; i++) {
-      const x = xs[i], y = yv[i]
-      if (!(x > 0) || !(y > 0)) continue
-      if (energy) { if (x < xmin) xmin = x; if (x > xmax) xmax = x }
-      if (y > ymax) ymax = y
-      if (i % step === 0) ys.push(y)
+  const ys: number[] = [], ps: number[] = []
+  const full = lines.filter((l) => !/only the background/.test(l.note ?? ""))
+  for (const l of full.length ? full : lines) {
+    let lo = -1
+    for (let i = 0; i < l.x.length; i++) if (l.x[i] > 0 && l.y[i] > 0) { if (lo < 0) lo = i; xmin = Math.min(xmin, l.x[i]); xmax = Math.max(xmax, l.x[i]); ymax = Math.max(ymax, l.y[i]) }
+    if (lo < 0) continue
+    const e0 = Math.log(l.x[lo]), e1 = Math.log(l.x[l.x.length - 1])
+    let j = lo
+    for (let k = 0; k <= 300; k++) {
+      const e = Math.exp(e0 + ((e1 - e0) * k) / 300)
+      while (j + 1 < l.x.length && l.x[j + 1] <= e) j++
+      if (l.y[j] > 0) ys.push(l.y[j])
     }
   }
-  for (const l of lines) take(l.x, l.y, true)
-  for (const s of sets) take(s.x, s.y, !lines.length)
-  if (!Number.isFinite(xmin) || !Number.isFinite(ymax) || xmax <= xmin || !ys.length) return null
-  ys.sort((a, b) => a - b)
-  const ymin = Math.max(ys[Math.floor(ys.length * 0.01)], ymax * 1e-7)
+  for (const s of sets)
+    for (let i = 0; i < s.x.length; i++) {
+      const x = s.x[i], y = s.y[i]
+      if (!(x > 0) || !(y > 0)) continue
+      if (!lines.length) { xmin = Math.min(xmin, x); xmax = Math.max(xmax, x) }
+      ymax = Math.max(ymax, y)
+      ps.push(y)
+    }
+  if (!Number.isFinite(xmin) || !Number.isFinite(ymax) || xmax <= xmin || !(ys.length + ps.length)) return null
+  ys.sort((p, q) => p - q)
+  ps.sort((p, q) => p - q)
+  const low = ys.length ? ys[Math.floor(ys.length * 0.1)] : ps[Math.floor(ps.length * 0.02)]
+  const ymin = Math.max(low, ymax * 1e-7)
   const down = (v: number) => 10 ** Math.floor(Math.log10(v) + 1e-9)
   const up = (v: number) => 10 ** Math.ceil(Math.log10(v) - 1e-9)
   const nice = (v: number, dir: 1 | -1) => {
     const p = 10 ** Math.floor(Math.log10(v))
     const steps = dir < 0 ? [5, 2, 1] : [1, 2, 5, 10]
-    return p * (dir < 0 ? steps.find((s) => s * p <= v * (1 + 1e-9)) ?? 1 : steps.find((s) => s * p >= v * (1 - 1e-9)) ?? 10)
+    return p * (dir < 0 ? steps.find((m) => m * p <= v * (1 + 1e-9)) ?? 1 : steps.find((m) => m * p >= v * (1 - 1e-9)) ?? 10)
   }
   return { xmin: nice(xmin, -1), xmax: nice(xmax, 1), ymin: down(ymin), ymax: up(ymax) }
 }
