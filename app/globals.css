@@ -702,3 +702,9 @@ html .pipeline-flow .react-flow__arrowhead polyline { fill: var(--paper-faint) !
 @keyframes plate-icon-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 .group\/item:hover .plate-icon-draw > * { stroke-dasharray: 100; animation: plate-icon-draw 0.7s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .group\/item:hover .plate-icon-draw > * { animation: none; } }
+
+/* The atom that stands in for "loading" (components/AtomSpinner.tsx; Brendan, 2026-11-11): lucide's atom with electron
+   dots riding its two orbit paths (SVG animateMotion) while the orbits turn; the nucleus stays still. */
+@keyframes atom-spin-turn { to { transform: rotate(360deg); } }
+.atom-spin-orbits { transform-origin: 12px 12px; animation: atom-spin-turn 9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .atom-spin-orbits { animation: none; } }
