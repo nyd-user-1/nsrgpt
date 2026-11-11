@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { X } from 'lucide-react'
 import { useSwitchboard } from '@/components/SwitchboardPanel'
 import { useEChart } from '@/components/viz/use-echart'
+import { ChartBox } from '@/components/viz/chart-kebab'
 import { LegendBar, Pills } from '@/components/viz/Pills'
 import { VizControls, VizSection } from '@/components/viz/VizControls'
 import { AXIS, FAMILY, familyOf, halfLifeText, ink, isDark, loadDecay, modesText, nucName, keyOf, type Decay, type DecayNuclide } from '@/lib/viz-physics'
@@ -152,7 +153,7 @@ export function NuclideChart() {
   const waiting = mode !== 'family' && mode !== 'halflife' && !counts
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div ref={ref} className="min-h-0 w-full flex-1" />
+      <ChartBox chart={ref} className="min-h-0 w-full flex-1" />
       <VizControls>
         {pick !== null && data && (
           <VizSection>
