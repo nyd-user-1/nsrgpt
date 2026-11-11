@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MenuSelect } from "@/components/viz/MenuSelect";
 import { Skeleton } from "@/components/ui/nova/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/nova/table";
 import { apiJson, short } from "@/lib/datasets";
@@ -31,7 +32,6 @@ const UNITS: Record<string, number> = { eV: 1, keV: 1e3, MeV: 1e6 };
 const ORIGINS = [["cinda", "Lines from the old CINDA"], ["exfor", "Lines imported from EXFOR"], ["nsr", "Lines imported from NSR"]] as const;
 const ALL_ORIGINS = "cinda,exfor,nsr";
 const EXAMPLE = "/cinda?target=U-235&quantity=CS&emin=1&emax=20&unit=MeV";
-const SELECT = "h-10 rounded-md border border-[var(--paper-rule)] bg-[var(--paper)] px-2 text-sm text-[var(--paper-text)]";
 const LINK = "text-[var(--paper-strong)] hover:underline";
 
 const empty = (): Form => ({ target: "", reaction: "", quantity: "", emin: "", emax: "", unit: "MeV", type: "", author: "", lab: "", year: "", origin: ALL_ORIGINS });
@@ -109,24 +109,19 @@ export function CindaSearch() {
           <Field label="Target"><Input value={draft.target} placeholder="U-235; Pu-*" onChange={(e) => set("target", e.target.value)} className="text-[var(--paper-text)]" /></Field>
           <Field label="Reaction"><Input value={draft.reaction} placeholder="N,F" onChange={(e) => set("reaction", e.target.value)} className="text-[var(--paper-text)]" /></Field>
           <Field label="Quantity">
-            <select value={draft.quantity} onChange={(e) => set("quantity", e.target.value)} className={SELECT}>
-              <option value="">Any</option>
-              {(quantities.data ?? []).map((x) => <option key={x.code} value={x.code}>{x.code}{x.word ? `: ${x.word}` : ""}</option>)}
-            </select>
+            <MenuSelect label="Quantity" className="h-10 w-full text-sm" value={draft.quantity} onChange={(v) => set("quantity", v)}
+              options={[{ value: "", label: "Any" }, ...(quantities.data ?? []).map((x) => ({ value: x.code, label: `${x.code}${x.word ? `: ${x.word}` : ""}` }))]} />
           </Field>
           <Field label="Work type">
-            <select value={draft.type} onChange={(e) => set("type", e.target.value)} className={SELECT}>
-              <option value="">Any</option>
-              {(types.data ?? []).filter((x) => x.code).map((x) => <option key={x.code} value={x.word}>{x.word}</option>)}
-            </select>
+            <MenuSelect label="Work type" className="h-10 w-full text-sm" value={draft.type} onChange={(v) => set("type", v)}
+              options={[{ value: "", label: "Any" }, ...(types.data ?? []).filter((x) => x.code).map((x) => ({ value: String(x.word ?? ""), label: String(x.word ?? "") }))]} />
           </Field>
           <Field label="Energy">
             <div className="flex gap-2">
               <Input value={draft.emin} placeholder="from" inputMode="decimal" onChange={(e) => set("emin", e.target.value)} className="min-w-0 text-[var(--paper-text)]" />
               <Input value={draft.emax} placeholder="to" inputMode="decimal" onChange={(e) => set("emax", e.target.value)} className="min-w-0 text-[var(--paper-text)]" />
-              <select value={draft.unit} onChange={(e) => set("unit", e.target.value)} className={cn(SELECT, "shrink-0")} aria-label="Energy unit">
-                {Object.keys(UNITS).map((u) => <option key={u}>{u}</option>)}
-              </select>
+              <MenuSelect label="Energy unit" className="h-10 w-20 shrink-0 text-sm" value={draft.unit} onChange={(v) => set("unit", v)}
+                options={Object.keys(UNITS).map((u) => ({ value: u, label: u }))} />
             </div>
           </Field>
           <Field label="First author"><Input value={draft.author} placeholder="Smith" onChange={(e) => set("author", e.target.value)} className="text-[var(--paper-text)]" /></Field>
