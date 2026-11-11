@@ -14,6 +14,27 @@ export const JOB_RELEASES = new Set(["B-VIII.1", "B-VIII.0", "B-VII.1", "B-VII.0
 export const RES_MTS = new Set([1, 2, 3, 18, 19, 27, 101, 102])
 
 type Job = { id: string; status: "queued" | "running" | "done" | "failed"; started_at?: string; error?: string }
+
+/** A long curve thinned for charting as the API thins the POINT files: in each of `steps` equal log-energy steps, the
+ *  lowest and the highest point, in energy order (a log axis wants detail spread by decade, not by index). */
+export function thinLog(x: number[], y: number[], steps = 4000): { x: number[]; y: number[] } {
+  if (x.length <= steps * 2) return { x, y }
+  const lo = Math.log(Math.max(x[0], 1e-12)), span = Math.log(x[x.length - 1]) - lo || 1
+  const ox: number[] = [], oy: number[] = []
+  let bin = -1, iMin = -1, iMax = -1
+  const flush = () => {
+    if (iMin < 0) return
+    for (const i of iMin === iMax ? [iMin] : iMin < iMax ? [iMin, iMax] : [iMax, iMin]) { ox.push(x[i]); oy.push(y[i]) }
+  }
+  for (let i = 0; i < x.length; i++) {
+    const b = Math.min(steps - 1, Math.floor(((Math.log(Math.max(x[i], 1e-12)) - lo) / span) * steps))
+    if (b !== bin) { flush(); bin = b; iMin = iMax = i; continue }
+    if (y[i] < y[iMin]) iMin = i
+    if (y[i] > y[iMax]) iMax = i
+  }
+  flush()
+  return { x: ox, y: oy }
+}
 const done = new Map<string, Promise<BookLine>>()
 
 async function jobJson(r: Response): Promise<Job> {
@@ -31,18 +52,27 @@ export function reconstruct(o: { release: string; name: string; mt: number; temp
       const body = { kind: "broaden", params: { release: o.release, name: o.name, sub: "neutrons", mt: o.mt, temps_k: [t] } }
       let job = await jobJson(await fetch("/api/jobs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }))
       const t0 = Date.now()
+      let misses = 0
       while (job.status !== "done") {
         if (job.status === "failed") throw new Error(job.error ?? "the job failed")
         if (Date.now() - t0 > 15 * 60_000) throw new Error("no answer after 15 minutes")
         const since = job.started_at ? Date.parse(job.started_at) : t0
         report(job.status === "running" ? `running ${Math.max(0, Math.round((Date.now() - since) / 1000))} s` : "queued")
-        await new Promise((r) => setTimeout(r, 3000))
-        job = await jobJson(await fetch(`/api/jobs?id=${encodeURIComponent(job.id)}`))
+        await new Promise((r) => setTimeout(r, 3000 + misses * 2000))
+        // A busy proxy (429, 5xx) is waited out, five times in a row at most.
+        try {
+          job = await jobJson(await fetch(`/api/jobs?id=${encodeURIComponent(job.id)}`))
+          misses = 0
+        } catch (e) {
+          if (++misses > 5) throw e
+        }
       }
       const r = await fetch(apiUrl(`/jobs/${job.id}/result?temp_k=${t}`))
       const j = (await r.json().catch(() => ({}))) as { energy_ev?: number[]; xs_barn?: number[]; error?: string; method?: string }
       if (!r.ok || !j.energy_ev?.length || !j.xs_barn?.length) throw new Error(j.error ?? `the result answered ${r.status}`)
-      return { release: o.release, x: j.energy_ev, y: j.xs_barn, n: j.energy_ev.length, served: "PREPRO", note: `reconstructed with PREPRO at ${t} K (job ${job.id})` }
+      const thin = thinLog(j.energy_ev, j.xs_barn)
+      const cut = thin.x.length < j.energy_ev.length ? `; thinned for charting to ${thin.x.length.toLocaleString("en-US")} of ${j.energy_ev.length.toLocaleString("en-US")} points` : ""
+      return { release: o.release, x: thin.x, y: thin.y, n: j.energy_ev.length, served: "PREPRO", note: `reconstructed with PREPRO at ${t} K (job ${job.id})${cut}` }
     })()
     done.set(key, p)
     p.catch(() => done.delete(key))
