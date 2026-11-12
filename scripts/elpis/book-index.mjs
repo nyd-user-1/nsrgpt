@@ -119,12 +119,14 @@ const order = (l) => {
 
 const summary = {}
 // The residuals MT 5 produces, per material and release: File 6 MT 5's product yields (endfb_eang, quantity yield) and File
-// 10 MT 5's production sections (endfb_mult), heavier than an alpha.
+// 10 MT 5's production sections (endfb_mult), every product but the photon. Brief 73 (A9): light products count too, since JANIS
+// serves a row whose residual is n, p, d, t, He-3 or He-4 as that particle's MT 5 production (Li-6 (d,α) MT107 is "MT5 :
+// (z,anything) / Product He4" in JENDL/DEU-2020).
 const prods = athena(`WITH p AS (
   SELECT s.release, s.sublibrary, s.mat, s.file_name, CAST(round(s.zap) AS integer) AS zap FROM endfb_eang s
-  WHERE s.mt = 5 AND s.quantity = 'yield' AND s.zap > 2004.5
+  WHERE s.mt = 5 AND s.quantity = 'yield' AND s.zap > 0.5
   UNION SELECT s.release, s.sublibrary, s.mat, s.file_name, CAST(round(s.izap) AS integer) FROM endfb_mult s
-  WHERE s.mf = 10 AND s.mt = 5 AND s.izap > 2004.5)
+  WHERE s.mf = 10 AND s.mt = 5 AND s.izap > 0.5)
 SELECT sub, za, liso, array_join(array_agg(CAST(zap AS varchar) || ':' || CAST(mask AS varchar) ORDER BY zap), ' ') AS x FROM (
   SELECT ${SUB} AS sub, CAST(m.za AS integer) AS za, COALESCE(m.liso, 0) AS liso, s.zap, sum(DISTINCT ${bit}) AS mask
   FROM p s JOIN endfb_materials m ON m.release = s.release AND m.sublibrary = s.sublibrary AND m.mat = s.mat AND m.file_name = s.file_name

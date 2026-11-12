@@ -36,7 +36,7 @@ JEFF-3.1.2 $K/JEFF-3.1.2/n/*#n
 JEFF-3.2 $K/JEFF-3.2/n/*#n
 CENDL-3.1 $K/CENDL-3.1/n/*#n
 JENDL-4.0 $K/JENDL-4.0/n/*#n $K/JENDL-4.0/e/*#e $K/JENDL-4.0/nfpy/*#nfpy $K/JENDL-4.0/photo/*#photo $K/JENDL-4.0/sfpy/*#sfpy $K/JENDL-4.0/tsl/*#tsl
-JENDL-4.0u $K/JENDL-4.0u2-20160106/n/*#n
+JENDL-4.0u $J/JENDL-4.0u/jendl40-or-up_20160106.tar.gz#n
 JENDL-4.0-HE $K/JENDL-4.0-HE/backup/jendl-4-0-he_n.sublib.zip $K/JENDL-4.0-HE/backup/jendl-4-0-he_p.sublib.zip
 JENDL-AD-2017 $K/JENDL-AD-2017/backup/jendl-ad-2017_n.sublib.zip $K/JENDL-AD-2017/backup/jendl-ad-2017_p.sublib.zip
 JENDL-DEU-2020 $K/JENDL-DEU-2020/backup/jendl-deu-2020_d.sublib.zip
@@ -55,7 +55,15 @@ JEFF-3.0 $J/JEFF-3.0/JEFF30N.zip#n $J/JEFF-3.0/JEFF30TS.zip#tsl
 GEFY-9.1 $J/GEFY-9.1/GEFY91_n.zip#nfpy $J/GEFY-9.1/GEFY91_mn.zip#nfpy $J/GEFY-9.1/GEFY91_s.zip#sfpy
 GEFY-8.1 $J/GEFY-8.1/GEFY81_n.zip#nfpy $J/GEFY-8.1/GEFY81_mn.zip#nfpy $J/GEFY-8.1/GEFY81_s.zip#sfpy
 GEFY-6.2 $J/GEFY-6.2/GEFY62_n.zip#nfpy $J/GEFY-6.2/GEFY62_mn.zip#nfpy $J/GEFY-6.2/GEFY62_s.zip#sfpy
-GEFY-6.1 $J/GEFY-6.1/GEFY61_n.zip#nfpy $J/GEFY-6.1/GEFY61_mn.zip#nfpy $J/GEFY-6.1/GEFY61_s.zip#sfpy"
+GEFY-6.1 $J/GEFY-6.1/GEFY61_n.zip#nfpy $J/GEFY-6.1/GEFY61_mn.zip#nfpy $J/GEFY-6.1/GEFY61_s.zip#sfpy
+TENDL-2019 $J/TENDL-2019/TENDL-n.tgz#n $J/TENDL-2019/TENDL-p.tgz#p $J/TENDL-2019/TENDL-d.tgz#d $J/TENDL-2019/TENDL-t.tgz#t $J/TENDL-2019/TENDL-h.tgz#he3 $J/TENDL-2019/TENDL-a.tgz#a $J/TENDL-2019/TENDL-g.tgz#g
+TENDL-2017 $J/TENDL-2017/TENDL-n.tgz#n $J/TENDL-2017/TENDL-p.tgz#p $J/TENDL-2017/TENDL-d.tgz#d $J/TENDL-2017/TENDL-t.tgz#t $J/TENDL-2017/TENDL-h.tgz#he3 $J/TENDL-2017/TENDL-a.tgz#a $J/TENDL-2017/TENDL-g.tgz#g
+TENDL-2015 $J/TENDL-2015/TENDL-n.tgz#n $J/TENDL-2015/TENDL-p.tgz#p $J/TENDL-2015/TENDL-d.tgz#d $J/TENDL-2015/TENDL-t.tgz#t $J/TENDL-2015/TENDL-h.tgz#he3 $J/TENDL-2015/TENDL-a.tgz#a $J/TENDL-2015/TENDL-g.tgz#g
+TENDL-2014 $K/TENDL-2014/n/*#n $K/TENDL-2014/p/*#p $K/TENDL-2014/d/*#d $K/TENDL-2014/t/*#t $K/TENDL-2014/he3/*#he3 $K/TENDL-2014/he4/*#he4 $K/TENDL-2014/g/*#g
+TENDL-2012 $K/TENDL-2012/n/*#n $K/TENDL-2012/p/*#p $K/TENDL-2012/d/*#d $K/TENDL-2012/t/*#t $K/TENDL-2012/he3/*#he3 $K/TENDL-2012/he4/*#he4 $K/TENDL-2012/g/*#g
+TENDL-2011 $K/TENDL-2011/n/*#n $K/TENDL-2011/p/*#p $K/TENDL-2011/d/*#d $K/TENDL-2011/t/*#t $K/TENDL-2011/he3/*#he3 $K/TENDL-2011/he4/*#he4 $K/TENDL-2011/g/*#g $K/TENDL-2011/nfpy/*#nfpy $K/TENDL-2011/sfpy/*#sfpy $K/TENDL-2011/pfpy/*#pfpy $K/TENDL-2011/dfpy/*#dfpy $K/TENDL-2011/tfpy/*#tfpy $K/TENDL-2011/he3fp/*#he3fp $K/TENDL-2011/he4fp/*#he4fp
+TENDL-2010 $K/TENDL-2010/n/*#n $K/TENDL-2010/p/*#p $K/TENDL-2010/d/*#d $K/TENDL-2010/t/*#t $K/TENDL-2010/he3/*#he3 $K/TENDL-2010/he4/*#he4 $K/TENDL-2010/g/*#g $K/TENDL-2010/nfpy/*#nfpy $K/TENDL-2010/sfpy/*#sfpy $K/TENDL-2010/pfpy/*#pfpy $K/TENDL-2010/dfpy/*#dfpy $K/TENDL-2010/tfpy/*#tfpy $K/TENDL-2010/he3fp/*#he3fp $K/TENDL-2010/he4fp/*#he4fp
+TENDL-2009 $K/TENDL-2009/n/*#n $K/TENDL-2009/p/*#p $K/TENDL-2009/d/*#d $K/TENDL-2009/t/*#t $K/TENDL-2009/he3/*#he3 $K/TENDL-2009/he4/*#he4 $K/TENDL-2009/g/*#g $K/TENDL-2009/nfpy/*#nfpy $K/TENDL-2009/sfpy/*#sfpy $K/TENDL-2009/pfpy/*#pfpy $K/TENDL-2009/dfpy/*#dfpy $K/TENDL-2009/tfpy/*#tfpy $K/TENDL-2009/he3fp/*#he3fp $K/TENDL-2009/he4fp/*#he4fp"
 [ -f fill.extra ] && ALL="$ALL
 $(cat fill.extra)"  # releases fetched tonight, one line each, appended on the box as they land
 MF=

@@ -86,9 +86,11 @@ def size_arg(s):
 
 
 def openers(spec):
-    # one urllib opener per worker: "direct" is the box's own address, a number is that line of the proxy list
+    # one urllib opener per worker: "direct" is the box's own address, a number is that line of the proxy list (read only
+    # when a proxy line is asked for; brief 73 runs direct-only on boxes whose role cannot read the parameter)
     lines = [l.split(":") for l in boto3.client("ssm", region_name="us-east-2").get_parameter(
-        Name="/nsrgpt/webshare/proxies", WithDecryption=True)["Parameter"]["Value"].splitlines() if l.strip()]
+        Name="/nsrgpt/webshare/proxies", WithDecryption=True)["Parameter"]["Value"].splitlines() if l.strip()] \
+        if any(s != "direct" for s in spec.split(",")) else []
     out = []
     for s in spec.split(","):
         if s == "direct":
