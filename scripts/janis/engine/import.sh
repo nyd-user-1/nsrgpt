@@ -4,6 +4,7 @@
 # The packages carry no H2 index, so JANIS builds it. One base per group in libs.tsv: BOOK holds the fourteen libraries
 # JANIS's book generator draws plus EXFOR (the generator searches one connection), REST the other packages.
 #   bash import.sh BOOK     # or REST; a library whose done-marker exists is skipped
+#   FETCH_ONLY=1 bash import.sh BOOK   # another box: the DataPack files only (then lake/_work/janis/engine/db/BOOK.h2.db)
 set -uo pipefail
 export PATH=$PATH:/snap/bin
 GROUP=$1
@@ -20,12 +21,16 @@ grep -v '^#' $E/libs.tsv | awk -F'\t' -v g=$GROUP '$4==g' | while IFS=$'\t' read
   key="$pkg-$ver"; D=$J/DataPack/$key
   [ -f $J/done/$GROUP-$key ] && { echo "skip $key"; continue; }
   mkdir -p $D/jpk $D/inter $D/boxer
-  # the package's files; EXFOR keeps only its latest dump; files GitLab marks unused, bad or alternative are left out
-  jq -r --arg p "$pkg" --arg v "$ver" '.rows[] | select(.package==$p and .version==$v) | .file' $M |
+  # the package's files; EXFOR (version "all") keeps only its latest dump; files GitLab marks unused, bad or alternative
+  # are left out
+  jq -r --arg p "$pkg" --arg v "$ver" '.rows[] | select(.package==$p and .version==$v) | .file' $M | sort |
+    { if [ "$pkg" = EXFOR ]; then tail -1; else cat; fi; } |
     grep -vE '\.(UNUSED|BAD)$|_noFY$|_pbNJOY$|covr\.zip$|boxer-JANIS-[0-9]+\.zip$' | while read -r f; do
       case $f in *.jpk) sub=jpk;; *.inter.zip) sub=inter;; *.boxer.zip) sub=boxer;; *) continue;; esac
       [ -s $D/$sub/$f ] || aws s3 cp "$L/$pkg/$ver/$f" $D/$sub/$f --only-show-errors
     done
+  [ -n "$(ls $D/jpk)" ] || { echo "$(date -u +%FT%TZ) no packed file for $key: not imported"; continue; }
+  [ -n "${FETCH_ONLY:-}" ] && { echo "fetched $key"; continue; }  # a second box: the DataPack only, the H2 index comes from the lake
   t0=$(date +%s)
   echo "$(date -u +%FT%TZ) import $key as [$label] ($fmt)"
   if [ "$fmt" = EXFOR ]; then

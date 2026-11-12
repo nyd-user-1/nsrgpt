@@ -91,32 +91,48 @@ def prep(rel):
         os.makedirs(os.path.dirname(local), exist_ok=True)
         if not os.path.exists(local):
             s3().download_file(B, key, local)
-        members = []
-        if local.endswith((".tar.gz", ".tgz", ".tar")):
-            with tarfile.open(local) as t:
-                for mi in t.getmembers():
-                    if mi.isfile() and re.search(r"\.(endf|dat|txt|asc|tendl|\d+)$|sublib|/[a-z]+-\d+", mi.name, re.I):
-                        members.append((mi.name, t.extractfile(mi).read()))
-        elif local.endswith(".zip"):
-            with zipfile.ZipFile(local) as z:
-                for name in z.namelist():
-                    if not name.endswith("/"):
-                        members.append((name, z.read(name)))
-        for name, data in members:
+        def streams():
+            """(member name, a text stream of its lines), one member at a time, never whole in memory."""
+            if local.endswith((".tar.gz", ".tgz", ".tar")):
+                with tarfile.open(local) as t:
+                    for mi in t:
+                        if mi.isfile():
+                            yield mi.name, io.TextIOWrapper(t.extractfile(mi), encoding="latin-1", newline=None)
+            elif local.endswith(".zip"):
+                with zipfile.ZipFile(local) as z:
+                    for name in z.namelist():
+                        if not name.endswith("/"):
+                            with z.open(name) as raw:
+                                yield name, io.TextIOWrapper(raw, encoding="latin-1", newline=None)
+        for name, stream in streams():
             sub = sublibrary_of(key + "/" + name)
-            mats = materials(member_lines(data))
-            if not mats:
-                continue
-            if sub == "neutrons":
-                for mat, ls in mats.items():
-                    with open(f"{d}/n/{mat}.endf", "w", encoding="latin-1") as f:
-                        f.write(" " * 66 + "   1 0  0    0\n" + "\n".join(ls) + "\n")
-            else:
-                with open(f"{d}/other/{sub}.endf", "a", encoding="latin-1") as f:
-                    for mat, ls in mats.items():
-                        f.write("\n".join(ls) + "\n")
-            counts[sub] = counts.get(sub, 0) + len(mats)
-            members_done = True
+            n, cur, mat = 0, [], None
+            other = open(f"{d}/other/{sub}.endf", "a", encoding="latin-1") if sub != "neutrons" else None
+            for ln in stream:
+                ln = ln.rstrip("\n")
+                if len(ln) < 75:
+                    continue
+                try:
+                    m = int(ln[66:70])
+                except ValueError:
+                    continue
+                if m > 0:
+                    mat = mat or m
+                    cur.append(ln)
+                elif m == 0 and mat is not None:  # MEND closes the material
+                    cur.append(ln)
+                    if other is None:
+                        with open(f"{d}/n/{mat}.endf", "w", encoding="latin-1") as f:
+                            f.write(" " * 66 + "   1 0  0    0\n" + "\n".join(cur) + "\n")
+                    else:
+                        other.write("\n".join(cur) + "\n")
+                    n += 1
+                    cur, mat = [], None
+            if other:
+                other.close()
+                if n == 0:
+                    os.remove(f"{d}/other/{sub}.endf") if os.path.getsize(f"{d}/other/{sub}.endf") == 0 else None
+            counts[sub] = counts.get(sub, 0) + n
     json.dump(counts, open(f"{d}/prep.json", "w"))
     print(rel, counts)
 

@@ -56,46 +56,65 @@ def parse_mark(s):
     return {"shape": m.group(1), "args": m.group(2), "size": float(m.group(3)), "raw": s} if m else {"raw": s}
 
 
+NUM = re.compile(r"^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(\S*)\s*$")
+
+
+def cell(v):
+    """A Tabler cell: (number, unit) for '10.5000 MeV', '1.7530 b', '1.0E-5' (unit ''), '3.2 %'; None for blank or text."""
+    m = NUM.match(v or "")
+    return (float(m.group(1)), m.group(2)) if m else None
+
+
+def scaled(c, base):
+    """A cell in eV ('eV') or barns ('b'): its unit's prefix applied; a cell with no unit is in the base unit already."""
+    if c is None:
+        return None
+    x, u = c
+    if u == "" or u == base:
+        return x
+    if u.endswith(base) and u[: -len(base)] in PREFIX:
+        return x * PREFIX[u[: -len(base)]]
+    return None
+
+
 def read_csv(path):
-    """JANIS's Tabler CSV (';' separated, a header of '<variable> (<unit>)'): columns as lists of numbers."""
+    """JANIS's Tabler CSV (';' separated, three header lines, the third the column names; cells with units where the
+    data has them): the column names and the columns as lists of (number, unit) cells."""
     with open(path, encoding="utf-8", errors="replace") as f:
         rows = list(csv.reader(f, delimiter=";"))
-    if not rows:
-        return [], []
-    head = [h.strip() for h in rows[0]]
+    k = 0
+    while k < len(rows) and (not rows[k] or cell(rows[k][0]) is None):
+        k += 1
+    head = [h.strip() for h in rows[k - 1]] if k else []
     cols = [[] for _ in head]
-    for r in rows[1:]:
-        for i, v in enumerate(r[: len(head)]):
-            v = v.strip()
-            try:
-                cols[i].append(float(v.split()[0]) if v else None)
-            except ValueError:
-                cols[i].append(None)
+    for r in rows[k:]:
+        for i in range(len(head)):
+            cols[i].append(cell(r[i]) if i < len(r) else None)
     return head, cols
 
 
 def series_values(head, cols):
-    """x, y and, where JANIS's table has them, y uncertainties; units from the header ('E (eV)', 'Cross section (b)')."""
-    def unit(h):
-        m = re.search(r"\(([^)]*)\)\s*$", h)
-        return m.group(1) if m else ""
+    """x (eV), y (barns) and, where JANIS's table has them, y uncertainties (barns). ENDF tables: the energy and σ(E).
+    EXFOR tables: the first column is the independent variable (EN), y the first DATA column, dy its DATA-ERR (else ERR-T,
+    else the first ERR-*; a per-cent error times y)."""
     out = {"columns": head}
-    if not cols:
+    if len(cols) < 2:
         return out
-    xu, yu = unit(head[0]), unit(head[1]) if len(head) > 1 else ""
-    sx = PREFIX.get(xu[:-2], 1.0) if xu.endswith("eV") else 1.0
-    sy = PREFIX.get(yu[:-1], 1.0) if yu.endswith("b") else 1.0
-    out["x"] = [None if v is None else v * sx for v in cols[0]]
-    if len(cols) > 1:
-        out["y"] = [None if v is None else v * sy for v in cols[1]]
-    for i, h in enumerate(head[2:], start=2):
-        hl = h.lower()
-        su = PREFIX.get(unit(h)[:-1], 1.0) if unit(h).endswith("b") else 1.0
-        key = None
-        if hl.startswith("dy") or "uncertainty" in hl or "error" in hl or hl.startswith("d" + head[1][:1].lower()):
-            key = "dy" if "dy" not in out else "dy2"
-        if key:
-            out[key] = [None if v is None else v * su for v in cols[i]]
+    yi = next((i for i, h in enumerate(head) if h.upper().startswith("DATA") and "ERR" not in h.upper()), 1)
+    out["x"] = [scaled(c, "eV") for c in cols[0]]
+    out["y"] = [scaled(c, "b") for c in cols[yi]]
+    up = [h.upper() for h in head]
+    ei = next((up.index(n) for n in ("DATA-ERR", "ERR-T") if n in up), None)
+    if ei is None:
+        ei = next((i for i, h in enumerate(up) if h.startswith("ERR")), None)
+    if ei is not None and ei != yi:
+        dy = []
+        for c, y in zip(cols[ei], out["y"]):
+            if c is not None and c[1] in ("%", "PER-CENT") and y is not None:
+                dy.append(abs(y) * c[0] / 100)
+            else:
+                dy.append(scaled(c, "b"))
+        out["dy"] = dy
     return out
 
 
@@ -107,14 +126,27 @@ def page_record(book, jns_path, export_dir):
     mat, mt = m.group(2), int(m.group(3))
     strings = plot.find("settings/strings")
     title = strings.find("title") if strings is not None else None
+    # JANIS keeps a range in the JNS only where it differs from its automatic one; ranges.tsv has the ranges JANIS computed
+    auto = {}
+    rpath = os.path.join(export_dir, stem, "ranges.tsv")
+    if os.path.exists(rpath):
+        for line in open(rpath):
+            f = line.rstrip("\n").split("\t")
+            auto[f[0]] = (float(f[1]), float(f[2]))
+
+    def axis(tag, unit, key):
+        r = plot.find(tag)
+        if r is not None:
+            return {"min": quantity(r.get("min"), unit), "max": quantity(r.get("max"), unit), "range": [r.get("min"), r.get("max")], "from": "jns"}
+        if key in auto:
+            return {"min": auto[key][0], "max": auto[key][1], "range": None, "from": "janis-auto"}
+        return {"min": None, "max": None, "range": None, "from": None}
+    xv = plot.find("xvar")
     rec = {
         "book": book, "mat": mat, "nuclide": nuclide_of(mat), "mt": mt,
         "title": title.get("manualText") if title is not None else None,
-        "x": {"variable": plot.findtext("xvar") or (plot.find("xvar").get("key") if plot.find("xvar") is not None else "E"),
-              "scale": plot.findtext("xscale"), "min": quantity(plot.find("xrange").get("min"), "eV"),
-              "max": quantity(plot.find("xrange").get("max"), "eV"), "range": [plot.find("xrange").get("min"), plot.find("xrange").get("max")]},
-        "y": {"scale": plot.findtext("yscale"), "min": quantity(plot.find("yrange").get("min"), "b"),
-              "max": quantity(plot.find("yrange").get("max"), "b"), "range": [plot.find("yrange").get("min"), plot.find("yrange").get("max")]},
+        "x": {"variable": xv.get("key") if xv is not None else "E", "scale": plot.findtext("xscale"), **axis("xrange", "eV", "x")},
+        "y": {"scale": plot.findtext("yscale"), **axis("yrange", "b", "y")},
         "labels": {k: (strings.find(k).attrib if strings is not None and strings.find(k) is not None else None)
                    for k in ("title", "xAxisLabel", "yAxisLabel", "legend", "xAxisTicsLabels", "yAxisTicsLabels")},
         "series": [], "sheet": [],
@@ -167,9 +199,12 @@ def sheet_rows(rows):
     tree = {}
     for r in rows:
         node = tree
-        for lab in r[1:]:
+        labs = r[1:]
+        if labs and labs[0] == "EXFOR":  # an EXFOR set's own label is its subentry ("10249.005, 1973, R.B.Perez+ (181 pts)")
+            labs = labs[:-1] + [labs[-1].split(",")[0].strip()]
+        for lab in labs:
             node = node.setdefault(lab, {})
-        node["\0ref"] = r[0]
+        node["\0ref"] = "~" + r[0].split("~", 1)[1] if "~" in r[0] else r[0]  # without the base label, as the JNS writes refs
     out = []
 
     def walk(node, prefix, depth):
