@@ -46,9 +46,10 @@ export function PageMotion() {
       const url = new URL(a.href, window.location.href)
       // Another page of this app's; / runs ChartRoot as it arrives instead.
       if (url.origin !== window.location.origin || url.pathname === window.location.pathname || url.pathname === '/' || url.pathname.startsWith('/api')) return
-      // The JANIS book's rail rows and steppers are links between its own pages (Brendan, 2026-11-11): no clone, no
-      // grow, the next chart lands at once.
-      if (url.pathname.startsWith('/elpis/book') && window.location.pathname.startsWith('/elpis/book')) return
+      // Links between Elpis's own pages, /elpis and every route under it (Brendan, 2026-11-11): no clone, no
+      // grow, the next page lands at once.
+      const elpis = (p: string) => p === '/elpis' || p.startsWith('/elpis/')
+      if (elpis(url.pathname) && elpis(window.location.pathname)) return
       e.preventDefault()
       e.stopPropagation()
       chartForward(() => router.push(url.pathname + url.search + url.hash))
