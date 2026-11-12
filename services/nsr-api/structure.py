@@ -13,6 +13,8 @@
 #                                      per release. Where a reconstructed POINT release holds the section (B-VIII.1 and
 #                                      B-VIII.0, temp 0K, 293.6K, 600K, 900K, 1200K, 1500K or 1800K) it is served instead of the bare MF3, which inside a
 #                                      resonance range is only the background; release_served says which. point=0 forces MF3.
+#                                      &janis=1 (Elpis's book, brief 74): JANIS Web's own curve where its package holds the
+#                                      section (<release>-janis, 293.6 K), unless another temp is asked for.
 #                                      &emin=&emax= (eV) cut each series to the window, keeping the point on each side.
 #   GET /endf/cov?name=U-235&mt=18&release=B-VIII.1,JEFF-3.3&emin=&emax=   the MF33 self-covariance as relative standard
 #                                      deviation per energy group, per release (brief 51), read from lake/endfb/<release>/cov/;
@@ -48,6 +50,11 @@ INDEXED = ["JEFF-3.3", "JENDL-5", "TENDL-2023"] + RELEASES[RELEASES.index("CENDL
 HOT = ["600K", "900K", "1200K", "1500K", "1800K"]
 POINT_RELEASES = (["B-VIII.1-point-0K", "B-VIII.1-point-293.6K", "B-VIII.0-point-0K", "B-VIII.0-point-293.6K"]
                   + [f"B-VIII.1-point-{t}" for t in HOT] + [f"B-VIII.0-point-{t}" for t in HOT])
+# Brief 74 (Elpis lane B): JANIS Web's own pointwise cross sections (resonances reconstructed, broadened to 293.6 K),
+# decoded unchanged from its packages (NEA GitLab janis/data; scripts/recon/janis_serve.py), one <release>-janis release
+# each, read like the POINT releases. /endf/xs serves them with janis=1.
+JANIS = []
+POINT_RELEASES += [f"{r}-janis" for r in JANIS]
 TEMPS = ["0K", "293.6K"] + HOT
 DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
 PAGE = 500
@@ -265,6 +272,8 @@ def xs(q):
     if not temp:
         return 400, {"error": f"temp is one of {', '.join(TEMPS)}, the temperatures of the reconstructed (POINT) releases"}
     use_point = (q.get("point") or "1").strip().lower() not in ("0", "false", "no")
+    janis = (q.get("janis") or "").strip().lower() in ("1", "true", "yes")
+    temp_in = temp if q.get("temp") else None
     emin, emax = ev_of(q, "emin"), ev_of(q, "emax")
     wanted = [q.get("release") or DEFAULT_RELEASE] + [c for c in (q.get("compare") or "").split(",") if c.strip()]
     mtrow = records(f"SELECT reaction, name FROM {table('mt')} WHERE mt = ?", [mt])
@@ -276,13 +285,19 @@ def xs(q):
                            "note": f"not parsed into the lake; held releases: {', '.join(RELEASES + POINT_RELEASES)}"})
             continue
         row, served = None, r
-        pr = r if r in POINT_RELEASES else f"{r}-point-{temp}"
-        if (use_point or r in POINT_RELEASES) and pr in POINT_RELEASES:
+        if r in POINT_RELEASES:
+            cands = [r]
+        else:  # JANIS's curve first when asked for (at its own 293.6 K), then NNDC's POINT, then the MF3
+            cands = [f"{r}-janis"] if janis and temp_in in (None, "293.6K") else []
+            cands += [f"{r}-point-{temp}"] if use_point else []
+        for pr in (c for c in cands if c in POINT_RELEASES):
             try:
                 row = point_series(pr, name, sub, mt)
-                served = pr if row else r
-            except Exception:  # noqa: BLE001 (a missing or unreadable POINT file falls back to the MF3)
+            except Exception:  # noqa: BLE001 (a missing or unreadable POINT file falls back to the next)
                 row = None
+            if row:
+                served = pr
+                break
         if row is None and r in INDEXED:
             row, served = point_series(r, name, sub, mt), r
         elif row is None and r in RELEASES:
@@ -304,7 +319,10 @@ def xs(q):
                 item["note"] = ("MF3 as evaluated: inside the resonance range it is only the background to the MF2 "
                                 "resonances; no reconstructed (POINT) release holds this section")
         elif served != r or r in POINT_RELEASES:
-            item["note"] = (f"reconstructed pointwise data (NNDC POINT, {served.rsplit('-', 1)[-1]})"
+            if served.endswith("-janis"):
+                item["temp_served"] = "293.6K"
+            item["note"] = ((f"JANIS Web's own pointwise data (NEA janis/data package, 293.6 K)" if served.endswith("-janis")
+                             else f"reconstructed pointwise data (NNDC POINT, {served.rsplit('-', 1)[-1]})")
                             + (f"; thinned for charting to {row['n_served']:,} of {row['n_points']:,} points (lowest "
                                "and highest in each log-energy step)" if row.get("thinned") else ""))
         series.append(item)

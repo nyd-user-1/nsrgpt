@@ -460,10 +460,17 @@ def thin(e, x):
     return np.unique(np.r_[order[starts], order[ends], 0, n - 1])
 
 
+def serve_module():
+    """scripts/parse/serve-structure/serve.py as the box holds it (register, clear, point_files)."""
+    for p in ("/opt/parse/scripts/box", "/opt/parse/scripts/serve-structure"):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    import serve as sv  # noqa: E402
+    return sv
+
+
 def serve(rels):
-    sys.path.insert(0, "/opt/parse/scripts/serve-structure")
-    sys.path.insert(0, "/opt/parse/scripts/box")
-    import serve as sv  # noqa: E402  scripts/parse/serve-structure/serve.py
+    sv = serve_module()
     for rel in rels:
         t0 = time.time()
         doc = get_json(f"{pre(rel)}/materials.json")

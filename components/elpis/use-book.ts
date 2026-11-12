@@ -123,7 +123,7 @@ export function loadBook(o: {
     for (let i = 0; i < o.releases.length; i += 6) chunks.push(o.releases.slice(i, i + 6))
     type Xs = { ok: boolean; status: number; body: { series?: XsSeries[]; error?: string } }
     const xsOnce = (c: string[]): Promise<Xs> =>
-      getJson<{ series?: XsSeries[]; error?: string }>(o.zap ? `/endf/section/production?${q({ name: o.name, sub: o.sub, zap: o.zap, release: c[0], compare: c.slice(1).join(",") })}` : `/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: c[0], compare: c.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined })}`)
+      getJson<{ series?: XsSeries[]; error?: string }>(o.zap ? `/endf/section/production?${q({ name: o.name, sub: o.sub, zap: o.zap, release: c[0], compare: c.slice(1).join(",") })}` : `/endf/xs?${q({ name: o.name, mt: o.mt, sub: o.sub === "neutrons" ? undefined : o.sub, release: c[0], compare: c.slice(1).join(","), temp: o.temp ? `${o.temp}K` : undefined, janis: "1" })}`)
         .catch((e) => ({ ok: false, status: 0, body: { error: e instanceof Error ? e.message : String(e) } }))
     // A chunk that fails (a cold Lambda loading a release's table, or an answer past Lambda's 6 MB: four dosimetry
     // libraries of 46,000 points each) is asked again one release a call.
