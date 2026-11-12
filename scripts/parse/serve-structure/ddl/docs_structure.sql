@@ -76,7 +76,7 @@ SELECT 'material', m.release || '/' || m.sublibrary || '/' || CAST(m.mat AS varc
          WHEN 'nfy' THEN '/endf/fy?name=' || m.name || '&release=' || m.release
          WHEN 'sfy' THEN '/endf/fy?name=' || m.name || '&release=' || m.release || '&sub=sfy'
          ELSE '/endf/materials?release=' || m.release || '&sublibrary=' || m.sublibrary || '&z=' || CAST(m.z AS varchar) END
-FROM endf_serve_materials m WHERE m.release NOT LIKE '%-point-%'
+FROM endf_serve_materials m WHERE m.release NOT LIKE '%-point-%' AND m.release NOT LIKE '%-recon-%'
 UNION ALL
 SELECT 'cross_section', x.release || '/' || x.sublibrary || '/' || CAST(x.mat AS varchar) || '/' || CAST(x.mt AS varchar),
        x.name || ' ' || coalesce(replace(t.reaction, '(z,', '(' || @PROJ(x.sublibrary)@ || ','), 'MT ' || CAST(x.mt AS varchar)),
@@ -89,7 +89,7 @@ SELECT 'cross_section', x.release || '/' || x.sublibrary || '/' || CAST(x.mat AS
               y -> y IS NOT NULL),
        @LIB(x.release)@, x.z, x.a, x.mt, CAST(NULL AS integer),
        '/endf/xs?name=' || x.name || '&mt=' || CAST(x.mt AS varchar) || '&release=' || x.release || '&sub=' || x.sublibrary
-FROM endf_serve_xs x LEFT JOIN mt t ON t.mt = x.mt WHERE x.release NOT LIKE '%-point-%'
+FROM endf_serve_xs x LEFT JOIN mt t ON t.mt = x.mt WHERE x.release NOT LIKE '%-point-%' AND x.release NOT LIKE '%-recon-%'
 UNION ALL
 SELECT 'icrp_nuclide', 'icrp:' || i.nuclide, i.nuclide,
        i.nuclide || coalesce(' (' || @CAP(el.ename)@ || ')', '') || ', ICRP 107: half-life ' || CAST(i.half_life AS varchar) || ' '
