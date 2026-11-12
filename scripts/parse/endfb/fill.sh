@@ -71,7 +71,9 @@ GEFY-4.2 $P/GEFY-4.2/GEFY-4.2-n.nsub11.zip#nfpy $P/GEFY-4.2/GEFY-4.2-s.nsub5.zip
 GEFY-3.3 $P/GEFY-3.3/GEFY-3.3-n.nsub11.zip#nfpy $P/GEFY-3.3/GEFY-3.3-s.nsub5.zip#sfpy
 FENDL-3.1b $P/FENDL-3.1b/FENDL-3.1b.nsub10.zip#n
 FENDL-2.1-MG $P/FENDL-2.1-MG/FENDL-2.1-MG-endf6.nsub10.zip#n
-IRDFF-1.0-640g $P/IRDFF-1.0-640g/IRDFF-1.0-640g.nsub10.zip#n"
+IRDFF-1.0-640g $P/IRDFF-1.0-640g/IRDFF-1.0-640g.nsub10.zip#n
+JEFF-3.0-A $J/JEFF-3.1-A/JEFF31A.ASC#n
+TENDL-2013 $P/TENDL-2013/TENDL-2013-n.nsub10.zip#n $P/TENDL-2013/TENDL-2013-p.nsub10010.zip#p $P/TENDL-2013/TENDL-2013-d.nsub10020.zip#d $P/TENDL-2013/TENDL-2013-t.nsub10030.zip#t $P/TENDL-2013/TENDL-2013-h.nsub20030.zip#he3 $P/TENDL-2013/TENDL-2013-a.nsub20040.zip#a $P/TENDL-2013/TENDL-2013-g.nsub0.zip#g"
 [ -f fill.extra ] && ALL="$ALL
 $(cat fill.extra)"  # releases fetched tonight, one line each, appended on the box as they land
 MF=

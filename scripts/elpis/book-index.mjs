@@ -97,7 +97,7 @@ const WHERE = "s.mf = 3 AND s.release NOT LIKE '%-point-%' AND s.sublibrary NOT 
 
 const held = athena(`SELECT DISTINCT s.release FROM endfb_sections s WHERE ${WHERE}`, "releases").map((r) => r.release)
 const releases = [...FIRST.filter((r) => held.includes(r)), ...held.filter((r) => !FIRST.includes(r)).sort()]
-const bit = `CASE s.release ${releases.map((r, i) => `WHEN '${r}' THEN ${2 ** i}`).join(" ")} END`
+const bit = `CASE s.release ${releases.map((r, i) => `WHEN '${r}' THEN ${(BigInt(1) << BigInt(i)).toString()}`).join(" ")} END`
 const rows = athena(`WITH k AS (
   SELECT ${SUB} AS sub, CAST(s.za AS integer) AS za, COALESCE(m.liso, 0) AS liso, s.mt, sum(DISTINCT ${bit}) AS mask
   FROM endfb_sections s JOIN endfb_materials m

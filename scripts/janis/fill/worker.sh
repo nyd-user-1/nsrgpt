@@ -18,9 +18,9 @@ while true; do
     B) ./fill.sh --mf=8,33 "$2";;
     C) ./fill.sh --mf=2,32 "$2";;
     S) /opt/fill/serve_fill.sh "$2";;
-    F) /opt/parse/bin/python -I /opt/fill/mf415_local.py "$2" --procs=2 >> /data/mf415-local-$2.out 2>&1;;
+    F) /opt/parse/bin/python -I /opt/fill/mf415_local.py "$2" --procs=2 --cpp >> /data/mf415-local-$2.out 2>&1;;
     R2) ./fill.sh --mf=8,33 "$2"; ./fill.sh --mf=2,32 "$2"; /opt/fill/serve_fill.sh "$2"
-        /opt/parse/bin/python -I /opt/fill/mf415_local.py "$2" --procs=2 >> /data/mf415-local-$2.out 2>&1;;
+        /opt/parse/bin/python -I /opt/fill/mf415_local.py "$2" --procs=2 --cpp >> /data/mf415-local-$2.out 2>&1;;
   esac
   echo "$(date -u +%FT%TZ) worker $W done $line" >> /data/workers.log
 done

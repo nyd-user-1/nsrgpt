@@ -122,17 +122,20 @@ export const productTarget = (za: number) => `${symbolOfZ(Math.floor(za / 1000))
 
 /** One nuclide's MT rows: every MT I hold a File 3 section for and every MT JANIS's book lists, in MT order. */
 export function railMts(idx: BookIndex, n: BookIndexNuclide): RailMt[] {
-  const mine = new Map((n.m ? n.m.split(" ") : []).map((x) => { const [mt, mask] = x.split(":").map(Number); return [mt, mask] as const }))
+  // Release masks are BigInt: more than 53 releases (brief 73) is past a double's exact integers.
+  const mask = (s: string) => BigInt(s)
+  const mine = new Map((n.m ? n.m.split(" ") : []).map((x) => { const [mt, m] = x.split(":"); return [Number(mt), mask(m)] as const }))
   const janis = new Set(n.j ? n.j.split(" ").map(Number) : [])
-  const made = new Map((n.x ? n.x.split(" ") : []).map((x) => { const [za, mask] = x.split(":").map(Number); return [za, mask] as const }))
-  const bits = (mask: number) => idx.releases.filter((_, i) => (mask / 2 ** i) % 2 >= 1)
+  const made = new Map((n.x ? n.x.split(" ") : []).map((x) => { const [za, m] = x.split(":"); return [Number(za), mask(m)] as const }))
+  const ONE = BigInt(1), ZERO = BigInt(0)
+  const bits = (m: bigint) => idx.releases.filter((_, i) => ((m >> BigInt(i)) & ONE) === ONE)
   const nuc = parseBookNuclide(n.l)
   return [...new Set([...mine.keys(), ...janis])].sort((x, y) => x - y).map((mt) => {
-    const row: RailMt = { mt, mine: mine.has(mt), janis: janis.has(mt), releases: bits(mine.get(mt) ?? 0) }
+    const row: RailMt = { mt, mine: mine.has(mt), janis: janis.has(mt), releases: bits(mine.get(mt) ?? ZERO) }
     if (!row.mine && nuc) {
       const za = residualZa(idx.projectile, nuc.z, nuc.a, mt)
-      const mask = za !== null ? made.get(za) : undefined
-      if (za !== null && mask) row.prod = { zap: za, releases: bits(mask) }
+      const made_ = za !== null ? made.get(za) : undefined
+      if (za !== null && made_ && made_ !== ZERO) row.prod = { zap: za, releases: bits(made_) }
     }
     return row
   })

@@ -1,5 +1,6 @@
 """Brief 73: every JANIS package (lake/_raw/janis-data/, NEA GitLab janis/data) against the lake's own parse of the same
-library, by materials per sublibrary and by sections outside MF3 (neutron MF3 in a package is JANIS's processed data, so
+library, by materials per sublibrary and by sections outside MF3 and the covariance Files 30-40 (JANIS keeps covariances in
+its BOXER files; neutron MF3 in a package is JANIS's processed data, so
 its MF3 counts differ by design; see scripts/janis/README.md). Only each package's zip directory is read (ranged S3
 reads), no package is downloaded. The lake side is one Athena query over nsr.endfb_sections.
 
@@ -66,17 +67,18 @@ class S3File:
         return b
 
 
-def package_counts(key):
-    out = collections.defaultdict(lambda: {"mats": set(), "by_mf": collections.Counter()})
+COV = set(range(30, 41))  # covariances: JANIS keeps them in its BOXER files, not in the .jpk
+
+
+def package_sections(key):
+    """nsub -> the set of (mat, mf, mt) sections in one package file."""
+    out = collections.defaultdict(set)
     with zipfile.ZipFile(S3File(key)) as z:
         for name in z.namelist():
             p = name.split("/")
             if len(p) != 4 or not p[0].startswith("nsub"):
                 continue
-            nsub, mat, mf = int(p[0][4:]), int(p[1][3:]), int(p[2][2:])
-            o = out[nsub]
-            o["mats"].add(mat)
-            o["by_mf"][mf] += 1
+            out[int(p[0][4:])].add((int(p[1][3:]), int(p[2][2:]), int(p[3][2:])))
     return out
 
 
@@ -104,54 +106,55 @@ def main():
     man = json.loads(s3.get_object(Bucket=B, Key=PRE + "manifest.json")["Body"].read())
     jpks = [r for r in man["rows"] if r["file"].endswith(".jpk")]
     lake = collections.defaultdict(lambda: {"mats": 0, "by_mf": {}})
-    for r in athena_rows("SELECT release, sublibrary, mf, count(*) AS n, count(DISTINCT concat(file_name, '|', CAST(mat AS varchar))) AS m "
-                         "FROM endfb_sections GROUP BY 1, 2, 3"):
-        sub = r["sublibrary"]
+    for r in athena_rows("SELECT s.release, CASE WHEN s.sublibrary = '(root)' THEN CAST(m.nsub AS varchar) ELSE s.sublibrary END AS sublibrary, "
+                         "s.mf, count(*) AS n, count(DISTINCT concat(s.file_name, '|', CAST(s.mat AS varchar))) AS m FROM endfb_sections s "
+                         "LEFT JOIN endfb_materials m ON m.release = s.release AND m.sublibrary = s.sublibrary AND m.file_name = s.file_name "
+                         "AND m.mat = s.mat GROUP BY 1, 2, 3"):
+        sub = r["sublibrary"] or ""
+        sub = NSUB.get(int(sub), sub) if sub.isdigit() else sub  # B-VI.8's (root): the material's NSUB
         sub = "neutrons" if sub.startswith("neutrons") else ("tritons" if sub == "triton" else sub)
         d = lake[(r["release"], sub)]
         d["by_mf"][int(r["mf"])] = d["by_mf"].get(int(r["mf"]), 0) + int(r["n"])
         if int(r["mf"]) == 1:
             d["mats"] += int(r["m"])
-    table = []
-    for r in jpks:
+    # a release's package files (parts of one tape, or whole files beside their parts, as EAF ships): the union of their
+    # sections, so nothing is counted twice
+    def rel_of(r):
         rel = release_of(r["package"], r["version"])
         if rel is None and r["package"] == "TSL":
             rel = {"ENDFB-VI.8": "B-VI.8", "ENDFB-VII.0": "B-VII.0", "JEFF-3.0": "JEFF-3.0", "JEFF-3.1": "JEFF-3.1"}.get(r["version"])
-        pc = package_counts(r["key"])
-        for nsub, o in sorted(pc.items()):
-            sub = NSUB.get(nsub, f"nsub{nsub}")
+        return rel
+    groups = collections.defaultdict(list)
+    for r in jpks:
+        groups[(r["package"], r["version"])].append(r)
+    summary = []
+    for gkey in sorted(groups):  # one package at a time, so only one release's sections are held
+        union, files = collections.defaultdict(set), collections.defaultdict(list)
+        for r in groups[gkey]:
+            for nsub, secs in package_sections(r["key"]).items():
+                sub = NSUB.get(nsub, f"nsub{nsub}")
+                union[(rel_of(r), sub)] |= secs
+                files[(rel_of(r), sub)].append(r["file"])
+        for (rel, sub), secs in sorted(union.items(), key=lambda x: (str(x[0][0]), x[0][1])):
+            by_mf = collections.Counter(mf for _, mf, _ in secs)
+            mats = len({m for m, mf, mt in secs if (mf, mt) == (1, 451)}) or len({m for m, _, _ in secs})
+            pk_non3 = sum(v for mf, v in by_mf.items() if mf != 3 and mf not in COV)
+            row = {"release": rel, "sublibrary": sub, "files": files[(rel, sub)], "package_materials": mats,
+                   "package_sections_non_mf3": pk_non3, "package_by_mf": dict(sorted(by_mf.items()))}
             lk = lake.get((rel, sub))
-            pk_non3 = sum(v for mf, v in o["by_mf"].items() if mf != 3)
-            row = {"package": f"{r['package']} {r['version']}", "file": r["file"], "release": rel, "sublibrary": sub,
-                   "package_materials": len(o["mats"]), "package_sections_non_mf3": pk_non3,
-                   "package_by_mf": dict(sorted(o["by_mf"].items()))}
             if lk:
-                lk_non3 = sum(v for mf, v in lk["by_mf"].items() if mf != 3)
-                diff = {mf: [o["by_mf"].get(mf, 0), lk["by_mf"].get(mf, 0)] for mf in sorted(set(o["by_mf"]) | set(lk["by_mf"]))
-                        if mf != 3 and o["by_mf"].get(mf, 0) != lk["by_mf"].get(mf, 0)}
+                lk_non3 = sum(v for mf, v in lk["by_mf"].items() if mf != 3 and mf not in COV)
+                diff = {mf: [by_mf.get(mf, 0), lk["by_mf"].get(mf, 0)] for mf in sorted(set(by_mf) | set(lk["by_mf"]))
+                        if mf != 3 and mf not in COV and by_mf.get(mf, 0) != lk["by_mf"].get(mf, 0)}
                 row.update(lake_materials=lk["mats"], lake_sections_non_mf3=lk_non3, lake_by_mf=dict(sorted(lk["by_mf"].items())),
-                           differences=diff, verdict="same" if lk["mats"] == len(o["mats"]) and not diff else "differs")
+                           differences=diff, verdict="same" if lk["mats"] == mats and not diff else "differs")
             else:
                 row["verdict"] = "not in the lake"
-            table.append(row)
-            print(row["package"], r["file"], sub, row["package_materials"], row.get("lake_materials"), pk_non3,
-                  row.get("lake_sections_non_mf3"), row["verdict"], json.dumps(row.get("differences", {}))[:200], flush=True)
-    # a release split over several package files (TENDL-n in parts, JENDL-5 in parts): sum the parts per release and sublibrary
-    agg = collections.defaultdict(lambda: {"package_materials": 0, "package_sections_non_mf3": 0, "files": []})
-    for t in table:
-        a = agg[(t["release"], t["sublibrary"])]
-        a["package_materials"] += t["package_materials"]
-        a["package_sections_non_mf3"] += t["package_sections_non_mf3"]
-        a["files"].append(t["file"])
-        for k in ("lake_materials", "lake_sections_non_mf3"):
-            a[k] = t.get(k)
-    summary = []
-    for (rel, sub), a in sorted(agg.items(), key=lambda x: (str(x[0][0]), x[0][1])):
-        same = a.get("lake_materials") == a["package_materials"] and a.get("lake_sections_non_mf3") == a["package_sections_non_mf3"]
-        summary.append({"release": rel, "sublibrary": sub, **a,
-                        "verdict": "not in the lake" if a.get("lake_materials") is None else ("same" if same else "differs")})
-    s3.put_object(Bucket=B, Key=OUT, Body=json.dumps({"built": time.strftime("%FT%TZ", time.gmtime()), "files": table,
-                                                      "summary": summary}, indent=1).encode())
+            summary.append(row)
+            print(rel, sub, mats, row.get("lake_materials"), pk_non3, row.get("lake_sections_non_mf3"), row["verdict"],
+                  json.dumps(row.get("differences", {}))[:300], flush=True)
+    s3.put_object(Bucket=B, Key=OUT, Body=json.dumps({"built": time.strftime("%FT%TZ", time.gmtime()), "summary": summary},
+                                                     indent=1).encode())
     print(json.dumps({"rows": len(summary), "same": sum(s["verdict"] == "same" for s in summary),
                       "differs": [f"{s['release']} {s['sublibrary']}" for s in summary if s["verdict"] == "differs"],
                       "not_in_lake": [f"{s['release']} {s['sublibrary']}" for s in summary if s["verdict"] == "not in the lake"]}))
