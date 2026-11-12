@@ -57,19 +57,20 @@ Keep everything under `lake/_raw/janis-software/`. NEA's program and its files a
 - Elpis pages have no page transition between them and an empty loading fallback (`app/(site)/elpis/loading.tsx`); do not reintroduce either.
 
 ## State
-Updated 2026-11-12 05:40 UTC by the brief 77 window (session fucking-finish-janis).
+Updated 2026-11-12 06:10 UTC by the brief 77 window (session fucking-finish-janis).
 
 **Done**
-- Step 1: 43 files in `lake/_raw/janis-software/` (manifest.json there; 0 failures): janis-4.0.zip, manual rev1, groups.zip, books-2020-09-JNS.7z (6,766 JNS), the seven 2020 PDFs, janis-trans-checker.zip, and **JANIS 4.1** itself (Java Web Start, `janis/webstart/janis.jnlp`, 22 jars; `Janis.jar` built 2023-07-24), NEA's four pages, janis/data's README_janis.md. Script `scripts/janis/engine/fetch.sh`. The DVD ISO is not fetched (not needed so far).
-- Step 2 (reading, write-up pending in `docs/analysis/janis-engine.md`): JANIS 4.1 contains NEA's own book generator, `org.nea.janis.book.BarnBook` (`main`: `<connection> XML,JNS <threads> OFFICIAL <n|p|d|t|h|a|g>`), with `BarnBookOptionsOfficial` (14 libraries, colours, MT list), `BarnBookMainThread` (which items exist: MF3 / MF10 / MF6 MT5 rules, MT4 as Sum(MT50-91), EXFOR search and filters) and `PlotterThread` (series order, EXFOR marks and colours, legend, axes). `BarnBookXMLPersistence` writes the XML pages and navigation JANIS Web serves. CLI also has `-render <jns> t0 csv`, `-table <refs>`, `-search`, `-barnbookpage`. Importer `org.nea.janis.format.tools.Import` (`LOCAL:label=…|root=<DataPack>|url=jdbc:h2:…|user=janis|password=janis`, formats ENDF, EXFOR, INTER, BOXER, GENDF, NUBASE). The packages carry no H2 index; JANIS's importer builds it (BROND-2.2 in 6.5 s).
-- Box: `nsr-a73-1` (i-08dea9c7ac5fca99a, m7i-flex.large, 200 GB) reused as the JANIS box: Java 8, Xvfb, CFR; JANIS jars in `/opt/janis`; decompiled source for reading in `/data/janis-src` and `lake/_work/janis/engine/janis-src.tgz` (lake only, never the repo). Lane A's scratch on it (TENDL-2017/2019 parts B–F, `/data/endfb`) deleted: brief 77 serves Elpis from JANIS's exports.
+- Step 1: 43 files in `lake/_raw/janis-software/` (manifest.json; 0 failures), including **JANIS 4.1** (Java Web Start, `janis/webstart/janis.jnlp`, 22 jars, source version 652, the same version JANIS Web reports), the manual, the 2020 JNS archive (6,766 pages) and PDFs, the TRANS checker. `scripts/janis/engine/fetch.sh`.
+- Step 2: `docs/analysis/janis-engine.md`. JANIS carries NEA's own book generator (`org.nea.janis.book.BarnBook`, OFFICIAL options), its importer, its CLI (`-render`, `-table`, `-search`, `-list`). The 2020 JNS archive's file names are this generator's output names.
+- Step 12 (backend): Lambda `nsr-trans-check` (Java 21, `services/nsr-trans-check/`) runs NEA's `janis-trans-checker.jar` (build 652, 2025-07-02); 10097.x4 gives 0/0 as JANIS Web does. `services/nsr-api/exfor_check.py` now calls it (not yet deployed); `components/elpis/checker/Checker.tsx` shows JANIS's rows (no Rule column).
+- Boxes: the seven stopped lane boxes are terminated. Lake record of lane A's parse: TENDL-2009, 2010, 2015 complete (A–C, Files 4–15); 2012, 2013 parts A–B; 2011, 2017, 2019 part A; 2014 none.
 
 **Running**
-- `nsr-a73-1`: `bash /opt/engine/import.sh BOOK` (log `/data/janis/import-BOOK.out`, done markers `/data/janis/done/`): the 14 book libraries + EXFOR 2025-06-28 into base `BOOK` (`/data/janis/database/BOOK.h2.db`, DataPack `/data/janis/DataPack/<pkg>-<ver>/{jpk,inter,boxer}`), labels from `scripts/janis/engine/libs.tsv`. ~12 MB/s; about 30 minutes.
+- `nsr-a73-1` (i-08dea9c7ac5fca99a, JANIS box 1): `import.sh BOOK` (rebuilt after the first run's OOM kill; heap 3.5 GB, one JVM per packed file): the 14 book libraries + EXFOR 2025-06-28 into `/data/janis/database/BOOK.h2.db`. Next on it: `bash /opt/engine/book.sh <letter>` for n, g, p, d, t, h, a (BookRun = BarnBook OFFICIAL, PageExport = JANIS's Tabler per series, pages.py, NavExport), output synced to `lake/janis/book/<letter>/` (CDN `https://daw1qggkn69lv.cloudfront.net/lake/janis/book/...`). Then `compare_web.py /data/janis/book` (against lane C's 754 JANIS Web saveState files).
+- `nsr-janis-2` (i-01d56f2144186e051, box 2, 200 GB, self-terminates 12 h after 05:58 UTC): `import.sh REST` (the other 58 packages). Next on it: `elpis.py prep|run|pack` for ENDF/B-VIII.1, TENDL-2023, B-V, B-IV, B-III, B-II (NJOY reconr 0.0005 + broadr 293.6 K into the evaluation's MF3), then import as ELPIS datasets.
 
-**Next**
-1. When BOOK is done: run `BarnBook` OFFICIAL for each of the seven books (XML,JNS) with the Q-value table off (web pages do not show it; it needs Nubase 2020), then the export harness (Tabler CSV per series via `TablerState.setUseXValuesFromData(true)`), then compare page lists with JANIS Web's 7,292.
-2. `import.sh REST` for the other 57 packages (per brief step 3 and steps 10–11).
-3. Stopped boxes not yet handled: `nsr-a73-p1`…`p5`, `nsr-recon-5`, `nsr-janis-1` (terminate after recording what they held; lake state is the record).
+**UI (uncommitted, type check clean on the dev box):** `components/elpis/{ElpisBook.tsx,BookChart.tsx,use-janis-page.ts,ElpisHome.tsx}`: the book reads JANIS's exports (rail = JANIS outline, chart = JANIS's series/colours/marks/axes/title, sheet = JANIS's selection tree, Plotter = JANIS's card, JANIS/ELPIS switch on the rail title); Reconstruct, spans, sets-not-drawn, production logic, temperature, Q value, extra links and home counts removed.
 
-**Spend so far:** nsr-a73-1 m7i-flex.large from 05:10 UTC (~$0.10/h). No Lambda.
+**Next:** books on box 1 → check the exports → commit the UI → steps 9 (index), 11 (browse/search: JANIS's `-list`/`-search` in a Lambda over the H2 index), 10 (ELPIS libraries), 15 (verify), deploy nsr-api and the app.
+
+**Spend so far:** box 1 m7i-flex.large from 05:10 UTC; box 2 from 05:58 UTC (~$0.10/h each). Lambda nsr-trans-check: test invocations only.

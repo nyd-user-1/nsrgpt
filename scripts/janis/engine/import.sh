@@ -13,7 +13,8 @@ mkdir -p $J/DataPack $J/database $J/logs $J/done
 [ -f $M ] || aws s3 cp $L/manifest.json $M --only-show-errors
 BASE="LOCAL:label=$GROUP|root=$J/DataPack|url=jdbc:h2:$J/database/$GROUP|user=janis|password=janis"
 imp() { # format label path
-  java -Xmx5g -cp "/opt/janis/*" org.nea.janis.format.tools.Import "$BASE" "$@"
+  # 3.5 GB: at 5 GB the importer's queue plus H2 outgrew the 8 GB box on TENDL-2019 and the OOM killer ended it
+  java -Xmx3500m -cp "/opt/janis/*" org.nea.janis.format.tools.Import "$BASE" "$@"
 }
 grep -v '^#' $E/libs.tsv | awk -F'\t' -v g=$GROUP '$4==g' | while IFS=$'\t' read -r pkg ver label base fmt; do
   key="$pkg-$ver"; D=$J/DataPack/$key
@@ -30,7 +31,12 @@ grep -v '^#' $E/libs.tsv | awk -F'\t' -v g=$GROUP '$4==g' | while IFS=$'\t' read
   if [ "$fmt" = EXFOR ]; then
     imp EXFOR $D/jpk > $J/logs/$GROUP-$key-jpk.log 2>&1; rc=$?
   else
-    imp $fmt "$label" $D/jpk > $J/logs/$GROUP-$key-jpk.log 2>&1; rc=$?
+    # one JVM per packed file or multipart set (JANIS reads a set from its first part), each one committed on its own
+    rc=0
+    for f in $(ls $D/jpk | grep -v '\.part[2-9][0-9]*of' ); do
+      imp $fmt "$label" $D/jpk/$f >> $J/logs/$GROUP-$key-jpk.log 2>&1 || rc=$?
+      [ $rc = 0 ] || break
+    done
     for z in $D/inter/*.inter.zip; do [ -f "$z" ] && imp INTER "$label" "$z" > $J/logs/$GROUP-$key-inter.log 2>&1; done
     for z in $D/boxer/*.boxer.zip; do [ -f "$z" ] && imp BOXER "$label" "$z" > $J/logs/$GROUP-$key-boxer.log 2>&1; done
   fi
