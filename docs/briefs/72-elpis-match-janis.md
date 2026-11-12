@@ -27,7 +27,13 @@ Books, browse, six searches, EXFOR sets, MT 5 production, the EXFOR TRANS checke
 - 5l. Right rail: same items, same order as JANIS. Where this changes today's Elpis rail, add a toggle restoring the current Elpis view, in a section under the ELPIS/JANIS Δ section.
 - 5m. Search: every JANIS field works, including the fields marked ❌ today; searches without a nuclide work; result rows can be plotted.
 - 5n. Home, browse and checker: same content and layout as JANIS.
-- 5o. JANIS view shows nothing JANIS lacks. Moved to ELPIS view only: the threshold line; EXFOR sets JANIS doesn't draw (U-235 (n,f) draws 295 against JANIS's 228); the sheet's list of sets not drawn; legend and sheet notes; browse's lake figures; home's lake counts; the rail's ❌/✅ marks; the Temperature select unless JANIS has one.
+- 5o. JANIS view shows what JANIS shows, nothing more:
+  - Threshold line and EXFOR sets JANIS doesn't draw (U-235 (n,f): 295 against JANIS's 228): ELPIS view only.
+  - The sheet's list of sets not drawn: remove it. Any set we can't plot is a defect to fix, not a row to show.
+  - Bottom sheet content: what JANIS shows. Our legend stays as is.
+  - Browse row counts and home page counts: remove.
+  - Temperature select: only if JANIS has one.
+  - The rail's ❌/✅ marks stay in both views; they track completion.
 - 5p. Approved affordances:
   - JANIS/ELPIS context switcher on the left rail title ("By nuclide").
   - Release select in the right rail: JANIS's release and all its conditions are the baseline (e.g. ENDF/B-VIII.0); choosing another release changes only the values that differ for that release.
