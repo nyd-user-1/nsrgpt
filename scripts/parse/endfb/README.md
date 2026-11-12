@@ -92,3 +92,30 @@ Rerun, on a parse box (`scripts/parse/box/create.sh`; scripts in `/opt/parse/scr
 - Serving: `/opt/fill/serve_fill.sh <release>…` (serve.py endf and point_files, INDEXED), then add the names to
   `RELEASES` in `services/nsr-api/structure.py` (dataset.py reads the same list) and build and deploy nsr-api once.
 - `PROGRESS`: `/opt/parse/bin/python -I /opt/fill/progress.py --lines` writes `lake/_raw/PROGRESS.json`.
+
+## Brief 73 (Elpis lane A, 2026-11-12): the last libraries JANIS lists, and JENDL-4.0u in full
+
+Eighteen more releases in the same tables, each with parts A, B and C, serving files and Files 4-15 (the last parsed on
+the boxes with endf-parserpy's C++ parser, below). Where each came from (nsr.endfb_release_sources has a row per
+release, sublibrary and archive, with `mf3` = evaluated or processed):
+
+| Releases | Archives | Where they came from |
+| --- | --- | --- |
+| JENDL-4.0u (406, replacing the 100-material partial) | JAEA's `jendl40-or-up_20160106.tar.gz` (original or updated files, 406 materials) | `lake/_raw/JENDL-4.0u/`, the Wayback Machine (JAEA's host answers an Incapsula challenge) |
+| TENDL-2015, 2017, 2019 | `TENDL-{n,p,d,t,h,a,g}.tgz` per projectile, ENDF-6 | `lake/_raw/TENDL-<year>/`, Imperial College's TENDL mirror (tendl.imperial.ac.uk; PSI's host no longer resolves) |
+| TENDL-2009, 2010, 2011, 2012, 2014 | IAEA's per-material zips, `<prefix>/*#<token>`, with the fission-yield folders for 2009-2011 | `lake/_raw/iaea/public/download-endf/TENDL-<year>/`, the Wayback Machine's copies of IAEA's folders, every file IAEA's listings name (74,778 files, `fill/wbfleet.py` on four boxes) |
+| TENDL-2013, GEFY-3.3, 4.2, 5.2, 5.3, FENDL-3.1b, IRDFF-1.0-640g, FENDL-2.1-MG | JANIS's own packages as tapes (`fill/jpk2endf.py`; FENDL-2.1-MG's GENDF to ENDF-6 histograms by `fill/gendf2endf.py`) | `lake/_raw/janis-data-endf/`, from NEA GitLab janis/data (`lake/_raw/janis-data/`); neutron MF3 is JANIS's processed data |
+| JEFF-3.0-A | NEA's JEFF-3.1/A tape `JEFF31A.ASC` | `lake/_raw/JEFF-3.1-A/`, the Wayback Machine; the lead approved it as JEFF-3.0/A: NEA ships it with JEFDOC-982 "The JEFF-3.0/A Neutron Activation File", its 774 materials are JANIS's 774, and five MF3 sections equal JANIS's Tabler at every point |
+
+Rerun, on a parse box set up by `scripts/janis/fill/setup-parse.sh` (scripts, DDL record, queue workers) and
+`install-cpp.sh` (the C++ parser):
+
+- Parts A, B, C: as above, "A R", "B R", "C R" in `/opt/fill/queue.txt`; or "A R" there and `auto-r2.sh` running, which
+  queues "R2 R" (B, C, serving, Files 4-15 in one worker, in order) in `/opt/fill/queue2.txt` for a worker started with
+  `Q=/opt/fill/queue2.txt`.
+- Files 4-15 on the box: `/opt/parse/bin/python -I /opt/fill/mf415_local.py <release> --procs=2 --cpp`, the Lambda's
+  own code imported, split text on the box's disk; the same keys and tables as the Lambda path, no Lambda spend.
+  `--cpp` (EndfParserCpp) gives the same rows as EndfParserPy (20 FENDL-3.1b materials, 104 tables identical) at
+  about 200,000 lines a second on two processes against 31,500.
+- Never overwrite `fill.sh` or `worker.sh` in place on a box while they run (bash reads a script as it goes): write a
+  new file and `mv` it over.
