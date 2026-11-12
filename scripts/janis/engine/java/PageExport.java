@@ -74,6 +74,11 @@ public class PageExport {
         int i = 0;
         for (AbsoluteRefs refs : ps.getPlotProducersRefsOrder()) {
             Object p = producers.get(refs);
+            if (p instanceof org.nea.janis.view.plot.CachedPlotProducer) {  // the node JANIS plots, inside its cache wrapper
+                java.lang.reflect.Field f = org.nea.janis.view.plot.CachedPlotProducer.class.getDeclaredField("pp");
+                f.setAccessible(true);
+                p = f.get(p);
+            }
             String cls = p == null ? "null" : p.getClass().getName();
             long rows = -1;
             if (p instanceof TableProducer) {

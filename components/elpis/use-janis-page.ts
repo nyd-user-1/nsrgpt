@@ -33,7 +33,7 @@ export type JanisSeries = {
   dy?: (number | null)[]
 }
 export type JanisSheetRow = { label: string; depth: number; ref: string | null; toggles: string[] }
-export type JanisAxis = { scale: string | null; min: number | null; max: number | null; range: [string, string] }
+export type JanisAxis = { scale: string | null; min: number | null; max: number | null; range: [string, string] | null; from?: string | null }
 export type JanisPage = {
   book: string
   mat: string
@@ -52,25 +52,29 @@ const navs = new Map<string, Promise<JanisOutline | null>>()
 const pages = new Map<string, Promise<JanisPage | null>>()
 const get = <T,>(url: string): Promise<T | null> => fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : null)).catch(() => null)
 
-/** A book's outline: undefined while loading, null when missing. */
-export function useJanisNav(p: string): JanisOutline | null | undefined {
-  const [v, setV] = useState<JanisOutline | null | undefined>(undefined)
+/** The ELPIS run: JANIS's same engine with the libraries JANIS has no package for added (brief 77 step 10). */
+export const ELPIS_BOOK = `${JANIS_BOOK}-elpis`
+
+/** A book's outline (JANIS's run, or the ELPIS run's): undefined while loading, null when missing. */
+export function useJanisNav(p: string, elpis = false): JanisOutline | null | undefined {
+  const url = `${elpis ? ELPIS_BOOK : JANIS_BOOK}/${p}/navigation.json`
+  const [v, setV] = useState<{ url: string; nav: JanisOutline | null } | undefined>(undefined)
   useEffect(() => {
     let live = true
-    if (!navs.has(p)) navs.set(p, get<JanisOutline>(`${JANIS_BOOK}/${p}/navigation.json`))
-    navs.get(p)!.then((x) => { if (live) setV(x) })
+    if (!navs.has(url)) navs.set(url, get<JanisOutline>(url))
+    navs.get(url)!.then((x) => { if (live) setV({ url, nav: x }) })
     return () => { live = false }
-  }, [p])
-  return v
+  }, [url])
+  return v && v.url === url ? v.nav : undefined
 }
 
-/** One page: undefined while loading, null when JANIS made no such page. */
-export function useJanisPage(p: string, nuclide: string, mt: number): JanisPage | null | undefined {
-  const key = `${p}/${nuclide}/${mt}`
+/** One page (JANIS's run, or the ELPIS run's): undefined while loading, null when the run made no such page. */
+export function useJanisPage(p: string, nuclide: string, mt: number, elpis = false): JanisPage | null | undefined {
+  const key = `${elpis ? ELPIS_BOOK : JANIS_BOOK}/${p}/${nuclide}/${mt}`
   const [v, setV] = useState<{ key: string; page: JanisPage | null } | undefined>(undefined)
   useEffect(() => {
     let live = true
-    if (!pages.has(key)) pages.set(key, get<JanisPage>(`${JANIS_BOOK}/${key}.json`))
+    if (!pages.has(key)) pages.set(key, get<JanisPage>(`${key}.json`))
     pages.get(key)!.then((x) => { if (live) setV({ key, page: x }) })
     return () => { live = false }
   }, [key])

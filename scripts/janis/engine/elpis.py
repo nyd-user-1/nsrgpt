@@ -26,6 +26,7 @@ SOURCES = {  # the raw evaluations the lake parsed (lake/endfb/<rel>/manifest.js
     "B-VIII.1": ["raw/nndc/2026-11-07/endf-releases/releases/B-VIII.1/ENDF-B-VIII.1.tar.gz"],
 }
 NEUTRON_HINTS = ("neutrons/", "/n-", "_n.", "-n.", "n_")
+ALL_NEUTRON = {"B-V", "B-IV", "B-III", "B-II"}  # the old ENDF/B tapes hold incident-neutron evaluations only
 
 
 def s3():
@@ -105,7 +106,7 @@ def prep(rel):
                             with z.open(name) as raw:
                                 yield name, io.TextIOWrapper(raw, encoding="latin-1", newline=None)
         for name, stream in streams():
-            sub = sublibrary_of(key + "/" + name)
+            sub = "neutrons" if rel in ALL_NEUTRON else sublibrary_of(key + "/" + name)
             n, cur, mat = 0, [], None
             other = open(f"{d}/other/{sub}.endf", "a", encoding="latin-1") if sub != "neutrons" else None
             for ln in stream:
@@ -198,7 +199,10 @@ def one(rel, mat):
         open(f"{d}/merged/{mat}.endf", "w", encoding="latin-1").write("\n".join(merged) + "\n")
         res.update(ok=True, mf3_lines=sum(1 for l in merged if mf_of(l) == 3))
     except Exception as e:  # noqa: BLE001
-        res.update(ok=False, error=str(e)[-1200:])
+        # NJOY refused it: the evaluation goes in as evaluated (its MF3 unprocessed), and the status says so
+        res.update(ok=False, error=str(e)[-1200:], evaluated_mf3=True)
+        src = open(f"{d}/n/{mat}.endf", encoding="latin-1").read().split("\n")
+        open(f"{d}/merged/{mat}.endf", "w", encoding="latin-1").write("\n".join(l for l in src[1:] if l.strip()) + "\n")
     res["seconds"] = round(time.time() - t, 1)
     subprocess.run(["rm", "-rf", wd])
     json.dump(res, open(st, "w"))
@@ -232,6 +236,13 @@ def pack(rel):
     print(rel, sorted(os.listdir(f"{d}/tapes")))
 
 
+def upload(rel):
+    pack(rel)
+    subprocess.run(["/snap/bin/aws", "s3", "sync", f"{ROOT}/{rel}/tapes", f"s3://{B}/lake/_work/janis/engine/elpis/{rel}/tapes", "--only-show-errors"], check=True)
+    subprocess.run(["/snap/bin/aws", "s3", "cp", "--recursive", f"{ROOT}/{rel}/status", f"s3://{B}/lake/_work/janis/engine/elpis/{rel}/status", "--only-show-errors"], check=True)
+    check(rel)
+
+
 def check(rel):
     d = f"{ROOT}/{rel}"
     n = len([f for f in os.listdir(f"{d}/n")]) if os.path.isdir(f"{d}/n") else 0
@@ -243,4 +254,4 @@ def check(rel):
 if __name__ == "__main__":
     cmd, rel = sys.argv[1], sys.argv[2]
     jobs = int(sys.argv[sys.argv.index("--jobs") + 1]) if "--jobs" in sys.argv else 2
-    {"prep": lambda: prep(rel), "run": lambda: run(rel, jobs), "pack": lambda: pack(rel), "check": lambda: check(rel)}[cmd]()
+    {"prep": lambda: prep(rel), "run": lambda: run(rel, jobs), "pack": lambda: pack(rel), "upload": lambda: upload(rel), "check": lambda: check(rel)}[cmd]()

@@ -9,8 +9,8 @@
 // - the right rail is JANIS's Plotter card (scales, ranges, Apply, X variable).
 // Our frame stays: inset rails closed on load, the sheet as the Lab's pane, the legend off on load and in the chart menu,
 // the title on and off in the chart menu, the zoom box, keyboard up and down on the rail. The rail's title is the
-// JANIS/ELPIS switch (brief 72 5p): JANIS shows JANIS's page; ELPIS adds the series JANIS's engine drew from libraries JANIS
-// has no package for (the page file's `elpis` series, when present).
+// JANIS/ELPIS switch (brief 72 5p): JANIS shows JANIS's run; ELPIS shows the ELPIS run, JANIS's same engine with the
+// libraries JANIS has no package for added (lake/janis/book-elpis/), its extra rail rows marked ✅.
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -28,7 +28,7 @@ import { MenuRow } from "@/components/kebab-menu"
 import { PageTitle } from "@/lib/page-title"
 import { BookChart, energyTick, janisColor, markSymbol, pageRange, type Range, type Scales } from "@/components/elpis/BookChart"
 import { byNuclide, exforDataset, mtOf, useJanisNav, useJanisPage, type JanisOutline, type JanisSeries } from "@/components/elpis/use-janis-page"
-import { HOVER, LINE, LINK, TINT } from "@/components/elpis/parts"
+import { HOVER, LINE, LINK, Mark, TINT } from "@/components/elpis/parts"
 import { PROJECTILES } from "@/lib/janis-tree"
 import { cn } from "@/lib/utils"
 
@@ -41,7 +41,16 @@ type View = "JANIS" | "ELPIS"
 export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p: string; label: string; mt: number; chosen?: boolean; mtChosen?: boolean }) {
   const proj = PROJECTILES.find((x) => x.key === p) ?? PROJECTILES[0]
   const href = (l: string, m: number) => `/elpis/book/${proj.key}/${l}/${m}`
-  const nav = useJanisNav(proj.key)
+  const [view, setView] = useState<View>("JANIS")
+  useEffect(() => { const v = localStorage.getItem("elpis:book-view"); if (v === "ELPIS" || v === "JANIS") setView(v) }, [])
+  const pickView = (v: View) => { setView(v); localStorage.setItem("elpis:book-view", v) }
+  const elpis = view === "ELPIS"
+  // JANIS's run, and the ELPIS run (JANIS's engine with the libraries JANIS has no package for); ELPIS falls back to JANIS's
+  // until its files exist
+  const janisNav = useJanisNav(proj.key)
+  const elpisNav = useJanisNav(proj.key, elpis)
+  const nav = elpis && elpisNav ? elpisNav : janisNav
+  const inJanis = useMemo(() => new Set(byNuclide(janisNav).flatMap((e) => e.children ?? []).flatMap((n) => (n.children ?? []).map((l) => `${n.label}/${l.reac}`))), [janisNav])
   const elements = useMemo(() => byNuclide(nav), [nav])
   const nuclideNode = useMemo(() => elements.flatMap((e) => e.children ?? []).find((n) => n.label === label), [elements, label])
   const leaf = nuclideNode?.children?.find((l) => mtOf(l.reac) === mt)
@@ -63,15 +72,10 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
     if (redirectTo) router.replace(redirectTo)
   }, [redirectTo, router])
 
-  const page = useJanisPage(proj.key, label, mt)
-  const [view, setView] = useState<View>("JANIS")
-  useEffect(() => { const v = localStorage.getItem("elpis:book-view"); if (v === "ELPIS" || v === "JANIS") setView(v) }, [])
-  const pickView = (v: View) => { setView(v); localStorage.setItem("elpis:book-view", v) }
-  const series = useMemo(() => {
-    if (!page) return []
-    const elpis = (page as unknown as { elpis?: JanisSeries[] }).elpis ?? []
-    return view === "ELPIS" ? [...page.series, ...elpis] : page.series
-  }, [page, view])
+  const janisPage = useJanisPage(proj.key, label, mt)
+  const elpisPage = useJanisPage(proj.key, label, mt, elpis)
+  const page = elpis && elpisPage ? elpisPage : janisPage
+  const series = useMemo(() => page?.series ?? [], [page])
 
   const full = useMemo(() => (page ? pageRange(page.x, page.y) ?? WAITING : WAITING), [page])
   const [legendOn, setLegendOn] = useState(false)
@@ -196,6 +200,7 @@ export function ElpisBook({ p, label, mt, chosen = true, mtChosen = true }: { p:
                                   <Link ref={on ? picked : undefined} href={href(nuc.label, m)} aria-current={on ? "page" : undefined}
                                     className={cn("flex items-center py-1 pl-14 pr-3 text-[13px]", on ? cn(TINT, "border-l-2 border-[var(--paper-strong)] pl-[54px] font-medium text-[var(--paper-text)]") : cn("text-[var(--paper-strong)]", HOVER))}>
                                     {lf.label}
+                                    {elpis && !inJanis.has(`${nuc.label}/${lf.reac}`) && <Mark kind="ours" />}
                                   </Link>
                                 </li>
                               )
