@@ -117,7 +117,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       onClose()
       // / runs ChartRoot as it arrives; every other page goes with ChartForward, as a link does.
       if (item.href === "/") router.push("/")
-      else chartForward(() => router.push(item.href))
+      else chartForward(() => router.push(item.href), item.href)
     },
     [onClose, router],
   )

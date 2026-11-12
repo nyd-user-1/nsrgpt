@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { isEmbedded } from '@/lib/pane'
-import { chartBack, chartForward, chartForwardFirst, chartRoot, markBack, removeGrow, takeBack } from '@/lib/viz-grow'
+import { VizLoading } from '@/components/viz/VizLoading'
+import { chartBack, chartForward, chartForwardFirst, chartRoot, GROW_WAIT, mainRect, markBack, removeGrow, takeBack, type Rect } from '@/lib/viz-grow'
 
 // Panel 1's page transitions (Brendan, 2026-11-06; lib/viz-grow.ts): ChartRoot whenever / arrives or first loads,
 // ChartForward on every other page's first load and on every link to another page, ChartBack after the
@@ -29,6 +31,23 @@ export function PageMotion() {
   // ChartForward's clone goes once the next page is up.
   useEffect(() => removeGrow, [path])
 
+  // A chart page that is slow to arrive (Brendan, 2026-11-11): once the grow box has covered the page, the atom shows
+  // over it until the page is up. 200 ms of grace, so a page that is already there never flashes it.
+  const [wait, setWait] = useState<Rect | null>(null)
+  useEffect(() => {
+    let timer = 0
+    const on = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => setWait(mainRect()), 200)
+    }
+    window.addEventListener(GROW_WAIT, on)
+    return () => {
+      window.removeEventListener(GROW_WAIT, on)
+      window.clearTimeout(timer)
+      setWait(null)
+    }
+  }, [path])
+
   // The browser's back (and forward) arrives as ChartBack (Brendan, 2026-11-07): /search back to /chat, any page back.
   useEffect(() => {
     if (isEmbedded()) return
@@ -52,11 +71,17 @@ export function PageMotion() {
       if (elpis(url.pathname) && elpis(window.location.pathname)) return
       e.preventDefault()
       e.stopPropagation()
-      chartForward(() => router.push(url.pathname + url.search + url.hash))
+      chartForward(() => router.push(url.pathname + url.search + url.hash), url.pathname)
     }
     document.addEventListener('click', on, true)
     return () => document.removeEventListener('click', on, true)
   }, [router])
 
-  return null
+  if (!wait) return null
+  return createPortal(
+    <div aria-hidden className="nysgpt-app" style={{ position: 'fixed', zIndex: 91, pointerEvents: 'none', left: wait.left, top: wait.top, width: wait.width, height: wait.height }}>
+      <VizLoading />
+    </div>,
+    document.body,
+  )
 }

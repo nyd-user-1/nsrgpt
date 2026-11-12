@@ -9,7 +9,7 @@
 import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { GROW_EASE as EASE, GROW_MS as MS, noteOrigin } from '@/lib/viz-grow'
+import { GROW_EASE as EASE, GROW_MS as MS, growWait, noteOrigin } from '@/lib/viz-grow'
 
 /** The motion's two ends: the wordmark, top left, and the whole content area below the header. */
 function ends(el?: Element | null) {
@@ -66,7 +66,10 @@ export function ExpandBox({ href, className, style, children }: { href: string; 
     // The next-chart button grows its clone from this same spot (lib/viz-grow.ts).
     noteOrigin(b.from, b.to)
     requestAnimationFrame(() => requestAnimationFrame(() => setGrown(true)))
-    window.setTimeout(() => router.push(href), MS)
+    window.setTimeout(() => {
+      router.push(href)
+      growWait(href)
+    }, MS)
   }
 
   return (

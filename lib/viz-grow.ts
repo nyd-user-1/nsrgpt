@@ -16,7 +16,7 @@ export const GROW_EASE = 'cubic-bezier(0.25,0.4,0.25,1)'
 const ORIGIN = 'viz-origin'
 const ORIGIN_DEFAULT = { l: 56, t: 32, w: 300, h: 170 }
 
-type Rect = { left: number; top: number; width: number; height: number }
+export type Rect = { left: number; top: number; width: number; height: number }
 
 export function noteOrigin(from: Rect, to: Rect) {
   try {
@@ -27,7 +27,7 @@ export function noteOrigin(from: Rect, to: Rect) {
 /** The main container: Panel 1's card below its header, inside the card's border, which a chart's frame fills edge to
  *  edge. Measured from the card, not the page (2026-11-08): the card's outer edge put the cover over its border and
  *  corners, and a chart frame measured as its page arrives sits 4 px low, mid-reveal (app/(site)/template.tsx). */
-function mainRect(): Rect | null {
+export function mainRect(): Rect | null {
   const card = document.querySelector<HTMLElement>('[data-app-card]')
   const head = document.querySelector('[data-main-header]')?.getBoundingClientRect()
   if (!card || !head) return null
@@ -87,12 +87,23 @@ function fadeAway(el: HTMLElement) {
 /** The first load's cover is up: the content area, hidden until now (app/layout.tsx, globals.css), can show. */
 const uncover = () => document.documentElement.removeAttribute('data-motion-first')
 
-/** ChartForward: grows over the page, then runs `go`. The clone stays until removeGrow, when the next page is up. */
-export function chartForward(go: () => void) {
+/** A grow box has covered the page on its way to a chart page (/viz/…): PageMotion shows the atom over the cover
+ *  until the page is up (Brendan, 2026-11-11). */
+export const GROW_WAIT = 'viz-grow-wait'
+export function growWait(href?: string) {
+  if (href?.split(/[?#]/)[0].startsWith('/viz/')) window.dispatchEvent(new Event(GROW_WAIT))
+}
+
+/** ChartForward: grows over the page, then runs `go`. The clone stays until removeGrow, when the next page is up.
+ *  `href` is where `go` leads, for growWait. */
+export function chartForward(go: () => void, href?: string) {
   const to = mainRect()
   if (!to || document.querySelector('[data-viz-grow]')) return go()
   clone('data-viz-grow', originIn(to), to, SMALL, FULL)
-  window.setTimeout(go, GROW_MS)
+  window.setTimeout(() => {
+    go()
+    growWait(href)
+  }, GROW_MS)
 }
 
 /** Takes ChartForward's clone away once the next page is up. */

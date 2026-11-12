@@ -199,7 +199,7 @@ function ChartNav({ path }: { path: string }) {
         onClick={(e) => {
           if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           e.preventDefault();
-          chartForward(() => router.push(near.next.href));
+          chartForward(() => router.push(near.next.href), near.next.href);
         }}
         aria-label={`Next chart: ${name(near.next.href, near.next.title)}`}
         title={name(near.next.href, near.next.title)}
@@ -246,7 +246,7 @@ function ChartSwitcher({ path, title }: { path: string; title: string }) {
                   // ChartForward to the picked chart; the menu still closes on the click.
                   if (on || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                   e.preventDefault();
-                  chartForward(() => router.push(c.href));
+                  chartForward(() => router.push(c.href), c.href);
                 }}
               >
                 <span className="min-w-0 flex-1 truncate">{HEADER_TITLES[c.href] ?? c.title}</span>

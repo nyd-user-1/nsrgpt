@@ -1,6 +1,6 @@
 import { PAPER_BRIDGE } from '@/components/editorial/PaperBridge'
 import { FramedBox } from '@/components/viz/FramedBox'
-import { ChartSkeleton } from '@/components/ui/chart-skeleton'
+import { VizLoading } from '@/components/viz/VizLoading'
 
 // The /viz chart pages' frame: the chart alone, centered in the app's shell (Brendan, 2026-11-04: no wordmark,
 // no title, no note — each page keeps its metadata title for the tab). AppLayout itself is the (site) layout's
@@ -22,7 +22,7 @@ export function VizShell({ children, framed }: { children: React.ReactNode; fram
           <div data-viz-chart className="group/viz relative isolate flex min-h-0 min-w-0 flex-1 flex-col">
             {/* Behind the controls until the chart's canvas exists (2026-11-08): every chart draws to a canvas,
                 ECharts and three.js alike, so its arrival is the signal. */}
-            <ChartSkeleton className="pointer-events-none absolute inset-0 -z-10 group-has-[canvas]/viz:hidden" />
+            <VizLoading className="pointer-events-none absolute inset-0 -z-10 group-has-[canvas]/viz:hidden" />
             {/* The page's reveal is app/(site)/template.tsx's, on every navigation (2026-11-06). */}
             {children}
           </div>

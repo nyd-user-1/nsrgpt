@@ -1,12 +1,12 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { ChartSkeleton } from '@/components/ui/chart-skeleton'
+import { VizLoading } from '@/components/viz/VizLoading'
 
 // The scene is three.js — browser only, and loaded with the page rather than in the shared bundle.
 const KnowledgeScene = dynamic(() => import('./scene'), {
   ssr: false,
-  loading: () => <ChartSkeleton />,
+  loading: () => <VizLoading />,
 })
 
 export function KnowledgeView() {

@@ -67,7 +67,7 @@ function Frame({ children, view }: { children: React.ReactNode; view: string | n
       if (step < 0) {
         markBack()
         router.push(near.prev.href)
-      } else chartForward(() => router.push(near.next.href))
+      } else chartForward(() => router.push(near.next.href), near.next.href)
     }
     window.addEventListener('keydown', on)
     return () => window.removeEventListener('keydown', on)

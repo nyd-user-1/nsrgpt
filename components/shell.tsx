@@ -185,7 +185,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       else {
         const path = href.split(/[?#]/)[0]
         if (path === "/" || path === window.location.pathname) router.push(href)
-        else chartForward(() => router.push(href))
+        else chartForward(() => router.push(href), href)
       }
     },
     [openPane, router],
