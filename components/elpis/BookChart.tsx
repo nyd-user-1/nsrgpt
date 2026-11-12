@@ -1,70 +1,23 @@
 "use client"
-// Brendan's side-by-side with JANIS (2026-11-11 15:00): EXFOR points small (2.5–3 px), filled, at 55% under the lines, coloured
-// by set from the palette past 40 sets as JANIS colours them; lines 1.5 px on top; a labelled tick on every decade of both
-// log axes (energy 10 µeV … 1 GeV, cross section b, mb, µb); the range from the lines drawn.
-// /elpis/book (briefs 67, 69): the book page's chart, through components/viz/use-echart.ts. Cross section against
-// incident energy from the lake: one line per library release that holds the section (/endf/xs; colour by release,
-// lib/lab/canvases/plot.ts's slots) and one marker set per EXFOR subentry (/exfor/points; eight markers, four shapes
-// outlined then filled, in the paper's ink). The page draws the legend (ElpisBook.tsx ChartLegend); `hidden` hides series
-// by name. A dashed line marks the threshold when the reaction's Q value is below zero.
+// /elpis/book (briefs 67, 69, 77): the book page's chart, through components/viz/use-echart.ts. Brief 77: every series is
+// JANIS's own, from the page file JANIS's book generator made (components/elpis/use-janis-page.ts): drawn in JANIS's
+// order (EXFOR first, then the libraries), each in JANIS's colour with JANIS's mark (shape and size) or stroke (width and
+// dash), on JANIS's axes (scale and range). Our frame: the house axis ticks (a labelled tick on every decade), the
+// chart menu, the zoom box. Dark theme only: JANIS's black and dark grey draw in the paper's ink.
 //
-// The zoom box: mouse down inside the plot and drag draws a dashed rectangle (the pointer stays the house crosshair
-// use-echart sets); on mouse up both axes zoom to the rectangle, animated, and the Plotter's fields follow (onZoom).
-// A double click goes back to the data's whole range (`full`). The Plotter's Apply and scale selects come in through
-// `view` and redraw without animation (brief 69: no animation on rail or Plotter clicks).
+// The zoom box: mouse down inside the plot and drag draws a dashed rectangle; on mouse up both axes zoom to it, animated,
+// and the Plotter's fields follow (onZoom). A double click goes back to the page's range (`full`). The Plotter's Apply and
+// scale selects come in through `version` and redraw without animation.
 import { useEffect, useRef } from "react"
 import { useEChart } from "@/components/viz/use-echart"
-import { energyLabel, RELEASE_SLOT, SLOTS } from "@/lib/lab/canvases/plot"
-import { libraryName } from "@/lib/elpis"
+import { energyLabel } from "@/lib/lab/canvases/plot"
 import { ChartBox, type ChartKebabProps } from "@/components/viz/chart-kebab"
-import type { BookLine, BookSet } from "@/components/elpis/use-book"
+import type { JanisMark, JanisSeries } from "@/components/elpis/use-janis-page"
 
 export type Range = { xmin: number; xmax: number; ymin: number; ymax: number }
 export type Scales = { x: "log" | "value"; y: "log" | "value" }
 
-/** A set's marker: four shapes, outlined for the first four sets, filled for the next four, then round again. */
-export const SHAPES = ["circle", "rect", "triangle", "diamond"] as const
-export const markerOf = (j: number) => ({ symbol: SHAPES[j % 4], filled: Math.floor(j / 4) % 2 === 1 })
-/** A release's colour slot. */
-export const slotOf = (release: string, k: number) => RELEASE_SLOT[release] ?? k % 8
-
 const isDark = () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-
-/** The data's range from the lines drawn (Brendan, 2026-11-11): energy where they are above zero, cross section from their
- *  smallest positive value (not below 1e-5 b) to their largest, each widened to whole decades. A line whose File 3 is only
- *  the background inside the resonance range (the API's note) sets the energy range but not the cross section's (JENDL/HE-2007
- *  runs to 3 GeV); EXFOR's points set it only when no line is drawn (their 2nd percentile up). */
-export function rangeOf(lines: BookLine[], sets: BookSet[]): Range | null {
-  let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity
-  const full = new Set(lines.filter((l) => !/only the background/.test(l.note ?? "")))
-  const yFrom = (l: BookLine) => !full.size || full.has(l)
-  for (const l of lines)
-    for (let i = 0; i < l.x.length; i++) {
-      const x = l.x[i], y = l.y[i]
-      if (!(x > 0) || !(y > 0)) continue
-      if (x < xmin) xmin = x
-      if (x > xmax) xmax = x
-      if (!yFrom(l)) continue
-      if (y < ymin) ymin = y
-      if (y > ymax) ymax = y
-    }
-  if (!lines.length) {
-    const ps: number[] = []
-    for (const st of sets)
-      for (let i = 0; i < st.x.length; i++) {
-        const x = st.x[i], y = st.y[i]
-        if (!(x > 0) || !(y > 0)) continue
-        xmin = Math.min(xmin, x); xmax = Math.max(xmax, x); ymax = Math.max(ymax, y); ps.push(y)
-      }
-    ps.sort((p, q) => p - q)
-    if (ps.length) ymin = ps[Math.floor(ps.length * 0.02)]
-  }
-  if (!Number.isFinite(xmin) || !Number.isFinite(ymax) || xmax <= xmin) return null
-  ymin = Math.max(ymin, 1e-5)
-  const down = (v: number) => 10 ** Math.floor(Math.log10(v) + 1e-9)
-  const up = (v: number) => 10 ** Math.ceil(Math.log10(v) - 1e-9)
-  return { xmin: down(xmin), xmax: up(xmax), ymin: down(ymin), ymax: up(Math.max(ymax, ymin * 10)) }
-}
 
 /** An energy on the axis: 10 µeV, 100 meV, 1 eV, 10 keV, 1 MeV, 1 GeV. */
 export function energyTick(v: number): string {
@@ -84,32 +37,51 @@ export function barnTick(v: number): string {
   if (v >= 1e-6) return `${f(v * 1e6)} µb`
   return `${f(v * 1e9)} nb`
 }
-/** Every decade a book's axes can reach, 1e-12 to 1e12, and those inside a range (a decade outside it would draw clipped
- *  at the axis's end). */
-const DECADES = Array.from({ length: 25 }, (_, i) => 10 ** (i - 12))
+const DECADES = Array.from({ length: 41 }, (_, i) => 10 ** (i - 20))
 const decadesIn = (min: number, max: number) => DECADES.filter((d) => d >= min * (1 - 1e-9) && d <= max * (1 + 1e-9))
-/** Past this many EXFOR sets the points are coloured by set from the palette, as JANIS colours them. */
-export const MANY_SETS = 40
-/** A set's look: past MANY_SETS a palette colour and a dot; else the ink and one of four shapes. */
-export function setLook(j: number, n: number, dark: boolean): { color: string; symbol: string } {
-  if (n > MANY_SETS) return { color: (dark ? SLOTS.dark : SLOTS.light)[j % 8], symbol: "circle" }
-  return { color: dark ? "#f0e9d8" : "#16181d", symbol: SHAPES[j % 4] }
-}
 
-export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; spans?: Record<string, [number, number]>; range: Range; scales: Scales; hidden: Set<string>; threshold: number | null }) {
-  const { lines, sets, range, scales, hidden, threshold } = o
-  const spans = o.spans ?? {}
+/** JANIS's mark shapes (PlotMark) as ECharts path symbols in a 10 × 10 box; `stroke` draws the path's outline only. */
+const SHAPE: Record<string, { path: string; stroke: boolean }> = {
+  Asterisk: { path: "M5 0V10M0 5H10M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5", stroke: true },
+  Circle: { path: "M10 5A5 5 0 1 1 0 5A5 5 0 1 1 10 5Z", stroke: true },
+  Point: { path: "M7 5A2 2 0 1 1 3 5A2 2 0 1 1 7 5Z", stroke: false },
+  Cross: { path: "M5 0V10M0 5H10", stroke: true },
+  CrossDiag: { path: "M0 0L10 10M10 0L0 10", stroke: true },
+  CrossDiagCircle: { path: "M10 5A5 5 0 1 1 0 5A5 5 0 1 1 10 5ZM1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5", stroke: true },
+  CrossDiagSquare: { path: "M0 0H10V10H0ZM0 0L10 10M10 0L0 10", stroke: true },
+  Diamond: { path: "M5 0L10 5L5 10L0 5Z", stroke: true },
+  FilledCircle: { path: "M10 5A5 5 0 1 1 0 5A5 5 0 1 1 10 5Z", stroke: false },
+  FilledSquare: { path: "M0 0H10V10H0Z", stroke: false },
+  FilledTriangle: { path: "M5 0L10 10H0Z", stroke: false },
+  Home: { path: "M5 0L10 4V10H0V4Z", stroke: true },
+  Square: { path: "M0 0H10V10H0Z", stroke: true },
+  Triangle: { path: "M5 0L10 10H0Z", stroke: true },
+}
+/** A JANIS mark as an ECharts symbol: its shape, size (JANIS's size is the mark's half width in pixels), rotation and fill.
+ *  "Triangle(0,true)" is filled, "Square(15)" turned 15 degrees. */
+export function markSymbol(m: JanisMark | null) {
+  const s = SHAPE[m?.shape ?? ""] ?? SHAPE.Square
+  const args = (m?.args ?? "").split(",").map((a) => a.trim())
+  const filled = !s.stroke || args[1] === "true"
+  const rotate = Number(args[0]) || 0
+  return { symbol: `path://${s.path}`, size: Math.max(2, 2 * (m?.size ?? 3)), rotate: -rotate, filled }
+}
+/** A JANIS colour, with black and dark grey drawn in the ink on the dark theme. */
+export const janisColor = (c: string | null | undefined, dark: boolean, ink: string) =>
+  !c ? ink : dark && /^#(000000|404040|333333)$/i.test(c) ? ink : c
+
+/** The page's own range (JANIS's xrange and yrange). */
+export const pageRange = (x: { min: number | null; max: number | null }, y: { min: number | null; max: number | null }): Range | null =>
+  x.min && x.max && y.min && y.max ? { xmin: x.min, xmax: x.max, ymin: y.min, ymax: y.max } : null
+
+export function bookOption(o: { series: JanisSeries[]; range: Range; scales: Scales; hidden: Set<string>; title: string | null }) {
+  const { series, range, scales, hidden, title } = o
   const dark = isDark()
-  const slots = dark ? SLOTS.dark : SLOTS.light
   const ink = dark ? "#f0e9d8" : "#16181d"
   const muted = dark ? "rgba(240,233,216,0.62)" : "#64748b"
   const rule = dark ? "rgba(240,233,216,0.18)" : "rgba(22,24,29,0.14)"
   const paper = dark ? "#15120d" : "#ffffff"
-  const names = [...lines.map((l) => libraryName(l.release)), ...sets.map((s) => s.id)]
-  const logY = scales.y === "log"
-  const many = sets.reduce((n, s) => n + s.x.length, 0) > 20000
-  // A labelled tick on every decade of a log axis, none hidden: the decades given outright (ECharts' own log ticks skip
-  // decades on a wide axis), the ones inside the range shown, zoomed or not.
+  const logX = scales.x === "log", logY = scales.y === "log"
   const axis = (type: "log" | "value", name: string, min: number, max: number, energy: boolean) => ({
     type, name, min, max, nameLocation: "middle", nameGap: energy ? 30 : 66, logBase: 10,
     nameTextStyle: { color: muted, fontSize: 12 },
@@ -118,99 +90,64 @@ export function bookOption(o: { lines: BookLine[]; sets: BookSet[]; spans?: Reco
     splitLine: { show: true, lineStyle: { color: rule, type: "dashed" } },
     axisLabel: { color: muted, fontSize: 11, hideOverlap: false, ...(type === "log" ? { customValues: decadesIn(min, max) } : {}), formatter: (v: number) => (energy ? energyTick(v) : barnTick(v)) },
   })
-  const setInfo = new Map(sets.map((s) => [s.id, s]))
+  const keep = (x: number | null | undefined, y: number | null | undefined) => x != null && y != null && (!logX || x > 0) && (!logY || y > 0)
   return {
-    // No draw-in on load, on a rail click or on the Plotter (Brendan, 2026-11-11; brief 69); the zoom box asks for its
-    // own 450 ms when it sets the axes.
     animationDuration: 0,
     animationDurationUpdate: 0,
-    grid: { left: 86, right: 28, top: 18, bottom: 48 },
+    title: title ? { text: title, left: "center", top: 0, textStyle: { color: ink, fontSize: 14, fontWeight: 500 } } : { show: false },
+    grid: { left: 86, right: 28, top: title ? 36 : 18, bottom: 48 },
     xAxis: axis(scales.x, "Incident energy", range.xmin, range.xmax, true),
     yAxis: axis(scales.y, "Cross section (b)", range.ymin, range.ymax, false),
-    legend: { show: false, data: names, selected: Object.fromEntries(names.map((n) => [n, !hidden.has(n)])) },
     tooltip: {
       trigger: "item", backgroundColor: paper, borderColor: rule, textStyle: { color: ink, fontSize: 12 },
-      formatter: (p: { seriesName: string; value: [number, number] }) => {
-        const s = setInfo.get(p.seriesName)
-        const who = s ? ` · ${[s.author, s.year].filter(Boolean).join(", ")}` : ""
-        return `${p.seriesName}${who}<br/>${energyLabel(p.value[0])} · ${p.value[1].toPrecision(4)} b`
-      },
+      formatter: (p: { seriesName: string; value: [number, number] }) => `${p.seriesName}<br/>${energyLabel(p.value[0])} · ${p.value[1].toPrecision(4)} b`,
     },
-    series: [
-      // EXFOR first, under the lines: small filled points at 55%, coloured by set past MANY_SETS.
-      ...sets.map((st, j) => {
-        const look = setLook(j, sets.length, dark)
+    series: series.map((s, k) => {
+      const name = s.ref
+      const color = janisColor(s.color, dark, ink)
+      const data = (s.x ?? []).map((x, i) => [x, s.y?.[i]] as [number | null, number | null | undefined])
+      if (s.mark) {
+        const m = markSymbol(s.mark)
         return {
-          name: st.id, type: "scatter", symbol: look.symbol, symbolSize: sets.length > MANY_SETS ? 2.5 : 3, clip: true, z: 2,
-          data: st.x.map((x, i) => [x, st.y[i]]).filter((d) => !logY || d[1] > 0),
-          itemStyle: { color: look.color, opacity: 0.55, borderWidth: 0 },
-          ...(many ? { large: true, largeThreshold: 2000 } : {}),
+          id: name, name: s.legend || s.exfor_id || name, type: "scatter", symbol: m.symbol, symbolSize: m.size, symbolRotate: m.rotate,
+          clip: true, z: 2 + k / 1000, silent: false, data: hidden.has(name) ? [] : data.filter((d) => keep(d[0], d[1])),
+          itemStyle: m.filled ? { color, borderWidth: 0 } : { color: "transparent", borderColor: color, borderWidth: 1 },
+          ...(data.length > 4000 ? { large: true, largeThreshold: 4000 } : {}),
         }
-      }),
-      // A line whose File 3 is only the background inside the resonance range: solid outside the span, dashed inside it,
-      // two series under one name so the legend toggles both.
-      ...lines.flatMap((l, k) => {
-        const sp = spans[l.release]
-        if (!sp) return []
-        const color = slots[slotOf(l.release, k)]
-        const lo = l.x.findIndex((x) => x >= sp[0]), hiRaw = l.x.findIndex((x) => x > sp[1])
-        const hi = hiRaw < 0 ? l.x.length - 1 : hiRaw
-        const inside = l.x.slice(Math.max(0, lo - 1), hi + 1).map((x, i) => { const y = l.y[Math.max(0, lo - 1) + i]; return [x, logY && !(y > 0) ? null : y] })
-        return [{
-          name: libraryName(l.release), type: "line", symbol: "none", showSymbol: false, smooth: false, clip: true, connectNulls: false,
-          data: inside, lineStyle: { width: 1.5, color, type: [5, 4] }, itemStyle: { color }, z: 4,
-        }]
-      }),
-      ...lines.map((l, k) => {
-        const color = slots[slotOf(l.release, k)]
-        const sp = spans[l.release]
-        return {
-          name: libraryName(l.release), type: "line", symbol: "none", showSymbol: false, smooth: false, clip: true, connectNulls: false,
-          data: l.x.map((x, i) => [x, (logY && !(l.y[i] > 0)) || (sp && x > sp[0] && x < sp[1]) ? null : l.y[i]]),
-          lineStyle: { width: 1.5, color }, itemStyle: { color }, z: 4,
-          ...(k === 0 && threshold && threshold > range.xmin && threshold < range.xmax ? {
-            markLine: {
-              silent: true, symbol: "none", animation: false,
-              lineStyle: { color: muted, type: "dashed", width: 1 },
-              label: { color: muted, fontSize: 11, formatter: `Threshold ${energyLabel(threshold)}`, position: "insideEndTop" },
-              data: [{ xAxis: threshold }],
-            },
-          } : {}),
-        }
-      }),
-    ],
+      }
+      return {
+        id: name, name: s.legend || name, type: "line", symbol: "none", showSymbol: false, smooth: false, clip: true, connectNulls: false, z: 4 + k / 1000,
+        data: hidden.has(name) ? [] : data.map((d) => (keep(d[0], d[1]) ? d : [d[0], null])),
+        lineStyle: { width: s.stroke?.width ?? 1, color, type: s.stroke?.dash ?? "solid" }, itemStyle: { color },
+        ...(data.length > 20000 ? { sampling: "lttb", large: true } : {}),
+      }
+    }),
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Chart = any
-/** An axis's new range for setOption, with its decade ticks when it is a log axis. */
 const ticked = (min: number, max: number, type: "log" | "value") =>
   type === "log" ? { min, max, axisTick: { customValues: decadesIn(min, max) }, axisLabel: { customValues: decadesIn(min, max) } } : { min, max }
 
-export function BookChart({ lines, sets, spans, range, full, scales, hidden, threshold, version, onZoom, kebab }: {
-  lines: BookLine[]
-  sets: BookSet[]
-  spans?: Record<string, [number, number]>
+export function BookChart({ series, range, full, scales, hidden, title, version, onZoom, kebab }: {
+  series: JanisSeries[]
   range: Range
   full: Range
   scales: Scales
   hidden: Set<string>
-  threshold: number | null
+  /** JANIS's chart title, or null when the chart menu turns it off. */
+  title: string | null
   version: number
   onZoom: (r: Range) => void
-  /** The chart menu's page handlers (components/viz/chart-kebab.tsx): the book's own legend, scales, zoom and Reconstruct. */
   kebab?: ChartKebabProps
 }) {
-  const state = useRef({ lines, sets, spans, range, full, scales, hidden, threshold })
-  state.current = { lines, sets, spans, range, full, scales, hidden, threshold }
+  const state = useRef({ series, range, full, scales, hidden, title })
+  state.current = { series, range, full, scales, hidden, title }
   const zoom = useRef(onZoom)
   zoom.current = onZoom
-  // onPick: a click on this chart opens nothing (Brendan, 2026-11-11 02:38); use-echart's default sends a click to the
-  // page's data table in the second panel, and the book has none.
   const ref = useEChart(async () => null, () => bookOption(state.current), false, undefined, { view: version, replace: true, still: true, onPick: () => {} })
 
-  // The zoom box, on the chart's own zrender events, once use-echart has made the chart.
   useEffect(() => {
     let disposed = false
     let off: (() => void) | undefined
@@ -291,6 +228,5 @@ export function BookChart({ lines, sets, spans, range, full, scales, hidden, thr
     }
   }, [ref])
 
-  // The chart menu sits at the plot's top right corner (the grid's right 28 px, top 18 px).
   return <ChartBox chart={ref} className="h-full w-full select-none" kebab={kebab} kebabClassName="right-8 top-5" />
 }

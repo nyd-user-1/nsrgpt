@@ -1,9 +1,10 @@
 "use client";
 
-// /elpis/checker (brief 71, elpis-check): drop or paste a TRANS file; nsr-api's /exfor/check (through
-// app/(site)/elpis/checker/api) returns the messages, each with the rule it broke. The results sit in the house table,
-// filtered by severity; a rule unfolds its manual text; a line number scrolls the file pane to the flagged record.
-// "Download report" writes the checker's own text format (scripts/exfor-check/check.py report()).
+// /elpis/checker (briefs 71, 77): drop or paste a TRANS file; nsr-api's /exfor/check (through
+// app/(site)/elpis/checker/api) runs JANIS's own TRANS checker (Lambda nsr-trans-check) and returns its errors and
+// warnings, each at its line, with the entry and subentry the line sits in. The results sit in the house table, filtered
+// by severity; a line number scrolls the file pane to the flagged record. JANIS names no rule, so the Rule column shows
+// only when an answer carries rules.
 
 import { Fragment, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -134,6 +135,7 @@ export function Checker() {
   };
 
   const s = res?.summary;
+  const hasRules = !!res && Object.keys(res.rules ?? {}).length > 0;
   const held = res ? res.entries.filter((e) => res.held[e.entry] !== undefined) : [];
 
   return (
@@ -192,7 +194,7 @@ export function Checker() {
             </p>
           )}
           {res.messages.length === 0 ? (
-            <p className="mt-4 text-sm text-[var(--paper-text)]">I found no errors and no warnings.</p>
+            <p className="mt-4 text-sm text-[var(--paper-text)]">JANIS&apos;s checker found no errors and no warnings.</p>
           ) : (
             <>
               <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -211,7 +213,7 @@ export function Checker() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {["Line", "Entry", "Subentry", "Severity", "Code", "Message", "Rule"].map((h) => (
+                        {["Line", "Entry", "Subentry", "Severity", "Code", "Message", ...(hasRules ? ["Rule"] : [])].map((h) => (
                           <TableHead key={h} className={cn("h-9 text-xs text-[var(--paper-muted)]", h === "Line" && "text-right")}>{h}</TableHead>
                         ))}
                       </TableRow>
@@ -232,9 +234,11 @@ export function Checker() {
                               <TableCell className={CELL}><Badge variant="outline" className={cn("rounded-md px-1.5 py-0 text-[11px] font-normal", SEV[m.severity])}>{m.severity}</Badge></TableCell>
                               <TableCell className={cn(CELL, MONO, "max-w-[180px] break-all")}>{m.code}</TableCell>
                               <TableCell className={cn(CELL, "min-w-[240px] whitespace-normal")}>{m.message.charAt(0).toUpperCase() + m.message.slice(1)}</TableCell>
+                              {hasRules && (
                               <TableCell className={cn(CELL, MONO)}>
                                 <button type="button" aria-expanded={open === i} className="text-[#033882] underline-offset-2 hover:underline dark:text-[#8fb3ff]" onClick={() => setOpen(open === i ? null : i)}>{m.rule}</button>
                               </TableCell>
+                              )}
                             </TableRow>
                             {open === i && rule && (
                               <TableRow>

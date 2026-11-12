@@ -56,7 +56,7 @@ export function exforReaction(key: string, mt: number): string | null {
 export type BookNuclide = { z: number; a: number | "Nat"; iso: string }
 /** "5-B-11", "6-C-Nat", "27-Co-58m" -> its parts; null for anything else. */
 export function parseBookNuclide(s: string): BookNuclide | null {
-  const m = /^(\d{1,3})-([A-Za-z]{1,3})-(\d{1,3}|Nat)(m\d?)?$/.exec(s)
+  const m = /^(\d{1,3})-([A-Za-z]{1,3})-(\d{1,3}|Nat)(m\d?|n)?$/.exec(s)
   if (!m) return null
   const z = parseInt(m[1], 10)
   return z <= Z_MAX ? { z, a: m[3] === "Nat" ? "Nat" : parseInt(m[3], 10), iso: m[4] ?? "" } : null

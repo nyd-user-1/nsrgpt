@@ -1,14 +1,11 @@
 // /elpis (briefs 67, 69): JANIS Web's home page as theirs, two columns of cards: Browse, Search and Open .jns file on the
-// left; Books and TRANS Checker on the right. Their teal buttons are the house primary button. Brief 69: the Browse card
-// carries the records I hold and the rows of JANIS's tree, each Books button the nuclides its book holds, and the TRANS
-// Checker opens /elpis/checker (elpis-check's page). The .jns card stays disabled with ❌ (a JANIS file format), and the
-// foot counts the three marks (ElpisCounts).
+// left; Books and TRANS Checker on the right. Their teal buttons are the house primary button. The TRANS Checker opens
+// /elpis/checker. The .jns card stays disabled with ❌ (a JANIS file format). No counts: JANIS's home has none (brief 72 5o).
 import Link from "next/link"
 import { BookOpen, CircleCheck, File, Network, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SERIF } from "@/app/(site)/(plate)/viz/box-style"
 import { Gap, LINE, SEARCHES, TINT } from "@/components/elpis/parts"
-import { BookFigure, BrowseFigures, ElpisCounts } from "@/components/elpis/ElpisCounts"
 import { PROJECTILES } from "@/lib/janis-tree"
 import { cn } from "@/lib/utils"
 
@@ -34,7 +31,7 @@ export function ElpisHome() {
         <div className="flex flex-col gap-6">
           <Card icon={Network} title="Browse">
             <p>Browse the database content.</p>
-            <BrowseFigures />
+
             <Button asChild className={WIDE}><Link href="/elpis/browse">Browse</Link></Button>
           </Card>
           <Card icon={Search} title="Search">
@@ -48,7 +45,7 @@ export function ElpisHome() {
             <p>Comparison of experimental and evaluated cross sections.</p>
             {PROJECTILES.map((p, i) => (
               <Button key={p.key} asChild variant={i === 0 ? "default" : "outline"} className={WIDE}>
-                <Link href={`/elpis/book/${p.key}`}><strong className="font-mono">{p.symbol}</strong> - {p.name}<BookFigure p={p.key} /></Link>
+                <Link href={`/elpis/book/${p.key}`}><strong className="font-mono">{p.symbol}</strong> - {p.name}</Link>
               </Button>
             ))}
           </Card>
@@ -65,7 +62,7 @@ export function ElpisHome() {
           <Button asChild variant="outline" className={WIDE}><Link href="/elpis/checker">EXFOR TRANS Checker</Link></Button>
         </Card>
       </div>
-      <ElpisCounts />
+
     </div>
   )
 }
