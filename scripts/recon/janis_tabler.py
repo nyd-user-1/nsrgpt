@@ -45,15 +45,18 @@ def get(path, params=None):
     raise RuntimeError(f"failed {url}")
 
 
-def page(lib, nuc, mt):
-    root = f"~N~{lib}~SIG~{nuc}~MT{mt}"
-    slug = f"{lib.replace('/', '_')}__{nuc}__MT{mt}"
+def page(lib, nuc, mt, root=None, ref=None):
+    """A cross-section page (~N~lib~SIG~nuc~MTmt, series ~xs), or any node and series: root and ref given."""
+    root = root or f"~N~{lib}~SIG~{nuc}~MT{mt}"
+    ref = ref or f"{root}~xs"
+    slug = (f"{lib.replace('/', '_')}__{nuc}__MT{mt}" if ref.endswith("~xs") and ref == f"{root}~xs"
+            else re.sub(r"[^A-Za-z0-9.+-]+", "_", ref).strip("_"))
     final, _ = get("/janisweb/renderer", {"root": root})
     rid = final.rstrip("/").rsplit("/", 1)[-1]
     if not rid.isdigit():
         raise RuntimeError(f"no renderer id for {root}: {final}")
     _, js = get(f"/janisweb/renderer/{rid}/toogleProducer.json",
-                {"rendererId": rid, "show": "true", "producerId": f"janis-render-T-{root}~xs", "width": 800, "height": 600})
+                {"rendererId": rid, "show": "true", "producerId": f"janis-render-T-{ref}", "width": 800, "height": 600})
     card = json.loads(js)
     vk = card["viewerKey"]
     e, x, n_pages, pg = [], [], 1, 1
@@ -68,7 +71,7 @@ def page(lib, nuc, mt):
             except ValueError:
                 pass
         pg += 1
-    doc = {"library": lib, "nuclide": nuc, "mt": mt, "root": root, "renderer": rid, "viewer": vk,
+    doc = {"library": lib, "nuclide": nuc, "mt": mt, "root": root, "ref": ref, "renderer": rid, "viewer": vk,
            "card": card.get("viewerCardWeb"), "pages": n_pages, "rows": len(e), "energy_ev": e, "xs_barn": x,
            "fetched": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "source": f"{SITE}/janisweb/renderer?root={root}"}
     if not e:
@@ -80,8 +83,12 @@ def page(lib, nuc, mt):
 if __name__ == "__main__":
     get("/janisweb/")
     for c in sys.argv[1:]:
-        lib, nuc, mt = c.split("|")
         try:
+            if c.startswith("~"):  # "<root>;<series ref>", e.g. "~G~IAEA/PD-2019~DA/DE~Mn55~MT5;~G~IAEA/PD-2019~DA/DE~Mn55~MT5~calc[MF6MT5]"
+                root, ref = c.split(";")
+                page(None, None, None, root, ref)
+                continue
+            lib, nuc, mt = c.split("|")
             page(lib, nuc, int(mt))
         except Exception as ex:  # noqa: BLE001
             print(json.dumps({"page": c, "error": str(ex)}), flush=True)

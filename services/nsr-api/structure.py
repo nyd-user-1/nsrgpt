@@ -53,7 +53,12 @@ POINT_RELEASES = (["B-VIII.1-point-0K", "B-VIII.1-point-293.6K", "B-VIII.0-point
 # Brief 74 (Elpis lane B): JANIS Web's own pointwise cross sections (resonances reconstructed, broadened to 293.6 K),
 # decoded unchanged from its packages (NEA GitLab janis/data; scripts/recon/janis_serve.py), one <release>-janis release
 # each, read like the POINT releases. /endf/xs serves them with janis=1.
-JANIS = []
+JANIS = ["B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-VI.8-HE", "JEFF-4.0", "JEFF-3.3", "JEFF-3.2", "JEFF-3.1.2",
+         "JEFF-3.1.1", "JEFF-3.1", "JEFF-3.0", "JEF-2.2", "JENDL-5", "JENDL-4.0", "JENDL-4.0u", "JENDL-4.0-HE", "JENDL-3.3",
+         "JENDL-HE-2007", "JENDL-AC-2008", "JENDL-AD-2017", "JENDL-AN-2005", "JENDL-DEU-2020", "JENDL-PD-2004",
+         "JENDL-PD-2016", "JENDL-PD-2016.1", "CENDL-3.2", "CENDL-3.1", "CENDL-2.1", "BROND-3.1", "BROND-2.2",
+         "RUSFOND-2010", "FENDL-2.1", "EAF-2010", "EAF-2007", "IAEA-PD-2019", "PADF-2007", "IRDFF-II", "IRDFF-1.05",
+         "IRDFF-1.0", "IRDF-2002", "IRDF-2002-MG"]
 POINT_RELEASES += [f"{r}-janis" for r in JANIS]
 TEMPS = ["0K", "293.6K"] + HOT
 DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
@@ -321,7 +326,9 @@ def xs(q):
         elif served != r or r in POINT_RELEASES:
             if served.endswith("-janis"):
                 item["temp_served"] = "293.6K"
-            item["note"] = ((f"JANIS Web's own pointwise data (NEA janis/data package, 293.6 K)" if served.endswith("-janis")
+            item["note"] = ((f"{row['computed']} of JANIS Web's own pointwise data, as JANIS computes it (293.6 K)"
+                             if served.endswith("-janis") and row.get("computed")
+                             else "JANIS Web's own pointwise data (NEA janis/data package, 293.6 K)" if served.endswith("-janis")
                              else f"reconstructed pointwise data (NNDC POINT, {served.rsplit('-', 1)[-1]})")
                             + (f"; thinned for charting to {row['n_served']:,} of {row['n_points']:,} points (lowest "
                                "and highest in each log-energy step)" if row.get("thinned") else ""))

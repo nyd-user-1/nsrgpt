@@ -10,6 +10,8 @@
 // Out: public/elpis/res-ranges-n.json { built, ranges: { "<book label>": { "<release>": [el_ev, eh_ev, lrf] } } } and
 // lake/elpis/<date>/res-ranges-n.json. The book draws a release's line dashed over that span when the API serves File 3
 // as evaluated (not POINT), and offers PREPRO's reconstruction (nsr-jobs) in its place.
+// Brief 74 (lane B): releases whose curve Elpis draws reconstructed are left out: those with JANIS's own curve served
+// (JANIS in services/nsr-api/structure.py, read here; /endf/xs janis=1) and ENDF/B-VIII.1 and VIII.0 (NNDC's POINT files).
 import { execFileSync } from "node:child_process"
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join, dirname } from "node:path"
@@ -23,11 +25,15 @@ const WORK = join(tmpdir(), "elpis-work")
 mkdirSync(WORK, { recursive: true })
 const SYM = ["n", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"]
 
+const JANIS = (readFileSync(join(ROOT, "services", "nsr-api", "structure.py"), "utf8").match(/^JANIS = \[([^\]]*)\]/m)?.[1] ?? "")
+  .match(/"[^"]+"/g)?.map((s) => s.slice(1, -1)) ?? []
+const DRAWN_RECONSTRUCTED = [...JANIS, "B-VIII.1", "B-VIII.0"]
 const aws = (...a) => execFileSync("aws", [...a, ...AWS], { encoding: "utf8", maxBuffer: 1 << 28 }).trim()
 const sql = `SELECT r.release, CAST(m.za AS integer) AS za, COALESCE(m.liso, 0) AS liso, min(r.el_ev) AS el, max(r.eh_ev) AS eh, max(r.lrf) AS lrf
 FROM endfb_res_ranges r JOIN endfb_materials m
   ON m.release = r.release AND m.sublibrary = r.sublibrary AND m.mat = r.mat AND m.file_name = r.file_name
 WHERE r.lru IN (1, 2) AND m.lrp = 1 AND r.release NOT LIKE '%-point-%'
+  AND r.release NOT IN (${DRAWN_RECONSTRUCTED.map((r) => `'${r}'`).join(", ")})
   AND (r.sublibrary LIKE 'neutrons%' OR (r.sublibrary = '(root)' AND COALESCE(m.nsub, 10) = 10))
 GROUP BY 1, 2, 3`
 const id = aws("athena", "start-query-execution", "--work-group", "nsrgpt", "--query-execution-context", "Database=nsr", "--query-string", sql, "--output", "text", "--query", "QueryExecutionId")
