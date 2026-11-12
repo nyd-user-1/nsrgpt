@@ -103,6 +103,41 @@ def sum_levels(secs):
     return grid, tot
 
 
+def point_files_local(name, path):
+    """serve.py point_files' two files (xs_index with sid, byte_offset, n_bytes; xs_series/series.bin, energies then cross
+    sections as little-endian float64), streamed from the local xs parquet one row group at a time in file order, so a
+    release of any size fits (point_files holds every array in DuckDB; TENDL-2012 ran it out of 8 GB). The API looks
+    sections up by sublibrary, name and MT, so the sid order does not matter."""
+    import array
+    pf = pq.ParquetFile(path)
+    keep = [n for n in pf.schema_arrow.names if n not in ("energy_ev", "xs_barn")]
+    cols = {k: [] for k in ["sid"] + keep + ["byte_offset", "n_bytes"]}
+    d = os.path.dirname(path)
+    spath, ipath = f"{d}/series.bin", f"{d}/xs_index.parquet"
+    pos = sid = 0
+    with open(spath, "wb") as fh:
+        for g in range(pf.num_row_groups):
+            t = pf.read_row_group(g).to_pydict()
+            for i in range(len(t["mt"])):
+                b = array.array("d", t["energy_ev"][i]).tobytes() + array.array("d", t["xs_barn"][i]).tobytes()
+                fh.write(b)
+                sid += 1
+                cols["sid"].append(sid)
+                for k in keep:
+                    cols[k].append(t[k][i])
+                cols["byte_offset"].append(pos)
+                cols["n_bytes"].append(len(b))
+                pos += len(b)
+    fields = [pa.field("sid", pa.int32())] + [pf.schema_arrow.field(k) for k in keep] + [
+        pa.field("byte_offset", pa.int64()), pa.field("n_bytes", pa.int64())]
+    pq.write_table(pa.table(cols, schema=pa.schema(fields)), ipath, compression="snappy")
+    sv = recon.serve_module()
+    for sub, local, fn in (("xs_index", ipath, "part-00000.parquet"), ("xs_series", spath, "series.bin")):
+        sv.clear(f"lake/serve/endf/{name}/{sub}/")
+        recon.s3().upload_file(local, B, f"lake/serve/endf/{name}/{sub}/{fn}")
+    print("point_files_local", name, {"sections": sid, "series_bytes": pos}, flush=True)
+
+
 def serve(rel, pk):
     t0 = time.time()
     name_, ver, jkeys, _ = pk
@@ -190,7 +225,7 @@ def serve(rel, pk):
     n_reg, _ = sv.register("endf_serve_xs", pq.read_schema(path), prefix,
                            "ENDF/B MF3 cross sections as point arrays, one row each", partition=name, drop=False)
     sv.manifest = lambda key, base, tables: None  # this script's manifest records it; no shared read-modify-write
-    sv.point_files(name)
+    point_files_local(name, path)
     # B2: the release's materials with resolved or unresolved parameters, and whether JANIS's package holds their MF3
     b2 = None
     try:
