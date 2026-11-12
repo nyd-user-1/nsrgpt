@@ -272,7 +272,7 @@ def njoy(mat, wd, timeout):
     return round(time.time() - t, 2)
 
 
-EXP = re.compile(r"([0-9.])([+-])([0-9])")
+EXP = re.compile(r"([0-9.])([+-]) ?([0-9])")  # 1.0-5, 1.0+12, and IRDFF-II's 2.50550+ 4
 
 
 def floats(fields):
