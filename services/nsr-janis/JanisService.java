@@ -42,8 +42,6 @@ public class JanisService {
         if (conns != null) return;
         org.nea.janis.book.BarnBook.settingsInitialization();
         Path src = Paths.get(System.getenv().getOrDefault("JANIS_DB", "/opt/janis-db"));
-        Path dst = Paths.get("/tmp/janis-db");
-        Files.createDirectories(dst);
         Files.createDirectories(Paths.get("/tmp/janis-datapack"));
         Map<String, JanisReadConnection> m = new LinkedHashMap<>();
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(src, "*.h2.db")) {
@@ -51,12 +49,12 @@ public class JanisService {
             for (Path p : ds) files.add(p);
             Collections.sort(files);
             for (Path p : files) {
-                Path t = dst.resolve(p.getFileName());
-                if (!Files.exists(t)) Files.copy(p, t);
                 String label = p.getFileName().toString().replace(".h2.db", "");
+                // read-only in place: the image is read-only, and copying 1 GB out of it outran the gateway's 30 s
                 JanisConnectionId id = JanisConnectionIdFactory.buildFromString("LOCAL:label=" + label + "|root=/tmp/janis-datapack|url=jdbc:h2:"
-                        + dst.resolve(label) + "|user=janis|password=janis");
-                JanisReadConnection c = id.openConnection();
+                        + src.resolve(label) + ";ACCESS_MODE_DATA=r;FILE_LOCK=NO;TRACE_LEVEL_FILE=0|user=janis|password=janis");
+                org.nea.janis.connection.pool.JanisConnectionsPool.add(id, true, false);
+                JanisReadConnection c = org.nea.janis.connection.pool.JanisConnectionsPool.getInstance().getConnection(id);
                 HelloAnswer h = c.hello();
                 DataTypeId.register(h.getDatatypeIds());
                 CategoryId.register(h.getCategoryIds());
@@ -88,7 +86,7 @@ public class JanisService {
 
     static String list(String refs) throws Exception {
         TreeMap<JanisId, String[]> kids = new TreeMap<>();
-        List<String> hit = new ArrayList<>();
+        List<String> hit = new ArrayList<>(), errors = new ArrayList<>();
         for (Map.Entry<String, JanisReadConnection> e : conns.entrySet()) {
             List<String> tokens = new ArrayList<>();
             tokens.add(e.getKey());
@@ -97,12 +95,14 @@ public class JanisService {
             try {
                 r = new AbsoluteRefs(RefsParser.parseRelativesRefsSet(tokens.iterator()).getSimpleRefs());
             } catch (Exception ex) {
+                errors.add(e.getKey() + ": " + ex);
                 continue;
             }
             JanisIdSet set;
             try {
                 set = e.getValue().getChildren(r);
             } catch (Exception ex) {
+                errors.add(e.getKey() + ": " + ex);
                 continue;
             }
             if (set == null || set.isEmpty()) continue;
@@ -112,7 +112,7 @@ public class JanisService {
                 kids.putIfAbsent(id, new String[]{id.code(), String.valueOf(id), id.toShortString()});
             }
         }
-        StringBuilder b = new StringBuilder("{\"bases\":").append(arr(hit)).append(",\"children\":[");
+        StringBuilder b = new StringBuilder("{\"bases\":").append(arr(hit)).append(",\"errors\":").append(arr(errors)).append(",\"children\":[");
         boolean f = true;
         for (String[] k : kids.values()) {
             if (!f) b.append(',');

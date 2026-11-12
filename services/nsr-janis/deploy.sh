@@ -18,7 +18,7 @@ if [ "${1:-}" = build ]; then
   W=/data/nsr-janis-image; rm -rf $W && mkdir -p $W/lib $W/db && cd $W
   aws s3 cp s3://nsr-lake-$ACCT/lake/_work/janis/engine/nsr-janis/JanisService.java . --only-show-errors
   cp /opt/janis/*.jar lib/
-  /usr/lib/jvm/java-8-openjdk-amd64/bin/javac -source 8 -target 8 -cp "lib/*" -d classes JanisService.java
+  mkdir -p classes && /usr/lib/jvm/java-8-openjdk-amd64/bin/javac -source 8 -target 8 -cp "lib/*" -d classes JanisService.java
   for f in $DB/*.h2.db; do cp "$f" db/; done
   cat > Dockerfile <<'D'
 FROM public.ecr.aws/lambda/java:21
@@ -46,7 +46,7 @@ if aws lambda get-function --function-name $FN "${A[@]}" >/dev/null 2>&1; then
   aws lambda update-function-code --function-name $FN --image-uri $REPO:latest "${A[@]}" --query LastModified --output text
 else
   aws lambda create-function --function-name $FN --package-type Image --code ImageUri=$REPO:latest \
-    --role arn:aws:iam::$ACCT:role/$ROLE --memory-size 3008 --timeout 30 --ephemeral-storage Size=10240 \
+    --role arn:aws:iam::$ACCT:role/$ROLE --memory-size 3008 --timeout 120 --ephemeral-storage Size=10240 \
     --tags project=nsr "${A[@]}" --query FunctionArn --output text
 fi
 # GET /janis/{proxy+} on nsr-api's HTTP API goes to nsr-janis
