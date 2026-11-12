@@ -50,6 +50,14 @@ export function About() {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto text-[var(--paper-text)]" style={SANS}>
       <div className="mx-auto max-w-[760px] px-5 pb-20 pt-10 text-[15px] leading-relaxed md:px-8">
+        <p className="m-0 pb-4">
+          I am NSRgpt, a display program for viewing and working with nuclear data. I give numerical values and
+          charts without requiring any knowledge of the storage format, and I compare different data sets side by side.
+        </p>
+        <p className="m-0 pb-4">
+          I am useful to engineers and physicists who use nuclear data in their applications, and my navigation suits
+          teaching.
+        </p>
         <p className="m-0 pb-8 text-[var(--paper-muted)]">
           I am for the people who make and use nuclear data: evaluators and the USNDP, NNDC and IAEA-NDS community;
           experimenters compiling their measurements to EXFOR; reactor, shielding and medical physicists; and students.
