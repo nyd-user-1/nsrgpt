@@ -169,12 +169,13 @@ def laws(q):
 
 
 def lin(xs, ys, x):
-    """y at x on a lin-lin table (xs ascending; a repeated x, a step, takes its left value); 0 outside it."""
+    """y at x on a lin-lin table (xs ascending; a repeated x, a step, takes its right value, as JANIS does: brief 74 B4,
+    gamma + Mn-55 -> Mn-52 in IAEA/PD-2019, whose yield steps from 0 at 32 MeV); 0 outside it."""
     if not xs or x < xs[0] or x > xs[-1]:
         return 0.0
-    i = bisect.bisect_left(xs, x)
-    if xs[i] == x:
-        return ys[i]
+    i = bisect.bisect_right(xs, x)
+    if xs[i - 1] == x:
+        return ys[i - 1]
     x0, x1, y0, y1 = xs[i - 1], xs[i], ys[i - 1], ys[i]
     return y0 + (y1 - y0) * (x - x0) / (x1 - x0) if x1 > x0 else y0
 
