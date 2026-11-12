@@ -193,9 +193,21 @@ public class JanisService {
         return v == null || v.isEmpty() ? null : v.get(0);
     }
 
+    /** A string field of the event, by a plain scan (a regex with an alternation in a repeat recurses per character). */
     static String str(String json, String key) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").matcher(json);
-        return m.find() ? m.group(1).replace("\\/", "/").replace("\\\"", "\"").replace("\\\\", "\\") : null;
+        Matcher m = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*\"").matcher(json);
+        if (!m.find()) return null;
+        StringBuilder b = new StringBuilder();
+        for (int i = m.end(); i < json.length(); i++) {
+            char ch = json.charAt(i);
+            if (ch == '"') break;
+            if (ch == '\\' && i + 1 < json.length()) {
+                char n = json.charAt(++i);
+                if (n == 'u' && i + 4 < json.length()) { b.append((char) Integer.parseInt(json.substring(i + 1, i + 5), 16)); i += 4; }
+                else b.append(n);
+            } else b.append(ch);
+        }
+        return b.toString();
     }
 
     static byte[] readAll(InputStream in) throws IOException {
