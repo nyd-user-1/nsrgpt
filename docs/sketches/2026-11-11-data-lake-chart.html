@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NSRgpt data lake</title>
+<style>
+  :root { --line: #c9c5bb; --bd: #e5e2da; --mut: #6b7280; --ink: #1f2328; --lit: #8a6d3b; --struct: #2f6f4f; --meas: #1f5a96; --eval: #033882; --ref: #6b7280; --janis: #9a3412; --derived: #5b4b8a; --code: #374151; }
+  body { margin: 0; background: #f6f5f1; color: var(--ink); font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
+  main { width: 2560px; padding: 40px 32px 80px; }
+  code { background: #efede7; padding: 0 4px; border-radius: 4px; font-size: 11.5px; word-break: break-all; }
+  .box { background: #fff; border: 1px solid var(--bd); border-radius: 6px; padding: 9px 11px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+  .box .name { font-weight: 600; font-size: 14px; }
+  .box .full { color: var(--mut); font-size: 12px; }
+  .box .what { margin-top: 3px; }
+  .box .where { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 3px; }
+  .box .size { margin-top: 5px; color: var(--mut); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .tag { display: inline-block; font: 500 10px/1 -apple-system, sans-serif; text-transform: uppercase; letter-spacing: .04em; color: #92400e; background: #fef3c7; border-radius: 3px; padding: 2px 4px; vertical-align: 2px; }
+
+  /* level 1 */
+  .root { width: 420px; margin: 0 auto; position: relative; border-top: 3px solid var(--ink); }
+  .root .name { font-size: 20px; }
+  .l1 { position: relative; padding-bottom: 24px; }
+  .l1::after { content: ""; position: absolute; left: 50%; bottom: 0; height: 24px; border-left: 1px solid var(--line); }
+
+  /* level 2 */
+  .l2 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0 18px; align-items: stretch; }
+  .col { position: relative; padding-top: 22px; display: flex; flex-direction: column; }
+  .col::before { content: ""; position: absolute; top: 0; left: -9px; right: -9px; border-top: 1px solid var(--line); }
+  .col:first-child::before { left: 50%; }
+  .col:last-child::before { right: 50%; }
+  .col::after { content: ""; position: absolute; top: 0; left: 50%; height: 22px; border-left: 1px solid var(--line); }
+  .kind { border-top: 3px solid var(--c); }
+  .col.lit { --c: var(--lit); } .col.struct { --c: var(--struct); } .col.meas { --c: var(--meas); } .col.eval { --c: var(--eval); }
+  .col.ref { --c: var(--ref); } .col.janis { --c: var(--janis); } .col.derived { --c: var(--derived); } .col.code { --c: var(--code); }
+  .drop { flex: 1; min-height: 28px; margin-left: 50%; border-left: 1px solid var(--line); }
+  ul.kids, ul.rels { list-style: none; margin: 0; padding: 0 0 0 16px; }
+  ul.kids > li, ul.rels > li { position: relative; margin-top: 8px; }
+  ul.kids > li::before, ul.rels > li::before { content: ""; position: absolute; left: -10px; top: -8px; height: 26px; width: 10px; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  ul.kids > li::after, ul.rels > li::after { content: ""; position: absolute; left: -10px; top: 18px; bottom: -8px; border-left: 1px solid var(--line); }
+  ul.kids > li:last-child::after, ul.rels > li:last-child::after { display: none; }
+  ul.kids { margin-left: 12px; }
+  .kid { border-left: 3px solid var(--c); }
+
+  /* level 3 */
+  .l3 { display: grid; grid-template-columns: repeat(14, 1fr); gap: 0 12px; }
+  .fam { position: relative; padding-top: 22px; }
+  .fam::before { content: ""; position: absolute; top: 0; left: -6px; right: -6px; border-top: 1px solid var(--line); }
+  .fam:first-child::before { left: 50%; }
+  .fam:last-child::before { right: 50%; }
+  .fam::after { content: ""; position: absolute; top: 0; left: 50%; height: 22px; border-left: 1px solid var(--line); }
+  .family { border-top: 3px solid var(--eval); }
+  .family .name { font-size: 15px; }
+  ul.rels { margin-left: 8px; }
+  .rel { background: #fff; border: 1px solid var(--bd); border-radius: 5px; padding: 6px 8px; }
+  .rel.arriving { border-style: dashed; border-color: #d6c9a8; background: #fdfcf8; }
+  .rel.focus { outline: 2px solid var(--eval); outline-offset: 1px; }
+  .rname { font-weight: 600; }
+  .rsize { color: var(--mut); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .rel .where { margin-top: 3px; }
+  .chips { display: flex; gap: 2px; margin-top: 5px; }
+  .chips i, i.chip { font: 600 10px/16px -apple-system, sans-serif; font-style: normal; width: 16px; height: 16px; text-align: center; border-radius: 3px; background: #f1efe9; color: #c4bfb3; display: inline-block; }
+  .chips i.on, i.chip.on { background: var(--eval); color: #fff; }
+
+  /* level 4 */
+  .l4 { margin-top: 56px; width: 1900px; }
+  .forms { display: grid; grid-template-columns: 170px 260px 540px 340px 280px 1fr; gap: 10px 26px; }
+  .fh { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--mut); display: flex; align-items: center; gap: 6px; padding-bottom: 2px; border-bottom: 1px solid var(--bd); }
+  .fsrc { background: #fff; border: 1px solid var(--bd); border-top: 3px solid var(--c); border-radius: 6px; padding: 9px 11px; align-self: start; }
+  .fsrc.lit { --c: var(--lit); } .fsrc.struct { --c: var(--struct); } .fsrc.meas { --c: var(--meas); } .fsrc.eval { --c: var(--eval); outline: 2px solid var(--eval); outline-offset: 1px; }
+  .fsname { font-weight: 600; font-size: 14px; }
+  .fssub { color: var(--mut); font-size: 12px; }
+  .fc { display: flex; flex-direction: column; gap: 8px; position: relative; }
+  .fc::before { content: "→"; position: absolute; left: -19px; top: 8px; color: #a8a396; font-size: 14px; }
+  .fbox { background: #fff; border: 1px solid var(--bd); border-radius: 6px; padding: 8px 10px; position: relative; }
+  .fbox > i.chip { position: absolute; top: 8px; right: 8px; }
+  .fbox.empty { color: #b8b3a7; background: transparent; border-style: dashed; }
+  .fname { font-weight: 600; padding-right: 20px; }
+  .fbox .where { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 3px; }
+  .fbox .size { margin-top: 4px; color: var(--mut); font-size: 12px; }
+  table.tl { border-collapse: collapse; margin-top: 8px; width: 100%; }
+  table.tl td { padding: 3px 6px 3px 0; border-top: 1px solid #f0eee8; vertical-align: top; font-size: 12px; }
+  table.tl td.file { white-space: nowrap; color: var(--eval); font-weight: 600; }
+  table.tl td.num { text-align: right; color: var(--mut); font-variant-numeric: tabular-nums; }
+  table.tl td.note { color: var(--mut); padding-top: 6px; }
+  table.tl tr:target td { background: #fef3c7; }
+  ul.routes { list-style: none; margin: 0; padding: 0; }
+  ul.routes li { margin: 2px 0; }
+  ul.routes span { color: var(--mut); font-size: 12px; }
+  .pages { margin-top: 8px; padding-top: 6px; border-top: 1px solid #f0eee8; display: flex; flex-wrap: wrap; gap: 3px; }
+
+  /* terms */
+  table.terms { margin-top: 56px; width: 1300px; border-collapse: collapse; background: #fff; border: 1px solid var(--bd); }
+  table.terms th, table.terms td { text-align: left; vertical-align: top; padding: 9px 14px; border-top: 1px solid var(--bd); font-size: 13.5px; }
+  table.terms th { background: #faf9f6; border-top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--mut); }
+  table.terms td:nth-child(3) { color: var(--mut); }
+  a { color: var(--eval); }
+  :target { scroll-margin: 40px; }
+  .box:target, .rel:target, .fh:target, .fsrc:target { box-shadow: 0 0 0 3px #fde68a; }
+</style>
+</head>
+<body>
+<main>
+<div class="l1"><div class="box root" id="root">
+  <div class="name">NSRgpt data lake</div>
+  
+  <div class="what">Every nuclear data source NSRgpt holds, as files and tables.</div>
+  <div class="where"><code>s3://nsr-lake-613473203863</code> <code>us-east-2</code> <code>Athena nsr: 355 tables</code></div>
+  <div class="size">518K files · 948 GB · 7.2B records · counted 2026-11-11</div>
+</div></div>
+<div class="l2"><div class="col lit">
+<div class="box kind" id="k-lit">
+  <div class="name">Literature</div>
+  <div class="full">NSR: Nuclear Science References</div>
+  <div class="what">Nuclear physics papers since 1896, indexed by nuclide and reaction.</div>
+  <div class="where"><code>lake/nsr-database/2026-10-15/</code> <code>files/pdfs/</code></div>
+  <div class="size">304K papers</div>
+</div>
+<ul class="kids"><li><div class="box kid">
+  <div class="name">NSR database export</div>
+  
+  <div class="what">The NSR database exported from Aurora: papers, authors, links.</div>
+  <div class="where"><code>lake/nsr-database/2026-10-15/</code> <code>nsr.nsr_*</code></div>
+  <div class="size">42 tables · 304K papers · 1.4M author links · 1.2M nuclide links · 2.3 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Paper PDFs</div>
+  
+  <div class="what">arXiv papers, NNDC dataset PDFs and canvas uploads.</div>
+  <div class="where"><code>files/pdfs/</code></div>
+  <div class="size">38K files · 27.4 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">IAEA records</div>
+  
+  <div class="what">IAEA reports, meeting papers and data files.</div>
+  <div class="where"><code>raw/iaea-records/2026-11-08/</code> <code>nsr.iaea_records</code></div>
+  <div class="size">6.8K records · 5.7K files · 16.3 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Manuals</div>
+  
+  <div class="what">ENDF-367, the USNDP report and the Wallet Cards.</div>
+  <div class="where"><code>raw/manual/</code></div>
+  <div class="size">3 files · 5.1 MB</div>
+</div></li></ul>
+</div><div class="col struct">
+<div class="box kind" id="k-struct">
+  <div class="name">Structure and decay</div>
+  
+  <div class="what">Levels, gamma rays, half-lives and decays of every nuclide.</div>
+  <div class="where"><code>lake/ensdf/</code> <code>lake/xundl/</code> <code>lake/icrp107/</code> <code>lake/serve/nubase/</code></div>
+  <div class="size">3.4K nuclides</div>
+</div>
+<ul class="kids"><li><div class="box kid" id="s-ensdf">
+  <div class="name">ENSDF</div>
+  <div class="full">Evaluated Nuclear Structure Data File</div>
+  <div class="what">Evaluated levels, gammas and decays, release 2026-11-05.</div>
+  <div class="where"><code>lake/ensdf/2026-11-05/</code> <code>nsr.ensdf_*</code></div>
+  <div class="size">16 tables · 20K datasets · 568K levels · 793K gammas · 142 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">XUNDL</div>
+  <div class="full">Experimental Unevaluated Nuclear Data List</div>
+  <div class="what">New structure measurements before evaluation, release 2026-10-01.</div>
+  <div class="where"><code>lake/xundl/2026-10-01/</code> <code>nsr.xundl_*</code></div>
+  <div class="size">16 tables · 13K datasets · 195K levels · 257K gammas · 44 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Nubase</div>
+  
+  <div class="what">Masses, half-lives and spins per state, from the Atomic Mass Evaluation.</div>
+  <div class="where"><code>lake/serve/nubase/</code> <code>nsr.nubase</code></div>
+  <div class="size">1997: 3.7K rows · 2003: 4.5K · 2012: 5.5K (brief 73) · 2016: 5.6K · 2020 through Live Chart · 2.5 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Live Chart</div>
+  <div class="full">IAEA Live Chart of Nuclides</div>
+  <div class="what">IAEA's nuclide chart API: ground states, decay radiations, yields.</div>
+  <div class="where"><code>raw/iaea-livechart/2026-11-06/</code> <code>nsr.iaea_*</code></div>
+  <div class="size">9 tables · 360K rows · 3.4K ground states · 67 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">ICRP 107</div>
+  <div class="full">International Commission on Radiological Protection, Publication 107</div>
+  <div class="what">Decay data for dose calculations (2008, corrected 2022).</div>
+  <div class="where"><code>lake/icrp107/2008/</code> <code>nsr.icrp107_*</code></div>
+  <div class="size">1.3K nuclides · 454K radiations · 10.5 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Decay sublibraries</div>
+  
+  <div class="what">The decay data inside the evaluated libraries (File 8).</div>
+  <div class="where"><code>lake/endfb/&lt;release&gt;/decay/</code> <code>nsr.endfb_decay*</code></div>
+  <div class="size">43K decays · 2.4M lines</div>
+</div></li></ul>
+</div><div class="col meas">
+<div class="box kind" id="k-meas">
+  <div class="name">Measured reactions</div>
+  <div class="full">EXFOR: Exchange Format</div>
+  <div class="what">Measured cross sections and yields, one entry per experiment.</div>
+  <div class="where"><code>lake/exfor/</code> <code>lake/serve/exfor/</code> <code>lake/cinda/</code></div>
+  <div class="size">27K entries · 76M values</div>
+</div>
+<ul class="kids"><li><div class="box kid">
+  <div class="name">EXFOR J4</div>
+  
+  <div class="what">IAEA's EXFOR in JSON, as tables.</div>
+  <div class="where"><code>lake/exfor/j4-2026-10-28/</code> <code>nsr.exfor_j4_*</code></div>
+  <div class="size">5 tables · 27K entries · 224K subentries · 76M values · 0.6 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">X4Pro 2023</div>
+  
+  <div class="what">IAEA's EXFOR SQLite build, every table one to one.</div>
+  <div class="where"><code>lake/exfor/x4pro-2023-07-14/</code> <code>nsr.exfor_x4pro_*</code></div>
+  <div class="size">74 tables · 26K entries · 20M points · 3.0 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">X4Pro 2025</div>
+  
+  <div class="what">The newer, reduced build, without point tables.</div>
+  <div class="where"><code>lake/exfor/x4pro-2025-11-05/</code> <code>nsr.exfor_x25_*</code></div>
+  <div class="size">74 tables · 27K entries · 1.6 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">EXFOR C5</div>
+  
+  <div class="what">EXFOR points renormalized, with uncertainty parts and monitors.</div>
+  <div class="where"><code>lake/exfor/c5-2023-08-28/</code> <code>nsr.exfor_c5_*</code></div>
+  <div class="size">139K datasets · 12M points · 0.34 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">EXFOR dictionary</div>
+  
+  <div class="what">The codes EXFOR uses: quantities, labs, reactions, units.</div>
+  <div class="where"><code>lake/exfor/dictionary/</code> <code>nsr.exfor_dict_*</code></div>
+  <div class="size">33 tables</div>
+</div></li><li><div class="box kid">
+  <div class="name">CINDA</div>
+  <div class="full">Computer Index of Nuclear Reaction Data</div>
+  <div class="what">Index of reaction data work since 1964.</div>
+  <div class="where"><code>lake/cinda/2024-04-26/</code> <code>nsr.cinda_*</code></div>
+  <div class="size">603K lines · 301K blocks · 29 MB</div>
+</div></li></ul>
+</div><div class="col eval evalcol">
+<div class="box kind" id="k-eval">
+  <div class="name">Evaluated reaction libraries</div>
+  <div class="full">ENDF: Evaluated Nuclear Data File</div>
+  <div class="what">Recommended reaction data per material, from measurements and models.</div>
+  <div class="where"><code>lake/endfb/&lt;release&gt;/</code> <code>lake/serve/endf/</code> <code>nsr.endfb_*</code> <code>raw/</code> <code>lake/_raw/</code></div>
+  <div class="size">47 releases served · 100K materials · 4.8M sections · 101M points · 177 GB tables</div>
+</div>
+<div class="drop"></div>
+</div><div class="col ref">
+<div class="box kind" id="k-ref">
+  <div class="name">Reference data</div>
+  
+  <div class="what">Model inputs, stopping powers, benchmarks and beta spectra.</div>
+  <div class="where"><code>lake/ripl/</code> <code>lake/stopping/</code> <code>lake/conderc/</code> <code>lake/iaea-betashape/</code></div>
+  <div class="size">5 sources</div>
+</div>
+<ul class="kids"><li><div class="box kid">
+  <div class="name">RIPL-4</div>
+  <div class="full">Reference Input Parameter Library</div>
+  <div class="what">Levels and masses that nuclear model codes read.</div>
+  <div class="where"><code>lake/ripl/ripl-4-2026-05/</code> <code>nsr.ripl_*</code></div>
+  <div class="size">177K levels · 277K gammas · 3.6K masses · 5.3 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Stopping powers</div>
+  
+  <div class="what">Measured energy loss of ions in matter (IAEA).</div>
+  <div class="where"><code>lake/stopping/2026-11-11/</code> <code>nsr.stopping_*</code></div>
+  <div class="size">274K values · 760 references · 3.7 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">CoNDERC</div>
+  <div class="full">Compilation of Nuclear Data Experiments for Radiation Characterisation</div>
+  <div class="what">OpenMC criticality benchmark runs with three libraries.</div>
+  <div class="where"><code>lake/conderc/2026-11-11/</code> <code>nsr.conderc_openmc</code></div>
+  <div class="size">84 runs · 13 benchmarks</div>
+</div></li><li><div class="box kid">
+  <div class="name">BetaShape</div>
+  
+  <div class="what">Computed beta-decay spectrum shapes, from IAEA's Live Chart.</div>
+  <div class="where"><code>lake/iaea-betashape/2026-11-11/</code> <code>nsr.iaea_betashape_spectra</code></div>
+  <div class="size">1.4K spectra · 565K bins · 20 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">IAEA CD-ROMs</div>
+  
+  <div class="what">IAEA's data CD-ROM packages and their catalog.</div>
+  <div class="where"><code>raw/iaea/2026-11-07/cdroms/dwn/</code> <code>nsr.iaea_cdroms</code></div>
+  <div class="size">30 products · 39 files</div>
+</div></li></ul>
+</div><div class="col janis">
+<div class="box kind" id="k-janis">
+  <div class="name">JANIS reference</div>
+  <div class="full">JANIS: Java-based Nuclear Data Information System</div>
+  <div class="what">NEA's nuclear data viewer: its browse tree and its own data.</div>
+  <div class="where"><code>lake/janis/</code> <code>lake/_raw/janis-data/</code></div>
+  <div class="size">72 packages</div>
+</div>
+<ul class="kids"><li><div class="box kid">
+  <div class="name">Crawl tree</div>
+  
+  <div class="what">Every JANIS Web browse row, marked against the lake.</div>
+  <div class="where"><code>lake/janis/2026-11-10/</code> <code>lake/janis/current/</code></div>
+  <div class="size">16 categories · 188 libraries · 157K rows missing · 178K matched · 7.6K element pages unfetched · 433 MB</div>
+</div></li><li><div class="box kid" id="s-jpk">
+  <div class="name">JANIS packages</div>
+  
+  <div class="what">The library files JANIS itself draws, from NEA GitLab.</div>
+  <div class="where"><code>lake/_raw/janis-data/&lt;name&gt;/&lt;version&gt;/</code></div>
+  <div class="size">72 packages · 434 files · 117.1 GB (EXFOR 17.8 GB; TENDL 2009–2019 81.5 GB; 4 thermal scattering sets)</div>
+</div></li><li><div class="box kid">
+  <div class="name">Tapes from packages</div>
+  
+  <div class="what">Packages written back to ENDF-6 where JANIS is the only source.</div>
+  <div class="where"><code>lake/_raw/janis-data-endf/</code></div>
+  <div class="size">8 releases</div>
+</div></li></ul>
+</div><div class="col derived">
+<div class="box kind" id="k-derived">
+  <div class="name">Derived work</div>
+  
+  <div class="what">What I built from the sources.</div>
+  <div class="where"><code>lake/sweep/</code> <code>lake/models/</code> <code>lake/serve/search/</code> <code>lake/elpis/</code> <code>lake/jobs/</code></div>
+  <div class="size">8 products</div>
+</div>
+<ul class="kids"><li><div class="box kid">
+  <div class="name">Sweep</div>
+  
+  <div class="what">Every EXFOR cross section compared with six evaluations.</div>
+  <div class="where"><code>lake/sweep/2026-11-10/</code> <code>nsr.sweep_*</code></div>
+  <div class="size">17 tables · 7.9M points · 111 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">nsr-encoder-v2</div>
+  
+  <div class="what">The search model (NSR-CPT) and its vectors.</div>
+  <div class="where"><code>lake/models/</code> <code>work/search/v2/</code> <code>work/embed-v2/</code></div>
+  <div class="size">1.87M documents · 3.0 GB model · 1.2 GB index · 53.2 GB training</div>
+</div></li><li><div class="box kid">
+  <div class="name">Keyword search</div>
+  
+  <div class="what">Full-text index over every dataset and paper.</div>
+  <div class="where"><code>lake/serve/search/2026-11-08/</code> <code>nsr.search_*</code></div>
+  <div class="size">675K records · 0.3 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Elpis book index</div>
+  
+  <div class="what">JANIS's books matched to the lake, per nuclide and reaction.</div>
+  <div class="where"><code>lake/elpis/2026-11-11/</code></div>
+  <div class="size">7 books · 1.4K nuclides · 7.3K pages · 41 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">GNDS copies</div>
+  <div class="full">Generalised Nuclear Database Structure</div>
+  <div class="what">Nine releases compiled to GNDS 2.0 with FUDGE 6.14.0.</div>
+  <div class="where"><code>lake/gnds/&lt;release&gt;/</code> <code>nsr.gnds_files</code></div>
+  <div class="size">56K of 69K materials · 30.6 GB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Cross-checks</div>
+  
+  <div class="what">ICRP 107 and ENDF decay half-lives against ENSDF.</div>
+  <div class="where"><code>nsr.icrp107_vs_ensdf</code> <code>nsr.endf_decay_vs_ensdf</code></div>
+  <div class="size">1.2K rows · 23K rows</div>
+</div></li><li><div class="box kid">
+  <div class="name">Broadening jobs</div>
+  
+  <div class="what">Cross sections broadened to a temperature on request.</div>
+  <div class="where"><code>lake/jobs/</code> <code>DynamoDB nsrgpt-jobs</code></div>
+  <div class="size">88 jobs · 20 MB</div>
+</div></li><li><div class="box kid">
+  <div class="name">Chart data</div>
+  
+  <div class="what">The data files the app's charts read.</div>
+  <div class="where"><code>site/viz-data/</code> <code>lake/serve/diagram/</code></div>
+  <div class="size">361 files · 21 MB</div>
+</div></li></ul>
+</div><div class="col code">
+<div class="box kind" id="k-code">
+  <div class="name">Source code</div>
+  
+  <div class="what">Code that reads and processes the data, at pinned commits.</div>
+  <div class="where"><code>raw/github/</code> <code>raw/pypi/</code></div>
+  <div class="size">58 repositories · 5 packages · 6.0 GB</div>
+</div>
+<ul class="kids"><li><div class="box kid">
+  <div class="name">Processing codes</div>
+  
+  <div class="what">NJOY2016, NJOY21, PREPRO, FUDGE 6.14.0, ENDFtk, OpenMC.</div>
+  <div class="where"><code>raw/github/&lt;owner&gt;/&lt;repo&gt;/</code></div>
+  
+</div></li><li><div class="box kid">
+  <div class="name">EXFOR and ENDF tools</div>
+  
+  <div class="what">IAEA-NDS's 50 repositories, x4i3, endf-python, sandy.</div>
+  <div class="where"><code>raw/github/IAEA-NDS/</code></div>
+  
+</div></li><li><div class="box kid">
+  <div class="name">Python packages</div>
+  
+  <div class="what">endf, endf-parserpy, x4i3, sandy, fudge.</div>
+  <div class="where"><code>raw/pypi/2026-11-07/</code></div>
+  <div class="size">5 packages · 59 MB</div>
+</div></li></ul>
+</div></div>
+<div class="l3" id="families"><div class="fam">
+<div class="box family" id="f-endfb">
+  <div class="name">ENDF/B</div>
+  <div class="full">Evaluated Nuclear Data File, version B</div>
+  <div class="what">The US library, kept by CSEWG and published by NNDC.</div>
+  
+  <div class="size">22K materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-B-VIII-1">
+  <div class="rname">B-VIII.1</div>
+  <div class="rsize">5.1K materials · 117K sections · 2.6M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="on" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel focus" id="r-B-VIII-0">
+  <div class="rname">B-VIII.0</div>
+  <div class="rsize">5K materials · 105K sections · 2M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="on" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-VII-1">
+  <div class="rname">B-VII.1</div>
+  <div class="rsize">4.8K materials · 66K sections · 1.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-VII-0">
+  <div class="rname">B-VII.0</div>
+  <div class="rsize">4.8K materials · 57K sections · 1.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-VI-8">
+  <div class="rname">B-VI.8</div>
+  <div class="rsize">2.1K materials · 46K sections · 1.4M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-VI-8-HE">
+  <div class="rname">B-VI.8-HE</div>
+  <div class="rsize">8 materials · 184 sections · 36K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-V">
+  <div class="rname">B-V</div>
+  <div class="rsize">130 materials · 7.3K sections · 312K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-IV">
+  <div class="rname">B-IV</div>
+  <div class="rsize">90 materials · 4.5K sections · 249K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-III">
+  <div class="rname">B-III</div>
+  <div class="rsize">135 materials · 3.7K sections · 194K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-B-II">
+  <div class="rname">B-II</div>
+  <div class="rsize">68 materials · 1.8K sections · 107K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-jeff">
+  <div class="name">JEFF</div>
+  <div class="full">Joint Evaluated Fission and Fusion File</div>
+  <div class="what">The NEA Data Bank's library; JEF-2.2 came before it.</div>
+  
+  <div class="size">37K materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-JEFF-4-0">
+  <div class="rname">JEFF-4.0</div>
+  <div class="rsize">5.7K materials · 141K sections · 3M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEFF-3-3">
+  <div class="rname">JEFF-3.3</div>
+  <div class="rsize">18K materials · 1.2M sections · 9.9M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEFF-3-2">
+  <div class="rname">JEFF-3.2</div>
+  <div class="rsize">472 materials · 66K sections · 1.9M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEFF-3-1-2">
+  <div class="rname">JEFF-3.1.2</div>
+  <div class="rsize">381 materials · 29K sections · 1.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEFF-3-1-1">
+  <div class="rname">JEFF-3.1.1</div>
+  <div class="rsize">4.3K materials · 34K sections · 1.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEFF-3-1">
+  <div class="rname">JEFF-3.1</div>
+  <div class="rsize">4.3K materials · 34K sections · 1.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEFF-3-0">
+  <div class="rname">JEFF-3.0</div>
+  <div class="rsize">345 materials · 19K sections · 771K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEF-2-2">
+  <div class="rname">JEF-2.2</div>
+  <div class="rsize">2.8K materials · 22K sections · 658K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-JEFF-3-0-A">
+  <div class="rname">JEFF-3.0/A <span class="tag">arriving</span></div>
+  <div class="rsize">Activation file; not yet held</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-jendl">
+  <div class="name">JENDL</div>
+  <div class="full">Japanese Evaluated Nuclear Data Library</div>
+  <div class="what">JAEA's library and its special-purpose files.</div>
+  
+  <div class="size">16K materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-JENDL-5">
+  <div class="rname">JENDL-5</div>
+  <div class="rsize">8.2K materials · 256K sections · 7.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-4-0">
+  <div class="rname">JENDL-4.0</div>
+  <div class="rsize">661 materials · 43K sections · 1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-JENDL-4-0u">
+  <div class="rname">JENDL-4.0u <span class="tag">arriving</span></div>
+  <div class="rsize">406 materials parsed (37K sections · 1M points); serving copy holds 100</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-4-0-HE">
+  <div class="rname">JENDL-4.0-HE</div>
+  <div class="rsize">263 materials · 15K sections · 529K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-3-3">
+  <div class="rname">JENDL-3.3</div>
+  <div class="rsize">337 materials · 24K sections · 518K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-HE-2007">
+  <div class="rname">JENDL-HE-2007</div>
+  <div class="rsize">212 materials · 13K sections · 397K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-AC-2008">
+  <div class="rname">JENDL-AC-2008</div>
+  <div class="rsize">79 materials · 4.5K sections · 156K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-AD-2017">
+  <div class="rname">JENDL-AD-2017</div>
+  <div class="rsize">312 materials · 8.7K sections · 13M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-AN-2005">
+  <div class="rname">JENDL-AN-2005</div>
+  <div class="rsize">17 materials · 218 sections · 24K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-DEU-2020">
+  <div class="rname">JENDL-DEU-2020</div>
+  <div class="rsize">5 materials · 25 sections · 680 points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-PD-2004">
+  <div class="rname">JENDL-PD-2004</div>
+  <div class="rsize">68 materials · 1.1K sections · 103K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-PD-2016">
+  <div class="rname">JENDL-PD-2016</div>
+  <div class="rsize">2.7K materials · 12K sections · 374K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-PD-2016-1">
+  <div class="rname">JENDL-PD-2016.1</div>
+  <div class="rsize">2.7K materials · 12K sections · 394K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-DDF-2015">
+  <div class="rname">JENDL-DDF-2015</div>
+  <div class="rsize">Decay: 3K materials · 208K lines</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-FPD-2000">
+  <div class="rname">JENDL-FPD-2000</div>
+  <div class="rsize">Decay: 1.1K materials · 51K lines</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-FPD-2011">
+  <div class="rname">JENDL-FPD-2011</div>
+  <div class="rsize">Decay: 1.1K materials · 62K lines</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JENDL-FPY-2011">
+  <div class="rname">JENDL-FPY-2011</div>
+  <div class="rsize">Fission yields: 40 materials · 156K yields</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-tendl">
+  <div class="name">TENDL</div>
+  <div class="full">TALYS-based Evaluated Nuclear Data Library</div>
+  <div class="what">Computed with the TALYS code for nearly every nuclide.</div>
+  
+  <div class="size">20K materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-TENDL-2023">
+  <div class="rname">TENDL-2023</div>
+  <div class="rsize">20K materials · 2.1M sections · 21M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2019">
+  <div class="rname">TENDL-2019 <span class="tag">arriving</span></div>
+  <div class="rsize">Publisher files and JANIS package (15.5 GB) held</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2017">
+  <div class="rname">TENDL-2017 <span class="tag">arriving</span></div>
+  <div class="rsize">Publisher files and JANIS package (14.2 GB) held</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2015">
+  <div class="rname">TENDL-2015 <span class="tag">arriving</span></div>
+  <div class="rsize">Publisher files and JANIS package (9.7 GB) held</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2014">
+  <div class="rname">TENDL-2014 <span class="tag">arriving</span></div>
+  <div class="rsize">JANIS package held (9.1 GB)</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2013">
+  <div class="rname">TENDL-2013 <span class="tag">arriving</span></div>
+  <div class="rsize">JANIS package (9.0 GB) written back to ENDF-6</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2012">
+  <div class="rname">TENDL-2012 <span class="tag">arriving</span></div>
+  <div class="rsize">JANIS package held (9.7 GB)</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2011">
+  <div class="rname">TENDL-2011 <span class="tag">arriving</span></div>
+  <div class="rsize">JANIS package held (8.2 GB)</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2010">
+  <div class="rname">TENDL-2010 <span class="tag">arriving</span></div>
+  <div class="rsize">JANIS package held (4.4 GB)</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-TENDL-2009">
+  <div class="rname">TENDL-2009 <span class="tag">arriving</span></div>
+  <div class="rsize">JANIS package held (1.7 GB); its curves decoded</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-cendl">
+  <div class="name">CENDL</div>
+  <div class="full">Chinese Evaluated Nuclear Data Library</div>
+  <div class="what">The China Nuclear Data Center's library.</div>
+  
+  <div class="size">578 materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-CENDL-3-2">
+  <div class="rname">CENDL-3.2</div>
+  <div class="rsize">272 materials · 29K sections · 1.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="on" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-CENDL-3-1">
+  <div class="rname">CENDL-3.1</div>
+  <div class="rsize">240 materials · 20K sections · 776K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-CENDL-2-1">
+  <div class="rname">CENDL-2.1</div>
+  <div class="rsize">66 materials · 5.5K sections · 223K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-brond">
+  <div class="name">BROND</div>
+  <div class="full">Russian library of recommended evaluated neutron data</div>
+  <div class="what">IPPE Obninsk's library.</div>
+  
+  <div class="size">493 materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-BROND-3-1">
+  <div class="rname">BROND-3.1</div>
+  <div class="rsize">372 materials · 44K sections · 1.4M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-BROND-2-2">
+  <div class="rname">BROND-2.2</div>
+  <div class="rsize">121 materials · 8.2K sections · 211K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-rusfond">
+  <div class="name">RUSFOND</div>
+  <div class="full">Russian national library of evaluated neutron data</div>
+  <div class="what">Also written ROSFOND.</div>
+  
+  <div class="size">686 materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-RUSFOND-2010">
+  <div class="rname">RUSFOND-2010</div>
+  <div class="rsize">686 materials · 41K sections · 1.4M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-fendl">
+  <div class="name">FENDL</div>
+  <div class="full">Fusion Evaluated Nuclear Data Library</div>
+  <div class="what">IAEA's library for fusion devices.</div>
+  
+  <div class="size">71 materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-FENDL-2-1">
+  <div class="rname">FENDL-2.1</div>
+  <div class="rsize">71 materials · 7.1K sections · 500K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-FENDL-3-1b">
+  <div class="rname">FENDL-3.1b <span class="tag">arriving</span></div>
+  <div class="rsize">Parsed: 180 materials · 25K sections · 21M points</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-FENDL-2-1-MG">
+  <div class="rname">FENDL-2.1 MG <span class="tag">arriving</span></div>
+  <div class="rsize">JANIS package held (51 MB)</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-irdff">
+  <div class="name">IRDFF / IRDF</div>
+  <div class="full">International Reactor Dosimetry and Fusion File / International Reactor Dosimetry File</div>
+  <div class="what">Reactions used to measure neutron fields.</div>
+  
+  <div class="size">364 materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-IRDFF-II">
+  <div class="rname">IRDFF-II</div>
+  <div class="rsize">70 materials · 470 sections · 2.4M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-IRDFF-1-05">
+  <div class="rname">IRDFF-1.05</div>
+  <div class="rsize">56 materials · 364 sections · 5.6M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-IRDFF-1-0">
+  <div class="rname">IRDFF-1.0</div>
+  <div class="rsize">53 materials · 338 sections · 5.1M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-IRDF-2002">
+  <div class="rname">IRDF-2002</div>
+  <div class="rsize">135 materials · 464 sections · 1.5M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-IRDF-2002-MG">
+  <div class="rname">IRDF-2002-MG</div>
+  <div class="rsize">50 materials · 252 sections · 24K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-IRDFF-1-0-640g">
+  <div class="rname">IRDFF-1.0-640g <span class="tag">arriving</span></div>
+  <div class="rsize">Parsed: 55 materials · 349 sections · 55K points</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-eaf">
+  <div class="name">EAF</div>
+  <div class="full">European Activation File</div>
+  <div class="what">Activation reactions for inventory codes, from UKAEA.</div>
+  
+  <div class="size">816 materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-EAF-2010">
+  <div class="rname">EAF-2010</div>
+  <div class="rsize">816 materials · 151K sections · 6.3M points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-EAF-2007">
+  <div class="rname">EAF-2007</div>
+  <div class="rsize">Publisher files and JANIS package held; its curves decoded</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-gefy">
+  <div class="name">GEFY</div>
+  <div class="full">GEF-based fission yields (GEF: General description of Fission observables)</div>
+  <div class="what">Fission yields computed with the GEF model.</div>
+  
+  
+</div>
+<ul class="rels"><li><div class="rel arriving" id="r-GEFY-3-3">
+  <div class="rname">GEFY-3.3 <span class="tag">arriving</span></div>
+  <div class="rsize">Parsed: 234 materials · 4.6M yields</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-GEFY-4-2">
+  <div class="rname">GEFY-4.2 <span class="tag">arriving</span></div>
+  <div class="rsize">Parsed: 228 materials · 11M yields</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel arriving" id="r-GEFY-5-2">
+  <div class="rname">GEFY-5.2 <span class="tag">arriving</span></div>
+  <div class="rsize">370 materials listed; yields not yet parsed</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-GEFY-5-3">
+  <div class="rname">GEFY-5.3</div>
+  <div class="rsize">49 materials listed; yields not yet parsed</div>
+  
+  <span class="chips"><i class="" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-GEFY-6-1">
+  <div class="rname">GEFY-6.1</div>
+  <div class="rsize">370 materials · 20M yields</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-GEFY-6-2">
+  <div class="rname">GEFY-6.2</div>
+  <div class="rsize">370 materials · 18M yields</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-GEFY-8-1">
+  <div class="rname">GEFY-8.1</div>
+  <div class="rsize">362 materials · 17M yields</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-GEFY-9-1">
+  <div class="rname">GEFY-9.1</div>
+  <div class="rsize">370 materials · 17M yields</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-pd">
+  <div class="name">IAEA-PD</div>
+  <div class="full">IAEA Photonuclear Data Library</div>
+  <div class="what">Reactions induced by gamma rays.</div>
+  
+  <div class="size">219 materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-IAEA-PD-2019">
+  <div class="rname">IAEA-PD-2019</div>
+  <div class="rsize">219 materials · 4.6K sections · 179K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-padf">
+  <div class="name">PADF</div>
+  <div class="full">Proton Activation Data File</div>
+  <div class="what">Activation reactions induced by protons.</div>
+  
+  <div class="size">2.4K materials served</div>
+</div>
+<ul class="rels"><li><div class="rel" id="r-PADF-2007">
+  <div class="rname">PADF-2007</div>
+  <div class="rsize">2.4K materials · 7.1K sections · 543K points</div>
+  
+  <span class="chips"><i class="on" title="Original files">O</i><i class="on" title="Parsed tables">T</i><i class="on" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div><div class="fam">
+<div class="box family" id="f-files">
+  <div class="name">Not parsed</div>
+  
+  <div class="what">Held as the publisher's files; no tables yet.</div>
+  
+  
+</div>
+<ul class="rels"><li><div class="rel" id="r-IAEA-ENDF-archive">
+  <div class="rname">IAEA ENDF archive</div>
+  <div class="rsize">INDEN, ADS, UKDD-12, FENDL-3.2, 3.2b, 3.2c, 3.1c, TENDL-2021 and about 40 more</div>
+  <div class="where"><code>raw/iaea/2026-11-07/public/download-endf/</code></div>
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-OpenMC-HDF5-libraries">
+  <div class="rname">OpenMC HDF5 libraries</div>
+  <div class="rsize">B-VII.1, VIII.0, VIII.1, JEFF-3.2, 3.3, 4.0, JENDL-5, FENDL-3.2 · 47.5 GB</div>
+  <div class="where"><code>raw/openmc/2026-11-07/</code></div>
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-NNDC-Sigma-copies">
+  <div class="rname">NNDC Sigma copies</div>
+  <div class="rsize">JEFF-3.1, JENDL-4.0, JENDL-3.3, ROSFOND, CENDL-3.1 · 2.7 GB</div>
+  <div class="where"><code>raw/nndc-sigma/2026-11-07/</code></div>
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-JEFF-3-1-A">
+  <div class="rname">JEFF-3.1/A</div>
+  <div class="rsize">Activation tape · 116 MB</div>
+  <div class="where"><code>lake/_raw/JEFF-3.1-A/</code></div>
+  <span class="chips"><i class="on" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li><li><div class="rel" id="r-Thermal-scattering">
+  <div class="rname">Thermal scattering</div>
+  <div class="rsize">JANIS packages for B-VI.8, B-VII.0, JEFF-3.0, JEFF-3.1</div>
+  <div class="where"><code>lake/_raw/janis-data/TSL/</code></div>
+  <span class="chips"><i class="" title="Original files">O</i><i class="" title="Parsed tables">T</i><i class="" title="Serving copy">S</i><i class="" title="POINT files">P</i><i class="on" title="JANIS package">J</i><i class="" title="GNDS copy">G</i></span>
+</div></li></ul>
+</div></div>
+<div class="l4"><div class="forms" id="forms">
+<div class="fh"></div><div class="fh" id="form-O"><i class="chip on">O</i>Original files</div><div class="fh" id="form-T"><i class="chip on">T</i>Parsed tables</div><div class="fh" id="form-S"><i class="chip on">S</i>Serving copies</div><div class="fh" id="form-J"><i class="chip on">J</i>JANIS package</div><div class="fh" id="form-R">API routes and pages</div>
+<div class="fsrc eval" id="c-endf"><div class="fsname">ENDF/B-VIII.0</div><div class="fssub">one release, every form</div></div>
+<div class="fc"><div class="fbox"><div class="fname">NNDC's release archive</div><div class="where"><code>raw/nndc/2026-11-07/endf-releases/releases/B-VIII.0/</code></div><div class="size">5,072 files read · 512 MB</div></div><div class="fbox"><div class="fname">NNDC's POINT2018 files</div><div class="where"><code>raw/nndc/2026-11-07/endf-library/B-VIII.0/POINT2018/</code></div><div class="size">15 files · 6.9 GB</div></div></div><div class="fc"><div class="fbox"><div class="fname">Parsed tables</div><div class="where"><code>lake/endfb/B-VIII.0/</code> <code>nsr.endfb_*</code></div><div class="size">3.9K files · 2.7 GB</div><table class="tl"><tr><td><code>endfb_materials</code></td><td class="file">File 1</td><td>material header</td><td class="num">5K</td></tr><tr><td><code>endfb_sections</code></td><td class="file">every File</td><td>index of every section</td><td class="num">105K</td></tr><tr><td><code>endfb_records</code></td><td class="file">every File</td><td>every line of the file</td><td class="num">26M</td></tr><tr><td><code>endfb_xs_points</code></td><td class="file">File 3</td><td>cross sections</td><td class="num">2M</td></tr><tr id="t-res"><td><code>endfb_res_ranges</code></td><td class="file">File 2</td><td>resonance energy ranges</td><td class="num">884</td></tr><tr><td><code>endfb_res_params</code></td><td class="file">File 2</td><td>resonance parameters</td><td class="num">116K</td></tr><tr><td><code>endfb_res_cov</code></td><td class="file">File 32</td><td>resonance covariances</td><td class="num">12M</td></tr><tr><td><code>endfb_cov</code></td><td class="file">File 33</td><td>cross-section covariances</td><td class="num">8.3M</td></tr><tr><td><code>endfb_fy</code></td><td class="file">File 8</td><td>fission yields</td><td class="num">151K</td></tr><tr><td><code>endfb_decay, _modes, _lines</code></td><td class="file">File 8</td><td>decay data</td><td class="num">225K</td></tr><tr><td><code>endfb_ang</code></td><td class="file">File 4</td><td>angular distributions</td><td class="num">4.5M</td></tr><tr><td><code>endfb_edist</code></td><td class="file">File 5</td><td>energy distributions</td><td class="num">1.2M</td></tr><tr><td><code>endfb_eang</code></td><td class="file">File 6</td><td>energy-angle distributions</td><td class="num">43M</td></tr><tr><td><code>endfb_mult</code></td><td class="file">Files 9, 10</td><td>multiplicities, production</td><td class="num">30K</td></tr><tr><td><code>endfb_photon_xs</code></td><td class="file">Files 12, 13</td><td>photon yields and cross sections</td><td class="num">172K</td></tr><tr><td><code>endfb_photon_ang</code></td><td class="file">File 14</td><td>photon angular distributions</td><td class="num">19K</td></tr><tr><td><code>endfb_photon_edist</code></td><td class="file">File 15</td><td>photon energy distributions</td><td class="num">393K</td></tr>
+<tr><td colspan="4" class="note">Files 7, 23–28, 31, 34, 35, 40: sections listed in <code>endfb_sections</code>, lines in <code>endfb_records</code>, no value table.</td></tr></table></div><div class="fbox"><div class="fname">POINT releases, parsed the same way</div><div class="where"><code>lake/endfb/B-VIII.0-point-&lt;T&gt;/</code></div><div class="size">7 temperatures, 0 to 1800 K · 557 materials · 23M–55M points each</div></div></div><div class="fc"><div class="fbox"><div class="fname">Serving copy</div><div class="where"><code>lake/serve/endf/B-VIII.0/</code> <code>endf_serve_xs</code></div><div class="size">2 files · 18 MB · held in memory by nsr-api (larger releases: xs_index + series.bin)</div></div><div class="fbox"><i class="chip on">P</i><div class="fname">POINT serving copies</div><div class="where"><code>lake/serve/endf/B-VIII.0-point-&lt;T&gt;/</code> <code>xs_index</code> <code>series.bin</code></div><div class="size">7 temperatures · 608 MB at 293.6 K · rows thinned to 40,002 points</div></div><div class="fbox"><i class="chip on">G</i><div class="fname">GNDS copy</div><div class="where"><code>lake/gnds/B-VIII.0/</code></div><div class="size">5K of 5K materials · 878 MB</div></div><div class="fbox"><div class="fname">Files 4–15 summaries</div><div class="where"><code>lake/endfb/B-VIII.0/mf4_15/</code></div></div></div><div class="fc"><div class="fbox"><div class="fname">JANIS's package</div><div class="where"><code>lake/_raw/janis-data/ENDFB/8.0/</code></div><div class="size">.jpk, interface and covariance files · 5 files · 903 MB</div></div><div class="fbox"><div class="fname">Its curves, decoded</div><div class="where"><code>lake/serve/endf/B-VIII.0-janis/</code></div><div class="size">File 3 as JANIS draws it, 293.6 K · 1.6 GB</div></div></div><div class="fc"><div class="fbox"><ul class="routes"><li><code>/endf/xs</code> <span>serving copy, POINT (temp=), JANIS (janis=1)</span></li><li><code>/endf/materials</code></li><li><code>/endf/resonances</code> <span>File 2</span></li><li><code>/endf/resonances/cov</code> <span>File 32</span></li><li><code>/endf/cov</code> <span>File 33</span></li><li><code>/endf/fy</code> <span>File 8</span></li><li><code>/endf/decay</code> <span>File 8</span></li><li><code>/endf/section</code> <span>Files 4–15</span></li><li><code>/endf/material/{release}/{mat}</code> <span>records</span></li><li><code>/gnds</code> <span>GNDS</span></li><li><code>/jobs</code> <span>broadening</span></li></ul><div class="pages"><code>/elpis/book</code> <code>/datasets/endf</code> <code>/lab</code> <code>/sweep</code> <code>/gnds</code> <code>/graph</code></div></div></div>
+<div class="fsrc meas" id="c-exfor"><div class="fsname">EXFOR</div></div>
+<div class="fc"><div class="fbox"><div class="fname">IAEA's X4Pro and C5 archives</div><div class="where"><code>raw/iaea/2026-11-07/cdroms/dwn/</code></div></div><div class="fbox"><div class="fname">IAEA's EXFOR JSON (J4)</div><div class="where"><code>raw/github/IAEA-NDS/EXFOR-JSON-File/</code></div></div></div><div class="fc"><div class="fbox"><div class="fname">Parsed tables</div><div class="where"><code>nsr.exfor_j4_*</code> <code>nsr.exfor_x4pro_*</code> <code>nsr.exfor_x25_*</code> <code>nsr.exfor_c5_*</code> <code>nsr.exfor_dict_*</code></div><div class="size">76M values (J4) · 12M points (C5)</div></div></div><div class="fc"><div class="fbox"><div class="fname">Serving copies</div><div class="where"><code>lake/serve/exfor/2026-10-28/</code> <code>exfor_serve_search_index</code> <code>exfor_serve_points</code></div><div class="size">190K datasets · 18M points (one file per element) · 306 MB</div></div></div><div class="fc"><div class="fbox"><div class="fname">JANIS's package</div><div class="where"><code>lake/_raw/janis-data/EXFOR/all/</code></div><div class="size">17.8 GB · not decoded</div></div></div><div class="fc"><div class="fbox"><ul class="routes"><li><code>/exfor/search</code></li><li><code>/exfor/points</code></li><li><code>/exfor/subentry/{id}</code></li><li><code>/exfor/entry/{id}</code></li><li><code>/exfor/pickers/{name}</code></li></ul><div class="pages"><code>/datasets/exfor</code> <code>/elpis/search</code> <code>/elpis/book</code> <code>/lab</code> <code>/sweep</code></div></div></div>
+<div class="fsrc struct" id="c-ensdf"><div class="fsname">ENSDF and XUNDL</div></div>
+<div class="fc"><div class="fbox"><div class="fname">NNDC's archives</div><div class="where"><code>raw/nndc/2026-11-07/ensdfarchivals/</code> <code>raw/nndc/2026-11-07/xundlarchivals/</code></div><div class="size">ensdf_261105.zip · xundl_261001.zip</div></div></div><div class="fc"><div class="fbox"><div class="fname">Parsed tables</div><div class="where"><code>nsr.ensdf_*</code> <code>nsr.xundl_*</code></div><div class="size">16 tables each · 20K + 13K datasets</div></div></div><div class="fc"><div class="fbox"><div class="fname">Serving copies</div><div class="where"><code>lake/serve/nuclide/2026-11-05/</code> <code>nuclide_serve_*</code></div><div class="size">3.4K nuclides · 195K levels · 299K gammas · 4.5K decays · 9.8 MB</div></div></div><div class="fc"><div class="fbox empty">none</div></div><div class="fc"><div class="fbox"><ul class="routes"><li><code>/nuclide/{name}</code></li><li><code>/nuclide/{name}/levels</code></li><li><code>/nuclide/{name}/gammas</code></li><li><code>/dataset/ensdf</code></li><li><code>/dataset/xundl</code></li></ul><div class="pages"><code>/graph</code> <code>/datasets/ensdf</code> <code>/datasets/xundl</code> <code>/viz/*</code></div></div></div>
+<div class="fsrc lit" id="c-nsr"><div class="fsname">NSR</div></div>
+<div class="fc"><div class="fbox"><div class="fname">Aurora export</div><div class="size">Snapshot nsr-final-2026-10-15, RDS export nsr-to-lake-2026-11-04 (Old account)</div></div><div class="fbox"><div class="fname">NNDC's NSR archive</div><div class="where"><code>raw/nndc/2026-11-07/</code></div></div></div><div class="fc"><div class="fbox"><div class="fname">Parsed tables</div><div class="where"><code>lake/nsr-database/2026-10-15/</code> <code>nsr.nsr_*</code></div><div class="size">42 tables · 304K papers · 1.4M author links · 1.2M nuclide links</div></div></div><div class="fc"><div class="fbox"><div class="fname">Serving copies</div><div class="where"><code>nsr.search_nsr</code> <code>search.duckdb</code> <code>work/search/v2/</code></div><div class="size">255K references · 675K search records · 1.87M encoder documents</div></div></div><div class="fc"><div class="fbox empty">none</div></div><div class="fc"><div class="fbox"><ul class="routes"><li><code>/nsr/{key}</code></li><li><code>/search</code></li><li><code>/suggest</code></li></ul><div class="pages"><code>/search</code> <code>/chat</code></div></div></div>
+</div></div>
+<table class="terms"><thead><tr><th>Term</th><th>Meaning</th><th>Other names</th><th>On the chart</th></tr></thead><tbody>
+<tr><td><b>Library</b></td><td>A collection of evaluated data from one publisher.</td><td>Docs use it for a family (JEFF) and for one release (JEFF-3.3); JANIS calls each release a library. The chart says family and release.</td><td><a href="#families">Families</a></td></tr><tr><td><b>Release</b></td><td>One published version of a family, as ENDF/B-VIII.0. The lake names it as JANIS labels it, without “ENDF/” (B-VIII.0).</td><td>Version</td><td><a href="#r-B-VIII-0">B-VIII.0</a></td></tr><tr><td><b>Material</b></td><td>One target's evaluation inside a release, numbered by MAT (U-235 is 9228).</td><td>Nuclide, isotope. The chart says material.</td><td><a href="#r-B-VIII-0">B-VIII.0</a></td></tr><tr><td><b>Section (MF/MT)</b></td><td>One block of a material: MF is the File number (the kind of data), MT the reaction (18 fission, 102 capture).</td><td>“MF 3” and “File 3” are the same. The chart says File.</td><td><a href="#form-T">Parsed tables</a></td></tr><tr><td><b>Evaluation</b></td><td>An evaluator's recommended values for a material, from measurements and models.</td><td>Evaluated data, as against EXFOR's measured data.</td><td><a href="#k-eval">Evaluated reaction libraries</a></td></tr><tr><td><b>Original files</b></td><td>The publisher's files exactly as released, kept unchanged.</td><td>Raw, tape, source files. The chart says original files.</td><td><a href="#form-O">Original files</a></td></tr><tr><td><b>Package</b></td><td>JANIS's own copy of a release (.jpk); its neutron File 3 is processed, not the evaluation.</td><td>janis/data, .jpk</td><td><a href="#s-jpk">JANIS packages</a></td></tr><tr><td><b>Parsed table</b></td><td>An Athena table holding a release's contents as rows, one partition per release.</td><td>Lake table</td><td><a href="#form-T">Parsed tables</a></td></tr><tr><td><b>Serving copy</b></td><td>A smaller copy of parsed tables, built for the API to read quickly.</td><td>Serving table. The chart says serving copy.</td><td><a href="#form-S">Serving copies</a></td></tr><tr><td><b>Resonance</b></td><td>A sharp peak in a cross section where the nucleus has a level; File 2 stores its parameters.</td><td>Resonance parameters, MF 2</td><td><a href="#t-res">endfb_res_ranges</a></td></tr><tr><td><b>Reconstructed curve</b></td><td>A cross section rebuilt point by point from File 2 and File 3's background, usually at a temperature.</td><td>Pointwise, POINT, linearized, broadened. The chart says reconstructed curve.</td><td><a href="#form-S">POINT serving copies</a></td></tr>
+</tbody></table>
+</main>
+</body>
+</html>
