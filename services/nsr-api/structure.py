@@ -60,13 +60,18 @@ JANIS = ["B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-VI.8-HE", "JEFF-4.0", "J
          "JENDL-HE-2007", "JENDL-AC-2008", "JENDL-AD-2017", "JENDL-AN-2005", "JENDL-DEU-2020", "JENDL-PD-2004",
          "JENDL-PD-2016", "JENDL-PD-2016.1", "CENDL-3.2", "CENDL-3.1", "CENDL-2.1", "BROND-3.1", "BROND-2.2",
          "RUSFOND-2010", "FENDL-2.1", "EAF-2010", "EAF-2007", "IAEA-PD-2019", "PADF-2007", "IRDFF-II", "IRDFF-1.05",
-         "IRDFF-1.0", "IRDF-2002", "IRDF-2002-MG"]
+         "IRDFF-1.0", "IRDF-2002", "IRDF-2002-MG", "FENDL-3.1b", "IRDFF-1.0-640g", "TENDL-2019", "TENDL-2017",
+         "TENDL-2015", "TENDL-2014", "TENDL-2013", "TENDL-2012", "TENDL-2011", "TENDL-2010", "TENDL-2009"]
 POINT_RELEASES += [f"{r}-janis" for r in JANIS]
 # Releases JANIS Web draws whose package lacks the sublibrary (JEFF-3.1's holds protons only): reconstructed in advance
 # from their own MF2 with brief 74 B1's settings (NJOY2016 reconr 0.05%, broadr 293.6 K; scripts/recon/recon.py), as
 # <release>-recon-0K and -recon-293.6K, served with janis=1 after the -janis release.
-RECON = []
+RECON = ["JEFF-3.1"]
 POINT_RELEASES += [f"{r}-recon-{t}" for r in RECON for t in ("0K", "293.6K")]
+# TENDL's own TALYS fission curves (MT 18), which no TENDL ENDF file holds but JANIS draws (lane A's
+# nsr.tendl_talys_fission; janis_serve.py --talys): <release>-talys, served with janis=1 after <release>-janis.
+TALYS = ["TENDL-2019"]
+POINT_RELEASES += [f"{r}-talys" for r in TALYS]
 TEMPS = ["0K", "293.6K"] + HOT
 DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
 PAGE = 500
@@ -300,7 +305,7 @@ def xs(q):
         if r in POINT_RELEASES:
             cands = [r]
         else:  # JANIS's curve first when asked for (at its own 293.6 K), then NNDC's POINT, then the MF3
-            cands = [f"{r}-janis", f"{r}-recon-293.6K"] if janis and temp_in in (None, "293.6K") else []
+            cands = [f"{r}-janis", f"{r}-talys", f"{r}-recon-293.6K"] if janis and temp_in in (None, "293.6K") else []
             cands += [f"{r}-recon-{temp}"] if janis else []
             cands += [f"{r}-point-{temp}"] if use_point else []
         for pr in (c for c in cands if c in POINT_RELEASES):
@@ -336,7 +341,8 @@ def xs(q):
                 item["temp_served"] = "293.6K"
             elif "-recon-" in served:
                 item["temp_served"] = served.rsplit("-", 1)[-1]
-            item["note"] = ((f"{row['computed']} of JANIS Web's own pointwise data, as JANIS computes it (293.6 K)"
+            item["note"] = (("TENDL's own TALYS fission curve (fission.tot), as JANIS draws it" if served.endswith("-talys")
+                             else f"{row['computed']} of JANIS Web's own pointwise data, as JANIS computes it (293.6 K)"
                              if served.endswith("-janis") and row.get("computed")
                              else "JANIS Web's own pointwise data (NEA janis/data package, 293.6 K)" if served.endswith("-janis")
                              else (f"reconstructed in advance from the File 2 resonance parameters (NJOY2016 reconr and broadr, "

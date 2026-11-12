@@ -1,5 +1,6 @@
 """Brief 74, B5: the rows JANIS computes that <release>-janis serves where File 3 has none (MT 4 as Sum(MT50-91)), for
-scripts/elpis/book-index.mjs. Runs on a recon box; reads each -janis xs_index, writes lake/elpis/janis-computed.json.
+scripts/elpis/book-index.mjs. Runs on a recon box; reads each -janis xs_index, writes
+lake/_work/parse/endfb/recon/janis-computed.json (the box role cannot write lake/elpis/; copy it there from the Mac).
 
   janis_computed.py <release>...
 """
@@ -26,7 +27,7 @@ for rel in sys.argv[1:]:
         if r["computed"]:
             out.append({"release": rel, "sub": r["sublibrary"], "za": int(r["za"]), "liso": int(r["liso"] or 0),
                         "mt": r["mt"], "computed": r["computed"]})
-s3.put_object(Bucket=B, Key="lake/elpis/janis-computed.json", Body=json.dumps(out).encode(), ContentType="application/json")
+s3.put_object(Bucket=B, Key="lake/_work/parse/endfb/recon/janis-computed.json", Body=json.dumps(out).encode(), ContentType="application/json")
 by = {}
 for r in out:
     by[(r["release"], r["sub"])] = by.get((r["release"], r["sub"]), 0) + 1

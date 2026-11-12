@@ -3,6 +3,8 @@ Runs on a recon box (scripts/recon/userdata.sh), never on the Mac.
 
   janis_serve.py <release>...        e.g. B-VIII.0 JEFF-3.3 JENDL-4.0u
   janis_serve.py --list              the package each release maps to, and whether its files are in the lake
+  janis_serve.py --loop              serve each release once its package is complete (claims; several boxes at once)
+  janis_serve.py --talys <release>…  TENDL's TALYS fission curves (MT 18, no ENDF file holds them) as <release>-talys
 
 Per release: its package's .jpk files from lake/_raw/janis-data/<NAME>/<VERSION>/ (NEA GitLab janis/data, copied by
 lane A), every MF3 section of every sublibrary decoded (jpk.py), named from lake/serve/endf/<release>/materials/ by
@@ -282,9 +284,71 @@ def loop():
         time.sleep(300)
 
 
+def talys(rel):
+    """TENDL's own TALYS fission curves (MT 18; nsr.tendl_talys_fission, lane A, JANIS's point rule already applied), which
+    no TENDL ENDF file holds but JANIS draws: lake/serve/endf/<rel>-talys/, served by /endf/xs janis=1 after <rel>-janis.
+    Named from the lake's materials, else from <rel>-janis, by sublibrary, ZA and LISO."""
+    t0 = time.time()
+    t = pq.read_table(io.BytesIO(recon.s3().get_object(
+        Bucket=B, Key=f"lake/serve/tendl_talys/release={rel}/fission.parquet")["Body"].read())).to_pylist()
+    names = {}
+    for src in (f"lake/serve/endf/{rel}-janis/xs_index/part-00000.parquet", None):
+        try:
+            if src:
+                rows = pq.read_table(io.BytesIO(recon.s3().get_object(Bucket=B, Key=src)["Body"].read()),
+                                     columns=["sublibrary", "za", "liso", "name", "mat", "z", "a"]).to_pylist()
+            else:
+                rows = recon.dataset(f"lake/serve/endf/{rel}/materials/").to_table(
+                    columns=["sublibrary", "za", "liso", "name", "mat", "z", "a"]).to_pylist()
+            for m in rows:
+                names[(m["sublibrary"], int(m["za"]), int(m["liso"] or 0))] = m
+        except Exception:  # noqa: BLE001
+            pass
+    curves = collections.defaultdict(list)
+    for r in t:
+        curves[(r["sublibrary"], int(r["za"]), int(r["liso"] or 0), r["mt"])].append((r["point_seq"], r["energy_ev"], r["xs_barn"]))
+    name = f"{rel}-talys"
+    d = f"{WORK}/{name}"
+    shutil.rmtree(d, ignore_errors=True)
+    os.makedirs(d)
+    path = f"{d}/part-00000.parquet"
+    cols = {k: [] for k in SCHEMA.names}
+    for (sub, za, liso, mt), pts in sorted(curves.items()):
+        pts.sort()
+        e, x = [p[1] for p in pts], [p[2] for p in pts]
+        zz, aa = za // 1000, za % 1000
+        m = names.get((sub, za, liso)) or {"name": f"{SYM[zz]}-{aa}" + ("" if not liso else "m" if liso == 1 else f"m{liso}"),
+                                          "mat": 0, "z": zz, "a": aa}
+        vals = {"release": name, "sublibrary": sub, "name": m["name"], "z": m["z"], "a": m["a"], "liso": liso,
+                "za": float(za), "mat": m["mat"], "mt": mt, "n_points": len(e), "e_min": e[0], "e_max": e[-1],
+                "interp_nbt": [len(e)], "interp_law": [2], "qm": 0.0, "qi": 0.0, "lr": 0, "energy_ev": e, "xs_barn": x,
+                "n_served": len(e), "thinned": False, "computed": "TALYS fission.tot"}
+        for k, v in vals.items():
+            cols[k].append(v)
+    pq.write_table(pa.table(cols, schema=SCHEMA), path, compression="snappy", row_group_size=32)
+    sv = recon.serve_module()
+    prefix = f"lake/serve/endf/{name}/xs/"
+    sv.clear(prefix)
+    recon.s3().upload_file(path, B, f"{prefix}part-00000.parquet")
+    n_reg, _ = sv.register("endf_serve_xs", pq.read_schema(path), prefix,
+                           "ENDF/B MF3 cross sections as point arrays, one row each", partition=name, drop=False)
+    point_files_local(name, path)
+    man = {"release": rel, "served_as": name, "curves": len(curves), "points": len(t), "registered_rows": n_reg,
+           "named_from_lake": sum(1 for k in curves if k[:3] in names), "built_at": recon.now(),
+           "source": f"nsr.tendl_talys_fission (lake/serve/tendl_talys/release={rel}/fission.parquet, lane A)",
+           "seconds": round(time.time() - t0, 1)}
+    recon.put_json(f"lake/endfb/{rel}/janis/talys.json", man)
+    shutil.rmtree(d, ignore_errors=True)
+    print(json.dumps(man), flush=True)
+
+
 if __name__ == "__main__":
     if sys.argv[1:] == ["--loop"]:
         loop()
+        sys.exit()
+    if sys.argv[1:2] == ["--talys"]:
+        for r in sys.argv[2:]:
+            talys(r)
         sys.exit()
     pks = packages()
     if sys.argv[1:] == ["--list"]:
