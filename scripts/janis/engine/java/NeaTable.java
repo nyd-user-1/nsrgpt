@@ -20,7 +20,9 @@ import org.nea.janis.view.table.TableProducer;
 public class NeaTable {
     public static void main(String[] args) throws Exception {
         org.nea.janis.book.BarnBook.settingsInitialization();
-        JanisConnectionId id = JanisConnectionIdFactory.buildFromString("HTTP:label=NEA|url=http://www.oecd-nea.org/");
+        // a third argument: another JANIS connection (a local base) in place of NEA's, for a side-by-side
+        JanisConnectionId id = JanisConnectionIdFactory.buildFromString(args.length > 2 ? args[2] : "HTTP:label=NEA|url=http://www.oecd-nea.org/");
+        String conn = args.length > 2 ? id.getLabel() : "NEA";
         JanisConnectionsPool.add(id, true, false);
         JanisConnectionsPool.getInstance().waitForConnections();
         JanisReadConnection c = JanisConnectionsPool.getInstance().getConnection(id);
@@ -35,7 +37,7 @@ public class NeaTable {
             String status;
             try {
                 List<String> tokens = new ArrayList<>();
-                tokens.add("NEA");
+                tokens.add(conn);
                 for (String t : r.replaceFirst("^~", "").split("~")) tokens.add(t);
                 AbsoluteRefs a = new AbsoluteRefs(RefsParser.parseRelativesRefsSet(tokens.iterator()).getSimpleRefs());
                 JanisNode node = c.getJanisNode(a);

@@ -93,12 +93,12 @@ const SYM = ["n", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "M
 /** JANIS's material code to the book's nuclide label (JANIS's own rail titles): "Fe56" -> "26-Fe-56", "Fe0" -> "26-Fe-Nat",
  *  "Am242m" -> "95-Am-242m", "n" -> "0-n-1". */
 export function bookNuclide(code: string): string {
-  const m = /^([A-Za-z]+?)(\d*)([mn]?)$/.exec(code)
+  const m = /^([A-Za-z]+?)(\d+|Nat)?([mn]?)$/.exec(code)
   if (!m) return code
   if (m[1] === "n") return "0-n-1"
   const z = SYM.indexOf(m[1])
   if (z < 0) return code
-  return `${z}-${m[1]}-${!m[2] || m[2] === "0" ? "Nat" : m[2]}${m[3]}`
+  return `${z}-${m[1]}-${!m[2] || m[2] === "0" || m[2] === "Nat" ? "Nat" : m[2]}${m[3]}`
 }
 /** An EXFOR subentry as the dataset pages name it: "11152.002" -> "11152002". */
 export const exforDataset = (id: string) => id.split(".").slice(0, 2).join("")

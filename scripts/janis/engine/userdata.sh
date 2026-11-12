@@ -7,7 +7,7 @@ set -x
 shutdown -h +720
 export DEBIAN_FRONTEND=noninteractive HOME=/root
 apt-get update -y
-apt-get install -y jq unzip python3-venv
+apt-get install -y jq unzip python3-venv libgfortran5
 snap install aws-cli --classic || true
 mkdir -p /opt/engine /data/janis /opt/njoy/build
 /snap/bin/aws s3 cp s3://nsr-lake-613473203863/lake/_work/janis/engine/ /opt/engine/ --recursive --exclude janis-src.tgz --exclude 'java/*.class' --region us-east-2

@@ -29,16 +29,17 @@ def quantity(s, unit):
 
 def nuclide_of(mat):
     """JANIS's material code ('U235', 'Am242m', 'Fe0', 'n') -> the book's label '92-U-235', '95-Am-242m', '26-Fe-Nat'."""
-    m = re.fullmatch(r"([A-Za-z]+)(\d*)([mn]?)", mat)
+    m = re.fullmatch(r"([A-Za-z]+?)(\d+|Nat)?([mn]?)", mat)  # "U235", "AgNat" (natural), "Am242m", "Hf178n"
     if not m:
         return mat
     sym, a, iso = m.groups()
+    a = a or ""
     z = Z_OF.get(sym.upper())
     if z is None:
         return mat
     if sym == "n" and a in ("", "1"):
         return "0-n-1"
-    return f"{z}-{SYMBOL[z]}-{'Nat' if a in ('', '0') else a}{iso}"
+    return f"{z}-{SYMBOL[z]}-{'Nat' if a in ('', '0', 'Nat') else a}{iso}"
 
 
 def parse_stroke(s):

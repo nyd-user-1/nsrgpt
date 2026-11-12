@@ -14,8 +14,13 @@ s3 = boto3.client("s3", region_name="us-east-2")
 
 
 def state(xml_text):
-    root = ET.fromstring(xml_text)
+    try:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError:
+        return None
     plot = root.find(".//plot")
+    if plot is None:
+        return None
     t = plot.find("settings/strings/title")
     series = []
     for d in plot.findall("data"):
@@ -26,9 +31,8 @@ def state(xml_text):
                        "stroke": layer.findtext("stroke") if layer is not None else None,
                        "xerr": layer.findtext("showXErrors") if layer is not None else None,
                        "yerr": layer.findtext("showYErrors") if layer is not None else None})
-    return {"title": t.get("manualText") if t is not None else None,
-            "xrange": [plot.find("xrange").get("min"), plot.find("xrange").get("max")],
-            "yrange": [plot.find("yrange").get("min"), plot.find("yrange").get("max")],
+    rng = lambda tag: [plot.find(tag).get("min"), plot.find(tag).get("max")] if plot.find(tag) is not None else None
+    return {"title": t.get("manualText") if t is not None else None, "xrange": rng("xrange"), "yrange": rng("yrange"),
             "xscale": plot.findtext("xscale"), "yscale": plot.findtext("yscale"), "series": series}
 
 
@@ -54,6 +58,9 @@ def main():
             meta = json.loads(s3.get_object(Bucket=B, Key=k[:-4] + ".json")["Body"].read())
             web = state(s3.get_object(Bucket=B, Key=k)["Body"].read())
             key = (meta["book"], meta["mat"], meta["reac"])
+            if web is None:  # a saved state JANIS Web did not answer with
+                counts["web_unreadable"] = counts.get("web_unreadable", 0) + 1
+                continue
             counts["pages"] += 1
             if key not in ours:
                 missing.append(key)
