@@ -68,3 +68,40 @@ files the lake holds (IAEA, JAEA, NEA, Imperial) keeps the original as its `nsr.
 the evaluation (MF2 parameters and MF3 background); the package is checked against it by materials and by sections
 outside MF3. A library JANIS alone holds is parsed from its package, and its manifest says the MF3 is JANIS's processed
 data. JANIS's curves themselves are served by lane B (brief 74) from the packages.
+
+## JANIS's book pages (brief 75)
+Read from one page's network calls (`/janisweb/book/neutrons`, which redirects to 70-Yb-176 MT2, 2026-11-12):
+- `/janisweb/book/<book>/<mat>/<reac>` (e.g. `/neutrons/Yb176/MT2`; the session cookie from `/janisweb/` first, trap 7b)
+  redirects to `<that path>/renderer/<id>`. The HTML embeds, as JavaScript values:
+  - `bookPageOutline`: the left rail (`{label, page, matIdStr, reacIdStr, children}`), expanded only on the page's own
+    element and nuclide;
+  - `selectionTreeRows`: the bottom sheet, one row per series in order (`label`, `refsStr`, `tsLabels` P/T/I, `tsSelecteds`);
+  - `displayedTabs`: the plot's card (`viewerCardWeb`: `tabTitle`, `variables`, `xvariable`, `availXScaleTypes`,
+    `xscaleType`, `xmin`, `xmax`, `ymin`, `ymax`, …) and `displayedRefs`, the series drawn;
+  - the cards column `janis-viewer-cards`: the Plotter card (X and Y scale selects, X min, X max, Y min, Y max buttons and
+    fields, APPLY, the X variable select) and DataCards.
+- The plot is a server-drawn PNG: `<id>/plotter/p0?width=&height=` answers an `<img>` whose `src` is
+  `<id>/plotter/p0/<w>/<h>/plot<n>.png`.
+- `<final URL>/saveState.xml` is JANIS's saved-state file for the plot: `<xvar>`, `<xscale>`, `<xrange min max>`,
+  `<yscale>`, `<yrange>`, one `<data refs>` per series in drawing order with `<title>` (the legend text, e.g. an EXFOR
+  set's "S.F.Mughabghab 2006"), `<color>`, and `<mark>` (symbol, e.g. `CrossDiag()|3.0`, with `<showYErrors>`) or
+  `<stroke>` (line); and `settings/strings`: the chart title (`manualText` "Yb176 (n,el)"), the axis label templates
+  (`${x_name} $(x_unit)`), legend on or off. The legend lists the series in reverse drawing order (last drawn first).
+- Tabler: `<id>/toogleProducer.json?rendererId=<id>&show=true&producerId=janis-render-T-<series ref>&width=&height=`
+  names the Tabler viewer (`t0`, …); `<id>/tabler/<viewer>/csv` is the whole table in one request (semicolon separated,
+  a header of variable names; 22,639 rows for JEFF-3.3 Yb-176 MT2), which replaces the 500-row pages.
+
+`crawl.py --mode books` keeps each page's HTML, its saved state and a small JSON (book, page, rail labels, final URL)
+under `lake/_work/janis/book/<book>/<page>.{html,xml,json}`; `--mode reference` reads them into
+`lake/janis/reference/<book>.json` (per page: title, axes with scale, range and label settings, series in legend order
+with kind, library, computed part, colour and symbol or line, EXFOR ids, libraries drawn, default release (the first
+library in the legend), the sheet's rows in order, the page's rail MTs; per book: the left rail in order and the cards
+column); `--mode tabler` writes the Tabler CSV values of ten pages a book to `lake/janis/reference/tabler/<book>/`.
+
+**Pace (measured 2026-11-12, 03:27–04:25 UTC).** Tree pages: 7,265 element pages in 5.2 minutes from three boxes,
+ramped to 16 requests a second each, no refusal. Book pages are another matter: JANIS computes an uncached book page in
+25 to 100 s (a neutron page with many EXFOR sets) and keeps it; Cloudflare gives up at 60 s (504) while JANIS finishes,
+so the same request a little later returns the kept page in about a second. Uncached pages came at about 3 a minute
+whether 3 or 8 were in flight; 128 sessions a box drew Cloudflare 525s (the origin refusing connections) within a
+minute and slowed JANIS's home page from 0.4 s to 25 s. The ceiling is the origin's, not an IP's: book pages run from
+one box, four in flight (`--mode books --workers 4`), with a 504 or 524 re-asked after 30 s (`slow_ok`).
