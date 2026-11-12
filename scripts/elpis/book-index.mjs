@@ -162,11 +162,27 @@ function residual(p, z, a, mt) {
   return rz >= 0 && ra > 0 && ra >= rz ? rz * 1000 + ra : null
 }
 
+// Brief 74 (lane B): rows JANIS computes and /endf/xs janis=1 serves from <release>-janis where File 3 has none (MT 4 as
+// Sum(MT50-91)), from lake/elpis/janis-computed.json ([{ release, sub, za, liso, mt, computed }], scripts/recon/janis_computed.py).
+let computed = []
+try {
+  aws("s3", "cp", "--quiet", `s3://${BUCKET}/lake/elpis/janis-computed.json`, join(WORK, "janis-computed.json"))
+  computed = JSON.parse(readFileSync(join(WORK, "janis-computed.json"), "utf8"))
+} catch { /* none yet */ }
+
 for (const b of BOOKS) {
   const mine = new Map()
   for (const r of rows.filter((x) => x.sub === b.sub)) {
     const za = Number(r.za), liso = Number(r.liso), z = Math.floor(za / 1000), a = za % 1000
     mine.set(labelOf(z, a, liso), { l: labelOf(z, a, liso), n: nameOf(z, a, liso), m: r.mts })
+  }
+  for (const c of computed.filter((x) => x.sub === b.sub && releases.includes(x.release))) {
+    const z = Math.floor(c.za / 1000), a = c.za % 1000, l = labelOf(z, a, c.liso)
+    const e = mine.get(l) ?? { l, n: nameOf(z, a, c.liso), m: "" }
+    const ms = new Map((e.m ? e.m.split(" ") : []).map((t) => [Number(t.split(":")[0]), BigInt(t.split(":")[1])]))
+    ms.set(c.mt, (ms.get(c.mt) ?? 0n) | (1n << BigInt(releases.indexOf(c.release))))
+    e.m = [...ms].sort((x, y) => x[0] - y[0]).map(([k, v]) => `${k}:${v}`).join(" ")
+    mine.set(l, e)
   }
   const made = new Map()
   for (const r of prods.filter((x) => x.sub === b.sub)) {
