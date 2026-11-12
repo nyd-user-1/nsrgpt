@@ -96,15 +96,16 @@ def lake_name(label):
 
 # Brief 70: libraries the lake holds as files, not parsed into tables: JANIS label -> (format, where the files are).
 CATALOGUED = {
-    "Nubase 2016": ("AMDC NUBASE2016 text table", "lake/_raw/Nubase-2016/nubase2016.txt"),
-    "Nubase 2012": ("AMDC NUBASE2012 text table", "lake/_raw/Nubase-2012/nubtab12.asc"),
-    "Nubase 2003": ("AMDC NUBASE2003 text table", "lake/_raw/Nubase-2003/nubtab03.asc"),
-    "Nubase 1997": ("AMDC NUBASE97 text table", "lake/_raw/Nubase-1997/nubtab97.asc"),
+    # brief 73: the four older NUBASE tables parsed (scripts/janis/fill/nubase.py) into nsr.nubase, one row a line of
+    # AMDC's table, and a ground-state file each beside them, as NUBASE2020 is served
+    **{f"Nubase {y}": (f"AMDC NUBASE{y if y != '1997' else '97'} table, parsed into nsr.nubase (release Nubase-{y}); ground states "
+                       f"at lake/serve/nubase/Nubase-{y}-ground.json", f"lake/serve/nubase/release=Nubase-{y}/nubase.parquet")
+       for y in ("1997", "2003", "2012", "2016")},
     "EAF-2007": ("EAF-2007 neutron cross-section tape in EAF's own layout (no MF1 directory)",
                  "lake/_raw/EAF-2007/eaf_n_xs_20070.zip"),
 }
 # Brief 70: releases parsed only in part; the note rides on the library node.
-PARTIAL = {"JENDL-4.0u": "100 of JENDL-4.0u2's 406 neutron materials (fetched before the night's proxy allowance ran out)"}
+PARTIAL = {}  # brief 73: JENDL-4.0u is whole (406, JAEA's jendl40-or-up tape)
 
 
 def lake_has(key):

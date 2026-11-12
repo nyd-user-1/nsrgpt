@@ -97,13 +97,19 @@ const WHERE = "s.mf = 3 AND s.release NOT LIKE '%-point-%' AND s.sublibrary NOT 
 
 const held = athena(`SELECT DISTINCT s.release FROM endfb_sections s WHERE ${WHERE}`, "releases").map((r) => r.release)
 const releases = [...FIRST.filter((r) => held.includes(r)), ...held.filter((r) => !FIRST.includes(r)).sort()]
-const bit = `CASE s.release ${releases.map((r, i) => `WHEN '${r}' THEN ${(BigInt(1) << BigInt(i)).toString()}`).join(" ")} END`
-const rows = athena(`WITH k AS (
-  SELECT ${SUB} AS sub, CAST(s.za AS integer) AS za, COALESCE(m.liso, 0) AS liso, s.mt, sum(DISTINCT ${bit}) AS mask
+const bitOf = (col) => `CASE ${col} ${releases.map((r, i) => `WHEN '${r}' THEN ${(BigInt(1) << BigInt(i)).toString()}`).join(" ")} END`
+const bit = bitOf("s.release")
+// Brief 73 (lead's ruling): TENDL's MT18 (z,fission) rows JANIS draws from TENDL's own TALYS tables, held in the
+// supplementary table nsr.tendl_talys_fission (no TENDL ENDF file has them), count as that release's sections.
+const rows = athena(`WITH s0 AS (
+  SELECT s.release, ${SUB} AS sub, CAST(s.za AS integer) AS za, COALESCE(m.liso, 0) AS liso, s.mt
   FROM endfb_sections s JOIN endfb_materials m
     ON m.release = s.release AND m.sublibrary = s.sublibrary AND m.mat = s.mat AND m.file_name = s.file_name
   WHERE ${WHERE}
-  GROUP BY 1, 2, 3, 4)
+  UNION ALL
+  SELECT DISTINCT t.release, t.sublibrary, t.za, t.liso, t.mt FROM tendl_talys_fission t),
+k AS (SELECT sub, za, liso, mt, sum(DISTINCT ${bitOf("release")}) AS mask FROM s0 GROUP BY 1, 2, 3, 4)
+
 SELECT sub, za, liso, array_join(array_agg(CAST(mt AS varchar) || ':' || CAST(mask AS varchar) ORDER BY mt), ' ') AS mts
 FROM k WHERE sub IN (${BOOKS.map((b) => `'${b.sub}'`).join(", ")}) GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`, "sections")
 
