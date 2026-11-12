@@ -62,6 +62,11 @@ JANIS = ["B-VIII.0", "B-VII.1", "B-VII.0", "B-VI.8", "B-VI.8-HE", "JEFF-4.0", "J
          "RUSFOND-2010", "FENDL-2.1", "EAF-2010", "EAF-2007", "IAEA-PD-2019", "PADF-2007", "IRDFF-II", "IRDFF-1.05",
          "IRDFF-1.0", "IRDF-2002", "IRDF-2002-MG"]
 POINT_RELEASES += [f"{r}-janis" for r in JANIS]
+# Releases JANIS Web draws whose package lacks the sublibrary (JEFF-3.1's holds protons only): reconstructed in advance
+# from their own MF2 with brief 74 B1's settings (NJOY2016 reconr 0.05%, broadr 293.6 K; scripts/recon/recon.py), as
+# <release>-recon-0K and -recon-293.6K, served with janis=1 after the -janis release.
+RECON = []
+POINT_RELEASES += [f"{r}-recon-{t}" for r in RECON for t in ("0K", "293.6K")]
 TEMPS = ["0K", "293.6K"] + HOT
 DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
 PAGE = 500
@@ -295,7 +300,8 @@ def xs(q):
         if r in POINT_RELEASES:
             cands = [r]
         else:  # JANIS's curve first when asked for (at its own 293.6 K), then NNDC's POINT, then the MF3
-            cands = [f"{r}-janis"] if janis and temp_in in (None, "293.6K") else []
+            cands = [f"{r}-janis", f"{r}-recon-293.6K"] if janis and temp_in in (None, "293.6K") else []
+            cands += [f"{r}-recon-{temp}"] if janis else []
             cands += [f"{r}-point-{temp}"] if use_point else []
         for pr in (c for c in cands if c in POINT_RELEASES):
             try:
@@ -328,9 +334,13 @@ def xs(q):
         elif served != r or r in POINT_RELEASES:
             if served.endswith("-janis"):
                 item["temp_served"] = "293.6K"
+            elif "-recon-" in served:
+                item["temp_served"] = served.rsplit("-", 1)[-1]
             item["note"] = ((f"{row['computed']} of JANIS Web's own pointwise data, as JANIS computes it (293.6 K)"
                              if served.endswith("-janis") and row.get("computed")
                              else "JANIS Web's own pointwise data (NEA janis/data package, 293.6 K)" if served.endswith("-janis")
+                             else (f"reconstructed in advance from the File 2 resonance parameters (NJOY2016 reconr and broadr, "
+                                   f"{served.rsplit('-', 1)[-1]})") if "-recon-" in served
                              else f"reconstructed pointwise data (NNDC POINT, {served.rsplit('-', 1)[-1]})")
                             + (f"; thinned for charting to {row['n_served']:,} of {row['n_points']:,} points (lowest "
                                "and highest in each log-energy step)" if row.get("thinned") else ""))
