@@ -30,7 +30,7 @@ public class TransCheck {
         String task = System.getenv().getOrDefault("LAMBDA_TASK_ROOT", ".");
         // `<IN> <OUT>`: JANIS writes its XML log to <OUT>.xml (its default stylesheet importlog_seq.xsl beside it)
         Path log = dir.resolve("log");
-        ProcessBuilder pb = new ProcessBuilder(java, "-Xmx1g", "-Duser.home=" + dir, "-cp", task + "/lib/*",
+        ProcessBuilder pb = new ProcessBuilder(java, "-Xmx1g", "-Xss16m", "-Duser.home=" + dir, "-cp", task + "/lib/*",
                 "org.nea.janis.trans.TRANSCheckerCommandLine", file.toString(), log.toString());
         pb.directory(dir.toFile());
         Process p = pb.start();
@@ -59,17 +59,18 @@ public class TransCheck {
         return o.toByteArray();
     }
 
-    /** A string field of a flat JSON object, with \" \\ \/ and \\uXXXX unescaped. */
+    /** A string field of a flat JSON object, with \" \\ \/ and \\uXXXX unescaped. A plain scan: a regular expression with
+     *  an alternation inside a repeat recurses once per character and overflows the stack on a long presigned URL. */
     static String field(String json, String key) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").matcher(json);
+        Matcher m = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*\"").matcher(json);
         if (!m.find()) return null;
-        String s = m.group(1);
         StringBuilder b = new StringBuilder();
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            if (ch == '\\' && i + 1 < s.length()) {
-                char n = s.charAt(++i);
-                if (n == 'u' && i + 4 < s.length()) { b.append((char) Integer.parseInt(s.substring(i + 1, i + 5), 16)); i += 4; }
+        for (int i = m.end(); i < json.length(); i++) {
+            char ch = json.charAt(i);
+            if (ch == '"') return b.toString();
+            if (ch == '\\' && i + 1 < json.length()) {
+                char n = json.charAt(++i);
+                if (n == 'u' && i + 4 < json.length()) { b.append((char) Integer.parseInt(json.substring(i + 1, i + 5), 16)); i += 4; }
                 else if (n == 'n') b.append('\n');
                 else if (n == 't') b.append('\t');
                 else b.append(n);
