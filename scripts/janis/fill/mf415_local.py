@@ -5,7 +5,10 @@ lake/_work/endf-split/<R>/, here it stays on the box's disk (/data/split/), so t
 nothing is left in S3 to clean. Every other output is the Lambda's own, in the same keys: lake/endfb/<R>/<table>/<id>.parquet,
 lake/endfb/<R>/mf4_15/sections/<id>.json, then collect registers the tables and writes the manifest's "mf4_15".
 
-  python mf415_local.py <release> [--procs=2]
+  python mf415_local.py <release> [--procs=2] [--cpp] [--as=<name>] [--limit=N] [--no-collect]
+  --cpp: endf-parserpy's C++ parser (EndfParserCpp, same API) in place of EndfParserPy, for speed; --as: write the
+  rows under another release name from the same split (an equivalence test against the Python parser's rows);
+  --limit: the first N materials, longest first.
 A material whose summary exists is skipped, so a killed run picks up where it stopped. One line per stage in
 /data/mf415-local.log.
 """
@@ -78,6 +81,11 @@ class LocalSplit:
 
 
 L.s3 = LocalSplit(L.s3)
+CPP = "--cpp" in sys.argv
+if CPP:
+    from endf_parserpy import EndfParserCpp  # noqa: E402
+    L.EndfParserPy = lambda **kw: EndfParserCpp(**kw)  # read_section makes a fresh parser after a failure
+    L.PARSER = EndfParserCpp(array_type="list")
 
 
 def fresh():
@@ -101,7 +109,7 @@ def do_split(args):
 
 def do_parse(ev):
     try:
-        r = L.parse(ev)
+        r = L.parse(ev)  # (--as: the split is read under the source name and the rows written under the other)
         return ev["id"], r.get("lines"), r.get("rejects"), None
     except Exception as e:  # noqa: BLE001
         return ev["id"], 0, 0, f"{type(e).__name__}: {str(e)[:300]}"
@@ -119,9 +127,16 @@ def main():
         for r in pool.imap_unordered(do_split, [(release, p) for p in todo]):
             log(release, "split part", r.get("part"), r.get("materials"), "materials", r.get("lines_kept"), "lines", r.get("seconds"), "s")
     mats, _ = L.split_index(release)
-    done = {k.rsplit("/", 1)[-1].rsplit(".json", 1)[0].split(".c")[0] for k, _ in L.list_keys(f"lake/endfb/{release}/mf4_15/sections/")}
-    evs = [{"job": "parse", "release": release, "id": m["id"], "file_name": m["file_name"], "sublibrary": m["sublibrary"],
+    AS = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--as=")), None)
+    LIMIT = int(next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--limit=")), "0"))
+    target = AS or release
+    if AS and not os.path.exists(os.path.join(ROOT, SPLIT, AS)):  # the split read under the other name
+        os.symlink(os.path.join(ROOT, SPLIT, release), os.path.join(ROOT, SPLIT, AS))
+    done = {k.rsplit("/", 1)[-1].rsplit(".json", 1)[0].split(".c")[0] for k, _ in L.list_keys(f"lake/endfb/{target}/mf4_15/sections/")}
+    evs = [{"job": "parse", "release": target, "id": m["id"], "file_name": m["file_name"], "sublibrary": m["sublibrary"],
             "mat": m["mat"]} for m in sorted(mats.values(), key=lambda m: -m["lines"]) if m["id"] not in done]
+    if LIMIT:
+        evs = evs[:LIMIT]
     total = sum(m["lines"] for m in mats.values())
     log(release, "parse", len(evs), "of", len(mats), "materials,", total, "lines in all")
     n, lines, errors, t1 = 0, 0, [], time.time()
@@ -136,6 +151,9 @@ def main():
     if errors:
         log(release, "errors", json.dumps(errors[:20]))
         L.put_json(f"lake/_work/fill/mf415/{release}-local-errors.json", errors)
+    if "--no-collect" in sys.argv or AS:
+        log(release, "no collect", "parsed", n, "as", target)
+        return
     out = L.collect({"job": "collect", "release": release})
     log(release, "collected", json.dumps(out)[:600])
     L.put_json(f"lake/_work/fill/mf415/{release}-local.json", {"release": release, "materials": len(mats), "parsed": n,

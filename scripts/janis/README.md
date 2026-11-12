@@ -41,3 +41,30 @@ Levels 1 and 2, marked (2026-11-11 00:40 ET): categories 16 same and 1 ours (CIN
 `nsr-parse-box-janis` = `box-policy.json`), copy `crawl.py` and `mark.py` to `s3://nsr-lake-613473203863/lake/_work/janis/scripts/`,
 then on the box: `cd /opt/janis && nohup python3 crawl.py --hours 20 --max-depth 4 --skip-held-from 4 &` and `./remark.sh &`; whenever a fresh tree is
 wanted, `python3 mark.py`.
+
+## JANIS's own data packages (brief 73)
+NEA's public GitLab project `janis/data` ("The data sets for JANIS offline installation") holds the library files JANIS
+itself draws: 72 generic packages, 434 files, 117.1 GB, no token. List:
+`https://git.oecd-nea.org/api/v4/projects/janis%2Fdata/packages?per_page=100`; files per package at
+`…/packages/<id>/package_files`; download at `…/packages/generic/<NAME>/<VERSION>/<file>`. Held in the lake, every file,
+by `fill/janisdata.py`: `lake/_raw/janis-data/<NAME>/<VERSION>/<file>`, with `manifest.json` (bytes, SHA-256 checked
+against GitLab's).
+
+**The .jpk format** (zip comment "JANIS Packed ENDF"; decoder `scripts/recon/jpk.py`, lane B):
+- one zip member per ENDF section, `nsub<NSUB>/mat<MAT>/mf<MF>/mt<MT>`, in tape order; columns 67-80 and SEND lines
+  are not stored;
+- a numeric line is the byte 0x01, then 33 bytes holding columns 1-66 as nibbles, high nibble first: 1-9 the digit,
+  a `0`, b `.`, c `+`, d `-`, e `E`, f space; a text line (MF1/451's description) is its own characters ended by `\n`;
+- numeric fields may be F-format (` 26056.0000`), which `parse.py`'s fixed-column reader takes.
+- **Processed, not the evaluation, for neutron MF3**: resonances reconstructed and broadened, NJOY's MTs 203-207,
+  301-303 and 442-447 added; ENDF/B-VIII.0 Fe-56 MT102 decodes to the same 40,561 points JANIS's Tabler prints. MF1/451
+  is the original evaluation's (TEMP 0, the NJOY MTs absent from its directory). Other Files are carried as evaluated.
+- Beside each library's .jpk: `<lib>.inter.zip` (JANIS's interface settings) and for some `<lib>.boxer.zip`
+  (covariances in BOXER format).
+
+**How the lake uses them.** `fill/jpk2endf.py` writes each package back to ENDF-6 tapes (one zipped tape per NSUB,
+`lake/_raw/janis-data-endf/<release>/`), which `parse/endfb/fill.sh` parses like any tape. A library whose original
+files the lake holds (IAEA, JAEA, NEA, Imperial) keeps the original as its `nsr.endfb_*` source, since those tables hold
+the evaluation (MF2 parameters and MF3 background); the package is checked against it by materials and by sections
+outside MF3. A library JANIS alone holds is parsed from its package, and its manifest says the MF3 is JANIS's processed
+data. JANIS's curves themselves are served by lane B (brief 74) from the packages.

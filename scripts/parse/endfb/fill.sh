@@ -14,6 +14,7 @@ set -f  # the */*#t words are S3 prefixes, never globs
 I=raw/iaea/2026-11-07/public/download-endf
 K=lake/_raw/iaea/public/download-endf  # IAEA, fetched 2026-11-11 through browser box nsr-fill-wb
 J=lake/_raw                            # Wayback (JAEA, NEA) and the GEF site, 2026-11-11
+P=lake/_raw/janis-data-endf           # brief 73: JANIS's own packages (NEA GitLab janis/data) as tapes, fill/jpk2endf.py
 ALL="JEFF-4.0 $I/JEFF-4.0/backup/jeff-4-0_n.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_p.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_tsl.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_decay.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_nfpy.sublib.zip $I/JEFF-4.0/backup/jeff-4-0_sfpy.sublib.zip
 IRDFF-II $I/IRDFF-II/backup/irdff-ii_n.sublib.zip
 B-VI.8-HE $I/ENDF-HE-VI/NEUTRON/endf-he-vi_n.zip#n $I/ENDF-HE-VI/PROTON/endf-he-vi_p.zip#p
@@ -63,7 +64,14 @@ TENDL-2014 $K/TENDL-2014/n/*#n $K/TENDL-2014/p/*#p $K/TENDL-2014/d/*#d $K/TENDL-
 TENDL-2012 $K/TENDL-2012/n/*#n $K/TENDL-2012/p/*#p $K/TENDL-2012/d/*#d $K/TENDL-2012/t/*#t $K/TENDL-2012/he3/*#he3 $K/TENDL-2012/he4/*#he4 $K/TENDL-2012/g/*#g
 TENDL-2011 $K/TENDL-2011/n/*#n $K/TENDL-2011/p/*#p $K/TENDL-2011/d/*#d $K/TENDL-2011/t/*#t $K/TENDL-2011/he3/*#he3 $K/TENDL-2011/he4/*#he4 $K/TENDL-2011/g/*#g $K/TENDL-2011/nfpy/*#nfpy $K/TENDL-2011/sfpy/*#sfpy $K/TENDL-2011/pfpy/*#pfpy $K/TENDL-2011/dfpy/*#dfpy $K/TENDL-2011/tfpy/*#tfpy $K/TENDL-2011/he3fp/*#he3fp $K/TENDL-2011/he4fp/*#he4fp
 TENDL-2010 $K/TENDL-2010/n/*#n $K/TENDL-2010/p/*#p $K/TENDL-2010/d/*#d $K/TENDL-2010/t/*#t $K/TENDL-2010/he3/*#he3 $K/TENDL-2010/he4/*#he4 $K/TENDL-2010/g/*#g $K/TENDL-2010/nfpy/*#nfpy $K/TENDL-2010/sfpy/*#sfpy $K/TENDL-2010/pfpy/*#pfpy $K/TENDL-2010/dfpy/*#dfpy $K/TENDL-2010/tfpy/*#tfpy $K/TENDL-2010/he3fp/*#he3fp $K/TENDL-2010/he4fp/*#he4fp
-TENDL-2009 $K/TENDL-2009/n/*#n $K/TENDL-2009/p/*#p $K/TENDL-2009/d/*#d $K/TENDL-2009/t/*#t $K/TENDL-2009/he3/*#he3 $K/TENDL-2009/he4/*#he4 $K/TENDL-2009/g/*#g $K/TENDL-2009/nfpy/*#nfpy $K/TENDL-2009/sfpy/*#sfpy $K/TENDL-2009/pfpy/*#pfpy $K/TENDL-2009/dfpy/*#dfpy $K/TENDL-2009/tfpy/*#tfpy $K/TENDL-2009/he3fp/*#he3fp $K/TENDL-2009/he4fp/*#he4fp"
+TENDL-2009 $K/TENDL-2009/n/*#n $K/TENDL-2009/p/*#p $K/TENDL-2009/d/*#d $K/TENDL-2009/t/*#t $K/TENDL-2009/he3/*#he3 $K/TENDL-2009/he4/*#he4 $K/TENDL-2009/g/*#g $K/TENDL-2009/nfpy/*#nfpy $K/TENDL-2009/sfpy/*#sfpy $K/TENDL-2009/pfpy/*#pfpy $K/TENDL-2009/dfpy/*#dfpy $K/TENDL-2009/tfpy/*#tfpy $K/TENDL-2009/he3fp/*#he3fp $K/TENDL-2009/he4fp/*#he4fp
+GEFY-5.3 $P/GEFY-5.3/GEFY-5.3-n.nsub11.zip#nfpy
+GEFY-5.2 $P/GEFY-5.2/GEFY-5.2-n.nsub11.zip#nfpy $P/GEFY-5.2/GEFY-5.2-s.nsub5.zip#sfpy
+GEFY-4.2 $P/GEFY-4.2/GEFY-4.2-n.nsub11.zip#nfpy $P/GEFY-4.2/GEFY-4.2-s.nsub5.zip#sfpy
+GEFY-3.3 $P/GEFY-3.3/GEFY-3.3-n.nsub11.zip#nfpy $P/GEFY-3.3/GEFY-3.3-s.nsub5.zip#sfpy
+FENDL-3.1b $P/FENDL-3.1b/FENDL-3.1b.nsub10.zip#n
+FENDL-2.1-MG $P/FENDL-2.1-MG/FENDL-2.1-MG-endf6.nsub10.zip#n
+IRDFF-1.0-640g $P/IRDFF-1.0-640g/IRDFF-1.0-640g.nsub10.zip#n"
 [ -f fill.extra ] && ALL="$ALL
 $(cat fill.extra)"  # releases fetched tonight, one line each, appended on the box as they land
 MF=
