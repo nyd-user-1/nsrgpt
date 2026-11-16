@@ -108,3 +108,7 @@ landed / parsed / catalogued only / not found, GB added, total spend, ❌ before
 
 ## Kickoff
 `Read ~/Code/nsrgpt/docs/briefs/70-missing-libraries-acquire-parse-mark.md and do it; one line to lead-agent per library.`
+
+## Report
+Stopped by Brendan 2026-11-11 ~22:30 UTC (elpis-fill): 42 releases parsed into nsr.endfb_* (A, B, C, Files 4-15), 34 served (nsr-api RELEASES 47), EAF-2007 and Nubase 1997/2003/2016 held as files; marks on the 10:53 UTC crawl copy ❌ 261,889 (brief 68's mark.py) → 157,104 (this one), served from lake/janis/current/ through the CDN; every box terminated, Lambda reserve released, last commit e2145a5.
+Not done: the crawl's last 7,566 element pages (stopped mid-run; page cache in lake/_work/janis/pages/), the final mark and report table (scripts/janis/fill/report.py), README counts and INVENTORY rows; unfetched: TENDL 2009–2019 (IAEA only, Webshare allowance spent, 402), TENDL-2013, FENDL-3.1b, JEFF-3.0/A, JENDL-4.0u's other 306 materials, Nubase 2012, GEFY 3.3–5.3, FENDL-2.1 MG, IRDFF-1.0-640g.

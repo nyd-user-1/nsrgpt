@@ -504,6 +504,10 @@ def books_mode(a):
     have = keys_under(BOOKCACHE + "/")
     ids = set(mine([f"{p['book']}/{p['page']}" for p in pages], a.shard))
     todo = [p for p in pages if f"{p['book']}/{p['page']}" in ids and page_key(p, "xml") not in have]
+    if a.order:  # a list of "<book>/<page>" in the order to fetch (strata.mjs), nothing else
+        by = {f"{p['book']}/{p['page']}": p for p in todo}
+        order = json.loads(s3.get_object(Bucket=BUCKET, Key=a.order)["Body"].read())["order"]
+        todo = [by[k] for k in order if k in by]
     prog = Progress(f"lake/_work/janis/books/{a.run}/shard-{a.shard.replace('/', '-of-')}.json", len(todo))
 
     def one(p):
@@ -798,6 +802,7 @@ def main():
     ap.add_argument("--every", type=float, default=30.0)
     ap.add_argument("--hold", type=float, default=0.8)
     ap.add_argument("--books", default=",".join(BOOKS))
+    ap.add_argument("--order", default="", help="books: S3 key of a JSON with an order list of <book>/<page> (strata.mjs)")
     ap.add_argument("--gate", type=int, default=0, help="book pages: start this many in flight and grow (Gate); 0 = no gate")
     ap.add_argument("--grow", type=int, default=2)
     ap.add_argument("--every-gate", type=float, default=120.0)

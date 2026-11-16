@@ -41,8 +41,18 @@ public class JanisService {
     static synchronized void init() throws Exception {
         if (conns != null) return;
         org.nea.janis.book.BarnBook.settingsInitialization();
-        Path src = Paths.get(System.getenv().getOrDefault("JANIS_DB", "/opt/janis-db"));
+        Path src = Paths.get(System.getenv().getOrDefault("JANIS_DB", "/tmp/janis-db"));
         Files.createDirectories(Paths.get("/tmp/janis-datapack"));
+        // the bases' index from the lake to local disk (JANIS_BASES=BOOK,REST,...), 16 signed range requests at a time: read in
+        // place from the container image, H2's page-by-page reads were too slow to answer inside the gateway's 30 s
+        String bases = System.getenv("JANIS_BASES");
+        if (bases != null) {
+            Files.createDirectories(src);
+            for (String b : bases.split(",")) {
+                Path t = src.resolve(b + ".h2.db");
+                if (!Files.exists(t)) S3Get.download("lake/_work/janis/engine/db/" + b + ".h2.db", t, 16);
+            }
+        }
         Map<String, JanisReadConnection> m = new LinkedHashMap<>();
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(src, "*.h2.db")) {
             List<Path> files = new ArrayList<>();

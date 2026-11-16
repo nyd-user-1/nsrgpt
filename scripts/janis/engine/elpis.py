@@ -209,12 +209,13 @@ def one(rel, mat):
     return res
 
 
-def run(rel, jobs):
+def run(rel, jobs, shard=(0, 1)):
     d = f"{ROOT}/{rel}"
     os.makedirs(f"{d}/merged", exist_ok=True)
     os.makedirs(f"{d}/status", exist_ok=True)
-    mats = sorted((int(f[:-5]) for f in os.listdir(f"{d}/n") if f.endswith(".endf")),
-                  key=lambda m: -os.path.getsize(f"{d}/n/{m}.endf"))
+    mats = sorted(int(f[:-5]) for f in os.listdir(f"{d}/n") if f.endswith(".endf"))
+    mats = [m for k, m in enumerate(mats) if k % shard[1] == shard[0]]  # --shard i/n: every n-th material from the i-th
+    mats.sort(key=lambda m: -os.path.getsize(f"{d}/n/{m}.endf"))
     with ThreadPoolExecutor(jobs) as ex:
         for r in ex.map(lambda m: one(rel, m), mats):
             if not r.get("ok"):
@@ -237,10 +238,18 @@ def pack(rel):
 
 
 def upload(rel):
-    pack(rel)
-    subprocess.run(["/snap/bin/aws", "s3", "sync", f"{ROOT}/{rel}/tapes", f"s3://{B}/lake/_work/janis/engine/elpis/{rel}/tapes", "--only-show-errors"], check=True)
-    subprocess.run(["/snap/bin/aws", "s3", "cp", "--recursive", f"{ROOT}/{rel}/status", f"s3://{B}/lake/_work/janis/engine/elpis/{rel}/status", "--only-show-errors"], check=True)
+    """This box's merged materials, statuses and other sublibraries to the lake (several boxes can share a release)."""
+    for sub in ("merged", "status", "other"):
+        if os.path.isdir(f"{ROOT}/{rel}/{sub}"):
+            subprocess.run(["/snap/bin/aws", "s3", "sync", f"{ROOT}/{rel}/{sub}", f"s3://{B}/lake/_work/janis/engine/elpis/{rel}/{sub}", "--only-show-errors"], check=True)
     check(rel)
+
+
+def fetch(rel):
+    """Every box's merged materials and the other sublibraries from the lake, packed into the tapes JANIS imports."""
+    for sub in ("merged", "status", "other"):
+        subprocess.run(["/snap/bin/aws", "s3", "sync", f"s3://{B}/lake/_work/janis/engine/elpis/{rel}/{sub}", f"{ROOT}/{rel}/{sub}", "--only-show-errors"], check=True)
+    pack(rel)
 
 
 def check(rel):
@@ -254,4 +263,5 @@ def check(rel):
 if __name__ == "__main__":
     cmd, rel = sys.argv[1], sys.argv[2]
     jobs = int(sys.argv[sys.argv.index("--jobs") + 1]) if "--jobs" in sys.argv else 2
-    {"prep": lambda: prep(rel), "run": lambda: run(rel, jobs), "pack": lambda: pack(rel), "upload": lambda: upload(rel), "check": lambda: check(rel)}[cmd]()
+    shard = tuple(int(x) for x in sys.argv[sys.argv.index("--shard") + 1].split("/")) if "--shard" in sys.argv else (0, 1)
+    {"prep": lambda: prep(rel), "run": lambda: run(rel, jobs, shard), "fetch": lambda: fetch(rel), "pack": lambda: pack(rel), "upload": lambda: upload(rel), "check": lambda: check(rel)}[cmd]()

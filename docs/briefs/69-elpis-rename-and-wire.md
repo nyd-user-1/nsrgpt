@@ -358,3 +358,6 @@ How it is built:
   - Move and fold stay on the legend.
 - **Every other useEChart chart** has it: 38 charts in 34 files, one commit each. That's 30 /viz pages, MetricView, the Lab plot and the two sweep charts.
 - **Checked** in both themes on the book and /viz/weight, heatmap, scatter3d and fission-yields, with no errors.
+
+**State at the halt (elpis-wire, 2026-11-11):** all work is committed and pushed (last 38e60d5); nothing in progress, no uncommitted files, nsr-jobs-1 stopped, nsr-api last deployed 19:14 UTC.
+Open, not started: nothing assigned; the 144 remaining ❌ book rows and the search index's 2,730 energy ranges (elpis-fill's) stand as reported above.

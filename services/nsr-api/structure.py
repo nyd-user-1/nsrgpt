@@ -68,10 +68,10 @@ POINT_RELEASES += [f"{r}-janis" for r in JANIS]
 # <release>-recon-0K and -recon-293.6K, served with janis=1 after the -janis release.
 RECON = ["JEFF-3.1"]
 POINT_RELEASES += [f"{r}-recon-{t}" for r in RECON for t in ("0K", "293.6K")]
-# TENDL's own TALYS fission curves (MT 18), which no TENDL ENDF file holds but JANIS draws (lane A's
-# nsr.tendl_talys_fission; janis_serve.py --talys): <release>-talys, served with janis=1 after <release>-janis.
-TALYS = ["TENDL-2019"]
-POINT_RELEASES += [f"{r}-talys" for r in TALYS]
+# MF10 MT18 (fission production, IZAP -1) as the MT 18 cross section where a material's MF3 has none, as JANIS draws it
+# (TENDL-2013 to 2019, JEFF-3.3 Tl-205; janis_serve.py --mf10): <release>-mf10, served with janis=1 after <release>-janis.
+MF10 = []
+POINT_RELEASES += [f"{r}-mf10" for r in MF10]
 TEMPS = ["0K", "293.6K"] + HOT
 DEFAULT_RELEASE, DEFAULT_SUB = "B-VIII.1", "neutrons"
 PAGE = 500
@@ -305,7 +305,7 @@ def xs(q):
         if r in POINT_RELEASES:
             cands = [r]
         else:  # JANIS's curve first when asked for (at its own 293.6 K), then NNDC's POINT, then the MF3
-            cands = [f"{r}-janis", f"{r}-talys", f"{r}-recon-293.6K"] if janis and temp_in in (None, "293.6K") else []
+            cands = [f"{r}-janis", f"{r}-mf10", f"{r}-recon-293.6K"] if janis and temp_in in (None, "293.6K") else []
             cands += [f"{r}-recon-{temp}"] if janis else []
             cands += [f"{r}-point-{temp}"] if use_point else []
         for pr in (c for c in cands if c in POINT_RELEASES):
@@ -341,7 +341,8 @@ def xs(q):
                 item["temp_served"] = "293.6K"
             elif "-recon-" in served:
                 item["temp_served"] = served.rsplit("-", 1)[-1]
-            item["note"] = (("TENDL's own TALYS fission curve (fission.tot), as JANIS draws it" if served.endswith("-talys")
+            item["note"] = (("MF10 MT18 (fission production) of JANIS Web's own data, drawn as the MT 18 cross section as JANIS draws it"
+                             if served.endswith("-mf10")
                              else f"{row['computed']} of JANIS Web's own pointwise data, as JANIS computes it (293.6 K)"
                              if served.endswith("-janis") and row.get("computed")
                              else "JANIS Web's own pointwise data (NEA janis/data package, 293.6 K)" if served.endswith("-janis")

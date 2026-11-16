@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Brief 77 step 11: Lambda nsr-janis (container image, Java 21) runs JANIS's own list and search (JanisService.java) over
-# the H2 bases JANIS's importer built on the engine boxes. The image holds NEA's JANIS 4.1 jars (lib/), the handler, and the
-# bases' .h2.db files (index only; the DataPack is not needed to list or search). Built and pushed from an engine box
+# the H2 bases JANIS's importer built on the engine boxes. The image holds NEA's JANIS 4.1 jars (lib/) and the handler; the
+# bases' .h2.db files (index only; the DataPack is not needed to list or search) come from lake/_work/janis/engine/db/ at a
+# cold start (JANIS_BASES). Built and pushed from an engine box
 # (build: Docker, ECR repository nsr-janis), then wired from the Mac (deploy: role, function, the API's GET /janis/{proxy+}
 # route to it). None of NEA's code or data is in this repository.
 #   ./scripts/iaea/box/ssm.sh <engine box> 'bash /opt/engine/nsr-janis/deploy.sh build <dir with *.h2.db>'
@@ -11,20 +12,20 @@ FN=nsr-janis
 ACCT=613473203863
 REGION=us-east-2
 REPO=$ACCT.dkr.ecr.$REGION.amazonaws.com/$FN
+BUCKET=nsr-lake-$ACCT
 if [ "${1:-}" = build ]; then
   export PATH=$PATH:/snap/bin
   DB=${2:-/data/janis/database}
   command -v docker >/dev/null || (DEBIAN_FRONTEND=noninteractive apt-get install -y -q docker.io >/dev/null && systemctl start docker)
-  W=/data/nsr-janis-image; rm -rf $W && mkdir -p $W/lib $W/db && cd $W
+  W=/data/nsr-janis-image; rm -rf $W && mkdir -p $W/lib && cd $W
   aws s3 cp s3://nsr-lake-$ACCT/lake/_work/janis/engine/nsr-janis/JanisService.java . --only-show-errors
+  aws s3 cp s3://nsr-lake-$ACCT/lake/_work/janis/engine/nsr-janis/S3Get.java . --only-show-errors
   cp /opt/janis/*.jar lib/
-  mkdir -p classes && /usr/lib/jvm/java-8-openjdk-amd64/bin/javac -source 8 -target 8 -cp "lib/*" -d classes JanisService.java
-  for f in $DB/*.h2.db; do cp "$f" db/; done
+  mkdir -p classes && /usr/lib/jvm/java-8-openjdk-amd64/bin/javac -source 8 -target 8 -cp "lib/*" -d classes JanisService.java S3Get.java
   cat > Dockerfile <<'D'
 FROM public.ecr.aws/lambda/java:21
 COPY lib/ ${LAMBDA_TASK_ROOT}/lib/
 COPY classes/ ${LAMBDA_TASK_ROOT}/
-COPY db/ /opt/janis-db/
 CMD ["JanisService::handleRequest"]
 D
   aws ecr describe-repositories --repository-names $FN --region $REGION >/dev/null 2>&1 || aws ecr create-repository --repository-name $FN --region $REGION >/dev/null
@@ -49,6 +50,11 @@ else
     --role arn:aws:iam::$ACCT:role/$ROLE --memory-size 3008 --timeout 120 --ephemeral-storage Size=10240 \
     --tags project=nsr "${A[@]}" --query FunctionArn --output text
 fi
+# the bases' index it downloads at a cold start (JANIS_BASES), from lake/_work/janis/engine/db/
+echo '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"arn:aws:s3:::'$BUCKET'/lake/_work/janis/engine/db/*"}]}' > $T/s3.json
+aws iam put-role-policy --role-name $ROLE --policy-name $FN-db --policy-document file://$T/s3.json "${A[@]}"
+aws lambda wait function-updated --function-name $FN "${A[@]}"
+aws lambda update-function-configuration --function-name $FN --timeout 120 --environment "Variables={JANIS_BASES=${JANIS_BASES:-BOOK}}" "${A[@]}" --query LastUpdateStatus --output text
 # GET /janis/{proxy+} on nsr-api's HTTP API goes to nsr-janis
 API=$(aws apigatewayv2 get-apis "${A[@]}" --query "Items[?Name=='nsr-api'].ApiId | [0]" --output text)
 ARN=arn:aws:lambda:$REGION:$ACCT:function:$FN

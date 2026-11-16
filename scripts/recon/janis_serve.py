@@ -4,7 +4,7 @@ Runs on a recon box (scripts/recon/userdata.sh), never on the Mac.
   janis_serve.py <release>...        e.g. B-VIII.0 JEFF-3.3 JENDL-4.0u
   janis_serve.py --list              the package each release maps to, and whether its files are in the lake
   janis_serve.py --loop              serve each release once its package is complete (claims; several boxes at once)
-  janis_serve.py --talys <release>…  TENDL's TALYS fission curves (MT 18, no ENDF file holds them) as <release>-talys
+  janis_serve.py --mf10 <release>…   MF10 MT18 as the MT 18 cross section where MF3 has none, as JANIS draws it: <release>-mf10
 
 Per release: its package's .jpk files from lake/_raw/janis-data/<NAME>/<VERSION>/ (NEA GitLab janis/data, copied by
 lane A), every MF3 section of every sublibrary decoded (jpk.py), named from lake/serve/endf/<release>/materials/ by
@@ -284,73 +284,102 @@ def loop():
         time.sleep(300)
 
 
-def talys(rel):
-    """TENDL's own TALYS fission curves (MT 18; nsr.tendl_talys_fission, lane A, JANIS's point rule already applied), which
-    no TENDL ENDF file holds but JANIS draws: lake/serve/endf/<rel>-talys/, served by /endf/xs janis=1 after <rel>-janis.
-    Named from the lake's materials, else from <rel>-janis, by sublibrary, ZA and LISO."""
+def mf10_subsections(ls):
+    """MF10 MT18's subsections from its lines (HEAD ZA AWR LIS 0 NS 0; NS TAB1s, QM QI IZAP LFS NR NP):
+    [(qm, qi, izap, lfs, nbt, law, energies, values)]."""
+    c0 = [ls[0][i * 11:(i + 1) * 11] for i in range(6)]
+    out, i = [], 1
+    for _ in range(int(c0[4])):
+        c = [ls[i][k * 11:(k + 1) * 11] for k in range(6)]
+        qm, qi = recon.floats(c[:2])
+        izap, lfs, nr, np_ = int(c[2]), int(c[3]), int(c[4]), int(c[5])
+        nl, dl = (2 * nr + 5) // 6, (2 * np_ + 5) // 6
+        ints = [int(x) for ln in ls[i + 1:i + 1 + nl] for x in (ln[k * 11:(k + 1) * 11] for k in range(6)) if x.strip()]
+        v = recon.floats([ln[k * 11:(k + 1) * 11] for ln in ls[i + 1 + nl:i + 1 + nl + dl] for k in range(6)][:2 * np_])
+        out.append((float(qm), float(qi), izap, lfs, ints[0:2 * nr:2], ints[1:2 * nr:2], v[0::2], v[1::2]))
+        i += 1 + nl + dl
+    return out
+
+
+def mf10(rel, pk):
+    """MF10 MT18 (fission production, IZAP -1, one TAB1) served as the MT 18 cross section where the material has no
+    MT 18 in its MF3, as JANIS draws it (lane A: TENDL-2019's 87 such rows and JEFF-3.3 Tl-205 equal JANIS's Tabler):
+    lake/serve/endf/<rel>-mf10/, tried by /endf/xs janis=1 after <rel>-janis. Only the zip directories and the needed
+    sections are read, straight from S3."""
+    import pyarrow.fs as pafs
     t0 = time.time()
-    t = pq.read_table(io.BytesIO(recon.s3().get_object(
-        Bucket=B, Key=f"lake/serve/tendl_talys/release={rel}/fission.parquet")["Body"].read())).to_pylist()
-    names = {}
-    for src in (f"lake/serve/endf/{rel}-janis/xs_index/part-00000.parquet", None):
-        try:
-            if src:
-                rows = pq.read_table(io.BytesIO(recon.s3().get_object(Bucket=B, Key=src)["Body"].read()),
-                                     columns=["sublibrary", "za", "liso", "name", "mat", "z", "a"]).to_pylist()
-            else:
-                rows = recon.dataset(f"lake/serve/endf/{rel}/materials/").to_table(
-                    columns=["sublibrary", "za", "liso", "name", "mat", "z", "a"]).to_pylist()
-            for m in rows:
-                names[(m["sublibrary"], int(m["za"]), int(m["liso"] or 0))] = m
-        except Exception:  # noqa: BLE001
-            pass
-    curves = collections.defaultdict(list)
-    for r in t:
-        curves[(r["sublibrary"], int(r["za"]), int(r["liso"] or 0), r["mt"])].append((r["point_seq"], r["energy_ev"], r["xs_barn"]))
-    name = f"{rel}-talys"
-    d = f"{WORK}/{name}"
+    name_, ver, jkeys, _ = pk
+    fs = pafs.S3FileSystem(region=recon.REGION)
+    idx = pq.read_table(io.BytesIO(recon.s3().get_object(
+        Bucket=B, Key=f"lake/serve/endf/{rel}-janis/xs_index/part-00000.parquet")["Body"].read()),
+        columns=["sublibrary", "mat", "mt", "name", "z", "a", "liso", "za"]).to_pylist()
+    have18 = {(r["sublibrary"], r["mat"]) for r in idx if r["mt"] == 18}
+    names = {(r["sublibrary"], r["mat"]): r for r in idx}
+    out = f"{rel}-mf10"
+    d = f"{WORK}/{out}"
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
     path = f"{d}/part-00000.parquet"
     cols = {k: [] for k in SCHEMA.names}
-    for (sub, za, liso, mt), pts in sorted(curves.items()):
-        pts.sort()
-        e, x = [p[1] for p in pts], [p[2] for p in pts]
-        zz, aa = za // 1000, za % 1000
-        m = names.get((sub, za, liso)) or {"name": f"{SYM[zz]}-{aa}" + ("" if not liso else "m" if liso == 1 else f"m{liso}"),
-                                          "mat": 0, "z": zz, "a": aa}
-        vals = {"release": name, "sublibrary": sub, "name": m["name"], "z": m["z"], "a": m["a"], "liso": liso,
-                "za": float(za), "mat": m["mat"], "mt": mt, "n_points": len(e), "e_min": e[0], "e_max": e[-1],
-                "interp_nbt": [len(e)], "interp_law": [2], "qm": 0.0, "qi": 0.0, "lr": 0, "energy_ev": e, "xs_barn": x,
-                "n_served": len(e), "thinned": False, "computed": "TALYS fission.tot"}
-        for k, v in vals.items():
-            cols[k].append(v)
-    pq.write_table(pa.table(cols, schema=SCHEMA), path, compression="snappy", row_group_size=32)
-    sv = recon.serve_module()
-    prefix = f"lake/serve/endf/{name}/xs/"
-    sv.clear(prefix)
-    recon.s3().upload_file(path, B, f"{prefix}part-00000.parquet")
-    n_reg, _ = sv.register("endf_serve_xs", pq.read_schema(path), prefix,
-                           "ENDF/B MF3 cross sections as point arrays, one row each", partition=name, drop=False)
-    point_files_local(name, path)
-    man = {"release": rel, "served_as": name, "curves": len(curves), "points": len(t), "registered_rows": n_reg,
-           "named_from_lake": sum(1 for k in curves if k[:3] in names), "built_at": recon.now(),
-           "source": f"nsr.tendl_talys_fission (lake/serve/tendl_talys/release={rel}/fission.parquet, lane A)",
-           "seconds": round(time.time() - t0, 1)}
-    recon.put_json(f"lake/endfb/{rel}/janis/talys.json", man)
+    skipped = []
+    for key in sorted(jkeys):
+        with fs.open_input_file(f"{B}/{key}") as fh, zipfile.ZipFile(fh) as z:
+            for mname in z.namelist():
+                if not mname.endswith("/mf10/mt18"):
+                    continue
+                nsub, mat, _, _ = jpk.split(mname)
+                sub = NSUB.get(nsub, f"nsub{nsub}")
+                if (sub, mat) in have18:
+                    continue
+                subs = [s for s in mf10_subsections(jpk.member(z, mname)) if s[2] == -1]
+                m = names.get((sub, mat))
+                if len(subs) != 1 or m is None:
+                    skipped.append({"member": mname, "izap_minus_1": len(subs), "named": m is not None})
+                    continue
+                qm, qi, izap, lfs, nbt, law, e, x = subs[0]
+                keep = recon.thin(e, x)
+                n = len(e)
+                if keep is not None:
+                    e, x = e[keep], x[keep]
+                    nbt, law = ([len(e)], [law[0]]) if len(law) == 1 else (None, None)
+                vals = {"release": out, "sublibrary": sub, "name": m["name"], "z": m["z"], "a": m["a"], "liso": m["liso"],
+                        "za": m["za"], "mat": mat, "mt": 18, "n_points": n, "e_min": float(e[0]), "e_max": float(e[-1]),
+                        "interp_nbt": nbt, "interp_law": law, "qm": qm, "qi": qi, "lr": 0, "energy_ev": e.tolist(),
+                        "xs_barn": x.tolist(), "n_served": len(e), "thinned": keep is not None, "computed": "MF10 MT18"}
+                for k, v in vals.items():
+                    cols[k].append(v)
+    rows = len(cols["mt"])
+    man = {"release": rel, "served_as": out if rows else None, "rows": rows, "skipped": skipped, "built_at": recon.now(),
+           "rule": "MF10 MT18, IZAP -1, where the material has no MF3 MT18 (as JANIS draws it)"}
+    if rows:
+        pq.write_table(pa.table(cols, schema=SCHEMA), path, compression="snappy", row_group_size=32)
+        sv = recon.serve_module()
+        prefix = f"lake/serve/endf/{out}/xs/"
+        sv.clear(prefix)
+        recon.s3().upload_file(path, B, f"{prefix}part-00000.parquet")
+        man["registered_rows"], _ = sv.register("endf_serve_xs", pq.read_schema(path), prefix,
+                                                "ENDF/B MF3 cross sections as point arrays, one row each", partition=out,
+                                                drop=False)
+        point_files_local(out, path)
+        man["by_sublibrary"] = dict(collections.Counter(cols["sublibrary"]))
+    man["seconds"] = round(time.time() - t0, 1)
+    recon.put_json(f"lake/endfb/{rel}/janis/mf10.json", man)
     shutil.rmtree(d, ignore_errors=True)
-    print(json.dumps(man), flush=True)
+    print(json.dumps({k: v for k, v in man.items() if k != "skipped"} | {"skipped": len(skipped)}), flush=True)
 
 
 if __name__ == "__main__":
     if sys.argv[1:] == ["--loop"]:
         loop()
         sys.exit()
-    if sys.argv[1:2] == ["--talys"]:
-        for r in sys.argv[2:]:
-            talys(r)
-        sys.exit()
     pks = packages()
+    if sys.argv[1:2] == ["--mf10"]:
+        for r in sys.argv[2:]:
+            try:
+                mf10(r, pks[r])
+            except Exception as e:  # noqa: BLE001
+                print(json.dumps({"release": r, "error": f"{type(e).__name__}: {e}"[:600]}), flush=True)
+        sys.exit()
     if sys.argv[1:] == ["--list"]:
         for r, (n, v, ks, ok) in sorted(pks.items()):
             print(f"{r}\t{n} {v}\t{len(ks)} jpk in the lake\t{'complete' if ok else 'incomplete'}")

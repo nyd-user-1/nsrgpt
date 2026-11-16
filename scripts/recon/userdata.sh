@@ -2,7 +2,7 @@
 # EC2 user-data for a recon box (brief 74), copied from scripts/parse/box/userdata.sh (the venv at /opt/parse) and
 # scripts/jobs/box/userdata.sh (PREPRO 2023 from the lake's copy of IAEA-NDS/PREPRO, commit cc5fd087, linear, recent and
 # sigma1 at -O2 in /opt/prepro/bin-o2). The box ends itself after 8 hours (instance-initiated shutdown terminates it).
-# Scripts come from lake/_work/parse/endfb/recon/: recon.py and janis_tabler.py to /opt/recon, serve.py, its ddl/ and
+# Scripts come from lake/_work/parse/endfb/recon/: recon.py, jpk.py, janis_serve.py and the B1 readers to /opt/recon, serve.py, its ddl/ and
 # lake.py to /opt/parse/scripts/{serve-structure,box}; the NJOY2016 binary from bin/njoy. Work is sent through SSM
 # (scripts/recon/README.md).
 set -x
@@ -19,9 +19,7 @@ cd /opt/prepro && /snap/bin/aws s3 cp s3://nsr-lake-613473203863/raw/github/IAEA
   && make FLAGS="-O2 -static-libgfortran" linear recent sigma1 && mkdir -p /opt/prepro/bin-o2 \
   && cp linear recent sigma1 /opt/prepro/bin-o2/ && rm -f linear recent sigma1
 W=s3://nsr-lake-613473203863/lake/_work/parse/endfb/recon
-/snap/bin/aws s3 cp $W/recon.py /opt/recon/ --region us-east-2
-/snap/bin/aws s3 cp $W/janis_tabler.py /opt/recon/ --region us-east-2
-/snap/bin/aws s3 cp $W/b1.py /opt/recon/ --region us-east-2
+for f in recon.py jpk.py janis_serve.py janis_tabler.py janis_book.py b1.py; do /snap/bin/aws s3 cp $W/$f /opt/recon/ --region us-east-2; done
 /snap/bin/aws s3 cp $W/serve.py /opt/parse/scripts/serve-structure/ --region us-east-2
 /snap/bin/aws s3 cp $W/lake.py /opt/parse/scripts/box/ --region us-east-2
 /snap/bin/aws s3 cp --recursive $W/ddl/ /opt/parse/scripts/serve-structure/ddl/ --region us-east-2
