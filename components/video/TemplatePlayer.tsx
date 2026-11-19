@@ -17,24 +17,45 @@ export function TemplatePlayer({ templateId, props, className }: { templateId: s
   const ref = React.useRef<PlayerRef>(null)
   const box = React.useRef<HTMLDivElement>(null)
   const played = React.useRef(false)
+  const fps = v.ok ? v.spec.fps : 30
+  const last = v.ok ? v.durationInFrames - 1 : 0
   React.useEffect(() => {
     const el = box.current
     if (!el || played.current || !v.ok) return
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    let raf = 0
+    let stopped = false
+    const stop = () => {
+      stopped = true
+      cancelAnimationFrame(raf)
+    }
+    // A click on the player stops the run and hands it the controls.
+    el.addEventListener("pointerdown", stop)
     const io = new IntersectionObserver(
       (entries) => {
         if (!entries.some((e) => e.isIntersecting) || played.current) return
         played.current = true
         io.disconnect()
-        ref.current?.seekTo(0)
-        // After the seek has landed; a start without a click, so no audio tags (numberOfSharedAudioTags below).
-        requestAnimationFrame(() => ref.current?.play())
+        // The first play runs on seeks, frame by frame in real time: the Player's own playback waits for its audio to be
+        // allowed, which the browser grants only after a click, and a chart scrolled into view has had none.
+        const t0 = performance.now()
+        const step = () => {
+          if (stopped) return
+          const f = Math.min(last, Math.floor(((performance.now() - t0) / 1000) * fps))
+          ref.current?.seekTo(f)
+          if (f < last) raf = requestAnimationFrame(step)
+        }
+        raf = requestAnimationFrame(step)
       },
       { threshold: 0.6 },
     )
     io.observe(el)
-    return () => io.disconnect()
-  }, [v.ok])
+    return () => {
+      io.disconnect()
+      stop()
+      el.removeEventListener("pointerdown", stop)
+    }
+  }, [v.ok, fps, last])
   const quiet = cn("rounded-xl border border-[var(--paper-rule)] bg-[var(--paper-quiet)] px-4 py-3 text-sm text-[var(--paper-muted)]", className)
 
   if (!v.ok) return <div className={quiet}>This chart could not be drawn.</div>
@@ -55,8 +76,7 @@ export function TemplatePlayer({ templateId, props, className }: { templateId: s
         controls
         autoPlay={false}
         loop={false}
-        // The charts have no sound. Unmuted, the Player waits for its audio context to resume before it advances a frame,
-        // and the browser resumes one only after a click: a play started as the chart scrolls into view stalled on frame 0.
+        // The charts have no sound.
         initiallyMuted
         numberOfSharedAudioTags={0}
         initialFrame={v.durationInFrames - 1}
