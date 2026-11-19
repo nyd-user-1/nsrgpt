@@ -27,7 +27,8 @@ export function TemplatePlayer({ templateId, props, className }: { templateId: s
         played.current = true
         io.disconnect()
         ref.current?.seekTo(0)
-        ref.current?.play()
+        // After the seek has landed; a start without a click, so no audio tags (numberOfSharedAudioTags below).
+        requestAnimationFrame(() => ref.current?.play())
       },
       { threshold: 0.6 },
     )
@@ -54,6 +55,9 @@ export function TemplatePlayer({ templateId, props, className }: { templateId: s
         controls
         autoPlay={false}
         loop={false}
+        // The charts have no sound. Shared audio tags would need a click to start, and the first play here has none: with
+        // them, playback scrolled into view stalled on frame 0.
+        numberOfSharedAudioTags={0}
         initialFrame={v.durationInFrames - 1}
         className="overflow-hidden rounded-xl shadow-sm ring-1 ring-[var(--paper-rule)]"
         style={{ width: "100%", aspectRatio: `${t.width} / ${t.height}` }}
