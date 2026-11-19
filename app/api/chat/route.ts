@@ -5,6 +5,7 @@ import { dataToolSpecs, isDataTool, nsrPrompt, nsrWired, runDataTool } from "@/l
 import { MODEL_IDS } from "@/lib/model-options"
 import { searchPapers, type NsrHit } from "@/lib/nsr-search"
 import { isSearchBackend } from "@/lib/search-backends"
+import { listTemplates } from "@/video/specs"
 
 // The /chat answer, trinity's mechanics on NYSgpt's stack (2026-11-04): a system prompt, then the
 // reply streamed back as plain text — the picker's model id when it is on the list, a PDF as a
@@ -15,6 +16,21 @@ import { isSearchBackend } from "@/lib/search-backends"
 // Bedrock itself rides lib/chat-data/bedrock.ts: a bearer token on the worker, the SDK elsewhere.
 
 const MODEL = () => process.env.NYSGPT_CHAT_MODEL ?? "us.anthropic.claude-sonnet-4-6"
+
+// The charts an answer may draw (Brendan, 2026-11-19): an ECharts option in a ```nsr-chart block, or one of trinity's
+// Remotion chart templates filled in a ```nsr-video block (video/specs.ts), as trinity's chat fills ```pax-video blocks
+// from its video guide. The page draws both (components/chat/ChartBlocks.tsx). The same for every request.
+const CHART_GUIDE = `=== CHARTS ===
+I can draw a chart in my answer, in one of two ways. I draw one when the numbers have a shape worth seeing: a trend across years, a comparison across nuclides, reactions, authors or libraries, values with their uncertainties. Never for a single number. I fill a chart only from figures in this conversation or from what my tools returned, and never invent a number. Before the block, one sentence says what the chart shows; I never describe the JSON.
+
+1. An ECharts chart: a \`\`\`nsr-chart code block holding one ECharts option as JSON and nothing else (no functions, no comments). It has "title": {"text": "..."}, both axes named with their units, and the data inline in "series" (with "xAxis" and "yAxis" for a cartesian chart). "type": "log" on an axis that spans orders of magnitude. Add "height" (pixels, 200 to 720) only when it needs more than 360. For line, bar and scatter charts, and anything with many points.
+
+2. An animated chart: a \`\`\`nsr-video code block holding one JSON object and nothing else: {"templateId": "<id>", "title": "<a few words naming it>", "props": {<the template's props>}}. The page plays it as a short animated chart. The props must fit the template's JSON Schema exactly; a block that does not fit is shown as an error in its place. metric-trend draws up to four series across a shared run of labels (years, mass numbers); survey-split draws a few groups' shares with their margins, in percent from 0 to 100. lift-leaderboard and lift-card draw a test's lift over a placebo in percentage points: only for figures of that kind.
+Templates:
+${listTemplates()
+  .map((t) => `- ${t.id} (${t.name}, ${t.width}x${t.height}): ${t.description}\n  Props JSON Schema: ${JSON.stringify(t.schema)}`)
+  .join("\n")}
+=== END CHARTS ===`
 
 const BASE_SYSTEM_PROMPT = `You are the assistant inside NSRgpt — nuclear data: the Nuclear Science References (NSR) bibliography and the NNDC databases ENSDF, XUNDL and EXFOR. Answer from the conversation and the tools you actually have, and when a question needs records this deployment does not carry, say so rather than estimating.
 
@@ -50,7 +66,7 @@ export async function POST(req: Request) {
   const question = lastUserAt >= 0 ? messages[lastUserAt].content : ""
   const found = isSearchBackend(searchBackend) && question.trim() ? await searchPapers(question.slice(0, 500), searchBackend) : null
   const papers = found ? `\n\nPapers my NSR search found closest to this question (key number, year, title), most similar first. Lean on them where they answer it, cite them by key number, and say plainly when they don't:\n${found.hits.map((h: NsrHit) => `${h.key_number} (${h.year ?? "n.d."}) ${h.title}`).join("\n")}` : ""
-  const system = BASE_SYSTEM_PROMPT + (tools ? `\n\n${nsrPrompt()}` : "") + papers + extra
+  const system = BASE_SYSTEM_PROMPT + (tools ? `\n\n${nsrPrompt()}` : "") + `\n\n${CHART_GUIDE}` + papers + extra
   const turns = messages
     .map((m, i) => ({ m, i }))
     .filter(({ m }) => m.content.trim())

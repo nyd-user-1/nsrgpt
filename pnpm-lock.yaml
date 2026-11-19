@@ -89,6 +89,9 @@ importers:
       '@react-three/postprocessing':
         specifier: ^3.2.2
         version: 3.2.2(@react-three/fiber@9.8.2(@types/react@19.1.8)(immer@11.2.9)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.187.0))(@types/three@0.187.0)(postprocessing@6.39.6(three@0.187.0))(react@19.1.0)(three@0.187.0)
+      '@remotion/player':
+        specifier: 4.0.524
+        version: 4.0.524(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@tailwindcss/typography':
         specifier: ^0.5.16
         version: 0.5.16(tailwindcss@4.1.11)
@@ -194,6 +197,9 @@ importers:
       remark-math:
         specifier: ^6.0.0
         version: 6.0.0
+      remotion:
+        specifier: 4.0.524
+        version: 4.0.524(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
@@ -2839,6 +2845,12 @@ packages:
         optional: true
       react-redux:
         optional: true
+
+  '@remotion/player@4.0.524':
+    resolution: {integrity: sha512-MPaV64VKX4RFNFlEkoq7kKJKV6BfpSRdCAUKcjx6lVnF1VsSeb+wZKFGb3KvB8CzHYFkUM3RvhUi0JCxhnUmmA==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -5903,6 +5915,12 @@ packages:
 
   remark@15.0.1:
     resolution: {integrity: sha512-Eht5w30ruCXgFmxVUSlNWQ9iiimq07URKeFS3hNc8cUWy1llX4KDWfyEDZRycMc+znsN9Ux5/tJ/BFdgdOwA3A==}
+
+  remotion@4.0.524:
+    resolution: {integrity: sha512-jtoQbO7+UD7/4gcl0Onjq/Q27DP3qjI9hRimJJGuvU9p6OekY+Oyn1wNjYxG+hGH4i6InDFneN3sazFLuSF4Og==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
@@ -9657,6 +9675,12 @@ snapshots:
       '@types/react': 19.1.8
       react: 19.1.0
       react-redux: 9.3.1(@types/react@19.1.8)(react@19.1.0)(redux@5.0.1)
+
+  '@remotion/player@4.0.524(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+      remotion: 4.0.524(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
 
   '@rtsao/scc@1.1.0': {}
 
@@ -13483,6 +13507,11 @@ snapshots:
       unified: 11.0.5
     transitivePeerDependencies:
       - supports-color
+
+  remotion@4.0.524(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   require-from-string@2.0.2: {}
 

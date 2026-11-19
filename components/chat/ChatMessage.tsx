@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { ChatResponseFooter } from "./ChatResponseFooter";
+import { EChartBlock, StreamingContext, VideoChartBlock } from "./ChartBlocks";
 import { AnswerOrb } from "@/components/agents/answer-orb";
 import type { ChatTurn } from "@/lib/chat-stream";
 import { cn } from "@/lib/utils";
@@ -13,8 +14,12 @@ import { cn } from "@/lib/utils";
 // Inline citations: NSR key numbers in the response become live chips that
 // open the entity panel (a scientific corpus answers with receipts).
 const KEY_RE = /\b((?:19|20)\d{2}[A-Z]{2}\d{2})\b(?!\]|\))/g;
+// Fenced blocks are left alone: a chart block's JSON (ChartBlocks.tsx) must reach its chart as written.
 const citeMarkdown = (md: string) =>
-  md.replace(KEY_RE, (m) => `[${m}](#cite:paper:${m})`);
+  md
+    .split(/(```[\s\S]*?(?:```|$))/)
+    .map((part, i) => (i % 2 ? part : part.replace(KEY_RE, (m) => `[${m}](#cite:paper:${m})`)))
+    .join("");
 
 import { SIGN_UP_EVENT, type MessageSources } from "@/hooks/useChat";
 
@@ -40,6 +45,16 @@ function components(size: ChatMarkdownSize): Components {
     ol: ({ children }) => <ol className={cn("list-decimal", s.ol)}>{children}</ol>,
     li: ({ children }) => <li className={cn(s.li, ink)}>{children}</li>,
     hr: () => <hr className="my-3 border-[var(--paper-rule)]" />,
+    // A fenced chart block draws as its chart (ChartBlocks.tsx); any other code block stays code.
+    pre: ({ children }) => {
+      const code = Array.isArray(children) ? children[0] : children;
+      const props = (code as { props?: { className?: string; children?: unknown } } | null)?.props;
+      const lang = props?.className ?? "";
+      const text = String(props?.children ?? "");
+      if (lang.includes("language-nsr-chart")) return <EChartBlock text={text} />;
+      if (lang.includes("language-nsr-video")) return <VideoChartBlock text={text} />;
+      return <pre className="mb-3 overflow-x-auto rounded-lg bg-[var(--paper-quiet)] p-3 text-sm">{children}</pre>;
+    },
     table: ({ children }) => (
       <div className="mb-3 max-w-full overflow-x-auto">
         <table className={cn("w-full border-collapse", s.table, ink)}>{children}</table>
@@ -80,13 +95,15 @@ const COMPONENTS = { base: components("base"), sm: components("sm"), xs: compone
 
 /** An answer's text as /chat renders it (brief 50): markdown with tables, TeX and the NSR-key citation chips, which open
  *  the entity through the open-entity event. The one renderer for assistant text; ChatMessage adds the chrome. */
-export function ChatMarkdown({ content, size = "base", className }: { content: string; size?: ChatMarkdownSize; className?: string }) {
+export function ChatMarkdown({ content, size = "base", className, streaming = false }: { content: string; size?: ChatMarkdownSize; className?: string; streaming?: boolean }) {
   return (
-    <div className={cn("min-w-0", size === "base" ? "space-y-3 text-base" : undefined, className)}>
-      <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]} components={COMPONENTS[size]}>
-        {citeMarkdown(content)}
-      </ReactMarkdown>
-    </div>
+    <StreamingContext.Provider value={streaming}>
+      <div className={cn("min-w-0", size === "base" ? "space-y-3 text-base" : undefined, className)}>
+        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]} components={COMPONENTS[size]}>
+          {citeMarkdown(content)}
+        </ReactMarkdown>
+      </div>
+    </StreamingContext.Provider>
   );
 }
 
@@ -131,7 +148,7 @@ export function ChatMessage({
 
   return (
     <div className={size === "base" ? "mb-6 max-w-[720px]" : "mb-4"}>
-      <ChatMarkdown content={content} size={size} />
+      <ChatMarkdown content={content} size={size} streaming={!!isStreaming} />
       {isStreaming && !content && !orb && (
         <span className="inline-block w-1.5 h-4 bg-foreground animate-pulse" />
       )}
