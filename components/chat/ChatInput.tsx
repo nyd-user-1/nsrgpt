@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, Square, ChevronDown, Search, FileText, X } from "lucide-react";
+import { ArrowUp, Square, ChevronDown, FileText, X } from "lucide-react";
 import { PlusMenu } from "@/components/chat/PlusMenu";
 import { useRouter } from "next/navigation";
 import { MODEL_OPTIONS, DEFAULT_MODEL_ID, modelById } from "@/lib/model-options";
@@ -128,40 +128,27 @@ export function ChatInputContainer({ onSubmit, onStop, isLoading, initialValue, 
             </button>
           </div>
         )}
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Chat with the NSRdb"
-          rows={1}
-          className="flex-1 min-h-[40px] w-full resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-[var(--paper-faint)] text-base text-[var(--paper-text)] outline-none"
-        />
-
-        {/* Bottom row: + button, model label, send button */}
-        <div className="flex items-center justify-between pt-1">
-          {/* + button with popup, and (on /chat) the search-mode toggle */}
-          <div className="flex items-center gap-1">
+        {/* One row (Brendan, 2026-11-19): the +, the box, the model's logo and send. The box starts one line high and grows
+            with its text; the controls stay on its last line. Search mode is in the + menu. */}
+        <div className="flex items-end gap-2">
+          <div className="flex h-9 shrink-0 items-center">
             <PlusMenu
               mode="chat"
               onSelect={handleSelectPrompt}
               onAttach={(f) => (f.size > 3_500_000 ? alert("That PDF is over 3.5 MB.") : setPdf(f))}
+              onSearchMode={searchToggle ? () => chartForward(() => router.push("/search")) : undefined}
             />
-            {searchToggle && (
-              <button
-                type="button"
-                onClick={() => chartForward(() => router.push("/search"))}
-                className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--paper-muted)] hover:text-[var(--paper-text)] hover:bg-[var(--paper-quiet)] transition-colors"
-                aria-label="Search mode"
-                title="Search mode"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            )}
           </div>
-
-          <div className="flex items-center gap-2">
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Chat with the NSRdb"
+            rows={1}
+            className="min-h-[36px] min-w-0 flex-1 resize-none border-0 bg-transparent px-0 py-1.5 text-base leading-6 text-[var(--paper-text)] placeholder:text-[var(--paper-faint)] outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <div className="flex h-9 shrink-0 items-center gap-1">
             <WarmCountdown lastCall={lambdaLastCall} ttlMs={LAMBDA_WARM_MS} />
             {/* Model selector */}
             <div className="relative" ref={modelRef}>
@@ -175,10 +162,11 @@ export function ChatInputContainer({ onSubmit, onStop, isLoading, initialValue, 
                   }
                   setModelMenuOpen(!modelMenuOpen);
                 }}
-                className="inline-flex items-center gap-1.5 text-sm text-[var(--paper-muted)] hover:text-[var(--paper-text)] transition-colors rounded-lg px-2 py-1"
+                title={modelById(selectedModel).label}
+                aria-label={`Model: ${modelById(selectedModel).label}`}
+                className="inline-flex h-9 items-center gap-1 rounded-lg px-1.5 text-[var(--paper-muted)] transition-colors hover:bg-[var(--paper-quiet)] hover:text-[var(--paper-text)]"
               >
                 <img src={modelById(selectedModel).logo} alt="" width={16} height={16} className="rounded-sm" />
-                <span className="font-medium">{modelById(selectedModel).label}</span>
                 <ChevronDown className={`h-3 w-3 transition-transform ${modelMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
@@ -214,7 +202,7 @@ export function ChatInputContainer({ onSubmit, onStop, isLoading, initialValue, 
               type="button"
               onClick={isLoading ? onStop : handleSubmit}
               disabled={!isLoading && !value.trim()}
-              className={`h-10 w-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+              className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
                 isLoading
                   ? "bg-destructive hover:bg-destructive/90 text-white"
                   : "bg-[var(--paper-text)] hover:opacity-85 text-[var(--paper)]"

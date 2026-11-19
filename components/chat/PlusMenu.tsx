@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Plus, ChevronRight, ArrowLeft,
-  Lightbulb, Atom, Zap, Users, X, BarChart3, Paperclip,
+  Lightbulb, Atom, Zap, Users, X, BarChart3, Paperclip, Search,
 } from "lucide-react";
 import { fetchData } from "@/lib/use-data";
 import { VIZ_CHARTS } from "@/lib/viz-charts";
@@ -132,6 +132,8 @@ interface PlusMenuProps {
   mode: "chat" | "search";
   /** A PDF picked from the menu; the chat sends it with each question. */
   onAttach?: (file: File) => void;
+  /** On /chat: the menu ends with Search mode, which opens /search (it used to be a button beside the +). */
+  onSearchMode?: () => void;
 }
 
 // The /viz charts, by their page names, for the Charts drawer.
@@ -141,7 +143,7 @@ const CHARTS = VIZ_CHARTS.map((c) => ({ href: c.href, name: HEADER_TITLES[c.href
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function PlusMenu({ onSelect, mode, onAttach }: PlusMenuProps) {
+export function PlusMenu({ onSelect, mode, onAttach, onSearchMode }: PlusMenuProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [drawerCategory, setDrawerCategory] = useState<DrawerCategory | null>(null);
@@ -385,6 +387,15 @@ export function PlusMenu({ onSelect, mode, onAttach }: PlusMenuProps) {
               >
                 <span className="text-[var(--paper-muted)]"><Paperclip className="h-5 w-5" /></span>
                 Attach a PDF
+              </button>
+            )}
+            {onSearchMode && (
+              <button
+                onClick={() => { closeMenu(); onSearchMode(); }}
+                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-[var(--paper-quiet)] transition-colors border-t border-[var(--paper-rule-soft)]"
+              >
+                <span className="text-[var(--paper-muted)]"><Search className="h-5 w-5" /></span>
+                Search mode
               </button>
             )}
           </div>
