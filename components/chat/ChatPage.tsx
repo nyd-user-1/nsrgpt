@@ -6,7 +6,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { ChatInputContainer } from "@/components/chat/ChatInput";
 import { DetailBody, type EntityType } from "@/components/chat/EntityDetail";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { ArrowDown, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { EASE_OUT } from "@/lib/ease";
 import { SIGN_UP_EVENT, useChat } from "@/hooks/useChat";
 import { SignUpDialog } from "@/components/chat/SignUpDialog";
 import { SEED_PREFIX } from "@/lib/pane";
@@ -70,10 +72,17 @@ export function ChatPage() {
     fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wake: true }), keepalive: true }).catch(() => {});
   }, []);
 
-  // Auto-scroll on new messages
+  // Follow the stream only while the reader is already at the end (pax-trinity's chat.tsx); scrolled up to read, the page
+  // holds still and the round arrow is the way back down. A new question sends the reader back to following.
+  const stickRef = useRef(true);
+  const [atEnd, setAtEnd] = useState(true);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (stickRef.current) messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+  const toEnd = () => {
+    stickRef.current = true;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   // Cmd+Shift+O → new chat
   useEffect(() => {
@@ -169,15 +178,45 @@ export function ChatPage() {
   // The orb stands under the newest answer (brief 50, components/agents/answer-orb.tsx).
   const orbAt = [...messages].reverse().find((m) => m.role === "assistant")?.id;
   const turns = messages.map((m) => ({ role: m.role, content: m.content }));
-  const askNext = (q: string) => sendMessage(q, seedRef.current ?? undefined);
+  const askNext = (q: string) => {
+    stickRef.current = true;
+    sendMessage(q, seedRef.current ?? undefined);
+  };
+
+  // Two follow-ups (Brendan, 2026-11-19): once the newest answer has finished and the reader has reached its end, two next
+  // prompts float into place above the input; one click asks it. Fetched once per answer from the orb's endpoint
+  // (/api/chat/follow-ups), the first two of its three.
+  const [followUps, setFollowUps] = useState<Record<string, string[] | "loading" | "none">>({});
+  const last = messages[messages.length - 1];
+  const done = !!last && last.role === "assistant" && !last.isStreaming && !isLoading && !!last.content && !last.signup;
+  useEffect(() => {
+    if (!done || !atEnd || !last || followUps[last.id]) return;
+    const id = last.id;
+    setFollowUps((f) => ({ ...f, [id]: "loading" }));
+    fetch("/api/chat/follow-ups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: turns }) })
+      .then((r) => (r.ok ? (r.json() as Promise<{ suggestions?: string[] }>) : null))
+      .then((d) => setFollowUps((f) => ({ ...f, [id]: d?.suggestions?.length ? d.suggestions.slice(0, 2) : "none" })))
+      .catch(() => setFollowUps((f) => ({ ...f, [id]: "none" })));
+    // turns is rebuilt every render; the answer's id is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, atEnd, last?.id]);
+  const next = done && atEnd && last && Array.isArray(followUps[last.id]) ? (followUps[last.id] as string[]) : null;
 
   return (
     <div className="flex h-full min-h-0">
-    <div className="flex h-full min-w-0 flex-1 flex-col">
+    <div className="relative flex h-full min-w-0 flex-1 flex-col">
       {hasMessages ? (
         <>
           {/* Messages — scrollable */}
-          <div className="flex-1 overflow-y-auto">
+          <div
+            className="flex-1 overflow-y-auto"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+              stickRef.current = gap < 120;
+              setAtEnd(gap < 120);
+            }}
+          >
             <div className="mx-auto max-w-[720px] px-2 md:px-4 py-4 md:py-8">
               {messages.map((msg) => (
                 <Suspense key={msg.id} fallback={<div className="mb-6 h-16 animate-pulse rounded-lg bg-[var(--paper-quiet)]" />}>
@@ -196,10 +235,49 @@ export function ChatPage() {
             </div>
           </div>
 
+          {/* Scrolled up from the end, while it streams or after, the round arrow brings the reader back to it. */}
+          {!atEnd && (
+            <button
+              type="button"
+              onClick={toEnd}
+              aria-label="Back to the latest"
+              className="absolute bottom-28 left-1/2 z-20 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--paper-rule)] bg-[var(--paper)] text-[var(--paper-muted)] shadow-lg transition-colors hover:text-[var(--paper-text)]"
+            >
+              <ArrowDown className="h-4 w-4" />
+            </button>
+          )}
+
           {/* Input pinned to bottom */}
           <div className="px-2 md:px-4 py-3 md:py-4 shrink-0 bg-[var(--paper)]">
+            <AnimatePresence>
+              {next && (
+                <motion.div
+                  key={last!.id}
+                  className="mx-auto mb-2 flex w-full max-w-[720px] flex-wrap gap-2"
+                  initial="hidden"
+                  animate="shown"
+                  exit={{ opacity: 0, y: 6, transition: { duration: 0.15 } }}
+                  variants={{ hidden: {}, shown: { transition: { staggerChildren: 0.08 } } }}
+                >
+                  {next.map((q) => (
+                    <motion.button
+                      key={q}
+                      type="button"
+                      onClick={() => askNext(q)}
+                      variants={{ hidden: { opacity: 0, y: 14 }, shown: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASE_OUT } } }}
+                      className="rounded-xl border border-[var(--paper-rule)] bg-[var(--paper)] px-3.5 py-2 text-left text-sm text-[var(--paper-text)] shadow-sm transition-colors hover:bg-[var(--paper-quiet)]"
+                    >
+                      {q}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
             <ChatInputContainer
-              onSubmit={(text, modelId, pdf, backend) => sendMessage(text, seedRef.current ?? undefined, undefined, modelId, pdf, backend)}
+              onSubmit={(text, modelId, pdf, backend) => {
+                stickRef.current = true;
+                sendMessage(text, seedRef.current ?? undefined, undefined, modelId, pdf, backend);
+              }}
               lambdaLastCall={lambdaLastCall}
               onStop={stopGeneration}
               isLoading={isLoading}

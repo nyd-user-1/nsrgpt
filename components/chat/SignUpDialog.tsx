@@ -10,6 +10,7 @@ import { EASE_OUT } from "@/lib/ease"
 // six-digit code Cognito emails, then signed in, and the kept question goes again. The flow is the sign-in page's
 // (app/(bare)/signin/SignInForm.tsx) on the same API (/api/auth/signup, confirm, resend, signin). A reader who already
 // has an account signs in here instead. Dismissible: the message and its link stay.
+// Forgot password (2026-11-19, from the sign-in page): the email, then the emailed code and a new password, then signed in.
 
 const SANS = { fontFamily: 'var(--font-sans, "DM Sans"), sans-serif' } as const
 const SERIF = { fontFamily: "var(--font-display), Georgia, serif" } as const
@@ -25,7 +26,7 @@ const post = async (action: string, body: object) => {
 
 export function SignUpDialog({ open, onClose, onSignedIn }: { open: boolean; onClose: () => void; onSignedIn: () => void }) {
   const [mode, setMode] = React.useState<"signup" | "signin">("signup")
-  const [step, setStep] = React.useState<"form" | "code">("form")
+  const [step, setStep] = React.useState<"form" | "code" | "forgot" | "reset">("form")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [code, setCode] = React.useState("")
@@ -59,7 +60,18 @@ export function SignUpDialog({ open, onClose, onSignedIn }: { open: boolean; onC
     setError(null)
     setNotice(null)
     try {
-      if (step === "code") {
+      if (step === "forgot") {
+        const r = await post("forgot", { email })
+        if (r.ok) {
+          setCode("")
+          setPassword("")
+          setStep("reset")
+        } else setError(r.error ?? "Something went wrong. Try again.")
+      } else if (step === "reset") {
+        const r = await post("reset", { email, code, password })
+        if (r.ok) await signin()
+        else setError(r.error ?? "Something went wrong. Try again.")
+      } else if (step === "code") {
         const r = await post("confirm", { email, code })
         if (r.ok) await signin()
         else setError(r.error ?? "Something went wrong. Try again.")
@@ -71,6 +83,14 @@ export function SignUpDialog({ open, onClose, onSignedIn }: { open: boolean; onC
     } finally {
       setBusy(false)
     }
+  }
+
+  const title = step === "forgot" || step === "reset" ? "Reset your password" : mode === "signup" ? "Create an account" : "Sign in"
+  const back = () => {
+    setStep("form")
+    setMode("signin")
+    setError(null)
+    setNotice(null)
   }
 
   return (
@@ -90,7 +110,7 @@ export function SignUpDialog({ open, onClose, onSignedIn }: { open: boolean; onC
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label={mode === "signup" ? "Create an account" : "Sign in"}
+            aria-label={title}
             className="relative w-full max-w-sm rounded-2xl border border-[var(--paper-rule)] bg-[var(--paper)] p-6 text-[var(--paper-text)] shadow-[0_8px_40px_rgba(0,0,0,0.25)]"
             style={SANS}
             initial={{ opacity: 0, y: 16 }}
@@ -102,10 +122,31 @@ export function SignUpDialog({ open, onClose, onSignedIn }: { open: boolean; onC
               <X className="h-4 w-4" />
             </button>
             <p className="m-0 mb-5 text-[26px] leading-tight" style={SERIF}>
-              {mode === "signup" ? "Create an account" : "Sign in"}
+              {title}
             </p>
             <form onSubmit={submit} className="flex flex-col gap-4">
-              {step === "code" ? (
+              {step === "forgot" ? (
+                <label className="flex flex-col gap-1.5 text-sm font-medium">
+                  Email
+                  <input type="email" required autoFocus autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD} />
+                </label>
+              ) : step === "reset" ? (
+                <>
+                  <p className="m-0 flex items-start gap-2.5 rounded-xl bg-[var(--paper-quiet)] px-4 py-3 text-sm leading-relaxed">
+                    <MailCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
+                    {notice ?? `If ${email} has an account, a six-digit code is on its way to it.`}
+                  </p>
+                  <label className="flex flex-col gap-1.5 text-sm font-medium">
+                    Code
+                    <input autoFocus inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} className={`${FIELD} tabular-nums tracking-[0.3em]`} />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-sm font-medium">
+                    New password
+                    <input type="password" required minLength={10} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} />
+                    <span className="text-xs font-normal text-[var(--paper-muted)]">At least 10 characters, with a lowercase letter and a number.</span>
+                  </label>
+                </>
+              ) : step === "code" ? (
                 <>
                   <p className="m-0 flex items-start gap-2.5 rounded-xl bg-[var(--paper-quiet)] px-4 py-3 text-sm leading-relaxed">
                     <MailCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -127,13 +168,49 @@ export function SignUpDialog({ open, onClose, onSignedIn }: { open: boolean; onC
                     <input type="password" required minLength={mode === "signup" ? 10 : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} />
                     {mode === "signup" && <span className="text-xs font-normal text-[var(--paper-muted)]">At least 10 characters, with a lowercase letter and a number.</span>}
                   </label>
+                  {mode === "signin" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("forgot")
+                        setError(null)
+                        setNotice(null)
+                      }}
+                      className={`-mt-2 self-end ${QUIET}`}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
                 </>
               )}
               {error && <p className="m-0 text-sm font-medium text-[var(--pax2-red)]">{error}</p>}
-              <button type="submit" disabled={busy || (step === "code" ? code.trim().length < 6 : !email || !password)} className={BUTTON}>
-                {busy ? "One moment…" : step === "code" ? "Confirm and ask" : mode === "signup" ? "Create the account" : "Sign in and ask"} <ArrowRight className="size-4" aria-hidden />
+              <button
+                type="submit"
+                disabled={busy || (step === "forgot" ? !email : step === "reset" ? code.trim().length < 6 || !password : step === "code" ? code.trim().length < 6 : !email || !password)}
+                className={BUTTON}
+              >
+                {busy ? "One moment…" : step === "forgot" ? "Send a reset code" : step === "reset" ? "Set password and ask" : step === "code" ? "Confirm and ask" : mode === "signup" ? "Create the account" : "Sign in and ask"} <ArrowRight className="size-4" aria-hidden />
               </button>
-              {step === "code" ? (
+              {step === "forgot" || step === "reset" ? (
+                <>
+                  {step === "reset" && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={async () => {
+                        await post("forgot", { email })
+                        setNotice(`A new code is on its way to ${email}.`)
+                      }}
+                      className={QUIET}
+                    >
+                      Send a new code
+                    </button>
+                  )}
+                  <button type="button" disabled={busy} onClick={back} className={QUIET}>
+                    Back to sign in
+                  </button>
+                </>
+              ) : step === "code" ? (
                 <button
                   type="button"
                   disabled={busy}
