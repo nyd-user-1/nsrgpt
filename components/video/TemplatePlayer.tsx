@@ -55,8 +55,9 @@ export function TemplatePlayer({ templateId, props, className }: { templateId: s
         controls
         autoPlay={false}
         loop={false}
-        // The charts have no sound. Shared audio tags would need a click to start, and the first play here has none: with
-        // them, playback scrolled into view stalled on frame 0.
+        // The charts have no sound. Unmuted, the Player waits for its audio context to resume before it advances a frame,
+        // and the browser resumes one only after a click: a play started as the chart scrolls into view stalled on frame 0.
+        initiallyMuted
         numberOfSharedAudioTags={0}
         initialFrame={v.durationInFrames - 1}
         className="overflow-hidden rounded-xl shadow-sm ring-1 ring-[var(--paper-rule)]"
