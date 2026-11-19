@@ -1,31 +1,33 @@
 import * as React from "react"
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion"
 
-import { CLAMP, enter } from "../../motion"
-import { BANDS, COLOR, FONT, LAYOUT, TYPE, sec } from "../../theme"
-import type { MetricTrendProps } from "./schema"
+import { CLAMP, enter, fade } from "../../motion"
+import { fmt, niceTicks } from "../../scale"
+import { FONT, LAYOUT, TYPE, palette, sec } from "../../theme"
+import type { SeriesTrendProps } from "./schema"
 
-// A metric across waves. The title lands; then every line draws left to right
-// together, a dot leading each, on a scale that hugs the data. When the reveal
-// passes the annotated point, its callout springs in above it. Each line's last
-// value is labeled at its end once the reveal finishes.
+// trinity's metric-trend in NSRgpt's palette. The title lands; then every line draws left to right together, a dot
+// leading each, on round ticks that hug the data. When the reveal passes the annotated point, its callout springs in
+// above it. Each line's last value is labelled at its end once the reveal finishes; the source fades in at the foot.
 
 const REVEAL = [0.6, 6] as const // seconds
 const TOP = 230
-const BOTTOM = 150
-const LEFT = 150
-const RIGHT = 220
+const BOTTOM = 170
+const LEFT = 170
+const RIGHT = 240
 
-export function MetricTrendComposition({ title, series, unit = "", annotation }: MetricTrendProps) {
+export function SeriesTrendComposition({ title, series, unit = "", annotation, source, theme }: SeriesTrendProps) {
   const frame = useCurrentFrame()
   const { fps, width, height } = useVideoConfig()
+  const c = palette(theme)
   const head = enter(frame, fps)
 
   const n = Math.max(...series.map((s) => s.points.length))
   const labels = (series.find((s) => s.points.length === n) ?? series[0]).points.map((p) => p.label)
   const values = series.flatMap((s) => s.points.map((p) => p.value))
-  const lo = Math.floor(Math.min(...values) / 10) * 10
-  const hi = Math.ceil(Math.max(...values) / 10) * 10 || lo + 10
+  const ticks = niceTicks(Math.min(0, ...values), Math.max(...values), 5)
+  const lo = ticks[0]
+  const hi = ticks[ticks.length - 1] > lo ? ticks[ticks.length - 1] : lo + 1
   const plotW = width - LEFT - RIGHT
   const plotH = height - TOP - BOTTOM
   const x = (i: number) => LEFT + (n === 1 ? 0 : (i / (n - 1)) * plotW)
@@ -35,18 +37,18 @@ export function MetricTrendComposition({ title, series, unit = "", annotation }:
   const at = interpolate(frame, [sec(REVEAL[0], fps), sec(REVEAL[1], fps)], [0, n - 1], { ...CLAMP, easing: Easing.inOut(Easing.cubic) })
   const done = at >= n - 1
   const step = Math.max(1, Math.ceil(n / 9))
-  const ticks = Array.from({ length: (hi - lo) / 10 + 1 }, (_, i) => lo + i * 10).filter((_, i, all) => all.length <= 7 || i % 2 === 0)
   const callout = annotation ? enter(frame, fps, Math.ceil(interpolate(annotation.atIndex, [0, n - 1], [sec(REVEAL[0], fps), sec(REVEAL[1], fps)]))) : 0
+  const foot = fade(frame, fps, sec(REVEAL[1], fps))
 
   return (
-    <AbsoluteFill style={{ backgroundColor: COLOR.mist, fontFamily: FONT.family, color: COLOR.ink }}>
+    <AbsoluteFill style={{ backgroundColor: c.ground, fontFamily: FONT.family, color: c.ink }}>
       <div style={{ position: "absolute", left: LAYOUT.safe, right: LAYOUT.safe, top: LAYOUT.safe, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: LAYOUT.gap, opacity: head, transform: `translateY(${(1 - head) * 24}px)` }}>
         <div style={{ fontSize: TYPE.heading, fontWeight: 700, letterSpacing: -0.5 }}>{title}</div>
         {series.length > 1 && (
           <div style={{ display: "flex", gap: 28 }}>
             {series.map((s, i) => (
-              <span key={s.name} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: TYPE.caption, color: COLOR.secondary }}>
-                <span style={{ width: 28, height: 6, borderRadius: 3, backgroundColor: BANDS[i] }} />
+              <span key={s.name} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: TYPE.caption, color: c.secondary }}>
+                <span style={{ width: 28, height: 6, borderRadius: 3, backgroundColor: c.series[i] }} />
                 {s.name}
               </span>
             ))}
@@ -57,16 +59,16 @@ export function MetricTrendComposition({ title, series, unit = "", annotation }:
       <svg width={width} height={height} style={{ position: "absolute", inset: 0 }}>
         {ticks.map((t) => (
           <g key={t} opacity={head}>
-            <line x1={LEFT} x2={LEFT + plotW} y1={y(t)} y2={y(t)} stroke={COLOR.rule} strokeWidth={t === lo ? 2 : 1} />
-            <text x={LEFT - 20} y={y(t)} textAnchor="end" dominantBaseline="middle" fontSize={TYPE.small} fill={COLOR.faint} fontFamily={FONT.family}>
-              {t}
-              {unit}
+            <line x1={LEFT} x2={LEFT + plotW} y1={y(t)} y2={y(t)} stroke={c.rule} strokeWidth={t === lo ? 2 : 1} />
+            <text x={LEFT - 20} y={y(t)} textAnchor="end" dominantBaseline="middle" fontSize={TYPE.small} fill={c.faint} fontFamily={FONT.family}>
+              {fmt(t)}
+              {unit && ` ${unit}`}
             </text>
           </g>
         ))}
         {labels.map((l, i) =>
           i % step === 0 || i === n - 1 ? (
-            <text key={l + i} x={x(i)} y={TOP + plotH + 44} textAnchor="middle" fontSize={TYPE.small} fill={i <= at ? COLOR.muted : COLOR.rule} fontFamily={FONT.family}>
+            <text key={l + i} x={x(i)} y={TOP + plotH + 44} textAnchor="middle" fontSize={TYPE.small} fill={i <= at ? c.muted : c.rule} fontFamily={FONT.family}>
               {l}
             </text>
           ) : null,
@@ -83,15 +85,15 @@ export function MetricTrendComposition({ title, series, unit = "", annotation }:
             pts.push([x(upto), y(a + (b - a) * (upto - whole))])
           }
           const tip = pts[pts.length - 1]
-          const color = BANDS[si]
+          const color = c.series[si]
           return (
             <g key={s.name}>
               <polyline points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke={color} strokeWidth={6} strokeLinejoin="round" strokeLinecap="round" />
-              <circle cx={tip[0]} cy={tip[1]} r={12} fill={color} stroke={COLOR.white} strokeWidth={4} opacity={head} />
+              <circle cx={tip[0]} cy={tip[1]} r={12} fill={color} stroke={c.ground} strokeWidth={4} opacity={head} />
               {done && (
                 <text x={tip[0] + 24} y={tip[1]} dominantBaseline="middle" fontSize={TYPE.label} fontWeight={700} fill={color} fontFamily={FONT.family}>
-                  {s.points[last].value.toFixed(1)}
-                  {unit}
+                  {fmt(s.points[last].value)}
+                  {unit && ` ${unit}`}
                 </text>
               )}
             </g>
@@ -107,14 +109,18 @@ export function MetricTrendComposition({ title, series, unit = "", annotation }:
           t={callout}
           right={x(annotation.atIndex) > width / 2}
           below={y((series[0].points[annotation.atIndex] ?? series[0].points[series[0].points.length - 1]).value) < TOP + 160}
+          card={c.card}
+          ink={c.accent}
         />
       )}
+
+      <div style={{ position: "absolute", left: LAYOUT.safe, bottom: 48, fontSize: TYPE.small, color: c.muted, opacity: foot }}>{source}</div>
     </AbsoluteFill>
   )
 }
 
 /** Above its point, or below it where the point sits near the top. */
-function Callout({ x, y, text, t, right, below }: { x: number; y: number; text: string; t: number; right: boolean; below: boolean }) {
+function Callout({ x, y, text, t, right, below, card, ink }: { x: number; y: number; text: string; t: number; right: boolean; below: boolean; card: string; ink: string }) {
   return (
     <div
       style={{
@@ -126,7 +132,7 @@ function Callout({ x, y, text, t, right, below }: { x: number; y: number; text: 
         opacity: t,
       }}
     >
-      <div style={{ padding: "16px 24px", borderRadius: 18, backgroundColor: COLOR.white, boxShadow: "0 8px 24px rgb(15 23 42 / 0.10)", fontSize: TYPE.label, fontWeight: 600, color: COLOR.blue, whiteSpace: "nowrap" }}>{text}</div>
+      <div style={{ padding: "16px 24px", borderRadius: 18, backgroundColor: card, boxShadow: "0 8px 24px rgb(15 23 42 / 0.10)", fontSize: TYPE.label, fontWeight: 600, color: ink, whiteSpace: "nowrap" }}>{text}</div>
     </div>
   )
 }

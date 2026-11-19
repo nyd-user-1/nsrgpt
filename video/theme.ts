@@ -108,3 +108,44 @@ export const MOTION = {
 
 /** Seconds to frames at the house rate. */
 export const sec = (s: number, fps: number = FPS) => Math.round(s * fps)
+
+// ---- NSRgpt (Brendan, 2026-11-19): the charts' own palette, light and dark, from NSRgpt's chart code
+// (components/viz/use-echart.ts: slate axis ink, navy series; dark: lighter ink, brighter navy) on the app's paper.
+// A template takes `theme` from the page and draws in these.
+
+export type Theme = "light" | "dark"
+
+export const NSR = {
+  light: {
+    ground: "#ffffff",
+    ink: "#16181d",
+    secondary: "#334155",
+    muted: "#64748b",
+    faint: "#94a3b8",
+    rule: "#e2e8f0",
+    card: "#f8fafc",
+    series: ["#1e3a8a", "#2563eb", "#0891b2", "#eb6834", "#eda100", "#7c3aed"],
+    accent: "#2563eb",
+    measured: "#dc2626",
+  },
+  dark: {
+    ground: "#15120d",
+    ink: "#f0e9d8",
+    secondary: "#cbd5e1",
+    muted: "#94a3b8",
+    faint: "#64748b",
+    rule: "rgba(240, 233, 216, 0.14)",
+    card: "#1d1912",
+    series: ["#60a5fa", "#93c5fd", "#22d3ee", "#fb923c", "#facc15", "#a78bfa"],
+    accent: "#60a5fa",
+    measured: "#f87171",
+  },
+} as const
+
+export const palette = (t: Theme | undefined) => NSR[t ?? "light"]
+
+/** The chart of the nuclides' decay-mode colours (NSRgpt's rainfall and chart pages): alpha gold, beta-minus blue,
+ *  beta-plus and electron capture red, fission green, isomeric transition violet. */
+export const MODE_COLOR: Record<string, string> = { A: "#eda100", "B-": "#2563eb", "B+": "#dc2626", EC: "#dc2626", SF: "#16a34a", IT: "#7c3aed" }
+/** The same modes as a reader writes them. */
+export const MODE_LABEL: Record<string, string> = { A: "α", "B-": "β−", "B+": "β+", EC: "EC", SF: "SF", IT: "IT" }

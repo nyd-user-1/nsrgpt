@@ -2,20 +2,20 @@ import type * as React from "react"
 
 import { allSpecs, getSpec, type AnySpec } from "./specs"
 import type { Template } from "./template"
-import { LiftCardComposition } from "./templates/lift-card/Composition"
-import { LiftLeaderboardComposition } from "./templates/lift-leaderboard/Composition"
-import { MetricTrendComposition } from "./templates/metric-trend/Composition"
-import { SurveySplitComposition } from "./templates/survey-split/Composition"
+import { DecayChainComposition } from "./templates/decay-chain/Composition"
+import { HalfLifeBarsComposition } from "./templates/half-life-bars/Composition"
+import { SeriesTrendComposition } from "./templates/series-trend/Composition"
+import { XsCurveComposition } from "./templates/xs-curve/Composition"
 
 // Each spec (specs.ts) with the Remotion component that draws it (trinity's src/video/registry.ts): what TemplatePlayer
 // plays in the page. Client bundles only: the components need React's client runtime, so server code reads specs.ts.
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const COMPONENTS: Record<string, React.ComponentType<any>> = {
-  "lift-card": LiftCardComposition,
-  "lift-leaderboard": LiftLeaderboardComposition,
-  "survey-split": SurveySplitComposition,
-  "metric-trend": MetricTrendComposition,
+  "xs-curve": XsCurveComposition,
+  "decay-chain": DecayChainComposition,
+  "half-life-bars": HalfLifeBarsComposition,
+  "series-trend": SeriesTrendComposition,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,6 +37,12 @@ export function getTemplate(id: string): AnyTemplate | null {
 
 export function allTemplates(): readonly AnyTemplate[] {
   return ALL
+}
+
+/** Specs that have no component, and components that have no spec: both should be empty. */
+export function unpaired() {
+  const specIds = new Set(allSpecs().map((s) => s.id))
+  return { specs: [...specIds].filter((id) => !COMPONENTS[id]), components: Object.keys(COMPONENTS).filter((id) => !specIds.has(id)) }
 }
 
 export { durationOf, listTemplates, validate } from "./specs"

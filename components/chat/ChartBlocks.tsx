@@ -3,12 +3,12 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 
-// The charts an answer draws (Brendan, 2026-11-19), in two fenced blocks the model writes (app/api/chat/route.ts
+// The charts an answer draws (Brendan, 2026-11-19; brief 78), in two fenced blocks the model writes (app/api/chat/route.ts
 // CHART_GUIDE):
-// - ```nsr-video: one of trinity's Remotion chart templates filled with the answer's numbers ({ templateId, title, props },
-//   video/specs.ts), played live in the page by Remotion's Player (components/video/TemplatePlayer.tsx), as trinity's
-//   chat draws its ```pax-video blocks.
-// - ```nsr-chart: an ECharts option as JSON, drawn on a canvas in the page's light or dark colours.
+// - ```nsr-video: one of NSRgpt's Remotion chart templates (video/specs.ts), played in by Remotion's Player
+//   (components/video/TemplatePlayer.tsx), as trinity's chat draws its ```pax-video blocks. A template filled from the API
+//   names its data; the rows are fetched here before the Player mounts.
+// - ```nsr-chart: the fallback for a shape no template covers, an ECharts option as JSON in the page's light or dark.
 // While the answer streams, a block's JSON is still arriving: it shows a quiet line until it parses.
 
 /** Whether the answer holding a block is still streaming (ChatMarkdown provides it). */
@@ -32,15 +32,59 @@ function parse(text: string): Record<string, unknown> | null {
   }
 }
 
-/** A ```nsr-video block: a filled Remotion chart template. */
+/** The page's light or dark, live: the templates draw in it (video/theme.ts NSR). */
+function usePageTheme(): "light" | "dark" {
+  const read = () => (typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light");
+  const [theme, setTheme] = React.useState<"light" | "dark">("light");
+  React.useEffect(() => {
+    setTheme(read());
+    const m = new MutationObserver(() => setTheme(read()));
+    m.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => m.disconnect();
+  }, []);
+  return theme;
+}
+
+/** A ```nsr-video block: one of NSRgpt's Remotion chart templates (video/specs.ts). A template the page fills names its
+ *  data (video/queries.ts): the rows are fetched from the cached API before the Player mounts (components/video/
+ *  loaders.ts). Any other carries its props, filled from the conversation's tool rows. */
 export function VideoChartBlock({ text }: { text: string }) {
   const streaming = React.useContext(StreamingContext);
   const block = React.useMemo(() => parse(text), [text]);
-  if (!block || typeof block.templateId !== "string") return <Quiet>{streaming ? "Drawing the chart…" : "This chart could not be drawn."}</Quiet>;
+  const theme = usePageTheme();
+  const [loaded, setLoaded] = React.useState<{ key: string; props?: Record<string, unknown>; error?: string } | null>(null);
+  const id = typeof block?.templateId === "string" ? block.templateId : null;
+  const wantsData = !!id && block?.data !== undefined;
+  React.useEffect(() => {
+    if (!id || !wantsData || streaming) return;
+    let live = true;
+    const key = text;
+    (async () => {
+      const { QUERIES, isQueryId } = await import("@/video/queries");
+      if (!isQueryId(id)) throw new Error(`${id} does not take data.`);
+      const q = QUERIES[id].safeParse(block!.data);
+      if (!q.success) throw new Error(q.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
+      const { loadProps } = await import("@/components/video/loaders");
+      return loadProps(id, q.data);
+    })()
+      .then((props) => live && setLoaded({ key, props: typeof block?.title === "string" ? { ...props, title: block.title } : props }))
+      .catch((e: Error) => live && setLoaded({ key, error: e.message }));
+    return () => {
+      live = false;
+    };
+    // The block's text names it; a new text is a new block.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, streaming]);
+  if (!block || !id) return <Quiet>{streaming ? "Drawing the chart…" : "This chart could not be drawn."}</Quiet>;
+  let props: unknown = block.props;
+  if (wantsData) {
+    if (!loaded || loaded.key !== text) return <Quiet>{streaming ? "Drawing the chart…" : "Fetching the data for the chart…"}</Quiet>;
+    if (loaded.error) return <Quiet>This chart could not be drawn: {loaded.error}</Quiet>;
+    props = loaded.props;
+  }
   return (
     <figure className="my-4">
-      <TemplatePlayer templateId={block.templateId} props={block.props} />
-      {typeof block.title === "string" && <figcaption className="mt-2 text-center text-xs text-[var(--paper-muted)]">{block.title}</figcaption>}
+      <TemplatePlayer templateId={id} props={props && typeof props === "object" ? { ...(props as object), theme } : props} />
     </figure>
   );
 }
